@@ -56,6 +56,7 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         outputCurrency: policy.outputCurrency,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
+        autoReporting: policy.autoReporting,
     };
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
@@ -116,6 +117,7 @@ function IOURequestStepParticipants({
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
 
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id);
@@ -204,6 +206,8 @@ function IOURequestStepParticipants({
             }
 
             const firstParticipantReportID = val.at(0)?.reportID;
+            const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
+            const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
             transactions.forEach((transaction) => {
@@ -213,8 +217,6 @@ function IOURequestStepParticipants({
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-                const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
-                const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
                 transactions.forEach((transaction) => {
                     setCustomUnitRateID(transaction.transactionID, rateID);
@@ -231,9 +233,13 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            selectedReportID.current = firstParticipantReportID || generateReportID();
+            if (isPolicyExpenseChat && !policy?.autoReporting && !personalPolicy?.autoReporting) {
+                selectedReportID.current = CONST.REPORT.UNREPORTED_REPORT_ID;
+            } else {
+                selectedReportID.current = firstParticipantReportID || generateReportID();
+            }
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates],
+        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, personalPolicy, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(() => {

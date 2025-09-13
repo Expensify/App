@@ -18,16 +18,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {
-    buildOptimisticExpenseReport,
-    getDefaultWorkspaceAvatar,
-    getOutstandingReportsForUser,
-    getReportName,
-    isArchivedReport,
-    isMoneyRequestReport,
-    isReportOutstanding,
-    populateOptimisticReportFormula,
-} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -293,7 +284,6 @@ function MoneyRequestConfirmationListFooter({
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
-
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     const senderWorkspace = useMemo(() => {
@@ -311,6 +301,7 @@ function MoneyRequestConfirmationListFooter({
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -327,12 +318,10 @@ function MoneyRequestConfirmationListFooter({
         }
         return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
     }, [allReports, selectedReportID]);
-    let reportName = getReportName(selectedReport, selectedPolicy);
 
+    let reportName = isUnreported ? 'None' : getReportName(selectedReport, selectedPolicy); // s77rt
     if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, selectedPolicy?.id, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
-        selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
-        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
+        reportName = 'New report'; // s77rt
     }
 
     // When creating an expense in an individual report, the report field becomes read-only
