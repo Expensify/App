@@ -42,7 +42,8 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {generateReportID, getReportOrDraftReport, isArchivedReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
@@ -179,6 +180,25 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
+
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    const reportId = key.slice(prefixLength);
+                    ids.add(reportId);
+                }
+            }
+            return ids;
+        },
+    });
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -467,6 +487,7 @@ function IOURequestStepConfirmation({
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
+                const isLinkedTrackedExpenseReportArchived = !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(item.linkedTrackedExpenseReportID);
 
                 if (isTestDriveReceipt) {
                     completeTestDriveTask();
@@ -512,6 +533,7 @@ function IOURequestStepConfirmation({
                         isTestDrive: item.receipt?.isTestDriveReceipt,
                         originalTransactionID: item.comment?.originalTransactionID,
                         source: item.comment?.source,
+                        isLinkedTrackedExpenseReportArchived,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
@@ -534,6 +556,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             backToReport,
             shouldGenerateTransactionThreadReport,
+            archivedReportsIdSet,
         ],
     );
 
@@ -589,6 +612,8 @@ function IOURequestStepConfirmation({
                 return;
             }
             transactions.forEach((item, index) => {
+                const isLinkedTrackedExpenseReportArchived = !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(item.linkedTrackedExpenseReportID);
+
                 trackExpenseIOUActions({
                     report,
                     isDraftPolicy,
@@ -624,6 +649,7 @@ function IOURequestStepConfirmation({
                         linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
                         customUnitRateID,
                         attendees: item.comment?.attendees,
+                        isLinkedTrackedExpenseReportArchived,
                     },
                     accountantParams: {
                         accountant: item.accountant,
@@ -647,6 +673,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             isDraftPolicy,
             isManualDistanceRequest,
+            archivedReportsIdSet,
         ],
     );
 

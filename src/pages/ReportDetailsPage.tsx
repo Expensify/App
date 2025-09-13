@@ -777,7 +777,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
+            deleteTrackExpense(
+                moneyRequestReport?.reportID,
+                iouTransactionID,
+                requestParentReportAction,
+                duplicateTransactions,
+                duplicateTransactionViolations,
+                isSingleTransactionView,
+                isMoneyRequestReportArchived,
+            );
         } else {
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
             removeTransaction(iouTransactionID);
@@ -793,6 +801,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         report,
         requestParentReportAction,
         isReportArchived,
+        isMoneyRequestReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not

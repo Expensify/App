@@ -20,6 +20,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
@@ -41,7 +42,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength} from '@libs/ReportUtils';
+import {getCommentLength, getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -130,6 +131,8 @@ function ReportActionItemMessageEdit(
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+    const originalReportID = getOriginalReportID(reportID, action);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -286,9 +289,9 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, reportID, isOriginalReportArchived]);
 
     /**
      * @param emoji

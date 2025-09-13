@@ -18,7 +18,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -38,7 +38,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const isReportArchived = useReportIsArchived(reportID);
+    const isParentReportArchived = useReportIsArchived(getReportOrDraftReport(report?.parentReportID)?.reportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -59,12 +59,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportArchived);
+                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isParentReportArchived);
             } else {
-                changeReportPolicy(report, policy, reportNextStep, isReportArchived);
+                changeReportPolicy(report, policy, reportNextStep, isParentReportArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isParentReportArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
