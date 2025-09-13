@@ -128,7 +128,6 @@ function SelectFeedType() {
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
                 addBottomSafeAreaPadding
-                listItemWrapperStyle={styles.heightUndefined}
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>
