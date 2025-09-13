@@ -10,6 +10,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import PresenceController from '@components/PresenceController';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -791,6 +792,7 @@ function AuthScreens() {
             </RootStack.Navigator>
             <SearchRouterModal />
             <PriorityModeController />
+            <PresenceController />
         </ComposeProviders>
     );
 }
