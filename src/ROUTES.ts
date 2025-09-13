@@ -561,6 +561,10 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
+    REPORT_CHANGE_APPROVER_ADD_APPROVER: {
+        route: 'r/:reportID/change-approver/add',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
+    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
