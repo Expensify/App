@@ -14,6 +14,7 @@ import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +27,6 @@ import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
-import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -37,6 +37,7 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
+import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -78,7 +79,6 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
-import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
@@ -221,6 +221,7 @@ function AuthScreens() {
         canBeMissing: true,
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
@@ -246,12 +247,11 @@ function AuthScreens() {
         return (
             !CONFIG.IS_HYBRID_APP &&
             Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) &&
-            getPlatform() !== CONST.PLATFORM.DESKTOP &&
-            onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
+            shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration) &&
             isOnboardingCompleted === true &&
             (!!isOnboardingLoading || !!prevIsOnboardingLoading)
         );
-    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading]);
+    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading, userReportedIntegration]);
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -541,7 +541,16 @@ function AuthScreens() {
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
+        <ComposeProviders
+            components={[
+                OptionsListContextProvider,
+                SidebarOrderedReportsContextProvider,
+                SearchContextProvider,
+                LockedAccountModalProvider,
+                DelegateNoAccessModalProvider,
+                WideRHPContextProvider,
+            ]}
+        >
             <RootStack.Navigator
                 persistentScreens={[
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -709,11 +718,6 @@ function AuthScreens() {
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.basicModalNavigator}
-                    component={WelcomeVideoModalNavigator}
                 />
                 {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp || shouldRenderOnboardingExclusively) && (
                     <RootStack.Screen

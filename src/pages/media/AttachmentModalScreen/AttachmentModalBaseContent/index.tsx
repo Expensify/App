@@ -14,6 +14,7 @@ import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import useAttachmentLoaded from '@hooks/useAttachmentLoaded';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -51,7 +52,7 @@ function AttachmentModalBaseContent({
     shouldShowNotFoundPage = false,
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
-    shouldDisplayHelpButton = true,
+    shouldDisplayHelpButton = false,
     submitRef,
     onDownloadAttachment,
     onClose,
@@ -175,19 +176,23 @@ function AttachmentModalBaseContent({
         return unsubscribeEscapeKey;
     }, [onClose]);
 
+    const {setAttachmentLoaded, isAttachmentLoaded} = useAttachmentLoaded();
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
     useEffect(() => {
         return () => {
             clearAttachmentErrors();
         };
     }, [clearAttachmentErrors]);
+
     const shouldShowDownloadButton = useMemo(() => {
-        if ((isEmptyObject(report) && type !== CONST.ATTACHMENT_TYPE.SEARCH) || isErrorInAttachment(source)) {
+        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
+
+        if (!isValidContext || isErrorInAttachment(source)) {
             return false;
         }
 
-        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource;
-    }, [isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
+        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded(source);
+    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -202,8 +207,9 @@ function AttachmentModalBaseContent({
             onScaleChanged: () => {},
             onSwipeDown: onClose,
             onAttachmentError: setAttachmentError,
+            onAttachmentLoaded: setAttachmentLoaded,
         }),
-        [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
+        [onClose, falseSV, sourceForAttachmentView, setAttachmentError, setAttachmentLoaded],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
@@ -229,6 +235,7 @@ function AttachmentModalBaseContent({
                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                 attachmentLink={currentAttachmentLink}
                 onAttachmentError={setAttachmentError}
+                onAttachmentLoaded={setAttachmentLoaded}
             />
         ) : (
             !!sourceForAttachmentView && (
@@ -267,6 +274,7 @@ function AttachmentModalBaseContent({
         report,
         reportID,
         setAttachmentError,
+        setAttachmentLoaded,
         setDownloadButtonVisibility,
         shouldShowCarousel,
         sourceForAttachmentView,
