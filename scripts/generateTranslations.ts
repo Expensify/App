@@ -189,9 +189,8 @@ class TranslationGenerator {
             let transformedSourceFile: ts.SourceFile;
 
             if (this.isIncremental) {
-                // Parse the existing target file
+                // Make sure the target file exists
                 const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
-
                 if (!fs.existsSync(targetPath)) {
                     throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
                 }
@@ -357,7 +356,7 @@ class TranslationGenerator {
      * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
      */
     private shouldTranslatePath(currentPath: string): boolean {
-        if (this.pathsToModify.size === 0 && this.pathsToAdd.size === 0) {
+        if (!this.isIncremental) {
             return true;
         }
 
