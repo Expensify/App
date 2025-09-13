@@ -100,7 +100,7 @@ function useBulkOptions({selectedPolicyID, selectedReportID}: UseBulkOptionProps
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
         return buttonOptions;
-    }, [selectedPolicyID, selectedReportID, policy, shouldShowBusinessBankAccountOptions, hasActivatedWallet, shouldShowPayElsewhereOption, translate]);
+    }, [selectedPolicyID, selectedReportID, shouldShowBusinessBankAccountOptions, hasActivatedWallet, shouldShowPayElsewhereOption, translate]);
 
     return {
         bulkPayButtonOptions,
