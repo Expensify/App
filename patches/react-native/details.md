@@ -199,3 +199,10 @@
 - Upstream PR/issue: 🛑
 - E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
+
+### [react-native+0.79.2+029+show-android-soft-keyboard-reliably.patch](react-native+0.79.2+029+show-android-soft-keyboard-reliably.patch)
+
+- Reason: Fixes an Android issue where the soft keyboard often failed to appear because TextInput requested it before its parent View was fully focused. The patch delays the request until focus is ready, ensuring the keyboard shows reliably without extra workarounds.
+- Upstream PR/issue: 🛑
+- E/App issue: [#69005](https://github.com/Expensify/App/issues/67201)
+- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69265)
