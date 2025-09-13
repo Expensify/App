@@ -224,6 +224,39 @@ function buildDotNotationPath(node: ts.Node, rootNode?: ts.Node): string | null 
     return pathParts.length > 0 ? pathParts.join('.') : null;
 }
 
+/**
+ * Parse a code string back to a TypeScript expression.
+ * Useful for converting serialized expressions back to AST nodes.
+ * @disclaimer This is intended to work only for single expressions of code, not entire files or multiple statements.
+ */
+function parseCodeStringToAST(codeString: string): ts.Expression {
+    try {
+        const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${codeString};`, ts.ScriptTarget.Latest);
+
+        // Check for parsing errors
+        if (tempSourceFile.parseDiagnostics && tempSourceFile.parseDiagnostics.length > 0) {
+            throw new Error(`Malformed code string: ${codeString}`);
+        }
+
+        const tempStatement = tempSourceFile.statements.at(0);
+        if (!tempStatement || !ts.isVariableStatement(tempStatement)) {
+            throw new Error(`Malformed code string: ${codeString}`);
+        }
+
+        const declaration = tempStatement.declarationList.declarations.at(0);
+        if (!declaration?.initializer) {
+            throw new Error(`No initializer found in code string: ${codeString}`);
+        }
+
+        return declaration.initializer;
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('code string')) {
+            throw error; // Re-throw our custom errors
+        }
+        throw new Error(`Malformed code string: ${codeString}`);
+    }
+}
+
 export default {
     findAncestor,
     addImport,
@@ -232,5 +265,6 @@ export default {
     extractIdentifierFromExpression,
     extractKeyFromPropertyNode,
     buildDotNotationPath,
+    parseCodeStringToAST,
 };
 export type {ExpressionWithType};

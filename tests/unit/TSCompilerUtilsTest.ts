@@ -723,4 +723,43 @@ describe('TSCompilerUtils', () => {
             expect(result).toBe('level1.level2.level3.deep');
         });
     });
+
+    describe('parseCodeStringToExpression', () => {
+        it('parses simple string literal', () => {
+            const result = TSCompilerUtils.parseCodeStringToAST('"Hello World"');
+            expect(ts.isStringLiteral(result)).toBe(true);
+            if (ts.isStringLiteral(result)) {
+                expect(result.text).toBe('Hello World');
+            }
+        });
+
+        it('parses template literal', () => {
+            // eslint-disable-next-line no-template-curly-in-string
+            const result = TSCompilerUtils.parseCodeStringToAST('`Hello ${name}`');
+            expect(ts.isTemplateExpression(result)).toBe(true);
+        });
+
+        it('parses complex expression', () => {
+            const result = TSCompilerUtils.parseCodeStringToAST('user.name ?? "Unknown"');
+            expect(ts.isBinaryExpression(result)).toBe(true);
+        });
+
+        it('parses arrow function', () => {
+            // eslint-disable-next-line no-template-curly-in-string
+            const result = TSCompilerUtils.parseCodeStringToAST('(name: string) => `Hello ${name}`');
+            expect(ts.isArrowFunction(result)).toBe(true);
+        });
+
+        it('throws error for malformed code string', () => {
+            expect(() => {
+                TSCompilerUtils.parseCodeStringToAST('invalid syntax {');
+            }).toThrow('Malformed code string');
+        });
+
+        it('throws error for empty code string', () => {
+            expect(() => {
+                TSCompilerUtils.parseCodeStringToAST('/* just a comment */');
+            }).toThrow('Malformed code string');
+        });
+    });
 });

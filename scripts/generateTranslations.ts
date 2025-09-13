@@ -946,17 +946,14 @@ class TranslationGenerator {
                     // Check if this is a property assignment that should be modified (exact match only)
                     if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
                         const translatedCodeString = translatedCodeMap.get(currentPath);
+                        if (!translatedCodeString) {
+                            // this should never happen
+                            throw new Error('An unknown error occurred');
+                        }
 
                         // Parse the code string back to an AST expression
-                        const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${translatedCodeString};`, ts.ScriptTarget.Latest);
-                        const tempStatement = tempSourceFile.statements.at(0);
-                        if (!tempStatement || !ts.isVariableStatement(tempStatement)) {
-                            throw new Error(`'Malformed code string ${tempStatement?.getText()}'`);
-                        }
-                        const translatedExpression = tempStatement.declarationList.declarations[0].initializer;
-                        if (translatedExpression) {
-                            return ts.factory.createPropertyAssignment(node.name, translatedExpression);
-                        }
+                        const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
+                        return ts.factory.createPropertyAssignment(node.name, translatedExpression);
                     }
 
                     // Check if this is the main translations node and we need to add new properties
@@ -977,16 +974,7 @@ class TranslationGenerator {
                                     }
 
                                     // Parse the code string back to an expression (same as pathsToModify)
-                                    const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${translatedCodeString};`, ts.ScriptTarget.Latest);
-                                    const tempStatement = tempSourceFile.statements[0];
-                                    if (!ts.isVariableStatement(tempStatement)) {
-                                        throw new Error('Encountered a malformed code string');
-                                    }
-                                    const translatedExpression = tempStatement.declarationList.declarations.at(0)?.initializer;
-                                    if (!translatedExpression) {
-                                        throw new Error('Encountered a malformed code string');
-                                    }
-
+                                    const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
                                     const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedExpression);
                                     newProperties.push(newProperty);
                                     hasAdditions = true;
