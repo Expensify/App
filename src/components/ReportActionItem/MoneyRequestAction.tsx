@@ -25,7 +25,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {ReportActionItemContext} from '@pages/home/report/ReportActionItemContext';
+import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';

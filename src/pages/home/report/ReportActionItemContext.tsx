@@ -6,4 +6,4 @@ type ReportActionItemContextType = {
 
 const ReportActionItemContext = createContext<ReportActionItemContextType>({shouldOpenReportInRHP: false});
 
-export {ReportActionItemContext};
+export default ReportActionItemContext;

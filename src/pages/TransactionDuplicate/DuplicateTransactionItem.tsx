@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
-import {ReportActionItemContext} from '@pages/home/report/ReportActionItemContext';
+import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -52,6 +52,8 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
         selector: (transactionItem) => transactionItem?.errorFields?.route ?? null,
     });
 
+    const contextValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);
+
     if (!action || !report) {
         return null;
     }
@@ -61,7 +63,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
 
     return (
         <View style={styles.pb2}>
-            <ReportActionItemContext.Provider value={{shouldOpenReportInRHP: true}}>
+            <ReportActionItemContext.Provider value={contextValue}>
                 <ReportActionItem
                     allReports={allReports}
                     policies={policies}
