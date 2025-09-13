@@ -46,6 +46,7 @@ const defaultPluginsForWebpack = [
 
     // Keep it last
     'react-native-reanimated/plugin',
+    '@babel/plugin-transform-export-namespace-from',
 ];
 
 // The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
@@ -132,6 +133,7 @@ const metro = {
                 },
             },
         ],
+        '@babel/plugin-transform-export-namespace-from',
     ],
     env: {
         production: {
