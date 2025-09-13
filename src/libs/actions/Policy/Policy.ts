@@ -2129,6 +2129,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: null,
                     type: null,
                     areReportFieldsEnabled: null,
+                    customRules: null,
                 },
                 ...optimisticMccGroupData.successData,
                 fieldList: {
@@ -4925,6 +4926,9 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customRules: parsedCustomRules,
+                    pendingFields: {
+                        customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             },
         ],
@@ -4934,6 +4938,7 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
+                        customRules: null,
                         // TODO
                         // maxExpenseAge: null,
                     },
@@ -4946,6 +4951,8 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customRules: originalCustomRules,
+                    pendingFields: {customRules: null},
+                    errorFields: {customRules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                     // TODO
                     // pendingFields: {maxExpenseAge: null},
                     // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
