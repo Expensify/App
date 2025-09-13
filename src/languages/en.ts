@@ -2690,7 +2690,7 @@ const translations = {
             afterWeek: 'A week',
             custom: 'Custom',
         },
-        untilTomorrow: 'Until tomorrow',
+        untilTomorrow: 'Until tomorrow eh',
         untilTime: ({time}: UntilTimeParams) => `Until ${time}`,
         date: 'Date',
         time: 'Time',
@@ -7086,8 +7086,9 @@ const translations = {
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
         },
         reasonRBR: {
-            hasErrors: 'Has errors in report or report actions data',
-            hasViolations: 'Has violations',
+            hasErrors: 'Has errors in report or report actions data or other stuff',
+            hasManyErrors: 'Has many errors in report or report actions data or other stuff',
+            hasViolations: 'Has violations and stuff',
             hasTransactionThreadViolations: 'Has transaction thread violations',
         },
         indicatorStatus: {
