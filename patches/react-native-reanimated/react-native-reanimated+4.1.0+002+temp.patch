@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-reanimated/lib/module/css/component/AnimatedComponent.js b/node_modules/react-native-reanimated/lib/module/css/component/AnimatedComponent.js
+index 8a41ccf..c78e40e 100644
+--- a/node_modules/react-native-reanimated/lib/module/css/component/AnimatedComponent.js
++++ b/node_modules/react-native-reanimated/lib/module/css/component/AnimatedComponent.js
+@@ -1,6 +1,6 @@
+ 'use strict';
+ 
+-import { Component } from 'react';
++import React, {Component} from 'react';
+ import { Platform, StyleSheet } from 'react-native';
+ import { IS_JEST, ReanimatedError, SHOULD_BE_USE_WEB } from "../../common/index.js";
+ import { getViewInfo } from "../../createAnimatedComponent/getViewInfo.js";
