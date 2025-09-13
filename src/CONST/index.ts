@@ -181,6 +181,9 @@ const CONST = {
         '6674797068656978', // 'ftypheix' - Indicates a variation of HEIC
         '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
+        '6674797068657669', // 'ftyphefi' - HEIF Image Format
+        '6674797068656d61', // 'ftyphema' - HEIF Sequence Format
+        '6674797068657673', // 'ftyphevs' - HEVC Video Sequence Format
     ],
     RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_DB_NAME: 'OnyxDB',
@@ -2807,6 +2810,8 @@ const CONST = {
             DOC: 'doc',
             DOCX: 'docx',
             SVG: 'svg',
+            HEIC: 'heic',
+            HEIF: 'heif',
         },
         RECEIPT_ERROR: 'receiptError',
         CANCEL_REASON: {
