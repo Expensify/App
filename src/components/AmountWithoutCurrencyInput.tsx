@@ -15,10 +15,16 @@ type AmountFormProps = {
 
     /** Should we allow negative number as valid input */
     shouldAllowNegative?: boolean;
+
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 
 function AmountWithoutCurrencyInput(
-    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, ...rest}: AmountFormProps,
+    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, allowFlippingAmount, toggleNegative, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const {toLocaleDigit} = useLocalize();
@@ -36,13 +42,17 @@ function AmountWithoutCurrencyInput(
      */
     const setNewAmount = useCallback(
         (newAmount: string) => {
+            if (allowFlippingAmount && newAmount.startsWith('-') && toggleNegative) {
+                toggleNegative();
+            }
+
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
             const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
             onInputChange?.(replacedCommasAmount);
         },
-        [onInputChange],
+        [onInputChange, allowFlippingAmount, toggleNegative],
     );
 
     // Add custom notation for using '-' character in the mask.
