@@ -236,7 +236,7 @@ function IOURequestStepScan({
 
         Promise.all(
             transactions.map((item) => {
-                const itemReceiptPath = item.receipt?.source;
+                const itemReceiptPath = item.receipt?.uri;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
@@ -362,7 +362,7 @@ function IOURequestStepScan({
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file ?? {};
-                receipt.source = receiptFile.source;
+                receipt.uri = receiptFile.uri;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
                     trackExpense({
@@ -461,7 +461,7 @@ function IOURequestStepScan({
                     const firstReceiptFile = files.at(0);
                     if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
                         const splitReceipt: Receipt = firstReceiptFile.file ?? {};
-                        splitReceipt.source = firstReceiptFile.source;
+                        splitReceipt.uri = firstReceiptFile.uri;
                         splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                         startSplitBill({
                             participants,
@@ -603,7 +603,7 @@ function IOURequestStepScan({
         files.forEach((file, index) => {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.uri)
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -612,7 +612,7 @@ function IOURequestStepScan({
                       });
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
-            newReceiptFiles.push({file, source, transactionID});
+            newReceiptFiles.push({file, uri: source, transactionID});
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             setMoneyRequestReceipt(transactionID, source, file.name || '', true);
         });
@@ -653,7 +653,7 @@ function IOURequestStepScan({
     const setTestReceiptAndNavigate = useCallback(() => {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-            navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
+            navigateToConfirmationStep([{file, uri: source, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
@@ -715,7 +715,7 @@ function IOURequestStepScan({
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop).then(({file, filename, source}) => {
             const transaction =
-                isMultiScanEnabled && initialTransaction?.receipt?.source
+                isMultiScanEnabled && initialTransaction?.receipt?.uri
                     ? buildOptimisticTransactionAndCreateDraft({
                           initialTransaction,
                           currentUserPersonalDetails,
@@ -723,7 +723,7 @@ function IOURequestStepScan({
                       })
                     : initialTransaction;
             const transactionID = transaction?.transactionID ?? initialTransactionID;
-            const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+            const newReceiptFiles = [...receiptFiles, {file, uri: source, transactionID}];
 
             setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
             setReceiptFiles(newReceiptFiles);

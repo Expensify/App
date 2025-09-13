@@ -172,7 +172,7 @@ type Receipt = {
     receiptID?: number;
 
     /** Path of the receipt file */
-    source?: ReceiptSource;
+    uri?: ReceiptSource;
 
     /** Name of receipt file */
     filename?: string;

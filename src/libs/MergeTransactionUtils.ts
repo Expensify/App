@@ -46,18 +46,21 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
 
 // Get the filename from the receipt
 function getReceiptFileName(receipt?: Receipt) {
-    return receipt?.source?.split('/')?.pop();
+    if (!receipt?.uri) {
+        return undefined;
+    }
+    return receipt.uri.split('/').pop();
 }
 
 /**
- * Fills the receipt.source for a transaction if it's missing
- * Workaround while wait BE to fix the receipt.source
- * @param transaction - The transaction to update the receipt source for
- * @returns The updated transaction with receipt.source filled if it was missing
+ * Fills the receipt.uri for a transaction if it's missing
+ * Workaround while wait BE to fix the receipt.uri
+ * @param transaction - The transaction to update the receipt uri for
+ * @returns The updated transaction with receipt.uri filled if it was missing
  */
 function fillMissingReceiptSource(transaction: Transaction) {
-    // If receipt.source already exists, no need to modify
-    if (!transaction.receipt || !!transaction.receipt?.source || !transaction.filename) {
+    // If receipt.uri already exists, no need to modify
+    if (!transaction.receipt || !!transaction.receipt?.uri || !transaction.filename) {
         return transaction;
     }
 
@@ -65,7 +68,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${transaction.filename}`,
+            uri: `${RECEIPT_SOURCE_URL}${transaction.filename}`,
         },
     };
 }

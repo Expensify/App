@@ -194,7 +194,7 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
             // Update receipt if receiptID is provided
             ...(params.receiptID && {
                 receipt: {
-                    source: mergeTransaction.receipt?.source ?? targetTransaction.receipt?.source,
+                    uri: mergeTransaction.receipt?.uri ?? targetTransaction.receipt?.uri,
                     receiptID: params.receiptID,
                 },
             }),

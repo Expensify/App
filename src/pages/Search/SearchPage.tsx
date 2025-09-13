@@ -570,7 +570,7 @@ function SearchPage({route}: SearchPageProps) {
             const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             newReceiptFiles.push({
                 file,
-                source,
+                uri: source,
                 transactionID,
             });
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);

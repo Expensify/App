@@ -33,7 +33,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = readonlyProp === 'true';
     const isFromReviewDuplicates = isFromReviewDuplicatesProp === 'true';
-    const imageSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const imageSource = isDraftTransaction ? transactionDraft?.receipt?.uri : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -52,7 +52,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const receiptPath = transaction?.receipt?.source;
+    const receiptPath = transaction?.receipt?.uri;
 
     useEffect(() => {
         if (!isDraftTransaction || !iouType || !transaction) {

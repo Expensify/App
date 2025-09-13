@@ -23,8 +23,8 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
     const isEReceipt = transactionItem.hasEReceipt && !hasReceiptSource(transactionItem);
-    let source = transactionItem?.receipt?.source ?? '';
-    let previewSource = transactionItem?.receipt?.source ?? '';
+    let source = transactionItem?.receipt?.uri ?? '';
+    let previewSource = transactionItem?.receipt?.uri ?? '';
 
     if (source && typeof source === 'string') {
         const filename = getFileName(source);

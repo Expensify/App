@@ -115,8 +115,8 @@ function ReceiptView({route}: ReceiptViewProps) {
                 />
             </HeaderWithBackButton>
             <AttachmentCarouselView
-                attachments={receipts}
-                source={currentReceipt?.source ?? ''}
+                attachments={receipts.map((receipt) => ({...receipt, source: receipt.uri}))}
+                source={currentReceipt?.uri ?? ''}
                 page={page}
                 setPage={setPage}
                 attachmentID={currentReceipt?.transactionID}

@@ -2383,7 +2383,7 @@ describe('SearchUIUtils', () => {
                     parentTransactionID: '',
                     policyID: '137DA25D273F2423',
                     receipt: {
-                        source: 'https://www.expensify.com/receipts/fake.jpg',
+                        uri: 'https://www.expensify.com/receipts/fake.jpg',
                         state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                     },
                     reportID: '6523565988285061',

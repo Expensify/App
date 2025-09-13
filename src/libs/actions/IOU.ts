@@ -1169,7 +1169,7 @@ function setSplitPayer(transactionID: string, payerAccountID: number) {
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
+        receipt: {uri: source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
         filename,
     });
 }
@@ -1365,7 +1365,7 @@ function getReceiptError(
         : getMicroSecondOnyxErrorObject(
               {
                   error: CONST.IOU.RECEIPT_ERROR,
-                  source: receipt.source?.toString() ?? '',
+                  source: receipt.uri?.toString() ?? '',
                   filename: filename ?? '',
                   action: action ?? '',
                   retryParams: formattedRetryParams,
@@ -3247,8 +3247,8 @@ function getSendInvoiceInformation(
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject: Receipt = {};
     let filename;
-    if (receipt?.source) {
-        receiptObject.source = receipt.source;
+    if (receipt?.uri) {
+        receiptObject.uri = receipt.uri;
         receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
         filename = receipt.name;
     }
@@ -3948,8 +3948,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject: Receipt = {};
     let filename;
-    if (receipt?.source) {
-        receiptObject.source = receipt.source;
+    if (receipt?.uri) {
+        receiptObject.uri = receipt.uri;
         receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
         filename = receipt.name;
     }
@@ -5658,6 +5658,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
                 return;
             }
+
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
@@ -6319,7 +6320,7 @@ function createSplitsAndOnyxData({
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
-    const receipt: Receipt | undefined = iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
+    const receipt: Receipt | undefined = iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? {uri: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
 
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
@@ -6950,8 +6951,8 @@ function startSplitBill({
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
     const parsedComment = getParsedComment(comment);
 
-    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCAN_READY} = receipt;
-    const receiptObject: Receipt = {state, source};
+    const {name: filename, uri, state = CONST.IOU.RECEIPT_STATE.SCAN_READY} = receipt;
+    const receiptObject: Receipt = {state, uri};
 
     // ReportID is -2 (aka "deleted") on the group transaction
     const splitTransaction = buildOptimisticTransaction({
@@ -7605,7 +7606,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const isManualDistanceRequest = isEmptyObject(validWaypoints);
 
     const optimisticReceipt: Receipt = {
-        source: ReceiptGeneric as ReceiptSource,
+        uri: ReceiptGeneric as ReceiptSource,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
 
@@ -10781,7 +10782,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
-        source,
+        uri: source,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic, filename: file.name};

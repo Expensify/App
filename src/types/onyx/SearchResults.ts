@@ -338,8 +338,8 @@ type SearchTransaction = {
 
     /** The receipt object */
     receipt?: {
-        /** Source of the receipt */
-        source?: string;
+        /** URI of the receipt */
+        uri?: string;
 
         /** State of the receipt */
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;

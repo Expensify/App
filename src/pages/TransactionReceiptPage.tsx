@@ -54,7 +54,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = route.params.readonly === 'true';
-    const imageSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const imageSource = isDraftTransaction ? transactionDraft?.receipt?.uri : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -71,7 +71,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const receiptPath = transaction?.receipt?.source;
+    const receiptPath = transaction?.receipt?.uri;
 
     useEffect(() => {
         if (!isDraftTransaction || !iouType || !transaction) {
