@@ -4909,6 +4909,13 @@ const translations = {
                 prompt5: 'Saiba mais',
                 prompt6: 'sobre os níveis de tag.',
             },
+            overrideMultiTagWarning: {
+                title: '',
+                prompt1: '',
+                prompt2: '',
+                prompt3: '',
+                prompt4: '',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Encontramos *${columnCounts} colunas* na sua planilha. Selecione *Nome* ao lado da coluna que contém os nomes das tags. Você também pode selecionar *Ativado* ao lado da coluna que define o status das tags.`,
             cannotDeleteOrDisableAllTags: {
