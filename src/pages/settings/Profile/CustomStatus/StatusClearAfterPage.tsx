@@ -113,7 +113,6 @@ function StatusClearAfterPage() {
                 const selectedRange = statusType.find((item) => item.value === mode.value);
                 const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
                 updateDraftCustomStatus({clearAfter: calculatedDraftDate});
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
             }
         },
         [draftPeriod, statusType],
@@ -160,6 +159,10 @@ function StatusClearAfterPage() {
         );
     }, [translate, styles.pr2, styles.flex1, customStatusDate, customStatusTime, draftPeriod, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
 
+    const handleGoBackToStatus = useCallback(() => {
+        Navigation.goBack(ROUTES.SETTINGS_STATUS);
+    }, []);
+
     const timePeriodOptions = useCallback(
         () => (
             <SelectionList
@@ -168,9 +171,12 @@ function StatusClearAfterPage() {
                 onSelectRow={updateMode}
                 initiallyFocusedOptionKey={statusType.find((status) => status.isSelected)?.keyForList}
                 listFooterContent={listFooterContent}
+                showConfirmButton
+                confirmButtonText={translate('statusPage.save')}
+                onConfirm={handleGoBackToStatus}
             />
         ),
-        [statusType, updateMode, listFooterContent],
+        [statusType, updateMode, listFooterContent, handleGoBackToStatus, translate],
     );
 
     return (
