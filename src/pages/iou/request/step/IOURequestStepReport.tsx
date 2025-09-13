@@ -72,7 +72,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         setTransactionReport(
             transaction.transactionID,
             {
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID, // s77rt
+                reportID: item.value,
                 participants,
             },
             true,
@@ -142,17 +142,28 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        Navigation.dismissModal();
-        InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport(
-                [transaction.transactionID],
-                CONST.REPORT.UNREPORTED_REPORT_ID,
-                isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
+        if (isEditing) {
+            Navigation.dismissModal();
+            InteractionManager.runAfterInteractions(() => {
+                changeTransactionsReport(
+                    [transaction.transactionID],
+                    CONST.REPORT.UNREPORTED_REPORT_ID,
+                    isASAPSubmitBetaEnabled,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                );
+                removeTransaction(transaction.transactionID);
+            });
+        } else {
+            handleGoBack();
+            setTransactionReport(
+                transaction.transactionID,
+                {
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+                true,
             );
-            removeTransaction(transaction.transactionID);
-        });
+        }
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables

@@ -74,7 +74,7 @@ function IOURequestEditReportCommon({
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
-    const shouldShowRemoveFromReport = true; // s77rt
+    const shouldShowRemoveFromReport = isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -179,7 +179,7 @@ function IOURequestEditReportCommon({
                     shouldShowRemoveFromReport ? (
                         <MenuItem
                             onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
+                            title={translate('iou.removeFromReport')} // s77rt change title based on isEditing
                             description={translate('iou.moveToPersonalSpace')}
                             icon={Expensicons.Close}
                         />
