@@ -3,13 +3,13 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
-import type {PaymentMethodType, PaymentMethod} from '@components/KYCWall/types';
+import type {PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -629,12 +629,12 @@ function SearchFiltersBar({
                 Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
                 return;
             }
-
             triggerKYCFlow(undefined, paymentType, paymentMethod, selectedPolicy);
 
             if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             }
+            return;
         }
         confirmPayment?.(paymentType as PaymentMethodType);
     };

@@ -707,6 +707,10 @@ function SearchPage({route}: SearchPageProps) {
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                         footerData={footerData}
+                        currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                        currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                        confirmPayment={onBulkPaySelected}
+                        latestBankItems={latestBankItems}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -798,13 +802,13 @@ function SearchPage({route}: SearchPageProps) {
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <SearchFiltersBar
-                                    latestBankItems={latestBankItems}
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                     currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
                                     currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
                                     confirmPayment={onBulkPaySelected}
+                                    latestBankItems={latestBankItems}
                                 />
                                 <Search
                                     key={queryJSON.hash}
