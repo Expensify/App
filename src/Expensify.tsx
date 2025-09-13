@@ -123,6 +123,8 @@ function Expensify() {
 
     const isAuthenticated = useIsAuthenticated();
     const isAuthenticatedRef = useRef(isAuthenticated);
+
+    // eslint-disable-next-line react-compiler/react-compiler
     isAuthenticatedRef.current = isAuthenticated;
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
