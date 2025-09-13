@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -38,6 +38,7 @@ function SearchFiltersWorkspacePage() {
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
+    const initialSelectedPolicyIDs = useMemo(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []), [searchAdvancedFiltersForm?.policyID]);
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
@@ -45,6 +46,7 @@ function SearchFiltersWorkspacePage() {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: selectedOptions,
         searchTerm: debouncedSearchTerm,
+        initialSelectedPolicyIDs,
         localeCompare,
     });
 

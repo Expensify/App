@@ -496,6 +496,7 @@ function AdvancedSearchFilters() {
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: undefined,
+        initialSelectedPolicyIDs: undefined,
         searchTerm: '',
         localeCompare,
     });
