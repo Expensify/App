@@ -492,10 +492,11 @@ function ReportActionCompose({
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(
-        (file: FileObject | FileObject[]) => {
+        (file: FileObject | FileObject[], dataTransferItems?: DataTransferItem[]) => {
             reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
                 reportID,
                 file,
+                dataTransferItems,
                 headerTitle: translate('reportActionCompose.sendAttachment'),
                 onConfirm: addAttachment,
                 onShow: () => setIsAttachmentPreviewActive(true),
@@ -522,7 +523,7 @@ function ReportActionCompose({
             return;
         }
 
-        showAttachmentModalScreen(files);
+        showAttachmentModalScreen(files, Array.from(event.dataTransfer?.items ?? []));
     };
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {

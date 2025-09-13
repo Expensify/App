@@ -6,6 +6,7 @@ import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
 import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import {
     getFileValidationErrorText,
@@ -31,13 +32,13 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
-function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void, isValidatingReceipts = true) {
+function useFilesValidation(onFilesValidated: (files: FileObject[]) => void, isValidatingReceipts = true) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [fileError, setFileError] = useState<SingleAttachmentValidationError | MultipleAttachmentsValidationError>();
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
-    const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
     const [invalidFileExtension, setInvalidFileExtension] = useState('');
     const [errorQueue, setErrorQueue] = useState<ErrorObject[]>([]);
@@ -170,10 +171,10 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             }
         } else if (validFiles.current.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
-            proceedWithFilesAction(sortedFiles);
+            onFilesValidated(sortedFiles);
             resetValidationState();
         }
-    }, [deduplicateErrors, pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
+    }, [deduplicateErrors, pdfFilesToRender.length, onFilesValidated, resetValidationState]);
 
     const validateAndResizeFiles = (files: FileObject[], items: DataTransferItem[]) => {
         // Early return for empty files
@@ -258,26 +259,47 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                         }
                     } else if (processedFiles.length > 0) {
                         const sortedFiles = sortFilesByOriginalOrder(processedFiles, originalFileOrder.current);
-                        proceedWithFilesAction(sortedFiles);
+                        onFilesValidated(sortedFiles);
                         resetValidationState();
                     }
                 }
             });
     };
 
-    const validateFiles = (files: FileObject[], items?: DataTransferItem[]) => {
-        if (files.length > 1) {
+    const validateFiles = (files: File | FileObject[], items?: DataTransferItem[]) => {
+        if (!files) {
+            return;
+        }
+
+        if (Array.isArray(files)) {
             setIsValidatingMultipleFiles(true);
+
+            validateMultipleAttachmentFiles(files).then((result) => {
+                if (result.isValid) {
+                    validateAndResizeFiles(result.validatedFiles, items ?? []);
+                    return;
+                }
+
+                if (result.error === CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+                    filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+                    if (items) {
+                        dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+                    }
+                }
+
+                setErrorAndOpenModal(result.error);
+            });
+            return;
         }
-        if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-            filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
-            if (items) {
-                dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+
+        validateAttachmentFile(files).then((result) => {
+            if (result.isValid) {
+                validateAndResizeFiles([result.validatedFile.file], items ?? []);
+                return;
             }
-            setErrorAndOpenModal(CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
-        } else {
-            validateAndResizeFiles(files, items ?? []);
-        }
+
+            setErrorAndOpenModal(result.error);
+        });
     };
 
     const onConfirm = () => {
@@ -308,13 +330,13 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             setIsErrorModalVisible(false);
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
-                    proceedWithFilesAction(sortedFiles);
+                    onFilesValidated(sortedFiles);
                 }
                 resetValidationState();
             });
         } else {
             if (sortedFiles.length !== 0) {
-                proceedWithFilesAction(sortedFiles);
+                onFilesValidated(sortedFiles);
             }
             hideModalAndReset();
         }
@@ -379,8 +401,8 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     );
 
     return {
-        PDFValidationComponent,
         validateFiles,
+        PDFValidationComponent,
         ErrorModal,
     };
 }

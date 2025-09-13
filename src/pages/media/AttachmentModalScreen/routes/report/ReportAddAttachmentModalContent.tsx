@@ -4,19 +4,17 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
-import ConfirmModal from '@components/ConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import {isMultipleAttachmentsValidationResult, isSingleAttachmentValidationResult} from '@libs/AttachmentValidation';
-import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
+import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
-import useFileUploadValidation from '@pages/media/AttachmentModalScreen/routes/hooks/useFileUploadValidation';
 import useNavigateToReportOnRefresh from '@pages/media/AttachmentModalScreen/routes/hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from '@pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType';
 import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -24,6 +22,32 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+function cleanFileObject(fileObject: FileObject): FileObject {
+    if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
+        return fileObject.getAsFile() as FileObject;
+    }
+
+    return fileObject;
+}
+
+function cleanFileObjectName(fileObject: FileObject): FileObject {
+    if (fileObject instanceof File) {
+        const cleanName = cleanFileName(fileObject.name);
+        if (fileObject.name !== cleanName) {
+            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+            const inputSource = URL.createObjectURL(updatedFile);
+            updatedFile.uri = inputSource;
+            return updatedFile;
+        }
+        if (!fileObject.uri) {
+            const inputSource = URL.createObjectURL(fileObject);
+            // eslint-disable-next-line no-param-reassign
+            fileObject.uri = inputSource;
+        }
+    }
+    return fileObject;
+}
 
 const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
     if (!file) {
@@ -40,6 +64,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const {
         attachmentID,
         file,
+        dataTransferItems,
         source: sourceParam,
         isAuthTokenRequired,
         attachmentLink,
@@ -66,7 +91,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
 
     const submitRef = useRef<View | HTMLElement>(null);
 
@@ -90,18 +114,51 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     }, [reportID, fetchReport, shouldFetchReport]);
 
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
-    const [filesToValidate, setFilesToValidate] = useState(() => file);
-    const {validFilesToUpload, fileError, isFileErrorModalVisible} = useFileUploadValidation({
-        files: filesToValidate,
-        onValid: (result) => {
-            if (isSingleAttachmentValidationResult(result)) {
-                setSource(result.validatedFile.source);
-            } else if (isMultipleAttachmentsValidationResult(result)) {
-                setSource(result.validatedFiles.at(0)?.source);
-            }
-        },
-    });
-    const isMultipleFiles = useMemo(() => Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0, [validFilesToUpload]);
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
+
+    const onFilesValidated = useCallback((files: FileObject[]) => {
+        setValidFilesToUpload(files);
+
+        if (isSingleAttachmentValidationResult(result)) {
+            setSource(result.validatedFile.source);
+        } else if (isMultipleAttachmentsValidationResult(result)) {
+            setSource(result.validatedFiles.at(0)?.source);
+        }
+    }, []);
+
+    const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated, false);
+
+    useEffect(() => {
+        if (!file) {
+            return;
+        }
+
+        const files = Array.isArray(file) ? file : [file];
+        if (files.length === 0) {
+            return;
+        }
+
+        const validIndices: number[] = [];
+        const fileObjects = files
+            .map((item, index) => {
+                const fileObject = cleanFileObject(item);
+                const cleanedFileObject = cleanFileObjectName(fileObject);
+                if (cleanedFileObject !== null) {
+                    validIndices.push(index);
+                }
+                return cleanedFileObject;
+            })
+            .filter((fileObject) => fileObject !== null);
+
+        if (!fileObjects.length) {
+            return;
+        }
+
+        // Create a filtered items array that matches the fileObjects
+        const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
+
+        validateFiles(fileObjects, filteredItems);
+    }, [dataTransferItems, file, validateFiles]);
 
     const modalType = useReportAttachmentModalType(validFilesToUpload ?? file);
 
@@ -133,29 +190,13 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         );
     }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, validFilesToUpload]);
 
-    const confirmAndContinue = useCallback(() => {
-        if (fileError !== CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-            return;
-        }
+    // const confirmAndContinue = useCallback(() => {
+    //     if (fileError !== CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+    //         return;
+    //     }
 
-        setFilesToValidate(file);
-    }, [fileError, file]);
-
-    const ExtraModals = useMemo(
-        () => (
-            <ConfirmModal
-                title={getFileValidationErrorText(fileError).title}
-                onConfirm={() => confirmAndContinue()}
-                onCancel={navigation.goBack}
-                isVisible={isFileErrorModalVisible}
-                prompt={getFileValidationErrorText(fileError).reason}
-                confirmText={translate(isMultipleFiles ? 'common.continue' : 'common.close')}
-                shouldShowCancelButton={isMultipleFiles}
-                cancelText={translate('common.cancel')}
-            />
-        ),
-        [confirmAndContinue, fileError, isFileErrorModalVisible, isMultipleFiles, navigation.goBack, translate],
-    );
+    //     setFilesToValidate(file);
+    // }, [fileError, file]);
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(() => {
         if (validFilesToUpload === undefined) {
@@ -180,10 +221,10 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             onConfirm,
             onDownloadAttachment,
             AttachmentContent: AddAttachmentModalCarouselView,
-            ExtraModals,
+            ExtraModals: ErrorModal,
         };
     }, [
-        ExtraModals,
+        ErrorModal,
         accountID,
         attachmentID,
         attachmentLink,
@@ -199,13 +240,16 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     ]);
 
     return (
-        <AttachmentModalContainer
-            navigation={navigation}
-            contentProps={contentProps}
-            modalType={modalType}
-            onShow={onShow}
-            onClose={onClose}
-        />
+        <>
+            {PDFValidationComponent}
+            <AttachmentModalContainer
+                navigation={navigation}
+                contentProps={contentProps}
+                modalType={modalType}
+                onShow={onShow}
+                onClose={onClose}
+            />
+        </>
     );
 }
 ReportAddAttachmentModalContent.displayName = 'ReportAddAttachmentModalContent';

@@ -2156,6 +2156,7 @@ type AttachmentModalScreensParamList = {
         attachmentID?: string;
         source?: AvatarSource;
         file?: FileObject | FileObject[];
+        dataTransferItems?: DataTransferItem[];
         type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
         isAuthTokenRequired?: boolean;
         originalFileName?: string;
