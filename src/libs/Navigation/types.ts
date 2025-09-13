@@ -2164,7 +2164,7 @@ type AttachmentModalScreensParamList = {
         reportID: string;
         policyID?: string;
     };
-    [SCREENS.TRANSACTION_RECEIPT]: AttachmentModalContainerModalProps & {
+    [SCREENS.TRANSACTION_RECEIPT]: {
         reportID: string;
         transactionID: string;
         readonly?: string;
@@ -2195,6 +2195,7 @@ type AuthScreensParamList = SharedScreensParamList &
             email: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
+        [SCREENS.ENABLE_BIOMETRICS_ERROR_PAGE]: undefined;
         [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;

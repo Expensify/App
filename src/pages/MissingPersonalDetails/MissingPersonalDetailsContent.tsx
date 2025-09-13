@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,6 +23,7 @@ import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
+import Pin from './substeps/Pin';
 import type {CustomSubStepProps} from './types';
 import {getInitialSubstep, getSubstepValues} from './utils';
 
@@ -31,13 +32,25 @@ type MissingPersonalDetailsContentProps = {
     draftValues: OnyxEntry<PersonalDetailsForm>;
 };
 
-const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
+type PinCodeContextType = {
+    finalPinCode: string;
+    setFinalPinCode: (newPinCode: string) => void;
+}
+
+const PinCodeContext = createContext<PinCodeContextType>({
+    finalPinCode: '',
+    setFinalPinCode: () => {},
+});
+
+const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Pin, Confirmation];
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+
+    const [finalPinCode, setFinalPinCode] = useState('');
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -106,6 +119,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         [moveTo],
     );
 
+    const contextValue = useMemo(
+        () => ({
+            finalPinCode,
+            setFinalPinCode,
+        }),
+        [finalPinCode, setFinalPinCode]
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -123,14 +144,15 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                     stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
                 />
             </View>
-            <SubStep
-                isEditing={isEditing}
-                onNext={handleNextScreen}
-                onMove={handleMoveTo}
-                screenIndex={screenIndex}
-                personalDetailsValues={values}
-            />
-
+            <PinCodeContext.Provider value={contextValue}>
+                <SubStep
+                    isEditing={isEditing}
+                    onNext={handleNextScreen}
+                    onMove={handleMoveTo}
+                    screenIndex={screenIndex}
+                    personalDetailsValues={values}
+                />
+            </PinCodeContext.Provider>
             <MissingPersonalDetailsMagicCodeModal
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
@@ -143,3 +165,5 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 MissingPersonalDetailsContent.displayName = 'MissingPersonalDetailsContent';
 
 export default MissingPersonalDetailsContent;
+
+export {PinCodeContext};

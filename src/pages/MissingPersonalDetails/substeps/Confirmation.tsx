@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+import { PinCodeContext } from '@pages/MissingPersonalDetails/MissingPersonalDetailsContent';
+import {maskPin} from '@libs/CardUtils';
 
 const PERSONAL_DETAILS_STEP_INDEXES = CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
 
 function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}: CustomSubStepProps) {
     const {translate} = useLocalize();
+    const {finalPinCode} = useContext(PinCodeContext);
 
     const summaryItems = [
         {
@@ -44,6 +47,14 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}
             onPress: () => {
                 onMove(PERSONAL_DETAILS_STEP_INDEXES.PHONE_NUMBER);
             },
+        },
+        {
+            description: translate('common.cardPinCode'),
+            title: maskPin(finalPinCode), // The pin is visible for now but it will be completely masked and there will be no
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(PERSONAL_DETAILS_STEP_INDEXES.PIN)
+            }
         },
     ];
 

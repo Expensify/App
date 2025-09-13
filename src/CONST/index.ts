@@ -2532,9 +2532,10 @@ const CONST = {
             DATE_OF_BIRTH: 1,
             ADDRESS: 2,
             PHONE_NUMBER: 3,
-            CONFIRM: 4,
+            PIN: 4,
+            CONFIRM: 5,
         },
-        INDEX_LIST: ['1', '2', '3', '4'],
+        INDEX_LIST: ['1', '2', '3', '4', '5'],
     },
 
     ACCOUNT_ID: {
@@ -3588,6 +3589,7 @@ const CONST = {
         PHONE_NUMBER: /^\+?[0-9]{4,17}$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
+        CARD_PIN_CODE: /^[0-9]{4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
         ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
@@ -6787,7 +6789,13 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [
+        SCREENS.NOT_FOUND,
+        SCREENS.ENABLE_BIOMETRICS_ERROR_PAGE,
+        SCREENS.SAML_SIGN_IN,
+        SCREENS.VALIDATE_LOGIN,
+        SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+    ] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
