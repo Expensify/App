@@ -11,12 +11,12 @@ function useReportScrollManager(): ReportScrollManagerData {
      * Scroll to the provided index.
      */
     const scrollToIndex = useCallback(
-        (index: number) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (index: number, isEditing?: boolean, viewPosition?: number) => {
             if (!flatListRef?.current) {
                 return;
             }
-
-            flatListRef.current.scrollToIndex({index});
+            flatListRef.current.scrollToIndex({index, viewPosition});
         },
         [flatListRef],
     );
