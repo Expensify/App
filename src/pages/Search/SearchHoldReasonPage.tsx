@@ -5,7 +5,6 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestorReportsAndReportActions from '@hooks/useAncestorReportsAndReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import Log from '@libs/__mocks__/Log';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
