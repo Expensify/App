@@ -42,7 +42,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
-        clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
+        clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess});
     };
 
     return (
@@ -56,7 +56,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            handleSubmitForm={(validateCode) => addDelegate(login, role, validateCode)}
+            handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
             descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
     );
