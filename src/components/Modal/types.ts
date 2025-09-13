@@ -1,5 +1,6 @@
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {GestureResponderEvent, PanResponderGestureState, View, ViewStyle} from 'react-native';
 import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -135,6 +136,11 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
          * Whether the modal should use ReanimatedModal implementation.
          */
         shouldUseReanimatedModal?: boolean;
+
+        /**
+         * Reference to the outer element.
+         */
+        ref?: ForwardedRef<View>;
     };
 
 export default BaseModalProps;

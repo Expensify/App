@@ -1,10 +1,9 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useState} from 'react';
-import type {FlatListProps} from 'react-native';
+import React, {useCallback, useState} from 'react';
 import {FlatList} from 'react-native';
+import type {CustomFlatListProps} from './index';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
-function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
     const {maintainVisibleContentPosition: originalMaintainVisibleContentPosition, ...rest} = props;
     const [isScrolling, setIsScrolling] = useState(false);
 
@@ -31,4 +30,4 @@ function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>)
 }
 
 CustomFlatList.displayName = 'CustomFlatListWithRef';
-export default forwardRef(CustomFlatList);
+export default CustomFlatList;

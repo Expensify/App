@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {Svg} from 'react-native-svg';
@@ -12,12 +11,23 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
-import type {QRShareHandle, QRShareProps} from './types';
+import type {QRShareProps} from './types';
 
-function QRShare(
-    {url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio, shouldShowExpensifyLogo = true, additionalStyles, size}: QRShareProps,
-    ref: ForwardedRef<QRShareHandle>,
-) {
+function QRShare({
+    url,
+    title,
+    subtitle,
+    logo,
+    svgLogo,
+    svgLogoFillColor,
+    logoBackgroundColor,
+    logoRatio,
+    logoMarginRatio,
+    shouldShowExpensifyLogo = true,
+    additionalStyles,
+    size,
+    ref,
+}: QRShareProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -94,4 +104,4 @@ function QRShare(
 
 QRShare.displayName = 'QRShare';
 
-export default forwardRef(QRShare);
+export default QRShare;
