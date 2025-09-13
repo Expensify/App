@@ -259,6 +259,25 @@ function parseCodeStringToAST(codeString: string): ts.Expression {
     }
 }
 
+/**
+ * Create a visitor function for ts.visitEachChild that builds dot-notation paths.
+ */
+function createPathAwareVisitor<T>(visitWithPath: (node: ts.Node, path: string) => T, currentPath: string): (child: ts.Node) => T {
+    return (child: ts.Node) => {
+        let childPath = currentPath;
+
+        // If the child is a property assignment, update the path
+        if (ts.isPropertyAssignment(child)) {
+            const propName = extractKeyFromPropertyNode(child);
+            if (propName) {
+                childPath = currentPath ? `${currentPath}.${propName}` : propName;
+            }
+        }
+
+        return visitWithPath(child, childPath);
+    };
+}
+
 export default {
     findAncestor,
     addImport,
@@ -268,5 +287,6 @@ export default {
     extractKeyFromPropertyNode,
     buildDotNotationPath,
     parseCodeStringToAST,
+    createPathAwareVisitor,
 };
 export type {ExpressionWithType};

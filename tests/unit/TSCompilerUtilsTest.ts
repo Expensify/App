@@ -762,4 +762,126 @@ describe('TSCompilerUtils', () => {
             }).toThrow('Malformed code string');
         });
     });
+
+    describe('createPathAwareVisitor', () => {
+        it('should create visitor that builds correct paths for property assignments', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    common: {
+                        save: 'Save'
+                    }
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableStatement = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableStatement)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableStatement.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const visitedPaths: string[] = [];
+            const visitor = TSCompilerUtils.createPathAwareVisitor((node, path) => {
+                if (ts.isPropertyAssignment(node)) {
+                    visitedPaths.push(path);
+                }
+                return node;
+            }, '');
+
+            // Use the visitor with ts.visitEachChild
+            // @ts-expect-error nullTransformationContext exists but isn't a public API
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            ts.visitEachChild(objectLiteral, visitor, ts.nullTransformationContext);
+
+            expect(visitedPaths).toContain('greeting');
+            expect(visitedPaths).toContain('common');
+        });
+
+        it('should handle nested paths correctly', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    common: {
+                        save: 'Save',
+                        cancel: 'Cancel'
+                    }
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableStatement = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableStatement)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableStatement.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const commonProperty = objectLiteral.properties[0];
+            if (!ts.isPropertyAssignment(commonProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const commonObject = commonProperty.initializer;
+            if (!ts.isObjectLiteralExpression(commonObject)) {
+                throw new Error('Expected object literal');
+            }
+
+            const visitedPaths: string[] = [];
+            const visitor = TSCompilerUtils.createPathAwareVisitor((node, path) => {
+                if (ts.isPropertyAssignment(node)) {
+                    visitedPaths.push(path);
+                }
+                return node;
+            }, 'common');
+
+            // @ts-expect-error nullTransformationContext exists but isn't a public API
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            ts.visitEachChild(commonObject, visitor, ts.nullTransformationContext);
+
+            expect(visitedPaths).toContain('common.save');
+            expect(visitedPaths).toContain('common.cancel');
+        });
+
+        it('should work with forEachChild for non-transforming traversal', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye'
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableStatement = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableStatement)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableStatement.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const visitedPaths: string[] = [];
+            const visitor = TSCompilerUtils.createPathAwareVisitor((node, path) => {
+                if (!ts.isPropertyAssignment(node)) {
+                    return;
+                }
+                visitedPaths.push(path);
+            }, '');
+
+            // Use the same visitor with forEachChild - should visit both properties
+            objectLiteral.forEachChild(visitor);
+
+            expect(visitedPaths).toHaveLength(2);
+            expect(visitedPaths).toContain('greeting');
+            expect(visitedPaths).toContain('farewell');
+        });
+    });
 });

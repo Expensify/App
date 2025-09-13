@@ -488,27 +488,11 @@ class TranslationGenerator {
             }
         }
 
-        // Continue traversing children
-        node.forEachChild((child) => {
-            let childPath = currentPath;
-
-            // If the child is a property assignment, update the path
-            if (ts.isPropertyAssignment(child)) {
-                let propName: string | undefined;
-
-                if (ts.isIdentifier(child.name)) {
-                    propName = child.name.text;
-                } else if (ts.isStringLiteral(child.name)) {
-                    propName = child.name.text;
-                }
-
-                if (propName) {
-                    childPath = currentPath ? `${currentPath}.${propName}` : propName;
-                }
-            }
-
-            this.extractStringsToTranslate(child, stringsToTranslate, childPath);
-        });
+        node.forEachChild(
+            TSCompilerUtils.createPathAwareVisitor((child, childPath) => {
+                this.extractStringsToTranslate(child, stringsToTranslate, childPath);
+            }, currentPath),
+        );
     }
 
     /**
@@ -802,7 +786,7 @@ class TranslationGenerator {
      * Extract translated code strings from a transformed AST for the specified paths.
      */
     private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedCodeMap: Map<string, string>): void {
-        const visitWithPath = (node: ts.Node, currentPath = ''): void => {
+        const visitWithPath = (node: ts.Node, currentPath = '') => {
             // Only extract code strings for exact paths in our sets (not hierarchical matches)
             const isAddedPath = this.pathsToAdd.has(currentPath as TranslationPaths);
             const isModifiedPath = this.pathsToModify.has(currentPath as TranslationPaths);
@@ -820,19 +804,7 @@ class TranslationGenerator {
             }
 
             // Continue traversing children, updating path for property assignments
-            node.forEachChild((child) => {
-                let childPath = currentPath;
-
-                // If the child is a property assignment, update the path
-                if (ts.isPropertyAssignment(child)) {
-                    const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
-                    if (propName) {
-                        childPath = currentPath ? `${currentPath}.${propName}` : propName;
-                    }
-                }
-
-                visitWithPath(child, childPath);
-            });
+            node.forEachChild(TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath));
         };
 
         visitWithPath(sourceFile);
@@ -860,29 +832,6 @@ class TranslationGenerator {
     }
 
     /**
-     * Continue traversing children, updating path for property assignments.
-     */
-    private visitChildren(node: ts.Node, currentPath: string, visitWithPath: (node: ts.Node, path: string) => ts.Node | undefined, context: ts.TransformationContext): ts.Node {
-        return ts.visitEachChild(
-            node,
-            (child) => {
-                let childPath = currentPath;
-
-                // If the child is a property assignment, update the path
-                if (ts.isPropertyAssignment(child)) {
-                    const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
-                    if (propName) {
-                        childPath = currentPath ? `${currentPath}.${propName}` : propName;
-                    }
-                }
-
-                return visitWithPath(child, childPath);
-            },
-            context,
-        );
-    }
-
-    /**
      * Create a transformer factory for full translations (transforms en.ts completely).
      */
     private createFullTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
@@ -892,7 +841,7 @@ class TranslationGenerator {
                     return this.translateNode(node, translations, currentPath, visitWithPath);
                 }
 
-                return this.visitChildren(node, currentPath, visitWithPath, context);
+                return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
             };
 
             return (sourceFile: ts.SourceFile) => {
@@ -920,7 +869,7 @@ class TranslationGenerator {
                     return node; // Keep unchanged
                 }
 
-                return this.visitChildren(node, currentPath, visitWithPath, context);
+                return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
             };
 
             return (sourceFile: ts.SourceFile) => {
@@ -987,7 +936,7 @@ class TranslationGenerator {
                         }
                     }
 
-                    return this.visitChildren(node, currentPath, visitWithPath, context);
+                    return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
                 };
 
                 return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
@@ -1028,7 +977,7 @@ class TranslationGenerator {
                         }
                     }
 
-                    return this.visitChildren(node, currentPath, visitWithPath, context);
+                    return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
                 };
 
                 return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
