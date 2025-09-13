@@ -556,6 +556,13 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy)
 }
 
 /**
+ * Checks if policy's scheduled submit / auto reporting frequency is not "instant".
+ */
+function isDelayedSubmissionEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy): boolean {
+    return policy?.autoReporting === true && policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+}
+
+/**
  * This gets a "corrected" value for autoReportingFrequency. The purpose of this function is to encapsulate some logic around the "immediate" frequency.
  *
  * - "immediate" is actually not immediate. For that you want "instant".
@@ -1557,6 +1564,7 @@ export {
     isExpensifyTeam,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
+    isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
