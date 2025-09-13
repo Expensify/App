@@ -1,6 +1,22 @@
 import ts from 'typescript';
 
 /**
+ * Actions that can be taken when visiting a node in a transformer.
+ */
+enum TransformerAction {
+    /** Keep the existing node unchanged and continue visiting its children */
+    CONTINUE = 'continue',
+
+    /** Replace the node with a new one and stop visiting its children */
+    REPLACE = 'replace',
+
+    /** Remove the node entirely and stop visiting its children */
+    REMOVE = 'remove',
+}
+
+type TransformerResult = {action: TransformerAction.CONTINUE} | {action: TransformerAction.REPLACE; newNode: ts.Node} | {action: TransformerAction.REMOVE};
+
+/**
  * Walk up the AST from a given node and return the nearest ancestor that matches a predicate.
  *
  * @param node The starting node.
@@ -278,6 +294,34 @@ function createPathAwareVisitor<T>(visitWithPath: (node: ts.Node, path: string) 
     };
 }
 
+/**
+ * Create a path-aware transformer that provides clear action-based control over node transformation.
+ * Makes transformer logic more explicit and easier to understand.
+ */
+function createPathAwareTransformer(visitor: (node: ts.Node, path: string) => TransformerResult): ts.TransformerFactory<ts.SourceFile> {
+    return (context: ts.TransformationContext) => {
+        const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
+            const result = visitor(node, currentPath);
+
+            switch (result.action) {
+                case TransformerAction.REMOVE:
+                    return undefined;
+
+                case TransformerAction.REPLACE:
+                    return result.newNode;
+
+                case TransformerAction.CONTINUE:
+                default:
+                    return ts.visitEachChild(node, createPathAwareVisitor(visitWithPath, currentPath), context);
+            }
+        };
+
+        return (sourceFile: ts.SourceFile) => {
+            return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
+        };
+    };
+}
+
 export default {
     findAncestor,
     addImport,
@@ -288,5 +332,7 @@ export default {
     buildDotNotationPath,
     parseCodeStringToAST,
     createPathAwareVisitor,
+    createPathAwareTransformer,
+    TransformerAction,
 };
 export type {ExpressionWithType};
