@@ -56,7 +56,6 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
                         key={option.value}
                         item={option}
                         showTooltip={false}
-                        isFocused={option.isSelected}
                         onSelectRow={onDimensionTypeSelected}
                     />
                 ))}
