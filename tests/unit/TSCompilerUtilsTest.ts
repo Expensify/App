@@ -102,126 +102,6 @@ describe('TSCompilerUtils', () => {
         });
     });
 
-    describe('traverseASTsInParallel', () => {
-        it('visits all nodes in lockstep and applies individual visitors', () => {
-            const en = `const x = "Hello"; function greet(name: string) { return \`Hi \${name}\`; }`;
-            const it = `const x = "Ciao"; function greet(name: string) { return \`Ciao \${name}\`; }`;
-
-            const enAST = createSourceFile(en);
-            const itAST = createSourceFile(it);
-
-            const enKinds: ts.SyntaxKind[] = [];
-            const itKinds: ts.SyntaxKind[] = [];
-
-            TSCompilerUtils.traverseASTsInParallel(
-                [
-                    {label: 'en', node: enAST},
-                    {label: 'it', node: itAST},
-                ],
-                (nodes) => {
-                    const enNode = nodes.en;
-                    enKinds.push(enNode.kind);
-                    const itNode = nodes.it;
-                    itKinds.push(itNode.kind);
-                },
-            );
-
-            expect(enKinds.length).toBe(itKinds.length);
-            for (let i = 0; i < enKinds.length; i++) {
-                expect(enKinds.at(i)).toBe(itKinds.at(i));
-            }
-        });
-
-        it('collects matching string literals from multiple ASTs', () => {
-            const en = `const a = "Hello"; const b = \`World\`;`;
-            const it = `const a = "Ciao"; const b = \`Mondo\`;`;
-
-            const enAST = createSourceFile(en);
-            const itAST = createSourceFile(it);
-
-            const enStrings: string[] = [];
-            const itStrings: string[] = [];
-
-            TSCompilerUtils.traverseASTsInParallel(
-                [
-                    {label: 'en', node: enAST},
-                    {label: 'it', node: itAST},
-                ],
-                (nodes) => {
-                    const enNode = nodes.en;
-                    const itNode = nodes.it;
-                    if (ts.isStringLiteral(enNode) || ts.isNoSubstitutionTemplateLiteral(enNode)) {
-                        enStrings.push(enNode.text);
-                    }
-                    if (ts.isStringLiteral(itNode) || ts.isNoSubstitutionTemplateLiteral(itNode)) {
-                        itStrings.push(itNode.text);
-                    }
-                },
-            );
-
-            expect(enStrings).toEqual(['Hello', 'World']);
-            expect(itStrings).toEqual(['Ciao', 'Mondo']);
-        });
-
-        it('traverses only the shared structure when node counts differ', () => {
-            const code1 = `const x = { a: 1, b: 2 };`;
-            const code2 = `const x = { a: 1 };`;
-
-            const ast1 = createSourceFile(code1);
-            const ast2 = createSourceFile(code2);
-
-            let count1 = 0;
-            let count2 = 0;
-
-            TSCompilerUtils.traverseASTsInParallel(
-                [
-                    {label: 'one', node: ast1},
-                    {label: 'two', node: ast2},
-                ],
-                (nodes) => {
-                    if (nodes.one) {
-                        count1++;
-                    }
-                    if (nodes.two) {
-                        count2++;
-                    }
-                },
-            );
-
-            // Expect both to visit the same number of shared nodes
-            expect(count1).toBe(count2);
-        });
-
-        it('does nothing when given an empty array', () => {
-            expect(() =>
-                TSCompilerUtils.traverseASTsInParallel([], () => {
-                    throw new Error();
-                }),
-            ).not.toThrow();
-        });
-
-        it('handles nested objects', () => {
-            const ast1 = createSourceFile('const x = { a: 1, b: {c: 2}, d: 3};');
-            const ast2 = createSourceFile('const x = { a: 1, b: {c: 2}, d: 3};');
-
-            TSCompilerUtils.traverseASTsInParallel(
-                [
-                    {
-                        label: 'one',
-                        node: ast1,
-                    },
-                    {
-                        label: 'two',
-                        node: ast2,
-                    },
-                ],
-                (nodes) => {
-                    expect(nodes.one).toStrictEqual(nodes.two);
-                },
-            );
-        });
-    });
-
     describe('findDefaultExport', () => {
         it('returns the identifier in `export default` statement', () => {
             const code = dedent(`
@@ -557,6 +437,451 @@ describe('TSCompilerUtils', () => {
 
             const result = TSCompilerUtils.extractKeyFromPropertyNode(propertyAssignment);
             expect(result).toBe('arrowFunc');
+        });
+    });
+
+    describe('addImport', () => {
+        it('adds import when it does not exist', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            expect(resultCode).toContain('import type en from "./en";');
+            expect(resultCode).toContain('const strings = {');
+        });
+
+        it('does not add duplicate import when it already exists', () => {
+            const sourceCode = dedent(`
+                import type en from './en';
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            // Should not have duplicate imports
+            const importMatches = resultCode.match(/import type en from/g);
+            expect(importMatches).toHaveLength(1);
+        });
+
+        it('distinguishes between type and value imports', () => {
+            const sourceCode = dedent(`
+                import en from './en';
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            // Should add type import even though value import exists
+            expect(resultCode).toContain("import en from './en';");
+            expect(resultCode).toContain('import type en from "./en";');
+        });
+
+        it('handles different module paths', () => {
+            const sourceCode = dedent(`
+                import type en from './other';
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            // Should add new import with different path
+            expect(resultCode).toContain("import type en from './other';");
+            expect(resultCode).toContain('import type en from "./en";');
+        });
+    });
+
+    describe('buildDotNotationPath', () => {
+        it('builds path from nested property assignment', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    common: {
+                        save: 'Save'
+                    }
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableDeclaration = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableDeclaration)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableDeclaration.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const commonProperty = objectLiteral.properties[0];
+            if (!ts.isPropertyAssignment(commonProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const commonObject = commonProperty.initializer;
+            if (!ts.isObjectLiteralExpression(commonObject)) {
+                throw new Error('Expected object literal');
+            }
+
+            const saveProperty = commonObject.properties[0];
+            if (!ts.isPropertyAssignment(saveProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const saveStringLiteral = saveProperty.initializer;
+            if (!ts.isStringLiteral(saveStringLiteral)) {
+                throw new Error('Expected string literal');
+            }
+
+            const result = TSCompilerUtils.buildDotNotationPath(saveStringLiteral);
+            expect(result).toBe('common.save');
+        });
+
+        it('builds path from top-level property', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    greeting: 'Hello'
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableDeclaration = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableDeclaration)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableDeclaration.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const greetingProperty = objectLiteral.properties[0];
+            if (!ts.isPropertyAssignment(greetingProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const greetingStringLiteral = greetingProperty.initializer;
+            if (!ts.isStringLiteral(greetingStringLiteral)) {
+                throw new Error('Expected string literal');
+            }
+
+            const result = TSCompilerUtils.buildDotNotationPath(greetingStringLiteral);
+            expect(result).toBe('greeting');
+        });
+
+        it('builds path with custom root node', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    common: {
+                        save: 'Save'
+                    }
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableDeclaration = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableDeclaration)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableDeclaration.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const commonProperty = objectLiteral.properties[0];
+            if (!ts.isPropertyAssignment(commonProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const commonObject = commonProperty.initializer;
+            if (!ts.isObjectLiteralExpression(commonObject)) {
+                throw new Error('Expected object literal');
+            }
+
+            const saveProperty = commonObject.properties[0];
+            if (!ts.isPropertyAssignment(saveProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const saveStringLiteral = saveProperty.initializer;
+            if (!ts.isStringLiteral(saveStringLiteral)) {
+                throw new Error('Expected string literal');
+            }
+
+            // Use commonObject as root - should only get "save", not "common.save"
+            const result = TSCompilerUtils.buildDotNotationPath(saveStringLiteral, commonObject);
+            expect(result).toBe('save');
+        });
+
+        it('returns null for nodes without property assignments', () => {
+            const sourceCode = dedent(`
+                const greeting = 'Hello';
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableDeclaration = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableDeclaration)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const stringLiteral = variableDeclaration.declarationList.declarations[0].initializer;
+            if (!stringLiteral || !ts.isStringLiteral(stringLiteral)) {
+                throw new Error('Expected string literal');
+            }
+
+            const result = TSCompilerUtils.buildDotNotationPath(stringLiteral);
+            expect(result).toBeNull();
+        });
+
+        it('handles deeply nested paths', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    level1: {
+                        level2: {
+                            level3: {
+                                deep: 'Deep value'
+                            }
+                        }
+                    }
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            // Navigate to the deeply nested string literal with proper type checking
+            const variableDeclaration = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableDeclaration)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableDeclaration.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const level1Property = objectLiteral.properties[0];
+            if (!ts.isPropertyAssignment(level1Property)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const level1Object = level1Property.initializer;
+            if (!ts.isObjectLiteralExpression(level1Object)) {
+                throw new Error('Expected object literal');
+            }
+
+            const level2Property = level1Object.properties[0];
+            if (!ts.isPropertyAssignment(level2Property)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const level2Object = level2Property.initializer;
+            if (!ts.isObjectLiteralExpression(level2Object)) {
+                throw new Error('Expected object literal');
+            }
+
+            const level3Property = level2Object.properties[0];
+            if (!ts.isPropertyAssignment(level3Property)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const level3Object = level3Property.initializer;
+            if (!ts.isObjectLiteralExpression(level3Object)) {
+                throw new Error('Expected object literal');
+            }
+
+            const deepProperty = level3Object.properties[0];
+            if (!ts.isPropertyAssignment(deepProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const deepStringLiteral = deepProperty.initializer;
+            if (!ts.isStringLiteral(deepStringLiteral)) {
+                throw new Error('Expected string literal');
+            }
+
+            const result = TSCompilerUtils.buildDotNotationPath(deepStringLiteral);
+            expect(result).toBe('level1.level2.level3.deep');
+        });
+    });
+
+    describe('parseCodeStringToExpression', () => {
+        it('parses simple string literal', () => {
+            const result = TSCompilerUtils.parseCodeStringToAST('"Hello World"');
+            expect(ts.isStringLiteral(result)).toBe(true);
+            if (ts.isStringLiteral(result)) {
+                expect(result.text).toBe('Hello World');
+            }
+        });
+
+        it('parses template literal', () => {
+            // eslint-disable-next-line no-template-curly-in-string
+            const result = TSCompilerUtils.parseCodeStringToAST('`Hello ${name}`');
+            expect(ts.isTemplateExpression(result)).toBe(true);
+        });
+
+        it('parses complex expression', () => {
+            const result = TSCompilerUtils.parseCodeStringToAST('user.name ?? "Unknown"');
+            expect(ts.isBinaryExpression(result)).toBe(true);
+        });
+
+        it('parses arrow function', () => {
+            // eslint-disable-next-line no-template-curly-in-string
+            const result = TSCompilerUtils.parseCodeStringToAST('(name: string) => `Hello ${name}`');
+            expect(ts.isArrowFunction(result)).toBe(true);
+        });
+
+        it('throws error for malformed code string', () => {
+            expect(() => {
+                TSCompilerUtils.parseCodeStringToAST('invalid syntax {');
+            }).toThrow('Malformed code string');
+        });
+
+        it('throws error for empty code string', () => {
+            expect(() => {
+                TSCompilerUtils.parseCodeStringToAST('/* just a comment */');
+            }).toThrow('Malformed code string');
+        });
+    });
+
+    describe('createPathAwareVisitor', () => {
+        it('should create visitor that builds correct paths for property assignments', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    common: {
+                        save: 'Save'
+                    }
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableStatement = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableStatement)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableStatement.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const visitedPaths: string[] = [];
+            const visitor = TSCompilerUtils.createPathAwareVisitor((node, path) => {
+                if (ts.isPropertyAssignment(node)) {
+                    visitedPaths.push(path);
+                }
+                return node;
+            }, '');
+
+            // Use the visitor with ts.visitEachChild
+            // @ts-expect-error nullTransformationContext exists but isn't a public API
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            ts.visitEachChild(objectLiteral, visitor, ts.nullTransformationContext);
+
+            expect(visitedPaths).toContain('greeting');
+            expect(visitedPaths).toContain('common');
+        });
+
+        it('should handle nested paths correctly', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    common: {
+                        save: 'Save',
+                        cancel: 'Cancel'
+                    }
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableStatement = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableStatement)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableStatement.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const commonProperty = objectLiteral.properties[0];
+            if (!ts.isPropertyAssignment(commonProperty)) {
+                throw new Error('Expected property assignment');
+            }
+
+            const commonObject = commonProperty.initializer;
+            if (!ts.isObjectLiteralExpression(commonObject)) {
+                throw new Error('Expected object literal');
+            }
+
+            const visitedPaths: string[] = [];
+            const visitor = TSCompilerUtils.createPathAwareVisitor((node, path) => {
+                if (ts.isPropertyAssignment(node)) {
+                    visitedPaths.push(path);
+                }
+                return node;
+            }, 'common');
+
+            // @ts-expect-error nullTransformationContext exists but isn't a public API
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            ts.visitEachChild(commonObject, visitor, ts.nullTransformationContext);
+
+            expect(visitedPaths).toContain('common.save');
+            expect(visitedPaths).toContain('common.cancel');
+        });
+
+        it('should work with forEachChild for non-transforming traversal', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye'
+                };
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const variableStatement = sourceFile.statements[0];
+            if (!ts.isVariableStatement(variableStatement)) {
+                throw new Error('Expected variable statement');
+            }
+
+            const objectLiteral = variableStatement.declarationList.declarations[0].initializer;
+            if (!objectLiteral || !ts.isObjectLiteralExpression(objectLiteral)) {
+                throw new Error('Expected object literal');
+            }
+
+            const visitedPaths: string[] = [];
+            const visitor = TSCompilerUtils.createPathAwareVisitor((node, path) => {
+                if (!ts.isPropertyAssignment(node)) {
+                    return;
+                }
+                visitedPaths.push(path);
+            }, '');
+
+            // Use the same visitor with forEachChild - should visit both properties
+            objectLiteral.forEachChild(visitor);
+
+            expect(visitedPaths).toHaveLength(2);
+            expect(visitedPaths).toContain('greeting');
+            expect(visitedPaths).toContain('farewell');
         });
     });
 });

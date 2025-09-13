@@ -22,9 +22,28 @@ function findAncestor<T extends ts.Node>(node: ts.Node, predicate: (n: ts.Node) 
  * Adds a default import statement to the provided SourceFile.
  */
 function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath: string, isTypeOnly = false): ts.SourceFile {
+    // Check if the import already exists
+    for (const statement of sourceFile.statements) {
+        if (ts.isImportDeclaration(statement) && statement.importClause) {
+            const importClause = statement.importClause;
+            // Check for default import with matching name and module path
+            const existingIsTypeOnly = importClause.phaseModifier === ts.SyntaxKind.TypeKeyword;
+            if (
+                importClause.name?.text === identifierName &&
+                statement.moduleSpecifier &&
+                ts.isStringLiteral(statement.moduleSpecifier) &&
+                statement.moduleSpecifier.text === modulePath &&
+                existingIsTypeOnly === isTypeOnly
+            ) {
+                return sourceFile; // Import already exists, return unchanged
+            }
+        }
+    }
+
+    const phaseModifier = isTypeOnly ? ts.SyntaxKind.TypeKeyword : undefined;
     const newImport = ts.factory.createImportDeclaration(
         undefined,
-        ts.factory.createImportClause(isTypeOnly, ts.factory.createIdentifier(identifierName), undefined),
+        ts.factory.createImportClause(phaseModifier, ts.factory.createIdentifier(identifierName), undefined),
         ts.factory.createStringLiteral(modulePath),
     );
 
@@ -43,14 +62,6 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
 }
 
 /**
- * This type is just a simple wrapper around a ts node with a label.
- */
-type LabeledNode<K extends string> = {
-    label: K;
-    node: ts.Node;
-};
-
-/**
  * Custom type for expressions that have both 'expression' and 'type' properties.
  * This is useful for satisfies expressions and type assertions.
  */
@@ -58,49 +69,6 @@ type ExpressionWithType = ts.Node & {
     expression: ts.Expression;
     type: ts.TypeNode;
 };
-
-/**
- * Walks a list of AST nodes in parallel and applies the visitor function at each set of corresponding nodes.
- * Traverses only to the depth and breadth of the shortest subtree at each level.
- *
- * disclaimer: I don't know how this should/will work for ASTs that don't share a common structure. For now, that's undefined behavior.
- */
-function traverseASTsInParallel<K extends string>(roots: Array<LabeledNode<K>>, visit: (nodes: Record<K, ts.Node>) => void): void {
-    if (roots.length === 0) {
-        return;
-    }
-
-    const nodeMap: Partial<Record<K, ts.Node>> = {};
-    for (const {label, node} of roots) {
-        nodeMap[label] = node;
-    }
-    visit(nodeMap as Record<K, ts.Node>);
-
-    // Collect children per label
-    const childrenByLabel = new Map<K, readonly ts.Node[]>();
-    let minChildren = Infinity;
-
-    for (const {label, node} of roots) {
-        const children = node.getChildren();
-        childrenByLabel.set(label, children);
-        if (children.length < minChildren) {
-            minChildren = children.length;
-        }
-    }
-
-    // Traverse child nodes in parallel, stopping at the shortest list
-    for (let i = 0; i < minChildren; i++) {
-        const nextLevel: Array<LabeledNode<K>> = [];
-        for (const {label} of roots) {
-            const children = childrenByLabel.get(label) ?? [];
-            const child = children.at(i);
-            if (child) {
-                nextLevel.push({label, node: child});
-            }
-        }
-        traverseASTsInParallel(nextLevel, visit);
-    }
-}
 
 /**
  * Finds the node that is exported as the default export.
@@ -233,5 +201,92 @@ function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDecla
     return undefined;
 }
 
-export default {findAncestor, addImport, traverseASTsInParallel, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression, extractKeyFromPropertyNode};
-export type {LabeledNode, ExpressionWithType};
+/**
+ * Build a dot-notation path from a node by traversing up the AST to find property assignments.
+ * Useful for building paths like "common.save" from a string literal node.
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function buildDotNotationPath(node: ts.Node, rootNode?: ts.Node): string | null {
+    const pathParts: string[] = [];
+    let current: ts.Node | undefined = node;
+
+    // Traverse up the tree until we reach the root node or source file
+    while (current && current !== rootNode && !ts.isSourceFile(current)) {
+        if (ts.isPropertyAssignment(current)) {
+            const key = extractKeyFromPropertyNode(current);
+            if (key) {
+                pathParts.unshift(key);
+            }
+        }
+        current = current.parent;
+    }
+
+    return pathParts.length > 0 ? pathParts.join('.') : null;
+}
+
+/**
+ * Parse a code string back to a TypeScript expression.
+ * Useful for converting serialized expressions back to AST nodes.
+ * @disclaimer This is intended to work only for single expressions of code, not entire files or multiple statements.
+ */
+function parseCodeStringToAST(codeString: string): ts.Expression {
+    try {
+        const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${codeString};`, ts.ScriptTarget.Latest);
+
+        // Check for parsing errors
+        // @ts-expect-error parseDiagnostics is not a public property of the SourceFile type, but this works.
+        // The "correct" way to do this is with `ts.createProgram`, but it's more complicated and it makes the translation script at least ~4x slower.
+        if (tempSourceFile.parseDiagnostics && (tempSourceFile.parseDiagnostics as unknown as ts.Diagnostic[]).length > 0) {
+            throw new Error(`Malformed code string: ${codeString}`);
+        }
+
+        const tempStatement = tempSourceFile.statements.at(0);
+        if (!tempStatement || !ts.isVariableStatement(tempStatement)) {
+            throw new Error(`Malformed code string: ${codeString}`);
+        }
+
+        const declaration = tempStatement.declarationList.declarations.at(0);
+        if (!declaration?.initializer) {
+            throw new Error(`No initializer found in code string: ${codeString}`);
+        }
+
+        return declaration.initializer;
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('code string')) {
+            throw error; // Re-throw our custom errors
+        }
+        throw new Error(`Malformed code string: ${codeString}`);
+    }
+}
+
+/**
+ * Create a visitor function for ts.visitEachChild that builds dot-notation paths.
+ */
+function createPathAwareVisitor<T>(visitWithPath: (node: ts.Node, path: string) => T, currentPath: string): (child: ts.Node) => T {
+    return (child: ts.Node) => {
+        let childPath = currentPath;
+
+        // If the child is a property assignment, update the path
+        if (ts.isPropertyAssignment(child)) {
+            const propName = extractKeyFromPropertyNode(child);
+            if (propName) {
+                childPath = currentPath ? `${currentPath}.${propName}` : propName;
+            }
+        }
+
+        return visitWithPath(child, childPath);
+    };
+}
+
+export default {
+    findAncestor,
+    addImport,
+    findDefaultExport,
+    resolveDeclaration,
+    extractIdentifierFromExpression,
+    extractKeyFromPropertyNode,
+    buildDotNotationPath,
+    parseCodeStringToAST,
+    createPathAwareVisitor,
+};
+export type {ExpressionWithType};
