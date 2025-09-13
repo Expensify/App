@@ -18,7 +18,17 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {
+    buildOptimisticExpenseReport,
+    generateReportID,
+    getDefaultWorkspaceAvatar,
+    getOutstandingReportsForUser,
+    getReportName,
+    isArchivedReport,
+    isMoneyRequestReport,
+    isReportOutstanding,
+    populateOptimisticReportFormula,
+} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -305,13 +315,13 @@ function MoneyRequestConfirmationListFooter({
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false);
+    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false)) || isUnreported;
     const availableOutstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID, allReports, reportNameValuePairs, false).sort((a, b) =>
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
-    let selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
+    let selectedReportID = shouldUseTransactionReport ? transaction?.reportID : outstandingReportID;
     const selectedReport = useMemo(() => {
         if (!selectedReportID) {
             return;
@@ -319,9 +329,11 @@ function MoneyRequestConfirmationListFooter({
         return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
     }, [allReports, selectedReportID]);
 
-    let reportName = isUnreported ? 'None' : getReportName(selectedReport, selectedPolicy); // s77rt
+    let reportName = getReportName(selectedReport, selectedPolicy);
     if (!reportName) {
-        reportName = 'New report'; // s77rt
+        // If we could not get a report name, the selectedReportID is either optimistic or not set, if it's the latter, genereate a random id for proper navigation
+        selectedReportID ||= generateReportID();
+        reportName = isUnreported ? 'None' : 'New report'; // s77rt
     }
 
     // When creating an expense in an individual report, the report field becomes read-only

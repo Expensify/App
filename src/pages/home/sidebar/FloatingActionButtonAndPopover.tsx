@@ -149,7 +149,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
     const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
-    const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting;
+    const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting; // s77rt fix navigation param 0
     const reportID = useMemo(() => (shouldAutoReport ? generateReportID() : CONST.REPORT.UNREPORTED_REPORT_ID), [shouldAutoReport]);
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
