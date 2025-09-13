@@ -18,6 +18,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -64,7 +65,16 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {
+    Comment,
+    Receipt,
+    TransactionChanges,
+    TransactionCustomUnit,
+    TransactionPendingFieldsKey,
+    UnreportedTransaction,
+    Waypoint,
+    WaypointCollection,
+} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
 
@@ -1910,6 +1920,13 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
+function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
+    if (!Permissions.canUseUnreportedExpense()) {
+        return false;
+    }
+    return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2019,6 +2036,7 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
+    isExpenseUnreported,
 };
 
 export type {TransactionChanges};
