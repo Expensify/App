@@ -16,11 +16,11 @@ jest.mock('react-native-fs', () => ({
 
 jest.mock('react-native-blob-util', () => ({
     config: jest.fn((data) => {
-        const filePath = data?.path;
+        const filePath = data?.path ?? ('/mock/documents/file' as string);
         return {
             fetch: jest.fn(() =>
                 Promise.resolve({
-                    path: jest.fn(() => filePath ?? '/mock/documents/file'),
+                    path: jest.fn(() => filePath),
                 }),
             ),
         };
