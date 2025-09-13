@@ -76,10 +76,8 @@ function InviteMemberListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
-            errors={item.errors}
-            pendingAction={item.pendingAction}
+            shouldDisplayRBR={false}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
