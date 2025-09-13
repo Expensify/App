@@ -161,41 +161,6 @@ describe('ProductTrainingContextProvider', () => {
         });
     });
 
-    describe('Migrated User Scenarios', () => {
-        it('should not show tooltips for migrated users before welcome modal dismissal', async () => {
-            // When user is a migrated user and welcome modal is not dismissed
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then tooltips should not show
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
-            const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-
-            // Expect tooltip to be hidden
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
-        });
-
-        it('should show tooltips for migrated users after welcome modal dismissal', async () => {
-            // When migrated user has dismissed welcome modal
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
-            const date = new Date();
-            Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
-            const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-
-            // Then tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
-        });
-    });
-
     describe('Tooltip Dismissal', () => {
         it('should not show dismissed tooltips', async () => {
             // When a tooltip has been dismissed

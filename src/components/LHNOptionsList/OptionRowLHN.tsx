@@ -76,9 +76,7 @@ function OptionRowLHN({
 
     const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
         let tooltip: ProductTrainingTooltipName;
-        if (shouldShowRBRorGBRTooltip) {
-            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
-        } else if (shouldShowWorkspaceChatTooltip) {
+        if (shouldShowWorkspaceChatTooltip) {
             tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
         } else {
             // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
