@@ -234,7 +234,9 @@ function parseCodeStringToAST(codeString: string): ts.Expression {
         const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${codeString};`, ts.ScriptTarget.Latest);
 
         // Check for parsing errors
-        if (tempSourceFile.parseDiagnostics && tempSourceFile.parseDiagnostics.length > 0) {
+        // @ts-expect-error parseDiagnostics is not a public property of the SourceFile type, but this works.
+        // The "correct" way to do this is with `ts.createProgram`, but it's more complicated and it makes the translation script at least ~4x slower.
+        if (tempSourceFile.parseDiagnostics && (tempSourceFile.parseDiagnostics as unknown as ts.Diagnostic[]).length > 0) {
             throw new Error(`Malformed code string: ${codeString}`);
         }
 
