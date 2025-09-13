@@ -223,7 +223,7 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
 } from './RequestConflictUtils';
-import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
