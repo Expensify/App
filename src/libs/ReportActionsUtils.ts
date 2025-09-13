@@ -6,13 +6,14 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -21,7 +22,6 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
-import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -1064,7 +1064,14 @@ function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
  * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    return actions.filter(isVisiblePreviewOrMoneyRequest);
+    // The free trial message can be duplicated due to this change https://github.com/Expensify/App/pull/68630 without the backend change
+    // So we need to filter out the duplicate free trial message
+    const freeTrialMessages = actions.filter((action) => {
+        const html = getReportActionHtml(action);
+        return Parser.htmlToMarkdown(html) === CONST.FREE_TRIAL_MARKDOWN;
+    });
+    const isDuplicateFreeTrialMessage = freeTrialMessages.length > 1;
+    return actions.filter(isVisiblePreviewOrMoneyRequest).filter((action) => !isDuplicateFreeTrialMessage || action.reportActionID !== freeTrialMessages.at(0)?.reportActionID);
 }
 
 /**
@@ -2876,7 +2883,7 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
 }
 
-function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>(reportAction: OnyxEntry<ReportAction>) {
+function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
     // If mentionedAccountIDs exists and has values, use the first one
@@ -3005,13 +3012,19 @@ function getReportActions(report: Report) {
 /**
  * @private
  */
-function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
+function wasActionCreatedWhileOffline(
+    action: ReportAction,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+): boolean {
     // The user has never gone offline or never come back online
     if (!lastOfflineAt || !lastOnlineAt) {
         return false;
     }
 
-    const actionCreatedAt = DateUtils.getLocalDateFromDatetime(locale, action.created);
+    const actionCreatedAt = getLocalDateFromDatetime(action.created);
 
     // The action was created before the user went offline.
     if (actionCreatedAt <= lastOfflineAt) {
@@ -3030,9 +3043,15 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
 /**
  * Whether a message is NOT from the active user, and it was received while the user was offline.
  */
-function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale = CONST.LOCALES.DEFAULT) {
+function wasMessageReceivedWhileOffline(
+    action: ReportAction,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+) {
     const wasByCurrentUser = wasActionTakenByCurrentUser(action);
-    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
+    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime);
 
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }

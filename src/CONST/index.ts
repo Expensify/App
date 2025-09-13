@@ -7,8 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
-import BankAccount from '@libs/models/BankAccount';
-import {addTrailingForwardSlash} from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -235,8 +234,12 @@ const CONST = {
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
+    ANIMATION_SUBMIT_DURATION: 200,
+    ANIMATION_SUBMIT_LOADING_STATE_DURATION: 1000,
+    ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION: 1500,
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
     ANIMATION_THUMBS_UP_DURATION: 250,
+    ANIMATION_SUBMITTED_DURATION: 250,
     ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
@@ -421,6 +424,8 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    FREE_TRIAL_MARKDOWN:
+        "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -549,6 +554,8 @@ const CONST = {
             SETUP: 'SETUP',
             PENDING: 'PENDING',
             OPEN: 'OPEN',
+            DELETED: 'DELETED',
+            LOCKED: 'LOCKED',
         },
         MAX_LENGTH: {
             FULL_SSN: 9,
@@ -1109,6 +1116,7 @@ const CONST = {
             DELETE: 'delete',
             RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
+            REJECT: 'reject',
             SPLIT: 'split',
             REOPEN: 'reopen',
             EXPORT: 'export',
@@ -1123,12 +1131,14 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved',
             ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved',
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
@@ -1145,6 +1155,7 @@ const CONST = {
             SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            REJECT: 'reject',
             MERGE: 'merge',
         },
         ADD_EXPENSE_OPTIONS: {
@@ -1216,6 +1227,7 @@ const CONST = {
                 RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
+                REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
@@ -1315,6 +1327,8 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                REJECTEDTRANSACTION_THREAD: 'REJECTEDTRANSACTION_THREAD',
+                REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED',
             },
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
@@ -1478,6 +1492,10 @@ const CONST = {
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
         },
+        MOVE_TYPE: {
+            FROM: 'from',
+            TO: 'to',
+        },
     },
     EXPORT_TEMPLATE_TYPES: {
         INTEGRATIONS: 'integrations',
@@ -1554,6 +1572,8 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
+        COMPUTE_REPORT_NAME: 'compute_report_name',
+        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -2767,7 +2787,7 @@ const CONST = {
             PAY: 'pay',
             CREATE: 'create',
             SPLIT: 'split',
-            DECLINE: 'decline',
+            REJECT: 'reject',
             CANCEL: 'cancel',
             DELETE: 'delete',
             APPROVE: 'approve',
@@ -2875,9 +2895,14 @@ const CONST = {
             USER: 'user',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
-        AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
-        AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 10000,
-        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.05,
+
+        // Auto-reimbursement and auto-approval defaults are 0, but when enabled will use the suggested limit
+        AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS: 0,
+        AUTO_REIMBURSEMENT_LIMIT_SUGGESTED_CENTS: 10000,
+        AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 0,
+        AUTO_APPROVE_REPORTS_UNDER_SUGGESTED_CENTS: 10000,
+        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.0,
+        RANDOM_AUDIT_SUGGESTED_PERCENTAGE: 0.05,
 
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
@@ -2957,6 +2982,7 @@ const CONST = {
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
+            IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3032,6 +3058,12 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+            },
+            SUPPORTED_ONLY_ON_OLDDOT: {
+                FINANCIALFORCE: 'financialForce',
+            },
+            UNSUPPORTED_NAMES: {
+                GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
@@ -3711,7 +3743,7 @@ const CONST = {
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
-    MAX_COMMENT_LENGTH: 10000,
+    MAX_COMMENT_LENGTH: 15000,
 
     // Use the same value as MAX_COMMENT_LENGTH to ensure the entire comment is parsed. Note that applying markup is very resource-consuming.
     MAX_MARKUP_LENGTH: 10000,
@@ -5645,7 +5677,7 @@ const CONST = {
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
-                state: BankAccount.STATE.SETUP,
+                state: 'SETUP',
             },
             isLoading: false,
             errorFields: {},
@@ -6434,6 +6466,7 @@ const CONST = {
             CHAT: 'chat',
         },
         ACTION_FILTERS: {
+            SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
@@ -6447,6 +6480,9 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
+        },
+        HAS_VALUES: {
+            RECEIPT: 'receipt',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
@@ -6592,9 +6628,11 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
+            ATTENDEE: 'attendee',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6642,9 +6680,11 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
+            ATTENDEE: 'attendee',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -7204,6 +7244,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];
 
 const FEATURE_IDS = {
