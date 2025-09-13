@@ -223,7 +223,7 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
 } from './RequestConflictUtils';
-import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
@@ -3396,9 +3396,9 @@ function openReportFromDeepLink(
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
+    isAuthenticated: boolean,
 ) {
     const reportID = getReportIDFromLink(url);
-    const isAuthenticated = hasAuthToken();
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
