@@ -10,7 +10,7 @@ import type ReportsAndReportAction from './types';
  * It traverses up the report hierarchy using parentReportID and parentReportActionID.
  *
  * @param reportID - The ID of the report for which to fetch ancestor reports and actions.
- * @param includeTransactionThreadReportActions - Whether to include transaction-thread actions. Default is true.
+ * @param includeTransactionThreadReportActions - Whether to include transaction-thread actions.
  */
 
 function useAncestorReportsAndReportActions(
@@ -26,12 +26,9 @@ function useAncestorReportsAndReportActions(
             }
 
             let currentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            while (currentReport?.parentReportID) {
+            while (currentReport) {
                 reports[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`] = currentReport;
                 currentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.parentReportID}`];
-            }
-            if (currentReport) {
-                reports[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`] = currentReport;
             }
             return reports;
         },
