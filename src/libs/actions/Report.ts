@@ -90,6 +90,7 @@ import {rand64} from '@libs/NumberUtils';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
@@ -97,6 +98,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
@@ -181,6 +183,8 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     Account,
+    Beta,
+    BetaConfiguration,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -2327,19 +2331,21 @@ function toggleSubscribeToChildReport(
     }
 }
 
-function updateReportName(reportID: string, value: string, previousValue: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                reportName: value,
-                pendingFields: {
-                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
+function updateReportName(reportID: string, value: string, previousValue: string, betas: Beta[], betaConfiguration: BetaConfiguration) {
+    const optimisticData: OnyxUpdate[] = [];
+    if (Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+        optimisticData.concat(removeTitleFieldFromReport(reportID));
+    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            reportName: value,
+            pendingFields: {
+                reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
-    ];
+    });
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2698,7 +2704,15 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: string, reportActionID: string, creatorPersonalDetails: PersonalDetails, reportPreviewReportActionID: string) {
+function buildNewReportOptimisticData(
+    policy: OnyxEntry<Policy>,
+    reportID: string,
+    reportActionID: string,
+    creatorPersonalDetails: PersonalDetails,
+    reportPreviewReportActionID: string,
+    betas: Beta[],
+    betaConfiguration: BetaConfiguration,
+) {
     const {accountID, login} = creatorPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
@@ -2786,6 +2800,9 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             value: optimisticNextStep,
         },
     ];
+    if (Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+        optimisticData.concat(updateTitleFieldToMatchPolicy(reportID, policy));
+    }
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2851,7 +2868,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     };
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false) {
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, betas: Beta[] = [], betaConfiguration: BetaConfiguration = {}, shouldNotifyNewAction = false) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -2865,6 +2882,8 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         reportActionID,
         creatorPersonalDetails,
         reportPreviewReportActionID,
+        betas,
+        betaConfiguration,
     );
 
     API.write(
@@ -5172,7 +5191,7 @@ function deleteAppReport(reportID: string | undefined) {
  * @param policyID - The ID of the policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlementButton?: boolean) {
+function moveIOUReportToPolicy(reportID: string, policyID: string, betas: Beta[], betaConfiguration: BetaConfiguration, isFromSettlementButton?: boolean) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -5224,6 +5243,10 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
     if (!!titleReportField && isPaidGroupPolicy(policy)) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
+    }
+
+    if (Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+        optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
     }
 
     optimisticData.push({
@@ -5702,7 +5725,15 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
     });
 }
 
-function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportNextStep?: ReportNextStep, optimisticPolicyExpenseChatReport?: Report, isReportArchived = false) {
+function buildOptimisticChangePolicyData(
+    report: Report,
+    policy: Policy,
+    betas: Beta[],
+    betaConfiguration: BetaConfiguration,
+    reportNextStep?: ReportNextStep,
+    optimisticPolicyExpenseChatReport?: Report,
+    isReportArchived = false,
+) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -5753,6 +5784,12 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: reportNextStep,
         });
+    }
+
+    if (Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+        if (shouldUpdateTitleField(report)) {
+            optimisticData.push(...updateTitleFieldToMatchPolicy(report.reportID, policy));
+        }
     }
 
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
@@ -5942,7 +5979,7 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: ReportNextStep, isReportArchived = false) {
+function changeReportPolicy(report: Report, policy: Policy, betas: Beta[], betaConfiguration: BetaConfiguration, reportNextStep?: ReportNextStep, isReportArchived = false) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
     }
@@ -5950,6 +5987,8 @@ function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: Rep
     const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(
         report,
         policy,
+        betas,
+        betaConfiguration,
         reportNextStep,
         undefined,
         isReportArchived,
@@ -5974,6 +6013,8 @@ function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: Rep
 function changeReportPolicyAndInviteSubmitter(
     report: Report,
     policy: Policy,
+    betas: Beta[],
+    betaConfiguration: BetaConfiguration,
     employeeList: PolicyEmployeeList | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReportArchived = false,
@@ -6009,7 +6050,7 @@ function changeReportPolicyAndInviteSubmitter(
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(report, policy, undefined, membersChats.reportCreationData[submitterEmail], isReportArchived);
+    } = buildOptimisticChangePolicyData(report, policy, betas, betaConfiguration, undefined, membersChats.reportCreationData[submitterEmail], isReportArchived);
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);

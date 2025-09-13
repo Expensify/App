@@ -147,6 +147,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         canBeMissing: true,
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -485,7 +487,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                               }
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation, betas, betaConfiguration);
                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                       Navigation.navigate(
                                           isSearchTopmostFullScreenRoute()
