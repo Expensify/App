@@ -89,7 +89,8 @@ Onyx.connect({
 });
 
 let allReportNameValuePair: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-Onyx.connect({
+// allReportNameValuePair is used on getFinishOnboardingTaskOnyxData to generate Onyx optimistic data
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
