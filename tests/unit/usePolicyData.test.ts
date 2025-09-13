@@ -14,8 +14,7 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import {createAdminRoom, createAnnounceRoom} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Mock data ids
-
+// Mock data id
 const mockPolicy: Policy = createRandomPolicy(0);
 const mockPolicyTagLists: PolicyTagLists = createRandomPolicyTags('Tags', 8);
 const mockPolicyCategories: PolicyCategories = createRandomPolicyCategories(8);
@@ -71,14 +70,14 @@ describe('usePolicyData', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
-        return waitForBatchedUpdates();
     });
 
     beforeEach(() => {
-        return Onyx.clear().then(waitForBatchedUpdates);
+        Onyx.clear();
+        return waitForBatchedUpdates();
     });
 
-    test('returns reports filtered by a policy ID that exists in the onyx', async () => {
+    test('returns data given a policy ID that exists in the onyx', async () => {
         await Onyx.multiSet({
             ...reportsCollection,
             ...reportActionsCollection,

@@ -18,25 +18,29 @@ function usePolicyData(policyID?: string): PolicyData {
     const policy = usePolicy(policyID);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
 
-    const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true}, [policyID]);
+    const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true}, [policyID]);
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: (allReports) => {
-            if (!policyID || !allReports || !allReportsTransactionsAndViolations) {
-                return {};
-            }
-            // Filter reports to only include those that belong to the specified policy and have associated transactions
-            return Object.keys(allReportsTransactionsAndViolations).reduce<Record<string, Report>>((acc, reportID) => {
-                const policyReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                if (policyReport?.policyID === policyID) {
-                    acc[reportID] = policyReport;
+    const [reports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            canBeMissing: true,
+            selector: (allReports) => {
+                if (!policyID || !allReports || !allReportsTransactionsAndViolations) {
+                    return {};
                 }
-                return acc;
-            }, {});
+                // Filter reports to only include those that belong to the specified policy and have associated transactions
+                return Object.keys(allReportsTransactionsAndViolations).reduce<Record<string, Report>>((acc, reportID) => {
+                    const policyReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                    if (policyReport?.policyID === policyID) {
+                        acc[reportID] = policyReport;
+                    }
+                    return acc;
+                }, {});
+            },
         },
-    });
+        [policyID, allReportsTransactionsAndViolations],
+    );
 
     const transactionsAndViolations = useMemo(() => {
         if (!reports || !allReportsTransactionsAndViolations) {
