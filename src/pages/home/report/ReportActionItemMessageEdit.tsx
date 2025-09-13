@@ -329,7 +329,7 @@ function ReportActionItemMessageEdit(
 
             hideSuggestionMenu();
         },
-        [isScrollLayoutTriggered.current, hideSuggestionMenu],
+        [isScrollLayoutTriggered, hideSuggestionMenu],
     );
 
     /**
