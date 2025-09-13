@@ -449,7 +449,10 @@ function MagicCodeInput(
 
     return (
         <>
-            <View style={[styles.magicCodeInputContainer]}>
+            <View
+                style={[styles.magicCodeInputContainer]}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
