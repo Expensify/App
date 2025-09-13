@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -30,42 +31,50 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const {report, ancestorReportsAndReportActions} = useAncestorReportsAndReportActions(reportID, true);
     const allReportTransactionsAndViolations = useAllReportsTransactionsAndViolations();
 
-    const [selectedTransactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canBeMissing: false,
-        selector: (reportActions) => {
-            const actions = Object.values(reportActions ?? {});
+    const [selectedTransactionsIOUActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canBeMissing: false,
+            selector: (reportActions = {}) => {
+                const actions = Object.values(reportActions);
 
-            return context.selectedTransactionIDs.reduce<Record<string, ReportAction>>((acc, transactionID) => {
-                const iouAction = getIOUActionForTransactionID(actions, transactionID);
-                if (!iouAction) {
-                    Log.warn(`[SearchHoldReasonPage] No IOU action found for selected transactionID: ${transactionID}`);
+                return context.selectedTransactionIDs.reduce<Record<string, ReportAction>>((acc, transactionID) => {
+                    const iouAction = getIOUActionForTransactionID(actions, transactionID);
+                    if (!iouAction) {
+                        Log.warn(`[SearchHoldReasonPage] No IOU action found for selected transactionID: ${transactionID}`);
+                        return acc;
+                    }
+                    acc[transactionID] = iouAction;
                     return acc;
-                }
-                acc[transactionID] = iouAction;
-                return acc;
-            }, {});
+                }, {});
+            },
         },
-    });
+        [context.selectedTransactionIDs],
+    );
 
-    const [selectedTransactionsThreads] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {
-        canBeMissing: false,
-        selector: (allReports) => {
-            if (!allReports) {
-                return;
-            }
+    const [selectedTransactionsThreads] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT}`,
+        {
+            canBeMissing: false,
+            selector: (allReports) => {
+                if (!allReports) {
+                    return;
+                }
 
-            return Object.entries(selectedTransactionsIOUActions ?? {}).reduce<Record<string, OnyxValueWithOfflineFeedback<Report>>>((acc, [transactionID, iouAction]) => {
-                if (!iouAction?.childReportID) {
+                return Object.entries(selectedTransactionsIOUActions ?? {}).reduce<Record<string, OnyxValueWithOfflineFeedback<Report>>>((acc, [transactionID, iouAction]) => {
+                    if (!iouAction?.childReportID) {
+                        return acc;
+                    }
+                    const thread = allReports[iouAction.childReportID];
+                    if (thread) {
+                        acc[transactionID] = thread;
+                    }
                     return acc;
-                }
-                const thread = allReports[iouAction.childReportID];
-                if (thread) {
-                    acc[transactionID] = thread;
-                }
-                return acc;
-            }, {});
+                }, {});
+            },
         },
-    });
+        [selectedTransactionsIOUActions],
+    );
 
     // Get the selected transactions and violations for the current reportID
     const [selectedTransactions, selectedTransactionViolations] = useMemo(() => {
@@ -73,16 +82,14 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
             return [{}, {}];
         }
 
-        const reportTransactionsAndViolations = allReportTransactionsAndViolations[reportID];
-
+        const reportTransactionsAndViolations = allReportTransactionsAndViolations?.[reportID];
         if (!reportTransactionsAndViolations?.transactions) {
             return [{}, {}];
         }
 
-        const {transactions: reportTransactions, violations: reportViolations} = reportTransactionsAndViolations;
-
         const transactions: Record<string, Transaction> = {};
         const violations: Record<string, TransactionViolations> = {};
+        const {transactions: reportTransactions, violations: reportViolations} = reportTransactionsAndViolations;
 
         for (const transactionID of context.selectedTransactionIDs) {
             const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
