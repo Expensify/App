@@ -142,7 +142,7 @@ const baseFilterConfig = {
     },
     keyword: {
         getTitle: getFilterDisplayTitle,
-        description: 'search.filters.hasKeywords' as const,
+        description: 'search.filters.keywords' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
     },
     cardID: {
@@ -175,6 +175,11 @@ const baseFilterConfig = {
         description: 'common.tag' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG),
     },
+    has: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.has' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
+    },
     from: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from' as const,
@@ -184,6 +189,11 @@ const baseFilterConfig = {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.to' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO),
+    },
+    attendee: {
+        getTitle: getFilterParticipantDisplayTitle,
+        description: 'iou.attendees' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ATTENDEE),
     },
     in: {
         getTitle: getFilterInDisplayTitle,
@@ -395,6 +405,11 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+        const filterValue = filters[key];
+        return filterValue ? filterValue.map((value) => translate(`search.filters.has.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+    }
+
     const filterValue = filters[key];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
@@ -525,7 +540,12 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
+            } else if (
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
+            ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
