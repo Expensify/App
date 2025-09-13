@@ -769,25 +769,16 @@ class TranslationGenerator {
             // Extract complex expressions from the transformed node (which already has translations applied)
             const translatedComplexExpressions = new Map<number, ts.Expression>();
 
-            // If we have a transformed node, use its already-transformed expressions
-            if (transformedNode && ts.isTemplateExpression(transformedNode)) {
-                for (let i = 0; i < node.templateSpans.length; i++) {
-                    const originalExpression = node.templateSpans[i].expression;
-                    const transformedExpression = transformedNode.templateSpans[i].expression;
+            // Use the transformed expressions - they'll have nested translations applied for complex expressions
+            // and be identical to originals for simple expressions
+            const transformedTemplateNode = transformedNode && ts.isTemplateExpression(transformedNode) ? transformedNode : node;
+            for (let i = 0; i < node.templateSpans.length; i++) {
+                const originalExpression = node.templateSpans[i].expression;
+                const transformedExpression = transformedTemplateNode.templateSpans[i].expression;
 
-                    if (!this.isSimpleExpression(originalExpression)) {
-                        const hash = hashStr(originalExpression.getText());
-                        translatedComplexExpressions.set(hash, transformedExpression);
-                    }
-                }
-            } else {
-                // Fallback: no transformed node provided, use original expressions
-                for (const span of node.templateSpans) {
-                    const expression = span.expression;
-                    if (!this.isSimpleExpression(expression)) {
-                        const hash = hashStr(expression.getText());
-                        translatedComplexExpressions.set(hash, expression);
-                    }
+                if (!this.isSimpleExpression(originalExpression)) {
+                    const hash = hashStr(originalExpression.getText());
+                    translatedComplexExpressions.set(hash, transformedExpression);
                 }
             }
 
