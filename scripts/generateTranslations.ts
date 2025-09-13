@@ -195,10 +195,14 @@ class TranslationGenerator {
                     throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
                 }
 
-                // Transform en.ts with path filtering for pathsToModify and pathsToAdd
-                const enTransformer = this.createIncrementalEnTransformer(translationsForLocale);
-                const enResult = ts.transform(this.sourceFile, [enTransformer]);
-                const transformedEnSourceFile = enResult.transformed.at(0) ?? this.sourceFile;
+                // Transform en.ts with path filtering for pathsToModify and pathsToAdd.
+                // The result is a "patch" of the main translations node, including only the paths that are added or modified,
+                // where the values are translated to the target language.
+                const enResult = ts.transform(this.sourceFile, [this.createIncrementalEnTransformer(translationsForLocale)]);
+                const transformedEnSourceFile = enResult.transformed.at(0);
+                if (!transformedEnSourceFile) {
+                    throw new Error('Failed to create translated patch from en.ts');
+                }
 
                 // Extract translated code strings from the transformed en.ts
                 const translatedCodeMap = new Map<string, string>();
