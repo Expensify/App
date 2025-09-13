@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,6 +54,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (c) => mapOnyxCollectionItems(c, personalDetailsSelector), canBeMissing: false});
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -70,7 +72,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         isMultipleParticipant,
         localeCompare,
     );
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived, isRestrictedToPreferredWorkspace);
     const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(
