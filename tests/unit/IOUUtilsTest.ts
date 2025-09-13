@@ -262,7 +262,18 @@ describe('hasRTERWithoutViolation', () => {
 });
 
 describe('canSubmitReport', () => {
-    test('Return true if report can be submitted', async () => {
+    const archivedExpenseReportID = '9999';
+
+    beforeAll(() => {
+        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`, {
+            private_isArchived: DateUtils.getDBTime(),
+        });
+    });
+
+    afterAll(Onyx.clear);
+
+    test('Return true if report can be submitted', () => {
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -317,7 +328,7 @@ describe('canSubmitReport', () => {
         expect(canSubmitReport(currentUserAccountID, expenseReport, [], fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
-    test('Return true if report can be submitted after being reopened', async () => {
+    test('Return true if report can be submitted after being reopened', () => {
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -337,11 +348,11 @@ describe('canSubmitReport', () => {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
-        
+
         const expenseReportActions = {
             [expenseReport.reportID]: {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REOPENED,
-            }
+            },
         } as ReportActions;
 
         const transactionIDWithViolation = 1;
@@ -378,7 +389,7 @@ describe('canSubmitReport', () => {
         expect(canSubmitReport(currentUserAccountID, expenseReport, expenseReportActions, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
-    test('Return false if report can not be submitted', async () => {
+    test('Return false if report can not be submitted', () => {
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -396,7 +407,7 @@ describe('canSubmitReport', () => {
         expect(canSubmitReport(currentUserAccountID, expenseReport, [], fakePolicy, [], undefined, false)).toBe(false);
     });
 
-    it('returns false if the report is archived', async () => {
+    it('returns false if the report is archived', () => {
         const policy: Policy = {
             ...createRandomPolicy(7),
             ownerAccountID: currentUserAccountID,
@@ -405,16 +416,12 @@ describe('canSubmitReport', () => {
         };
         const report: Report = {
             ...createRandomReport(7),
+            reportID: archivedExpenseReportID,
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
             policyID: policy.id,
         };
-
-        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
-            private_isArchived: new Date().toString(),
-        });
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));

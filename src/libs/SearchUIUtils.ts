@@ -760,17 +760,17 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
 }
 
 /**
- * Determines if a report can be submitted in search results.
+ * Determines if a report can be submitted in search.
  * Similar to `ReportUtils.canSubmitReport` but only allows submission for single-transaction reports.
  *
  * @param currentUserAccountID - Current user's account ID
  * @param report - Report to whether it is eligible can be submitted for submission
  * @param reportActions - Reports actions associated with the report
- * @param policy - Policy which the report belongs to
+ * @param policy - Policy associated with the report
  * @param transactions - Transactions within the report
  * @param transactionViolations - Transaction violations associated with the report's transactions
  * @param isReportArchived - Whether the report is archived
- * @returns True if the report can be submitted, false otherwise
+ *
  */
 function canSubmitReportInSearch(
     currentUserAccountID: number | undefined,
@@ -781,7 +781,7 @@ function canSubmitReportInSearch(
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isReportArchived = false,
 ) {
-    return canSubmitReport(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report, reportActions, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
+    return canSubmitReport(currentUserAccountID, report, reportActions, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
 }
 
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {

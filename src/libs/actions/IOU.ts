@@ -236,7 +236,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -9595,7 +9595,7 @@ function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxE
 }
 
 function canSubmitReport(
-    currentUserAccountID: number,
+    currentUserAccountID: number | undefined,
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     reportActions: OnyxTypes.ReportActions | OnyxTypes.ReportAction[],
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
@@ -9603,8 +9603,13 @@ function canSubmitReport(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
 ) {
-    const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    // If we don't have a current user, they can't submit a report
+    if (currentUserAccountID === undefined) {
+        return false;
+    }
+
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
