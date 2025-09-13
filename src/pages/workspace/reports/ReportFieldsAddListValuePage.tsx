@@ -60,12 +60,16 @@ function ReportFieldsAddListValuePage({
             if (reportFieldID) {
                 addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
             } else {
-                createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
+                createReportFieldsListValue({
+                    valueName: values[INPUT_IDS.VALUE_NAME],
+                    listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+                    disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
+                });
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [policyID, reportFieldID],
+        [formDraft, policyID, reportFieldID],
     );
 
     return (
