@@ -2,6 +2,7 @@ import type JSZip from 'jszip';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Alert} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
 import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
@@ -222,17 +223,30 @@ function BaseRecordTroubleshootDataToolMenu({
                     return;
                 }
 
-                setProfileTracePath(path);
+                // On Android API 29+, MediaStore returns content URIs that are not accessible for sharing
+                // Copy the file to an accessible location using the same approach as profile trace
+                const accessibleProfilePath = `${pathToBeUsed}/${newFileName}`;
+                const contentUri = path.startsWith('content://') ? path : `content://media${path}`;
 
-                getAppInfo().then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
+                return RNFetchBlob.fs
+                    .readFile(contentUri, 'base64')
+                    .then((data: string) => {
+                        return RNFetchBlob.fs.writeFile(accessibleProfilePath, data, 'base64');
+                    })
+                    .then(() => {
+                        setProfileTracePath(accessibleProfilePath);
+                    })
+                    .then(() => {
+                        return getAppInfo().then((appInfo) => {
+                            zipRef.current?.file(infoFileName, appInfo);
 
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
-                        setIsDisabled(false);
+                            return onDisableLogging(logsWithParsedMessages).then(() => {
+                                disableLoggingAndFlushLogs();
+                                setShouldRecordTroubleshootData(false);
+                                setIsDisabled(false);
+                            });
+                        });
                     });
-                });
             });
         } else {
             // Desktop
