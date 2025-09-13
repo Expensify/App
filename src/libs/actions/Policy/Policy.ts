@@ -98,6 +98,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -280,6 +281,13 @@ Onyx.connect({
     callback: (value) => (introSelected = value),
 });
 
+let policyCardFeeds: OnyxCollection<CardFeeds>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER,
+    waitForCollectionCallback: true,
+    callback: (value) => (policyCardFeeds = value),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -369,7 +377,12 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
         return;
     }
 
-    const filteredPolicies = Object.values(allPolicies).filter((policy): policy is Policy => policy?.id !== policyID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
+    const policy = getPolicy(policyID);
+    const filteredPolicies = Object.values(allPolicies).filter((p): p is Policy => p?.id !== policyID);
+    const workspaceAccountID = policy?.workspaceAccountID;
+    const policyCardFeed = policyCardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -379,6 +392,11 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: null,
         },
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
@@ -393,9 +411,6 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
             : []),
     ];
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(policyID);
     // Restore the old report stateNum and statusNum
     const failureData: OnyxUpdate[] = [
         {
@@ -412,6 +427,11 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
                 avatarURL: policy?.avatarURL,
                 pendingAction: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: policyCardFeed,
         },
     ];
 
