@@ -1,4 +1,6 @@
+/* eslint-disable @lwc/lwc/no-async-await */
 import type {HeicConverterFunction} from './types';
+import {verifyHeicFormat, verifyJpegFormat, verifyPngFormat} from './utils';
 
 type HeicConverter = {
     heicTo: (options: {blob: Blob; type: string}) => Promise<Blob>;
@@ -44,8 +46,29 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
     const fetchBlobPromise = fetch(file.uri).then((response) => response.blob());
 
     Promise.all([libraryPromise, fetchBlobPromise])
-        .then(([{heicTo, isHeic}, blob]) => {
+        .then(async ([{heicTo, isHeic}, blob]) => {
             const fileFromBlob = new File([blob], file.name ?? 'temp-file', {type: blob.type});
+
+            const isHeicBasedOnSignatures = await verifyHeicFormat(fileFromBlob);
+
+            if (needsConversion && !isHeicBasedOnSignatures) {
+                const isJpgBasedOnSignatures = await verifyJpegFormat(fileFromBlob);
+                const isPngBasedOnSignatures = await verifyPngFormat(fileFromBlob);
+
+                // File has HEIC extension but is actually JPG or PNG - if so we should fix the extension
+                if (isJpgBasedOnSignatures) {
+                    const correctedFileName = file.name ? file.name.replace(/\.(heic|heif)$/i, '.jpg') : 'corrected-image.jpg';
+                    const correctedFile = new File([blob], correctedFileName, {type: 'image/jpeg'});
+                    correctedFile.uri = URL.createObjectURL(correctedFile);
+                    onSuccess(correctedFile);
+                } else if (isPngBasedOnSignatures) {
+                    const correctedFileName = file.name ? file.name.replace(/\.(heic|heif)$/i, '.png') : 'corrected-image.png';
+                    const correctedFile = new File([blob], correctedFileName, {type: 'image/png'});
+                    correctedFile.uri = URL.createObjectURL(correctedFile);
+                    onSuccess(correctedFile);
+                }
+                return;
+            }
 
             return isHeic(fileFromBlob).then((isHEIC) => {
                 if (isHEIC || needsConversion) {
