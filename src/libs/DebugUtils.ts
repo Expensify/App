@@ -1246,6 +1246,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 message: 'string',
                 field: 'string',
                 prohibitedExpenseRule: 'string',
+                comment: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
