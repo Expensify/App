@@ -91,6 +91,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
+
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -114,13 +117,13 @@ function MoneyRequestReportActionsList({
     reportActions = [],
     transactions = [],
     newTransactions,
+    violations,
     hasNewerActions,
     hasOlderActions,
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {preferredLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
@@ -354,12 +357,12 @@ function MoneyRequestReportActionsList({
      */
     const earliestReceivedOfflineMessageIndex = useMemo(() => {
         const lastIndex = reportActions.findLastIndex((action) => {
-            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale);
+            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime);
         });
 
         // The last index in the list is the earliest message that was received while offline
         return lastIndex > -1 ? lastIndex : undefined;
-    }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, reportActions]);
+    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, reportActions]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -721,6 +724,7 @@ function MoneyRequestReportActionsList({
                                     transactions={transactions}
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
+                                    violations={violations}
                                     hasComments={reportHasComments}
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}

@@ -15,6 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -67,6 +68,7 @@ function ConnectedVerifiedBankAccount({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             style={[styles.flex1, styles.justifyContentBetween, styles.mh2]}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}
