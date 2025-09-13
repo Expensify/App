@@ -122,7 +122,7 @@ function isVideo(fileName: string): boolean {
 /**
  * Returns file extension based from mime type
  */
-function getMimeType(contentType: string) {
+function getFileExtension(contentType: string) {
     const markdownAttachmentFileTypes = CONST.MARKDOWN_ATTACHMENT_FILE_TYPES;
     if (!Object.keys(markdownAttachmentFileTypes).includes(contentType)) {
         return;
@@ -675,7 +675,7 @@ export {
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
     getFileName,
-    getMimeType,
+    getFileExtension,
     getFileType,
     cleanFileName,
     appendTimeToFileName,

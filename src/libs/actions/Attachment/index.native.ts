@@ -1,20 +1,26 @@
+import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import {getMimeType} from '@libs/fileDownload/FileUtils';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {getFileExtension} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CacheAttachmentProps, GetCachedAttachmentProps} from './types';
 
-function cacheAttachment({attachmentID, uri, type}: CacheAttachmentProps) {
+function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
     const isMarkdownAttachment = !uri.startsWith('file://');
-    let mimeType = type;
-    let isSuccess = true;
+    const isLocalAttachment = new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(uri);
+    const attachmentURL = isLocalAttachment ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
+    const dirs = RNFetchBlob.fs.dirs;
+    let fileType = getFileExtension(mimeType ?? '');
 
-    if (!isMarkdownAttachment && mimeType) {
-        const fileType = getMimeType(mimeType);
+    // If it's coming from direct attachment file upload, we can just simply copy the file instead of fetching it again
+    if (!isMarkdownAttachment && fileType) {
         const fileName = `${attachmentID}.${fileType}`;
         const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-        RNFS.copyFile(uri, destPath)
+        return RNFS.copyFile(uri, destPath)
             .then(() => {
                 Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                     attachmentID,
@@ -26,52 +32,50 @@ function cacheAttachment({attachmentID, uri, type}: CacheAttachmentProps) {
             });
     }
 
-    fetch(uri)
-        .then((response) => {
-            if (!response.ok) {
-                isSuccess = false;
-            }
+    return fetch(attachmentURL, {
+        method: 'HEAD',
+    }).then((response) => {
+        const contentType = response.headers.get('Content-Type');
+        const contentLength = response.headers.get('Content-Length');
+        const contentSize = contentLength ? Number(contentLength) : 0;
 
-            const contentType = response.headers.get('content-type');
-            if (!mimeType && contentType) {
-                mimeType = contentType;
-            }
+        // Exit if the markdown attachment size is too large
+        if (isMarkdownAttachment && contentSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            return;
+        }
 
-            return response.arrayBuffer();
+        if (!fileType && contentType) {
+            fileType = getFileExtension(contentType);
+        }
+
+        // If fileType is not set properly, then we need to exit
+        if (!fileType) {
+            return;
+        }
+
+        const fileName = `${attachmentID}.${fileType}`;
+        const filePath = `${dirs.DocumentDir}/${fileName}`;
+
+        RNFetchBlob.config({
+            path: filePath,
         })
-        .then((bufferData) => {
-            if (!isSuccess) {
-                return;
-            }
-
-            const fileType = getMimeType(mimeType ?? '');
-            // If fileType is not set properly, then we need to exit
-            if (!fileType) {
-                return;
-            }
-            const finalData = btoa(String.fromCharCode(...new Uint8Array(bufferData)));
-            const fileName = `${attachmentID}.${fileType}`;
-            const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-            RNFS.writeFile(filePath, finalData, 'base64')
-                .then(() => {
-                    // If it's markdown attachment, then we need to set the remoteSource accordingly
-                    if (isMarkdownAttachment) {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                            attachmentID,
-                            source: filePath,
-                            remoteSource: uri,
-                        });
-                        return;
-                    }
+            .fetch('GET', attachmentURL)
+            .then((response) => {
+                const savedPath = response.path();
+                if (isMarkdownAttachment) {
                     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                         attachmentID,
-                        source: filePath,
+                        source: savedPath,
+                        remoteSource: uri,
                     });
-                })
-                .catch(() => {
-                    Log.warn('Failed to cache attachment');
+                    return;
+                }
+                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                    attachmentID,
+                    source: savedPath,
                 });
-        });
+            });
+    });
 }
 
 function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {

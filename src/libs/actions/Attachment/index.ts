@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CacheAttachmentProps, GetCachedAttachmentProps} from './types';
 
 function cacheAttachment({attachmentID, uri}: CacheAttachmentProps) {
-    fetch(uri).then((response) => {
+    return fetch(uri).then((response) => {
         if (!response.ok) {
             return;
         }

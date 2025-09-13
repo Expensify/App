@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Attachment} from '@src/types/onyx';
+import type {Attachment, Session} from '@src/types/onyx';
 
 type CacheAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute */
@@ -8,8 +8,8 @@ type CacheAttachmentProps = {
     /** URI of the given attachment either external or local source */
     uri: string;
 
-    /** File type of the given attachment (native-only) */
-    type?: string;
+    /** MIME type of the given attachment (native-only) */
+    mimeType?: string;
 };
 
 type GetCachedAttachmentProps = {
