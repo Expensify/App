@@ -26,7 +26,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     canSelectMultiple,
     onSelectRow,
     onCheckboxPress,
-    onDismissError,
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
