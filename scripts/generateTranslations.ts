@@ -842,7 +842,7 @@ class TranslationGenerator {
      * Create a transformer factory for full translations (transforms en.ts completely).
      */
     private createFullTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        const visitor = (node: ts.Node): TransformerResult => {
+        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node): TransformerResult => {
             if (this.shouldTranslateNode(node)) {
                 return {
                     action: TransformerAction.Replace,
@@ -850,9 +850,7 @@ class TranslationGenerator {
                 };
             }
             return {action: TransformerAction.Continue};
-        };
-
-        return TSCompilerUtils.createPathAwareTransformer(visitor);
+        });
     }
 
     /**
@@ -860,7 +858,7 @@ class TranslationGenerator {
      * Only translates paths that are in pathsToModify or pathsToAdd.
      */
     private createIncrementalEnTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        const visitor = (node: ts.Node, currentPath = ''): TransformerResult => {
+        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath = ''): TransformerResult => {
             if (this.shouldTranslateNode(node)) {
                 if (this.shouldTranslatePath(currentPath)) {
                     return {
@@ -871,9 +869,7 @@ class TranslationGenerator {
                 return {action: TransformerAction.Continue};
             }
             return {action: TransformerAction.Continue};
-        };
-
-        return TSCompilerUtils.createPathAwareTransformer(visitor);
+        });
     }
 
     /**
@@ -881,31 +877,41 @@ class TranslationGenerator {
      * Handles pathsToModify (replace) and pathsToRemove (delete) using translated code strings.
      */
     private createIncrementalTargetTransformer(translatedCodeMap: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            return (sourceFile: ts.SourceFile) => {
-                const mainTranslationsNode = this.findTranslationsNode(sourceFile);
-                const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                    // Check if this path should be removed
-                    if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
-                        return undefined; // Remove this node
-                    }
+        // Need to capture mainTranslationsNode per source file
+        let mainTranslationsNode: ts.ObjectLiteralExpression;
 
-                    // Check if this is a property assignment that should be modified (exact match only)
-                    if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
-                        const translatedCodeString = translatedCodeMap.get(currentPath);
-                        if (!translatedCodeString) {
-                            // this should never happen
-                            throw new Error('An unknown error occurred');
+        const transformerFactory = TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath: string): TransformerResult => {
+            // Check if this path should be removed
+            if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
+                return {action: TransformerAction.Remove};
+            }
+
+            // Check if this is a property assignment that should be modified (exact match only)
+            if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
+                const translatedCodeString = translatedCodeMap.get(currentPath);
+                if (!translatedCodeString) {
+                    // this should never happen
+                    throw new Error('An unknown error occurred');
+                }
+
+                // Parse the code string back to an AST expression
+                const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
+                return {
+                    action: TransformerAction.Replace,
+                    newNode: () => ts.factory.createPropertyAssignment(node.name, translatedExpression),
+                };
+            }
+
+            // Check if this is the main translations node and we need to add new properties
+            if (ts.isObjectLiteralExpression(node) && node === mainTranslationsNode) {
+                return {
+                    action: TransformerAction.Replace,
+                    newNode: (transformedNode) => {
+                        if (!ts.isObjectLiteralExpression(transformedNode)) {
+                            return transformedNode;
                         }
 
-                        // Parse the code string back to an AST expression
-                        const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
-                        return ts.factory.createPropertyAssignment(node.name, translatedExpression);
-                    }
-
-                    // Check if this is the main translations node and we need to add new properties
-                    if (ts.isObjectLiteralExpression(node) && node === mainTranslationsNode) {
-                        const newProperties = [...node.properties];
+                        const newProperties = [...transformedNode.properties];
                         let hasAdditions = false;
 
                         // Add properties for pathsToAdd
@@ -920,7 +926,7 @@ class TranslationGenerator {
                                         throw new Error('An unknown error occurred');
                                     }
 
-                                    // Parse the code string back to an expression (same as pathsToModify)
+                                    // Parse the code string back to an expression
                                     const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
                                     const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedExpression);
                                     newProperties.push(newProperty);
@@ -929,15 +935,19 @@ class TranslationGenerator {
                             }
                         }
 
-                        if (hasAdditions) {
-                            return ts.factory.createObjectLiteralExpression(newProperties);
-                        }
-                    }
-
-                    return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
+                        return hasAdditions ? ts.factory.createObjectLiteralExpression(newProperties) : transformedNode;
+                    },
                 };
+            }
 
-                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
+            return {action: TransformerAction.Continue};
+        });
+
+        return (context: ts.TransformationContext) => {
+            return (sourceFile: ts.SourceFile) => {
+                // Reset for each source file
+                mainTranslationsNode = this.findTranslationsNode(sourceFile);
+                return transformerFactory(context)(sourceFile);
             };
         };
     }
@@ -947,15 +957,18 @@ class TranslationGenerator {
      * Removes property assignments that have empty object literals as their initializer.
      */
     private createEmptyObjectCleanupTransformer(): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            return (sourceFile: ts.SourceFile) => {
-                const mainTranslationsNode = this.findTranslationsNode(sourceFile);
+        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node): TransformerResult => {
+            // Check if this is an object literal that might need cleanup
+            if (ts.isObjectLiteralExpression(node)) {
+                return {
+                    action: TransformerAction.Replace,
+                    newNode: (transformedNode) => {
+                        if (!ts.isObjectLiteralExpression(transformedNode)) {
+                            return transformedNode;
+                        }
 
-                const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                    // Check if we're in the main translation node
-                    if (ts.isObjectLiteralExpression(node) && node === mainTranslationsNode) {
                         // Filter out properties that have empty object literals as initializers
-                        const nonEmptyProperties = node.properties.filter((prop) => {
+                        const nonEmptyProperties = transformedNode.properties.filter((prop) => {
                             if (!ts.isPropertyAssignment(prop) || !ts.isObjectLiteralExpression(prop.initializer)) {
                                 return true;
                             }
@@ -970,17 +983,13 @@ class TranslationGenerator {
                             return !isEmpty;
                         });
 
-                        if (nonEmptyProperties.length !== node.properties.length) {
-                            return ts.factory.createObjectLiteralExpression(nonEmptyProperties);
-                        }
-                    }
-
-                    return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
+                        return nonEmptyProperties.length !== transformedNode.properties.length ? ts.factory.createObjectLiteralExpression(nonEmptyProperties) : transformedNode;
+                    },
                 };
+            }
 
-                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
-            };
-        };
+            return {action: TransformerAction.Continue};
+        });
     }
 }
 
