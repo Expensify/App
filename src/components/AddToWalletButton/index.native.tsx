@@ -97,10 +97,12 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
         );
     }
 
+    // The system provides control over the correct appearance and language
     return (
         <RNAddToWalletButton
-            buttonStyle={buttonStyle}
-            locale="en"
+            style={{...buttonStyle, width: CONST.WALLET.ADD_TO_WALLET_BUTTON.WIDTH, height: CONST.WALLET.ADD_TO_WALLET_BUTTON.HEIGHT}}
+            buttonType="badge"
+            buttonStyle="blackOutline"
             onPress={handleOnPress}
         />
     );
