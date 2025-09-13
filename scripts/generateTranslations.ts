@@ -877,10 +877,12 @@ class TranslationGenerator {
      * Handles pathsToModify (replace) and pathsToRemove (delete) using translated code strings.
      */
     private createIncrementalTargetTransformer(translatedCodeMap: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
-        // Need to capture mainTranslationsNode per source file
-        let mainTranslationsNode: ts.ObjectLiteralExpression;
+        let mainTranslationsNode: ts.ObjectLiteralExpression | undefined;
+        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath: string): TransformerResult => {
+            if (!mainTranslationsNode) {
+                mainTranslationsNode = this.findTranslationsNode(node.getSourceFile());
+            }
 
-        const transformerFactory = TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath: string): TransformerResult => {
             // Check if this path should be removed
             if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
                 return {action: TransformerAction.Remove};
@@ -942,14 +944,6 @@ class TranslationGenerator {
 
             return {action: TransformerAction.Continue};
         });
-
-        return (context: ts.TransformationContext) => {
-            return (sourceFile: ts.SourceFile) => {
-                // Reset for each source file
-                mainTranslationsNode = this.findTranslationsNode(sourceFile);
-                return transformerFactory(context)(sourceFile);
-            };
-        };
     }
 
     /**
