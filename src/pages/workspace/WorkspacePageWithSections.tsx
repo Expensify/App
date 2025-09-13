@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -131,7 +132,7 @@ function WorkspacePageWithSections({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.email,
+        selector: emailSelector,
         canBeMissing: true,
     });
 

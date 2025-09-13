@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -198,7 +199,7 @@ function useAdvancedSearchFilters() {
         .map(getTagNamesFromTagsLists)
         .flat();
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
 
     const {sections: workspaces} = useWorkspaceList({
         policies,

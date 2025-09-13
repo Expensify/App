@@ -73,6 +73,8 @@ type ReportFooterProps = {
     onComposerBlur?: () => void;
 };
 
+const isAnonymousUserSelector = (session: OnyxEntry<OnyxTypes.Session>) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+
 function ReportFooter({
     lastReportAction,
     pendingAction,
@@ -93,7 +95,7 @@ function ReportFooter({
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
+    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousUserSelector, canBeMissing: false});
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: (dateString) => {
             if (!dateString) {

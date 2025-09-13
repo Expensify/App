@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -69,7 +70,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.accountID,
+        selector: accountIDSelector,
         canBeMissing: true,
     });
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
