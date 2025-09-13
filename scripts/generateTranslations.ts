@@ -853,17 +853,9 @@ class TranslationGenerator {
     private createFullTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         const visitor = (node: ts.Node): TransformerResult => {
             if (this.shouldTranslateNode(node)) {
-                // For template expressions with complex nested content, recurse first then replace
-                if (ts.isTemplateExpression(node) && !this.isSimpleTemplateExpression(node)) {
-                    return {
-                        action: TransformerAction.RecurseThenReplace,
-                        replaceWith: (transformedNode) => this.translateNode(node, translations, transformedNode),
-                    };
-                }
-                // For simple nodes, just replace directly
                 return {
                     action: TransformerAction.Replace,
-                    newNode: this.translateNode(node, translations),
+                    newNode: (transformedChildNode) => this.translateNode(node, translations, transformedChildNode),
                 };
             }
             return {action: TransformerAction.Continue};
@@ -880,17 +872,9 @@ class TranslationGenerator {
         const visitor = (node: ts.Node, currentPath = ''): TransformerResult => {
             if (this.shouldTranslateNode(node)) {
                 if (this.shouldTranslatePath(currentPath)) {
-                    // For template expressions with complex nested content, recurse first then replace
-                    if (ts.isTemplateExpression(node) && node.templateSpans.some((span) => !this.isSimpleExpression(span.expression))) {
-                        return {
-                            action: TransformerAction.RecurseThenReplace,
-                            replaceWith: (transformedNode) => this.translateNode(node, translations, transformedNode),
-                        };
-                    }
-                    // For simple nodes, just replace directly
                     return {
                         action: TransformerAction.Replace,
-                        newNode: this.translateNode(node, translations),
+                        newNode: (transformedChildNode) => this.translateNode(node, translations, transformedChildNode),
                     };
                 }
                 return {action: TransformerAction.Continue};
