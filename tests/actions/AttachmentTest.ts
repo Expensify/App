@@ -11,8 +11,30 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
-    writeFile: jest.fn(() => Promise.resolve()),
     copyFile: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-blob-util', () => ({
+    config: jest.fn((data) => {
+        const filePath = data?.path;
+        return {
+            fetch: jest.fn(() =>
+                Promise.resolve({
+                    path: jest.fn(() => filePath ?? '/mock/documents/file'),
+                }),
+            ),
+        };
+    }),
+    fs: {
+        dirs: {
+            DocumentDir: '/mock/documents',
+        },
+    },
+    fetch: jest.fn(() =>
+        Promise.resolve({
+            path: jest.fn(() => '/mock/documents/file'),
+        }),
+    ),
 }));
 
 describe('AttachmentStorage', () => {

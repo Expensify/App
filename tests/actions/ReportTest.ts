@@ -35,7 +35,27 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
-    writeFile: jest.fn(() => Promise.resolve()),
+    copyFile: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-blob-util', () => ({
+    config: jest.fn(() => ({
+        fetch: jest.fn(() =>
+            Promise.resolve({
+                path: jest.fn(() => '/mocked/path/to/file'),
+            }),
+        ),
+    })),
+    fs: {
+        dirs: {
+            DocumentDir: '/mocked/document/dir',
+        },
+    },
+    fetch: jest.fn(() =>
+        Promise.resolve({
+            path: jest.fn(() => '/mocked/path/to/file'),
+        }),
+    ),
 }));
 
 jest.mock('@libs/NextStepUtils', () => ({
