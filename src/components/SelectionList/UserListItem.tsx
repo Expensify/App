@@ -66,7 +66,8 @@ function UserListItem<TItem extends ListItem>({
     const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
-
+    const shouldShowRadio = !!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple ;
+    const shouldShowCheckbox = !shouldUseDefaultRightHandSideCheckmark && !canSelectMultiple;
     return (
         <BaseListItem
             item={item}
@@ -81,6 +82,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
+            shouldDisplayRBR={!shouldShowRadio && !shouldShowCheckbox}
             pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
@@ -143,7 +145,7 @@ function UserListItem<TItem extends ListItem>({
                             />
                         </View>
                     )}
-                    {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                    {shouldShowRadio && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -164,7 +166,7 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {!shouldUseDefaultRightHandSideCheckmark && !canSelectMultiple && (
+                    {shouldShowCheckbox && (
                         <Checkbox
                             containerBorderRadius={999}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
