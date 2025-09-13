@@ -35,6 +35,7 @@ import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner
 import CardSectionActions from './CardSectionActions';
 import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import getSectionSubtitle from './CardSectionSubtitle';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
@@ -81,7 +82,11 @@ function CardSection() {
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
-    const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
+    const sectionSubtitle = getSectionSubtitle({
+        translate,
+        hasDefaultCard: !!defaultCard,
+        nextPaymentDate,
+    });
 
     useEffect(() => {
         setBillingStatus(
