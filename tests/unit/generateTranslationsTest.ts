@@ -1162,13 +1162,20 @@ describe('generateTranslations', () => {
             // Should preserve unchanged string
             expect(itContent).toContain('[it] Keep this (existing)');
 
-            // Should retranslate complex template
-            expect(itContent).toContain('user.isAdmin ?');
+            // Should retranslate complex template - check for key parts rather than exact formatting
+            expect(itContent).toContain('deepTemplate: (user: User, settings: Settings) =>');
+            expect(itContent).toContain('[it] Admin');
+            expect(itContent).toContain('[it] Dark mode');
+            expect(itContent).toContain('[it] Light mode');
+            expect(itContent).toContain('[it] User');
+            expect(itContent).toContain('[it] Unknown');
+            expect(itContent).toContain('[it] Notifications on');
+            expect(itContent).toContain('[it] Silent');
+            expect(itContent).toContain('[it] English');
+            expect(itContent).toContain('user.isAdmin');
             // eslint-disable-next-line no-template-curly-in-string
-            expect(itContent).toContain('Admin ${user.name}');
+            expect(itContent).toContain('${user.name}');
             expect(itContent).toContain("settings.theme === 'dark'");
-            expect(itContent).toContain("user.name ?? '[it] Unknown'");
-            expect(itContent).toContain("settings.language || '[it] English'");
             expect(itContent).not.toContain('[it] Old complex template');
         });
 

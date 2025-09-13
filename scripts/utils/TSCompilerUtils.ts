@@ -5,16 +5,23 @@ import ts from 'typescript';
  */
 enum TransformerAction {
     /** Keep the existing node unchanged and continue visiting its children */
-    CONTINUE = 'continue',
+    Continue = 'continue',
 
     /** Replace the node with a new one and stop visiting its children */
-    REPLACE = 'replace',
+    Replace = 'replace',
 
     /** Remove the node entirely and stop visiting its children */
-    REMOVE = 'remove',
+    Remove = 'remove',
+
+    /** First recurse into children to transform them, then replace the parent with the callback result */
+    RecurseThenReplace = 'recurse_then_replace',
 }
 
-type TransformerResult = {action: TransformerAction.CONTINUE} | {action: TransformerAction.REPLACE; newNode: ts.Node} | {action: TransformerAction.REMOVE};
+type TransformerResult =
+    | {action: TransformerAction.Continue}
+    | {action: TransformerAction.Replace; newNode: ts.Node}
+    | {action: TransformerAction.Remove}
+    | {action: TransformerAction.RecurseThenReplace; replaceWith: (transformedNode: ts.Node) => ts.Node};
 
 /**
  * Walk up the AST from a given node and return the nearest ancestor that matches a predicate.
@@ -304,13 +311,20 @@ function createPathAwareTransformer(visitor: (node: ts.Node, path: string) => Tr
             const result = visitor(node, currentPath);
 
             switch (result.action) {
-                case TransformerAction.REMOVE:
+                case TransformerAction.Remove:
                     return undefined;
 
-                case TransformerAction.REPLACE:
+                case TransformerAction.Replace:
                     return result.newNode;
 
-                case TransformerAction.CONTINUE:
+                case TransformerAction.RecurseThenReplace: {
+                    // First recurse into children to transform them
+                    const transformedNode = ts.visitEachChild(node, createPathAwareVisitor(visitWithPath, currentPath), context);
+                    // Then apply the replacement using the transformed node
+                    return result.replaceWith(transformedNode);
+                }
+
+                case TransformerAction.Continue:
                 default:
                     return ts.visitEachChild(node, createPathAwareVisitor(visitWithPath, currentPath), context);
             }
@@ -333,6 +347,6 @@ export default {
     parseCodeStringToAST,
     createPathAwareVisitor,
     createPathAwareTransformer,
-    TransformerAction,
 };
-export type {ExpressionWithType};
+export {TransformerAction};
+export type {ExpressionWithType, TransformerResult};

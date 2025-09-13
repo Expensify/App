@@ -24,7 +24,8 @@ import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
-import TSCompilerUtils from './utils/TSCompilerUtils';
+import TSCompilerUtils, {TransformerAction} from './utils/TSCompilerUtils';
+import type {TransformerResult} from './utils/TSCompilerUtils';
 
 /**
  * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
@@ -741,45 +742,60 @@ class TranslationGenerator {
     }
 
     /**
-     * Apply translation to a translatable node.
+     * Apply translation to a translatable node, using already-transformed children if available.
      */
-    private translateNode(node: ts.Node, translations: Map<number, string>, currentPath: string, visitWithPath: (node: ts.Node, path: string) => ts.Node | undefined): ts.Node | undefined {
+    private translateNode(node: ts.Node, translations: Map<number, string>, transformedNode?: ts.Node): ts.Node {
+        // Use the transformed node if provided, otherwise use the original
+        const nodeToUse = transformedNode ?? node;
+
         // String literals and no-substitution templates can be translated directly
         if (ts.isStringLiteral(node)) {
             const translatedText = translations.get(this.getTranslationKey(node));
-            return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
+            return translatedText ? ts.factory.createStringLiteral(translatedText) : nodeToUse;
         }
 
         if (ts.isNoSubstitutionTemplateLiteral(node)) {
             const translatedText = translations.get(this.getTranslationKey(node));
-            return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : node;
+            return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : nodeToUse;
         }
 
         if (ts.isTemplateExpression(node)) {
             const translatedTemplate = translations.get(this.getTranslationKey(node));
             if (!translatedTemplate) {
                 console.warn('⚠️ No translation found for template expression', node.getText());
-                return node;
+                return nodeToUse;
             }
 
-            // Recursively translate all complex template expressions first
+            // Extract complex expressions from the transformed node (which already has translations applied)
             const translatedComplexExpressions = new Map<number, ts.Expression>();
-            for (const span of node.templateSpans) {
-                const expression = span.expression;
-                if (this.isSimpleExpression(expression)) {
-                    continue;
+
+            // If we have a transformed node, use its already-transformed expressions
+            if (transformedNode && ts.isTemplateExpression(transformedNode)) {
+                for (let i = 0; i < node.templateSpans.length; i++) {
+                    const originalExpression = node.templateSpans[i].expression;
+                    const transformedExpression = transformedNode.templateSpans[i].expression;
+
+                    if (!this.isSimpleExpression(originalExpression)) {
+                        const hash = hashStr(originalExpression.getText());
+                        translatedComplexExpressions.set(hash, transformedExpression);
+                    }
                 }
-                // Template expression is complex
-                const hash = hashStr(expression.getText());
-                const translatedExpression = visitWithPath(expression, currentPath);
-                translatedComplexExpressions.set(hash, translatedExpression as ts.Expression);
+            } else {
+                // Fallback: no transformed node provided, use original expressions
+                for (const span of node.templateSpans) {
+                    const expression = span.expression;
+                    if (!this.isSimpleExpression(expression)) {
+                        const hash = hashStr(expression.getText());
+                        translatedComplexExpressions.set(hash, expression);
+                    }
+                }
             }
 
             // Build the translated template expression, referencing the translated template spans as necessary
             return this.stringToTemplateExpression(translatedTemplate, translatedComplexExpressions);
         }
 
-        return node;
+        return nodeToUse;
     }
 
     /**
@@ -835,47 +851,54 @@ class TranslationGenerator {
      * Create a transformer factory for full translations (transforms en.ts completely).
      */
     private createFullTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                if (this.shouldTranslateNode(node)) {
-                    return this.translateNode(node, translations, currentPath, visitWithPath);
+        const visitor = (node: ts.Node): TransformerResult => {
+            if (this.shouldTranslateNode(node)) {
+                // For template expressions with complex nested content, recurse first then replace
+                if (ts.isTemplateExpression(node) && !this.isSimpleTemplateExpression(node)) {
+                    return {
+                        action: TransformerAction.RecurseThenReplace,
+                        replaceWith: (transformedNode) => this.translateNode(node, translations, transformedNode),
+                    };
                 }
-
-                return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
-            };
-
-            return (sourceFile: ts.SourceFile) => {
-                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
-            };
+                // For simple nodes, just replace directly
+                return {
+                    action: TransformerAction.Replace,
+                    newNode: this.translateNode(node, translations),
+                };
+            }
+            return {action: TransformerAction.Continue};
         };
+
+        return TSCompilerUtils.createPathAwareTransformer(visitor);
     }
 
-    /**
-     * Create a transformer factory for incremental translations of target files.
-     * Handles pathsToModify (retranslate) and pathsToRemove (delete).
-     */
     /**
      * Create a transformer factory for translating en.ts with path filtering.
      * Only translates paths that are in pathsToModify or pathsToAdd.
      */
     private createIncrementalEnTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                if (this.shouldTranslateNode(node)) {
-                    // Use shouldTranslatePath to handle hierarchical path matching
-                    if (this.shouldTranslatePath(currentPath)) {
-                        return this.translateNode(node, translations, currentPath, visitWithPath);
+        const visitor = (node: ts.Node, currentPath = ''): TransformerResult => {
+            if (this.shouldTranslateNode(node)) {
+                if (this.shouldTranslatePath(currentPath)) {
+                    // For template expressions with complex nested content, recurse first then replace
+                    if (ts.isTemplateExpression(node) && node.templateSpans.some((span) => !this.isSimpleExpression(span.expression))) {
+                        return {
+                            action: TransformerAction.RecurseThenReplace,
+                            replaceWith: (transformedNode) => this.translateNode(node, translations, transformedNode),
+                        };
                     }
-                    return node; // Keep unchanged
+                    // For simple nodes, just replace directly
+                    return {
+                        action: TransformerAction.Replace,
+                        newNode: this.translateNode(node, translations),
+                    };
                 }
-
-                return ts.visitEachChild(node, TSCompilerUtils.createPathAwareVisitor(visitWithPath, currentPath), context);
-            };
-
-            return (sourceFile: ts.SourceFile) => {
-                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
-            };
+                return {action: TransformerAction.Continue};
+            }
+            return {action: TransformerAction.Continue};
         };
+
+        return TSCompilerUtils.createPathAwareTransformer(visitor);
     }
 
     /**
