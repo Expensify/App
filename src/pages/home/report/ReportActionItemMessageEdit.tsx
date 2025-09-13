@@ -244,7 +244,7 @@ function ReportActionItemMessageEdit(
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
+        [raiseIsScrollLayoutTriggered, debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -329,7 +329,7 @@ function ReportActionItemMessageEdit(
 
             hideSuggestionMenu();
         },
-        [hideSuggestionMenu],
+        [isScrollLayoutTriggered.current, hideSuggestionMenu],
     );
 
     /**
