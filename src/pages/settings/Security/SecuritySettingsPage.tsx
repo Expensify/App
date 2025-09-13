@@ -235,7 +235,7 @@ function SecuritySettingsPage() {
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role, true));
+                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
