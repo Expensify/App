@@ -446,22 +446,57 @@ function buildNextStep(
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
+            if (isInvoiceReport(report)) {
+                optimisticNextStep = noActionRequired;
+                break;
+            }
+
+            // If there's no valid bank account, show the bank account setup message to all users
+            if (!hasValidAccount) {
+                optimisticNextStep = {
+                    type,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    message: [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        reimburserAccountID === -1
+                            ? {
+                                  text: 'an admin',
+                              }
+                            : {
+                                  text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
+                                  type: 'strong',
+                              },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: 'finish setting up',
+                        },
+                        {
+                            text: ' a business bank account.',
+                        },
+                    ],
+                };
+                break;
+            }
+
+            // If the user is not a payer and there's a valid account, show no action required
             if (
-                isInvoiceReport(report) ||
                 !isPayer(
                     {
                         accountID: currentUserAccountID,
                         email: currentUserEmail,
                     },
                     report,
-                ) ||
-                reimbursableSpend === 0
+                )
             ) {
                 optimisticNextStep = noActionRequired;
-
                 break;
             }
-            // Self review
+
+            // For payers with valid accounts, show the payment message
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -481,10 +516,10 @@ function buildNextStep(
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };
