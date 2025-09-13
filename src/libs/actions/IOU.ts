@@ -4843,12 +4843,12 @@ function updateMoneyRequestTaxAmount(
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
-    API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
 }
 
 type UpdateMoneyRequestTaxRateParams = {
-    transactionID: string;
-    optimisticReportActionID: string;
+    transactionID: string | undefined;
+    optimisticReportActionID: string | undefined;
     taxCode: string;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -4863,7 +4863,8 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
-    API.write('UpdateMoneyRequestTaxRate', params, onyxData);
+
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
 }
 
 type UpdateMoneyRequestDistanceParams = {
