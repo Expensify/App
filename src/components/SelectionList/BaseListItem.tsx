@@ -42,6 +42,7 @@ function BaseListItem<TItem extends ListItem>({
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
     forwardedFSClass,
+    accessibilityState,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -119,7 +120,7 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
+                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),

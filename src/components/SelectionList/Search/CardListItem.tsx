@@ -42,6 +42,7 @@ function CardListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    accessibilityState,
 }: CardListItemProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -85,6 +86,7 @@ function CardListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessibilityState={accessibilityState}
         >
             <>
                 {!!item.bankIcon && (
