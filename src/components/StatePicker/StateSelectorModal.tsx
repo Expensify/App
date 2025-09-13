@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -38,7 +38,6 @@ type StateSelectorModalProps = {
 function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, label, onBackdropPress}: StateSelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
     const countryStates = useMemo(
         () =>
@@ -57,7 +56,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countryStates, !hasUserInteracted), [countryStates, debouncedSearchValue, hasUserInteracted]);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countryStates, [currentState]), [countryStates, debouncedSearchValue, currentState]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();
@@ -65,7 +64,6 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const onSelectionChange = useCallback(
         (state: Option) => {
             onStateSelected(state);
-            setHasUserInteracted(true);
         },
         [onStateSelected],
     );

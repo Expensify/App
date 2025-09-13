@@ -9,18 +9,22 @@ type Option = {
 };
 
 /**
- * Moves selected item to the top of the list while maintaining original sorting for non-selected items
+ * Moves selected items to the top of the list while maintaining original sorting for non-selected items
  * @param options - An array of option objects
- * @returns An array of options with selected item at the top
+ * @returns An array of options with selected items at the top
  */
-function moveSelectedOptionsToTop<T extends {isSelected?: boolean}>(options: T[]): T[] {
-    const result = [...options];
-    const index = result.findIndex((option) => option.isSelected);
-    if (index > 0) {
-        const [item] = result.splice(index, 1);
-        result.unshift(item);
+function moveSelectedOptionsToTop<T extends {isSelected?: boolean; value?: string}>(options: T[], initialSelectedValues: string[] = []): T[] {
+    const first: T[] = [];
+
+    const last: T[] = [];
+    for (const option of options) {
+        if (option.value && initialSelectedValues.includes(option.value)) {
+            first.push(option);
+        } else {
+            last.push(option);
+        }
     }
-    return result;
+    return [...first, ...last];
 }
 
 /**
@@ -28,9 +32,9 @@ function moveSelectedOptionsToTop<T extends {isSelected?: boolean}>(options: T[]
  * @param options - An array of option objects
  * @returns An array of options sorted based on the search query
  */
-function searchOptions(searchValue: string, options: Option[], shouldMoveSelectedToTop = false): Option[] {
+function searchOptions(searchValue: string, options: Option[], initialSelectedValues: string[] = []): Option[] {
     if (!searchValue) {
-        return shouldMoveSelectedToTop ? moveSelectedOptionsToTop(options) : options;
+        return moveSelectedOptionsToTop(options, initialSelectedValues);
     }
 
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
@@ -84,7 +88,7 @@ function searchOptions(searchValue: string, options: Option[], shouldMoveSelecte
             return 0;
         });
     }
-    return shouldMoveSelectedToTop ? moveSelectedOptionsToTop(fullSorted) : fullSorted;
+    return moveSelectedOptionsToTop(fullSorted, initialSelectedValues);
 }
 
 export default searchOptions;

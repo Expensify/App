@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -36,7 +36,6 @@ type CountrySelectorModalProps = {
 function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onClose, label, onBackdropPress}: CountrySelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
     const countries = useMemo(
         () =>
@@ -53,13 +52,12 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
         [translate, currentCountry],
     );
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, !hasUserInteracted), [countries, debouncedSearchValue, hasUserInteracted]);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, [currentCountry]), [countries, debouncedSearchValue, currentCountry]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const onSelectionChange = useCallback(
         (country: Option) => {
             onCountrySelected(country);
-            setHasUserInteracted(true);
         },
         [onCountrySelected],
     );

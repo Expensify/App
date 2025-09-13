@@ -38,7 +38,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = useMemo(() => searchOptions(searchValue, countries, true), [countries, searchValue]);
+    const searchResults = useMemo(() => searchOptions(searchValue, countries, [currentCountry]), [countries, searchValue, currentCountry]);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountry = useCallback(

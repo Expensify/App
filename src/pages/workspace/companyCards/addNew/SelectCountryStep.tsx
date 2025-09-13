@@ -39,7 +39,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -50,6 +49,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
         return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
     }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
+
+    const initalCountry = getCountry();
 
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
@@ -87,7 +88,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentCountry(country.value);
-        setHasUserInteracted(true);
     }, []);
 
     const countries = useMemo(
@@ -107,7 +107,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, !hasUserInteracted), [countries, debouncedSearchValue, hasUserInteracted]);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, [initalCountry]), [countries, debouncedSearchValue, initalCountry]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
