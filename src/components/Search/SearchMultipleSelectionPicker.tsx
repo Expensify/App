@@ -32,7 +32,43 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         setSelectedItems(initiallySelectedItems ?? []);
     }, [initiallySelectedItems]);
 
+    const orderedItems = useMemo(() => {
+        const first: SearchMultipleSelectionPickerItem[] = [];
+
+        const last: SearchMultipleSelectionPickerItem[] = [];
+
+        const initiallySelectedValues = initiallySelectedItems?.map((item) => item.value) ?? [];
+        const sortedItems = items.sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare));
+        for (const option of sortedItems) {
+            if (option.value && initiallySelectedValues.includes(option.value)) {
+                first.push(option);
+            } else {
+                last.push(option);
+            }
+        }
+        return [...first, ...last];
+    }, [initiallySelectedItems, items, localeCompare]);
+
     const {sections, noResultsFound} = useMemo(() => {
+        if (!pickerTitle) {
+            return {
+                sections: [
+                    {
+                        data: orderedItems
+                            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+                            .map((item) => ({
+                                text: item.name,
+                                keyForList: item.name,
+                                isSelected: selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()),
+                                value: item.value,
+                            })),
+                        shouldShow: orderedItems.length > 0,
+                    },
+                ],
+                noResultsFound: false,
+            };
+        }
+
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
@@ -72,7 +108,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
+    }, [pickerTitle, selectedItems, items, orderedItems, debouncedSearchTerm, localeCompare]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
