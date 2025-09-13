@@ -105,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -357,6 +358,7 @@ const translations = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        submitted: '送信済み',
         rotate: '回転',
         zoom: 'Zoom',
         password: 'パスワード',
@@ -4658,10 +4660,9 @@ const translations = {
                 cardName: 'カード名',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `取引をエクスポートする${integration}アカウントを選択してください。`,
-                integrationExportTitlePart: '別のものを選択',
-                integrationExportTitleLinkPart: 'エクスポートオプション',
-                integrationExportTitleSecondPart: '利用可能なアカウントを変更するには。',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `取引をエクスポートする${integration}アカウントを選択してください。`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `取引をエクスポートする${integration}アカウントを選択してください。利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択します。`,
                 lastUpdated: '最終更新日',
                 transactionStartDate: '取引開始日',
                 updateCard: 'カードを更新する',
@@ -5284,7 +5285,8 @@ const translations = {
             reconciliationAccount: '調整口座',
             continuousReconciliation: '継続的な照合',
             saveHoursOnReconciliation: '各会計期間の調整にかかる時間を節約するために、ExpensifyがExpensify Cardの明細書と決済を継続的に調整します。',
-            enableContinuousReconciliation: '継続的な調整を有効にするには、有効にしてください',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>継続的な照合を有効にするため、${connectionName}の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensifyカードの支払いを照合する銀行口座を選択してください。',
                 accountMatches: 'このアカウントがあなたのものと一致していることを確認してください',
