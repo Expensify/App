@@ -363,7 +363,7 @@ class TranslationGenerator {
         // Check if path is in either pathsToModify or pathsToAdd
         const allPathsToTranslate = new Set([...this.pathsToModify, ...this.pathsToAdd]);
         for (const targetPath of allPathsToTranslate) {
-            if (currentPath === targetPath || currentPath.startsWith(`${targetPath}.`)) {
+            if (currentPath.startsWith(targetPath)) {
                 return true;
             }
         }
