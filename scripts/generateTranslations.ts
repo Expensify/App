@@ -198,7 +198,7 @@ class TranslationGenerator {
                 // Transform en.ts with path filtering for pathsToModify and pathsToAdd.
                 // The result is a "patch" of the main translations node, including only the paths that are added or modified,
                 // where the values are translated to the target language.
-                const enResult = ts.transform(this.sourceFile, [this.createIncrementalEnTransformer(translationsForLocale)]);
+                const enResult = ts.transform(this.sourceFile, [this.createTranslationTransformer(translationsForLocale)]);
                 const transformedEnSourceFile = enResult.transformed.at(0);
                 if (!transformedEnSourceFile) {
                     throw new Error('Failed to create translated patch from en.ts');
@@ -223,7 +223,7 @@ class TranslationGenerator {
                 targetResult.dispose();
             } else {
                 // Full transformation for non-incremental mode - transform en.ts
-                const transformer = this.createFullTransformer(translationsForLocale);
+                const transformer = this.createTranslationTransformer(translationsForLocale);
                 const result = ts.transform(this.sourceFile, [transformer]);
                 transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
                 result.dispose();
@@ -838,11 +838,12 @@ class TranslationGenerator {
     }
 
     /**
-     * Create a transformer factory for full translations (transforms en.ts completely).
+     * Create a transformer factory for translating English code into another language.
+     * For incremental translations, only translates paths that are in pathsToModify or pathsToAdd.
      */
-    private createFullTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node): TransformerResult => {
-            if (this.shouldTranslateNode(node)) {
+    private createTranslationTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
+        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath = ''): TransformerResult => {
+            if (this.shouldTranslateNode(node) && this.shouldTranslatePath(currentPath)) {
                 return {
                     action: TransformerAction.Replace,
                     newNode: (transformedChildNode) => this.translateNode(node, translations, transformedChildNode),
@@ -853,27 +854,9 @@ class TranslationGenerator {
     }
 
     /**
-     * Create a transformer factory for translating en.ts with path filtering.
-     * Only translates paths that are in pathsToModify or pathsToAdd.
-     */
-    private createIncrementalEnTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node, currentPath = ''): TransformerResult => {
-            if (this.shouldTranslateNode(node)) {
-                if (this.shouldTranslatePath(currentPath)) {
-                    return {
-                        action: TransformerAction.Replace,
-                        newNode: (transformedChildNode) => this.translateNode(node, translations, transformedChildNode),
-                    };
-                }
-                return {action: TransformerAction.Continue};
-            }
-            return {action: TransformerAction.Continue};
-        });
-    }
-
-    /**
      * Create a transformer factory for incremental translations of target files.
-     * Handles pathsToModify (replace) and pathsToRemove (delete) using translated code strings.
+     * Injects pathsToAdd and pathsToModify directly into the target file by parsing the code strings for the translated paths.
+     * Removes pathsToRemove from the target file.
      */
     private createIncrementalTargetTransformer(translatedCodeMap: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
         let mainTranslationsNode: ts.ObjectLiteralExpression | undefined;
