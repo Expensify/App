@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
-import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 // Mock the dependencies
 jest.mock('@libs/actions/Link', () => ({
@@ -26,6 +25,10 @@ jest.mock('@libs/actions/ScheduleCall', () => ({
     clearBookingDraft: jest.fn(),
     rescheduleBooking: jest.fn(),
     cancelBooking: jest.fn(),
+}));
+
+jest.mock('@hooks/useResponsiveLayout', () => () => ({
+    isSmallScreenWidth: false,
 }));
 
 const mockOpenExternalLink = jest.mocked(openExternalLink);
@@ -93,7 +96,7 @@ describe('OnboardingHelpDropdownButton', () => {
         return waitForBatchedUpdates();
     });
 
-    it('should display the schedule call option when guide booking is enabled', async () => {
+    it('should display the schedule call option when guide booking is enabled', () => {
         // Given component configured to show schedule call option only
         const props = {
             reportID: '1',
@@ -105,7 +108,6 @@ describe('OnboardingHelpDropdownButton', () => {
 
         // When component is rendered
         renderOnboardingHelpDropdownButton(props);
-        await waitForBatchedUpdatesWithAct();
 
         // Then only schedule call option is visible
         const scheduleCallOption = screen.getByText(translateLocal('getAssistancePage.scheduleACall'));
@@ -122,7 +124,7 @@ describe('OnboardingHelpDropdownButton', () => {
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SCHEDULE_CALL_BOOK.getRoute(props.reportID));
     });
 
-    it('should only display the registerForWebinar option when webinar is enabled', async () => {
+    it('should only display the registerForWebinar option when webinar is enabled', () => {
         // Given component configured to display the registerForWebinar
         const props = {
             reportID: '1',
@@ -134,7 +136,6 @@ describe('OnboardingHelpDropdownButton', () => {
 
         // When component is rendered
         renderOnboardingHelpDropdownButton(props);
-        await waitForBatchedUpdatesWithAct();
 
         // Then only webinar registration option is visible
         const registerOption = screen.getByText(translateLocal('getAssistancePage.registerForWebinar'));
@@ -167,7 +168,6 @@ describe('OnboardingHelpDropdownButton', () => {
 
         // When component is rendered
         renderOnboardingHelpDropdownButton(props);
-        await waitForBatchedUpdatesWithAct();
 
         // Then dropdown button displays "Call scheduled" text
         const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
@@ -175,7 +175,6 @@ describe('OnboardingHelpDropdownButton', () => {
 
         // When dropdown menu is opened
         fireEvent.press(dropdownButton);
-        await waitForBatchedUpdatesWithAct();
 
         // Then all expected menu options are present
         expect(screen.getByText(translateLocal('common.reschedule'))).toBeOnTheScreen();
@@ -207,54 +206,45 @@ describe('OnboardingHelpDropdownButton', () => {
 
             // When component is rendered and dropdown is opened
             renderOnboardingHelpDropdownButton(props);
-            await waitForBatchedUpdatesWithAct();
 
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
-            await waitForBatchedUpdatesWithAct();
 
             // When webinar menu item is pressed
             const webinarMenuItem = screen.getByText(translateLocal('getAssistancePage.registerForWebinar'));
             fireEvent.press(webinarMenuItem, createMockPressEvent(webinarMenuItem));
-            await waitForBatchedUpdatesWithAct();
 
             // Then webinar registration URL is opened
             expect(mockOpenExternalLink).toHaveBeenCalledTimes(1);
             expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.REGISTER_FOR_WEBINAR_URL);
         });
 
-        it('should call reschedule booking when reschedule option is pressed', async () => {
+        it('should call reschedule booking when reschedule option is pressed', () => {
             // When component is rendered and dropdown is opened
             renderOnboardingHelpDropdownButton(props);
-            await waitForBatchedUpdatesWithAct();
 
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
-            await waitForBatchedUpdatesWithAct();
 
             // When reschedule option is pressed
             const rescheduleMenuItem = screen.getByText(translateLocal('common.reschedule'));
             fireEvent.press(rescheduleMenuItem, createMockPressEvent(rescheduleMenuItem));
-            await waitForBatchedUpdatesWithAct();
 
             // Then reschedule booking action is called with scheduled call data
             expect(mockRescheduleBooking).toHaveBeenCalledTimes(1);
             expect(mockRescheduleBooking).toHaveBeenCalledWith(mockScheduledCall);
         });
 
-        it('should call cancel booking when cancel option is pressed', async () => {
+        it('should call cancel booking when cancel option is pressed', () => {
             // When component is rendered and dropdown is opened
             renderOnboardingHelpDropdownButton(props);
-            await waitForBatchedUpdatesWithAct();
 
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
-            await waitForBatchedUpdatesWithAct();
 
             // When cancel option is pressed
             const cancelMenuItem = screen.getByText(translateLocal('common.cancel'));
             fireEvent.press(cancelMenuItem, createMockPressEvent(cancelMenuItem));
-            await waitForBatchedUpdatesWithAct();
 
             // Then cancel booking action is called with scheduled call data
             expect(mockCancelBooking).toHaveBeenCalledTimes(1);
