@@ -60,8 +60,8 @@ function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
             path: filePath,
         })
             .fetch('GET', attachmentURL)
-            .then((response) => {
-                const savedPath = response.path();
+            .then((attachment) => {
+                const savedPath = attachment.path();
                 if (isMarkdownAttachment) {
                     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                         attachmentID,
