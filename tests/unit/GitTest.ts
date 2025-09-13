@@ -203,7 +203,7 @@ describe('Git', () => {
                 -old content
                 +new content
                 diff --git a/src/file2.ts b/src/file2.ts
-                index 7890abc..defghij 100644
+                index 7890abc..hijklmn 100644
                 --- a/src/file2.ts
                 +++ b/src/file2.ts
                 @@ -1,1 +1,2 @@
