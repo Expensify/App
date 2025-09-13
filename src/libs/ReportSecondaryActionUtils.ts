@@ -294,7 +294,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         const paymentDatetime = new Date(action.created);
         const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() < cutoffTimeUTC.getTime();
+        return nowUTC.getTime() > cutoffTimeUTC.getTime();
     });
 
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
