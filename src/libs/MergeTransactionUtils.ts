@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import {deepEqual} from 'fast-equals';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -12,12 +13,12 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {getAttendeesListDisplayString, getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
+const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -41,6 +42,7 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     reimbursable: 'common.reimbursable',
     billable: 'common.billable',
     created: 'common.date',
+    attendees: 'iou.attendees',
     reportID: 'common.report',
 } as const;
 
@@ -228,7 +230,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             return;
         }
 
-        if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
+        if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetValue, sourceValue)) {
             mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
         } else {
             conflictFields.push(field);
@@ -288,6 +290,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         comment: {
             ...targetTransaction.comment,
             comment: mergeTransaction.description,
+            attendees: mergeTransaction.attendees,
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
@@ -348,6 +351,10 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
     if (field === 'reportID') {
         return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(fieldValue.toString()));
     }
+    if (field === 'attendees') {
+        return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
+    }
+
     return String(fieldValue);
 }
 /**
