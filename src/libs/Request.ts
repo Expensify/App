@@ -1,26 +1,43 @@
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
-import {hasReadRequiredDataFromStorage, isSupportAuthToken, isSupportRequest} from './Network/NetworkStore';
+import {hasReadRequiredDataFromStorage, isSupportAuthToken} from './Network/NetworkStore';
 
 let middlewares: Middleware[] = [];
 
 function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
-        // If we're using the Supportal token and this is not a Supportal request
-        // let's just return a promise that will resolve itself.
-        if (isSupportAuthToken() && !isSupportRequest(request.command)) {
-            Log.info(`[API] The ${request.command} API call is skipped because user is using support token.`);
-            return new Promise<void>((resolve) => {
-                resolve();
-            });
-        }
+        return Promise.resolve(HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline)).then((response) => {
+            const unsupportedSupportalCommand =
+                isSupportAuthToken() &&
+                Number(response?.jsonCode) === 666 &&
+                typeof response?.message === 'string' &&
+                (response.message.includes('You do not have the permission to do the requested action.') ||
+                    response.message.includes('You are not authorized to take this action when support logged in.'));
 
-        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
+            if (unsupportedSupportalCommand) {
+                // Prevent retries for this request
+                if (request?.data) {
+                    request.data.shouldRetry = false;
+                }
+                Log.info('411 insufficient permissions; suppressing retry', false, {command: request.command});
+
+                // Trigger a global modal via Onyx so it shows regardless of current UI location
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {
+                    command: request.command,
+                    message: typeof response?.message === 'string' ? response.message : undefined,
+                });
+            }
+
+            return response;
+        });
     });
 }
 
