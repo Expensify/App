@@ -1,9 +1,11 @@
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -25,6 +27,7 @@ import StatementCloseDateStep from './StatementCloseDateStep';
 
 function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
+    const styles = useThemeStyles();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
@@ -65,30 +68,52 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             </ScreenWrapper>
         );
     }
+
+    let CurrentStep: React.JSX.Element;
     switch (currentStep) {
         case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
-            return <SelectBankStep />;
+            CurrentStep = <SelectBankStep />;
+            break;
         case CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE:
-            return <SelectFeedType />;
+            CurrentStep = <SelectFeedType />;
+            break;
         case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-            return <CardTypeStep />;
+            CurrentStep = <CardTypeStep />;
+            break;
         case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
-            return <BankConnection policyID={policyID} />;
+            CurrentStep = <BankConnection policyID={policyID} />;
+            break;
         case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
-            return <CardInstructionsStep policyID={policyID} />;
+            CurrentStep = <CardInstructionsStep policyID={policyID} />;
+            break;
         case CONST.COMPANY_CARDS.STEP.CARD_NAME:
-            return <CardNameStep />;
+            CurrentStep = <CardNameStep />;
+            break;
         case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-            return <DetailsStep />;
+            CurrentStep = <DetailsStep />;
+            break;
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
-            return <AmexCustomFeed />;
+            CurrentStep = <AmexCustomFeed />;
+            break;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
-            return <PlaidConnectionStep />;
+            CurrentStep = <PlaidConnectionStep />;
+            break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
-            return <StatementCloseDateStep policyID={policyID} />;
+            CurrentStep = <StatementCloseDateStep policyID={policyID} />;
+            break;
         default:
-            return isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
+            CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
+            break;
     }
+
+    return (
+        <View
+            style={styles.flex1}
+            fsClass={CONST.FULLSTORY.CLASS.MASK}
+        >
+            {CurrentStep}
+        </View>
+    );
 }
 
 AddNewCardPage.displayName = 'AddNewCardPage';
