@@ -87,7 +87,6 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         avatarURL: policy.avatarURL,
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
-        autoReporting: policy.autoReporting,
     }) as PolicySelector;
 
 /**
@@ -148,9 +147,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         canBeMissing: true,
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
-    const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
-    const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting; // s77rt fix navigation param 0
-    const reportID = useMemo(() => (shouldAutoReport ? generateReportID() : CONST.REPORT.UNREPORTED_REPORT_ID), [shouldAutoReport]);
+    const reportID = useMemo(() => generateReportID(), []);
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
