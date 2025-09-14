@@ -321,20 +321,23 @@ function MoneyRequestConfirmationListFooter({
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
-    let selectedReportID = shouldUseTransactionReport ? transaction?.reportID : outstandingReportID;
-    const selectedReport = useMemo(() => {
-        if (!selectedReportID) {
-            return;
+    const [selectedReportID, selectedReport] = useMemo(() => {
+        const reportIDToUse = shouldUseTransactionReport ? transaction?.reportID : outstandingReportID;
+        if (!reportIDToUse) {
+            // Even if we have no report to use we still need a report id for proper navigation
+            return [generateReportID(), undefined];
         }
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
-    }, [allReports, selectedReportID]);
 
-    let reportName = getReportName(selectedReport, selectedPolicy);
-    if (!reportName) {
-        // If we could not get a report name, the selectedReportID is either optimistic or not set, if it's the latter, genereate a random id for proper navigation
-        selectedReportID ||= generateReportID();
-        reportName = isUnreported ? 'None' : 'New report'; // s77rt
-    }
+        const reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUse}`];
+        return [reportIDToUse, reportToUse];
+    }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
+    const reportName = useMemo(() => {
+        const name = getReportName(selectedReport, selectedPolicy);
+        if (!name) {
+            return isUnreported ? 'None' : 'New report'; // s77rt
+        }
+        return name;
+    }, [isUnreported, selectedReport, selectedPolicy]);
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
