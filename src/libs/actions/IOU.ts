@@ -8737,6 +8737,7 @@ function getSendMoneyParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
+                [optimisticCreatedActionForIOUReport.reportActionID]: {pendingAction: null},
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
