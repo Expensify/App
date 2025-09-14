@@ -334,10 +334,10 @@ function MoneyRequestConfirmationListFooter({
     const reportName = useMemo(() => {
         const name = getReportName(selectedReport, selectedPolicy);
         if (!name) {
-            return isUnreported ? 'None' : 'New report'; // s77rt
+            return isUnreported ? translate('common.none') : translate('common.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, selectedPolicy]);
+    }, [isUnreported, selectedReport, selectedPolicy, translate]);
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.

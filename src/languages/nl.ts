@@ -666,6 +666,7 @@ const translations = {
         enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
         purchaseAmount: 'Aankoopbedrag',
         frequency: 'Frequentie',
+        newReport: 'Nieuw rapport',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',

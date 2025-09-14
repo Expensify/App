@@ -666,6 +666,7 @@ const translations = {
         enableGlobalReimbursements: '启用全球报销',
         purchaseAmount: '购买金额',
         frequency: '频率',
+        newReport: '新报告',
     },
     supportalNoAccess: {
         title: '慢一点',

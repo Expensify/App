@@ -667,6 +667,7 @@ const translations = {
         enableGlobalReimbursements: 'Activer les remboursements globaux',
         purchaseAmount: "Montant de l'achat",
         frequency: 'Fréquence',
+        newReport: 'Nouveau rapport',
     },
     supportalNoAccess: {
         title: 'Pas si vite',

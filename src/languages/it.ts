@@ -667,6 +667,7 @@ const translations = {
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
         frequency: 'Frequenza',
+        newReport: 'Nuovo rapporto',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',

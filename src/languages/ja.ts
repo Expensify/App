@@ -667,6 +667,7 @@ const translations = {
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
         purchaseAmount: '購入金額',
         frequency: '頻度',
+        newReport: '新しいレポート',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
