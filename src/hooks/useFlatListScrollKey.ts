@@ -26,8 +26,8 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         }
         return null;
     });
-    const [isInitialData, setIsInitialData] = useState(true);
     const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
+    const [isInitialData, setIsInitialData] = useState(currentDataIndex >= 0);
     const displayedData = useMemo(() => {
         if (currentDataIndex <= 0) {
             return data;
@@ -72,18 +72,31 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         [renderQueue],
     );
 
+    useEffect(() => {
+        // In cases where the data is empty on the initial render, `handleStartReached` will never be triggered.
+        // We'll manually invoke it in this scenario.
+        if (inverted || data.length > 0) {
+            return;
+        }
+        handleStartReached({distanceFromStart: 0});
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
         };
+        if (!inverted) {
+            config.minIndexForVisible = isInitialData ? 1 : 0;
+        }
 
         if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
             config.autoscrollToTopThreshold = AUTOSCROLL_TO_TOP_THRESHOLD;
         }
 
         return config;
-    }, [data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [data.length, inverted, isInitialData, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     return {
         handleStartReached,
