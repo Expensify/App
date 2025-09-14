@@ -67,9 +67,6 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
-    const tooltipHorizontalAnchorAlignment = isLHBVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT;
-    const tooltipShiftHorizontal = isLHBVisible ? variables.lhbFabTooltipShiftHorizontal : variables.fabTooltipShiftHorizontal;
-
     useEffect(() => {
         sharedValue.set(
             withTiming(isActive ? 1 : 0, {
@@ -97,7 +94,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
     const longPressFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         // Only execute on narrow layout - prevent event from firing on wide screens
-        if (!shouldUseNarrowLayout) {
+        if (isLHBVisible) {
             return;
         }
 
@@ -112,10 +109,11 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
-                horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : tooltipHorizontalAnchorAlignment,
+                horizontal: isLHBVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftHorizontal={shouldUseNarrowLayout ? 0 : tooltipShiftHorizontal}
+            shiftHorizontal={isLHBVisible ? variables.lhbFabTooltipShiftHorizontal : 0}
+            shiftVertical={isLHBVisible ? variables.lhbFabTooltipShiftVertical : 0}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}

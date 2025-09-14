@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
@@ -102,6 +103,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
+                    shiftVertical={variables.inviteMemberListItemTooltipShiftVertical}
+                    shiftHorizontal={variables.inviteMemberListItemTooltipShiftHorizontal}
                     shouldHideOnNavigate
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                 >
