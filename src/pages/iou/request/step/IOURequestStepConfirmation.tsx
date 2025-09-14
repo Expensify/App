@@ -967,6 +967,7 @@ function IOURequestStepConfirmation({
             userLocation,
             submitPerDiemExpense,
             existingInvoiceReport,
+            isUnreported,
         ],
     );
 

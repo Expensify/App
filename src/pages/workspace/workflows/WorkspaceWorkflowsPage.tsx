@@ -54,7 +54,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
