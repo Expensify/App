@@ -172,7 +172,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 title: translate('workflowsPage.submissionFrequency'),
                 subtitle: translate('workflowsPage.submissionFrequencyDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.submissionFrequencyDescription'),
-                onToggle: (isEnabled: boolean) => setWorkspaceAutoHarvesting(policy, isEnabled),
+                onToggle: (isEnabled: boolean) => (policy ? setWorkspaceAutoHarvesting(policy, isEnabled) : undefined),
                 subMenuItems: (
                     <MenuItemWithTopDescription
                         title={
