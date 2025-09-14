@@ -13,7 +13,8 @@ import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {OnboardingCompanySize} from './OnboardingFlow';
+import type {GetOnboardingInitialPathParamsType, OnboardingCompanySize} from './OnboardingFlow';
+import {startOnboardingFlow} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -45,6 +46,11 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
     isOnboardingFlowStatusKnownPromise.then(() => {
         if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
+            return;
+        }
+
+        if (onboarding?.testDriveModalDismissed === false) {
+            startOnboardingFlow({onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route} as GetOnboardingInitialPathParamsType);
             return;
         }
 
@@ -121,6 +127,11 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
 function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
+
+function setOnboardingTestDriveModalDismissed() {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
+}
+
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
@@ -235,4 +246,5 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
+    setOnboardingTestDriveModalDismissed,
 };

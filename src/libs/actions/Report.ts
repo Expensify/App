@@ -4264,6 +4264,7 @@ function completeOnboarding({
     userReportedIntegration,
     wasInvited,
     selectedInterestedFeatures = [],
+    shouldSkipTestDriveModal,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4276,6 +4277,7 @@ function completeOnboarding({
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
     selectedInterestedFeatures?: string[];
+    shouldSkipTestDriveModal?: boolean;
 }) {
     const onboardingData = prepareOnboardingOnyxData(
         introSelected,
@@ -4308,7 +4310,8 @@ function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    if (shouldOnboardingRedirectToOldDot(companySize, userReportedIntegration)) {
+    const willRedirectToOldDotFromOnboarding = shouldOnboardingRedirectToOldDot(companySize, userReportedIntegration);
+    if (willRedirectToOldDotFromOnboarding) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -4325,6 +4328,31 @@ function completeOnboarding({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {isLoading: false},
+        });
+    }
+
+    if (
+        !shouldSkipTestDriveModal &&
+        // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
+        // because we don't want the modal to reappear when returning from oldDot.
+        !(engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && willRedirectToOldDotFromOnboarding)
+    ) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: null},
         });
     }
 
