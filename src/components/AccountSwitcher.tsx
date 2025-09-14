@@ -45,6 +45,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => onyxSession?.accountID});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
@@ -224,7 +225,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             >
                                 {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                             </Text>
-                            {!!account?.isDebugModeEnabled && (
+                            {!!isDebugModeEnabled && (
                                 <Text
                                     style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
                                     numberOfLines={1}
