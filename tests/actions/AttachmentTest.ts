@@ -15,12 +15,12 @@ jest.mock('react-native-fs', () => ({
 }));
 
 jest.mock('react-native-blob-util', () => ({
-    config: jest.fn((data) => {
-        const filePath = data?.path ?? ('/mock/documents/file' as string);
+    config: jest.fn((data: {path?: string} | undefined) => {
+        const filePath: string = data?.path ?? '/mock/documents/file';
         return {
             fetch: jest.fn(() =>
                 Promise.resolve({
-                    path: jest.fn(() => filePath),
+                    path: jest.fn((): string => filePath),
                 }),
             ),
         };
@@ -32,7 +32,7 @@ jest.mock('react-native-blob-util', () => ({
     },
     fetch: jest.fn(() =>
         Promise.resolve({
-            path: jest.fn(() => '/mock/documents/file'),
+            path: jest.fn((): string => '/mock/documents/file'),
         }),
     ),
 }));
