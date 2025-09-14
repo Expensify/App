@@ -17,7 +17,7 @@ import {getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
+const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -33,7 +33,6 @@ type MergeFieldData = {
 
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
-    currency: 'iou.currency',
     merchant: 'common.merchant',
     category: 'common.category',
     tag: 'common.tag',
@@ -170,11 +169,6 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
 
     MERGE_FIELDS.forEach((field) => {
-        // Currency field is handled by the amount field
-        if (field === 'currency') {
-            return;
-        }
-
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
 

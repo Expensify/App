@@ -136,18 +136,6 @@ describe('MergeTransactionUtils', () => {
             expect(result).toBe('Food');
         });
 
-        it('should return currency value from transaction', () => {
-            // Given a transaction with a currency value
-            const transaction = createRandomTransaction(0);
-            transaction.currency = CONST.CURRENCY.EUR;
-
-            // When we get the currency field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'currency');
-
-            // Then it should return the currency value from the transaction
-            expect(result).toBe(CONST.CURRENCY.EUR);
-        });
-
         it('should handle amount field for unreported expense correctly', () => {
             // Given a transaction that is an unreported expense (no reportID or unreported reportID)
             const transaction = createRandomTransaction(0);
