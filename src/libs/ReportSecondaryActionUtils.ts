@@ -188,7 +188,7 @@ function isSubmitAction(
     return !!isScheduledSubmitEnabled || primaryAction !== CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
 }
 
-function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+function isApproveAction(currentUserLogin: string, report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -234,14 +234,14 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
+    const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isUnapproveAction(report: Report, policy?: Policy): boolean {
+function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
@@ -593,6 +593,7 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
 }
 
 function getSecondaryReportActions({
+    currentUserEmail,
     report,
     chatReport,
     reportTransactions,
@@ -603,6 +604,7 @@ function getSecondaryReportActions({
     policies,
     isChatReportArchived = false,
 }: {
+    currentUserEmail: string;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -625,6 +627,7 @@ function getSecondaryReportActions({
     }
 
     const primaryAction = getReportPrimaryAction({
+        currentUserEmail,
         report,
         chatReport,
         reportTransactions,
@@ -639,11 +642,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(report, reportTransactions, violations, policy)) {
+    if (isApproveAction(currentUserEmail, report, reportTransactions, violations, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
-    if (isUnapproveAction(report, policy)) {
+    if (isUnapproveAction(currentUserEmail, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
@@ -667,7 +670,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(report, policy)) {
+    if (canRejectReportAction(currentUserEmail, report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
@@ -736,6 +739,7 @@ function getSecondaryExportReportActions(
 }
 
 function getSecondaryTransactionThreadActions(
+    currentUserEmail: string,
     parentReport: Report,
     reportTransaction: Transaction,
     reportActions: ReportAction[],
@@ -752,7 +756,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(parentReport, policy)) {
+    if (canRejectReportAction(currentUserEmail, parentReport, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 

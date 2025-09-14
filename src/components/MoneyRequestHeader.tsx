@@ -4,6 +4,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -95,6 +96,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {login} = useCurrentUserPersonalDetails();
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
@@ -173,8 +175,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!report || !parentReport || !transaction) {
             return '';
         }
-        return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
-    }, [parentReport, policy, report, transaction, transactionViolations]);
+        return getTransactionThreadPrimaryAction(login ?? '', report, parentReport, transaction, transactionViolations, policy);
+    }, [parentReport, policy, report, transaction, transactionViolations, login]);
 
     const primaryActionImplementation = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
@@ -224,8 +226,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !reportActions) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
-    }, [report, parentReport, policy, transaction]);
+        return getSecondaryTransactionThreadActions(login ?? '', parentReport, transaction, Object.values(reportActions), policy, report);
+    }, [report, parentReport, policy, transaction, login]);
 
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);

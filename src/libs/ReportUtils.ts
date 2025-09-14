@@ -11403,8 +11403,8 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
-function canRejectReportAction(report: Report, policy?: Policy): boolean {
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
+    const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportBeingProcessed = isProcessingReport(report);
     const isApproved = isReportApproved({report});
     const isReportPayer = isPayer(getSession(), report, false, policy);
