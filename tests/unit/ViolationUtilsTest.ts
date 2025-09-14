@@ -717,12 +717,12 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(null as any, violations, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
     it('should return false when violations is null', () => {
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, null as any, mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -731,7 +731,7 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy, null as any);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, mockPolicy);
         expect(result).toBe(false);
     });
 
