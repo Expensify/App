@@ -5,7 +5,9 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import FS from '@libs/Fullstory';
 import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import TaskListItemRow from './TaskListItemRow';
 
 function TaskListItem<TItem extends ListItem>({
@@ -18,8 +20,11 @@ function TaskListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    allReports,
+    personalDetails,
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -48,6 +53,8 @@ function TaskListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
+    const fsClass = FS.getChatFSClass(personalDetails, parentReport);
+
     return (
         <BaseListItem
             item={item}
@@ -66,6 +73,7 @@ function TaskListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            forwardedFSClass={fsClass}
         >
             <TaskListItemRow
                 item={taskItem}
