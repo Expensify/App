@@ -320,7 +320,7 @@ function MoneyRequestConfirmationListFooter({
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
-    const selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
+    let selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
     const selectedReport = useMemo(() => {
         if (!selectedReportID) {
             return;
@@ -331,6 +331,7 @@ function MoneyRequestConfirmationListFooter({
 
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, selectedPolicy?.id, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
         reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
     }
 
