@@ -18,17 +18,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {
-    buildOptimisticExpenseReport,
-    generateReportID,
-    getDefaultWorkspaceAvatar,
-    getOutstandingReportsForUser,
-    getReportName,
-    isArchivedReport,
-    isMoneyRequestReport,
-    isReportOutstanding,
-    populateOptimisticReportFormula,
-} from '@libs/ReportUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
