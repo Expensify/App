@@ -156,8 +156,6 @@ function IOURequestEditReportCommon({
         return isOpen && !isAdmin && !isSubmitter;
     }, [selectedReport, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
 
-    // s77rt add option to set no report in case we were coming from a "New report" case
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.report')}
