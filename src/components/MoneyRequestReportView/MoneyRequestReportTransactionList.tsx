@@ -349,6 +349,10 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                         isSplitButton={false}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         success={false}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
                     />
                 )}
                 <View>

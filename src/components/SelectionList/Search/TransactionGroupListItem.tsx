@@ -315,6 +315,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         options={addExpenseDropdownOptions}
                                         isSplitButton={false}
                                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                                        anchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                        }}
                                     />
                                 )}
                             </View>
