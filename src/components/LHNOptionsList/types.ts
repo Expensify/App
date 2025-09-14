@@ -155,9 +155,6 @@ type OptionRowLHNProps = {
     /** The item that should be rendered */
     optionItem?: OptionData;
 
-    /** The active policy ID */
-    activePolicyID?: string;
-
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;
 

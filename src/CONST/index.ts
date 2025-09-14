@@ -7105,7 +7105,6 @@ const CONST = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',

@@ -3,7 +3,6 @@ import CONST from '@src/CONST';
 const {
     CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    LHN_WORKSPACE_CHAT_TOOLTIP,
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
@@ -43,11 +42,6 @@ type DismissedProductTraining = {
      * When user dismisses the renameSavedSearch product training tooltip, we store the timestamp here.
      */
     [RENAME_SAVED_SEARCH]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the lhnWorkspaceChatTooltip product training tooltip, we store the timestamp here.
-     */
-    [LHN_WORKSPACE_CHAT_TOOLTIP]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the globalCreateTooltip product training tooltip, we store the timestamp here.

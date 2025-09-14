@@ -6,7 +6,6 @@ import type {TranslationPaths} from '@src/languages/types';
 const {
     CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    LHN_WORKSPACE_CHAT_TOOLTIP,
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
@@ -51,13 +50,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
         shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
-    },
-    [LHN_WORKSPACE_CHAT_TOOLTIP]: {
-        content: 'productTrainingTooltip.workspaceChatTooltip',
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
-        name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 1800,
-        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
     },
     [ACCOUNT_SWITCHER]: {
         content: 'productTrainingTooltip.accountSwitcher',
