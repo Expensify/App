@@ -1,7 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable, hasVBBA} from '@libs/PolicyUtils';
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
-import type {AutoReportingFrequencyKey} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 import {isAuthenticationError} from '@userActions/connections';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -53,8 +52,7 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) {
-        const title =
-            getAutoReportingFrequencyDisplayNames(translate)[(getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY];
+        const title = getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY];
         total.push(`${title} ${translate('workspace.duplicateWorkspace.delayedSubmission')}`);
     }
     if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) {
