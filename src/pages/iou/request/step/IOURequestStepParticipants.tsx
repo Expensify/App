@@ -253,13 +253,13 @@ function IOURequestStepParticipants({
         }
 
         const newReportID = selectedReportID.current;
-        const shouldUpdateTransactipnReportID = participants?.at(0)?.reportID !== newReportID;
-        const transactipnReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+        const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
+        const transactionReportID = shouldAutoReport.current ? newReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
         transactions.forEach((transaction) => {
             setMoneyRequestTag(transaction.transactionID, '');
             setMoneyRequestCategory(transaction.transactionID, '');
-            if (shouldUpdateTransactipnReportID) {
-                setTransactionReport(transaction.transactionID, {reportID: transactipnReportID}, true);
+            if (shouldUpdateTransactionReportID) {
+                setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
