@@ -113,7 +113,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             shiftHorizontal={isLHBVisible ? variables.lhbFabTooltipShiftHorizontal : 0}
-            shiftVertical={isLHBVisible ? variables.lhbFabTooltipShiftVertical : 0}
+            shiftVertical={isLHBVisible ? variables.lhbFabTooltipShiftVertical : variables.lhbFabTooltipShiftVerticalMobile}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
