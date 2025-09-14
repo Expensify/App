@@ -7,9 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import memoize from '@libs/memoize';
 import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getParticipantsOption, getPolicyExpenseReportOption, getValidOptions} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Option, SearchOptionData} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -95,7 +96,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, {
-            selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
@@ -109,10 +109,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, selectedOptions, countryCode]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
+        const sectionData: SearchOptionData[] = [];
+
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
@@ -136,21 +137,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
         }
 
-        if (initialSelectedOptions.length) {
-            newSections.push({
-                title: '',
-                data: initialSelectedOptions.map((participant) => {
-                    const participantData = {
-                        ...participant,
-                        selected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
-                    };
-                    const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                    return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participantData, reportAttributesDerived) : getParticipantsOption(participantData, personalDetails);
-                }),
-                shouldShow: true,
-            });
-        }
-
         // If the current user is not selected, add them to the top of the list
         if (!selectedCurrentUser && chatOptions.currentUserOption && !initialSelectedOptions.some((option) => option.accountID === chatOptions.currentUserOption?.accountID)) {
             const formattedName = getDisplayNameForParticipant({
@@ -159,42 +145,52 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 personalDetailsData: personalDetails,
             });
             chatOptions.currentUserOption.text = formattedName;
-
-            newSections.push({
-                title: '',
-                data: [chatOptions.currentUserOption],
-                shouldShow: true,
-            });
+            sectionData.push(chatOptions.currentUserOption);
         }
 
         const unselectedFormattedSectionData = formattedResults.section.data.filter(
             (option) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === option.accountID),
         );
-        newSections.push({
-            title: '',
-            data: unselectedFormattedSectionData,
-            shouldShow: unselectedFormattedSectionData.length > 0,
-        });
+        if (unselectedFormattedSectionData.length) {
+            sectionData.push(...(unselectedFormattedSectionData as SearchOptionData[]));
+        }
 
         const unselectedRecentReports = chatOptions.recentReports.filter((report) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === report.accountID));
-        newSections.push({
-            title: '',
-            data: unselectedRecentReports,
-            shouldShow: unselectedRecentReports.length > 0,
-        });
+        if (unselectedRecentReports) {
+            sectionData.push(...unselectedRecentReports);
+        }
 
         const unselectedPersonalDetails = chatOptions.personalDetails.filter((detail) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === detail.accountID));
-        newSections.push({
-            title: '',
-            data: unselectedPersonalDetails,
-            shouldShow: unselectedPersonalDetails.length > 0,
-        });
+        if (unselectedPersonalDetails) {
+            sectionData.push(...unselectedPersonalDetails);
+        }
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+        let sortedSectionData = sectionData.sort((a, b) => localeCompare(a?.text?.toLowerCase() ?? '', b?.text?.toLowerCase() ?? ''));
+
+        if (initialSelectedOptions.length) {
+            sortedSectionData = [
+                ...(initialSelectedOptions.map((participant) => {
+                    const participantData = {
+                        ...participant,
+                        selected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+                    };
+                    const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                    return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participantData, reportAttributesDerived) : getParticipantsOption(participantData, personalDetails);
+                }) as SearchOptionData[]),
+                ...sortedSectionData,
+            ];
+        }
 
         return {
-            sections: newSections,
+            sections: [
+                {
+                    title: '',
+                    data: sortedSectionData,
+                    shouldShow: sortedSectionData.length > 0,
+                },
+            ],
             headerMessage: message,
         };
     }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, initialSelectedOptions, translate]);
