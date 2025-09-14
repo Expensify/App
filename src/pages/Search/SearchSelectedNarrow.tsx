@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isValidBulkPayOption} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -67,6 +68,9 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
         return shouldRestrictUserAction;
     };
     const handleSubItemSelected = (item: PopoverMenuItem, triggerKYCFlow: TriggerKYCFlow) => {
+        if (!isValidBulkPayOption(item)) {
+            return;
+        }
         if (isAccountLocked) {
             showLockedAccountModal();
             return;

@@ -2,6 +2,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
@@ -644,6 +646,13 @@ function getFormattedAmount(selectedReports: SelectedReports[], selectedTransact
     return formattedAmount ?? '';
 }
 
+function isValidBulkPayOption(item: PopoverMenuItem) {
+    if (!item.key) {
+        return false;
+    }
+    return Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod) || Object.values(CONST.IOU.PAYMENT_TYPE).includes(item.key as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
+}
+
 export {
     saveSearch,
     search,
@@ -668,4 +677,5 @@ export {
     exportToIntegrationOnSearch,
     getPayOption,
     getFormattedAmount,
+    isValidBulkPayOption,
 };

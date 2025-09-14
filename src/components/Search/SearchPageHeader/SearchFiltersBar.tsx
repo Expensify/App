@@ -35,7 +35,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
-import {updateAdvancedFilters} from '@libs/actions/Search';
+import {isValidBulkPayOption, updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -595,6 +595,9 @@ function SearchFiltersBar({
     };
 
     const handleSubItemSelected = (item: PopoverMenuItem, triggerKYCFlow: TriggerKYCFlow) => {
+        if (!isValidBulkPayOption(item)) {
+            return;
+        }
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
