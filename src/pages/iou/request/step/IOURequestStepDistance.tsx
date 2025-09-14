@@ -390,6 +390,8 @@ function IOURequestStepDistance({
                 policy: activePolicy,
                 lastSelectedDistanceRates,
             });
+            // We want to check both policies and fallback to personalPolicy.autoReporting if the former is false
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
@@ -414,7 +416,7 @@ function IOURequestStepDistance({
         reportNameValuePairs,
         iouType,
         activePolicy,
-        personalPolicy,
+        personalPolicy?.autoReporting,
         setDistanceRequestData,
         shouldSkipConfirmation,
         transactionID,

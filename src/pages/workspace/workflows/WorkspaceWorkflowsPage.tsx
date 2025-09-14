@@ -30,7 +30,6 @@ import {
     setIsForcedToChangeCurrency,
     setWorkspaceApprovalMode,
     setWorkspaceAutoHarvesting,
-    setWorkspaceAutoReportingFrequency,
     setWorkspaceReimbursement,
     updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
@@ -175,11 +174,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onToggle: (isEnabled: boolean) => (policy ? setWorkspaceAutoHarvesting(policy, isEnabled) : undefined),
                 subMenuItems: (
                     <MenuItemWithTopDescription
-                        title={
-                            getAutoReportingFrequencyDisplayNames(translate)[
-                                (getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
-                            ]
-                        }
+                        title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         onPress={onPressAutoReportingFrequency}

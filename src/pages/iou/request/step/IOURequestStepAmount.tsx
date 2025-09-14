@@ -102,7 +102,7 @@ function IOURequestStepAmount({
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
-    const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
+    const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((p) => p?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -269,6 +269,8 @@ function IOURequestStepAmount({
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
         if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            // We want to check both policies and fallback to personalPolicy.autoReporting if the former is false
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);

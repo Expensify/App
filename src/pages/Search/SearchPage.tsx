@@ -581,11 +581,13 @@ function SearchPage({route}: SearchPageProps) {
 
         if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            // We want to check both policies and fallback to personalPolicy.autoReporting if the former is false
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
                 setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
+                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
             });
             Promise.all(setParticipantsPromises).then(() =>
                 Navigation.navigate(

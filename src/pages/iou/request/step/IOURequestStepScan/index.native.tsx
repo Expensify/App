@@ -464,6 +464,8 @@ function IOURequestStepScan({
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
             if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
                 const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+                // We want to check both policies and fallback to personalPolicy.autoReporting if the former is false
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting;
                 const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -484,7 +486,7 @@ function IOURequestStepScan({
 
                 const setParticipantsPromises = files.map((receiptFile) => {
                     setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                    setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
+                    return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
                 });
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(

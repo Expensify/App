@@ -70,7 +70,7 @@ import {
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
-import ONYXKEYS, {OnyxKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {RecentlyUsedCategories} from '@src/types/onyx';
@@ -156,7 +156,15 @@ function IOURequestStepConfirmation({
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const shouldUseTransactionReport =
         transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
-    const report = isUnreported ? selfDMReport : shouldUseTransactionReport ? transactionReport : (reportReal ?? reportDraft);
+    const report = useMemo(() => {
+        if (isUnreported) {
+            return selfDMReport;
+        }
+        if (shouldUseTransactionReport) {
+            return transactionReport;
+        }
+        return reportReal ?? reportDraft;
+    }, [isUnreported, selfDMReport, shouldUseTransactionReport, transactionReport, reportReal, reportDraft]);
     const policy = policyReal ?? policyDraft;
     const policyID = isUnreported ? policy?.id : getIOURequestPolicyID(transaction, report);
     const isDraftPolicy = policy === policyDraft;
