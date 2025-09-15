@@ -5709,13 +5709,7 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
     });
 }
 
-function buildOptimisticChangePolicyData(
-    report: Report,
-    policy: Policy,
-    reportNextStep?: ReportNextStep,
-    optimisticPolicyExpenseChatReport?: Report,
-    isReportLastVisibleArchived = false,
-) {
+function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportNextStep?: ReportNextStep, optimisticPolicyExpenseChatReport?: Report, isReportLastVisibleArchived = false) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
