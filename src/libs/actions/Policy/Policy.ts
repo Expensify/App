@@ -2930,7 +2930,7 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
 
     // Build optimistic employees mapping: mark invited emails as invited
     const invitedEmployees = emails.reduce<Record<string, {status: string}>>((acc, email) => {
-        acc[email] = {status: 'invited'};
+        acc[email] = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED};
         return acc;
     }, {});
 
