@@ -7,6 +7,7 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -36,6 +37,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -81,9 +83,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode ?? 1);
         },
-        [values],
+        [countryCode, values],
     );
 
     const handleNextScreen = useCallback(() => {
