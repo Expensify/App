@@ -183,6 +183,10 @@ function SearchPage({route}: SearchPageProps) {
                     text: translate('export.expenseLevelExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
@@ -204,6 +208,10 @@ function SearchPage({route}: SearchPageProps) {
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
