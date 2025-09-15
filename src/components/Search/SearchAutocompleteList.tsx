@@ -189,15 +189,23 @@ function SearchAutocompleteList(
     }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
-
+    const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+    const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    const currentType = typeFilter?.value;
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
-    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+
+    const groupByAutocompleteList = useMemo(() => {
+        switch (currentType) {
+            case undefined:
+            case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            case CONST.SEARCH.DATA_TYPES.INVOICE:
+                return Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+            default:
+                return [];
+        }
+    }, [currentType]);
 
     const statusAutocompleteList = useMemo(() => {
-        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
-        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-        const currentType = typeFilter?.value;
-
         let suggestedStatuses;
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -225,7 +233,7 @@ function SearchAutocompleteList(
                 });
         }
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
-    }, [autocompleteQueryValue]);
+    }, [currentType]);
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
