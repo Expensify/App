@@ -1755,9 +1755,6 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
         const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated || b.transactions?.at(0)?.created || DateUtils.extractDate(b.created);
 
         if (!aNewestTransaction || !bNewestTransaction) {
-            console.log(`A. ${a.transactions?.at(0)?.modifiedCreated} ${a.transactions?.at(0)?.created} ${DateUtils.extractDate(a.created)}`);
-            console.log(`B. ${b.transactions?.at(0)?.modifiedCreated} ${b.transactions?.at(0)?.created} ${DateUtils.extractDate(b.created)}`);
-
             return 0;
         }
 
