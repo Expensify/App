@@ -15,6 +15,8 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -27,21 +29,13 @@ import type {CompanyCardFeed, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ConfirmationStepProps = {
-    /** Current policy id */
-    policyID: string | undefined;
+type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
-    /** Route to go back to */
-    backTo?: Route;
-
-    /** Selected feed */
-    feed: CompanyCardFeed;
-};
-
-function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({route}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {policyID, feed, backTo} = route.params;
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
@@ -99,11 +93,6 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const handleBackButtonPress = () => {
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
     };
-
-    useHandleBackButton(() => {
-        handleBackButtonPress();
-        return true;
-    });
 
     return (
         <InteractiveStepWrapper

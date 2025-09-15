@@ -7,26 +7,25 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
-import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import {NavigateToAssignCardStep} from '@src/libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
-type TransactionStartDateStepProps = {
-    policyID: string | undefined;
-    feed: CompanyCardFeed;
-    backTo?: Route;
-};
+type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP>;
 
-function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDateStepProps) {
+function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -34,6 +33,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const {policyID, feed, backTo} = route.params;
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
     const startDate = assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
@@ -44,19 +44,16 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            NavigateToAssignCardStep(CONST.COMPANY_CARD.STEP.CONFIRMATION, policyID, feed, backTo);
             return;
         }
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
+        NavigateToAssignCardStep(CONST.COMPANY_CARD.STEP.CARD, policyID, feed, backTo);
     };
 
     const handleSelectDateOption = (dateOption: string) => {
         setDateOptionSelected(dateOption);
     };
-
-    useHandleBackButton(() => {
-        handleBackButtonPress();
-        return true;
-    });
 
     const submit = () => {
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
@@ -69,6 +66,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
             },
             isEditing: false,
         });
+        NavigateToAssignCardStep(CONST.COMPANY_CARD.STEP.CONFIRMATION, policyID, feed, backTo);
     };
 
     const dateOptions = useMemo(
