@@ -1,5 +1,9 @@
+import CONST from '@src/CONST';
 import type {HeicConverterFunction} from './types';
 import {verifyHeicFormat, verifyJpegFormat, verifyPngFormat} from './utils';
+
+const MAX_CANVAS_SIZE = 4096;
+const JPEG_QUALITY = 0.85;
 
 type HeicConverter = {
     heicTo: (options: {blob: Blob; type: string}) => Promise<Blob>;
@@ -17,7 +21,6 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
     return createImageBitmap(blob).then((imageBitmap) => {
         const canvas = document.createElement('canvas');
 
-        const MAX_CANVAS_SIZE = 4096;
         const scale = Math.min(1, MAX_CANVAS_SIZE / Math.max(imageBitmap.width, imageBitmap.height));
 
         canvas.width = Math.floor(imageBitmap.width * scale);
@@ -39,11 +42,11 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
                     }
 
                     const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
-                    const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: 'image/jpeg'}), {uri: URL.createObjectURL(convertedBlob)});
+                    const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
                     resolve(jpegFile);
                 },
-                'image/jpeg',
-                0.85,
+                CONST.IMAGE_FILE_FORMAT.JPEG,
+                JPEG_QUALITY,
             );
         });
     });
@@ -100,14 +103,18 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
                 if (needsConversion && !isHeicBasedOnSignatures) {
                     return verifyJpegFormat(fileFromBlob).then((isJpg) => {
                         if (isJpg) {
-                            const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: 'image/jpeg'}), {uri: URL.createObjectURL(blob)});
+                            const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
+                                uri: URL.createObjectURL(blob),
+                            });
                             onSuccess(correctedFile);
                             return;
                         }
 
                         return verifyPngFormat(fileFromBlob).then((isPng) => {
                             if (isPng) {
-                                const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.png'), {type: 'image/png'}), {uri: URL.createObjectURL(blob)});
+                                const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.png'), {type: CONST.IMAGE_FILE_FORMAT.PNG}), {
+                                    uri: URL.createObjectURL(blob),
+                                });
                                 onSuccess(correctedFile);
                                 return;
                             }
@@ -126,9 +133,9 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
                 // Strategy 1: Try heic-to library
                 if (converter && typeof converter.heicTo === 'function') {
                     return converter
-                        .heicTo({blob: blobData, type: 'image/jpeg'})
+                        .heicTo({blob: blobData, type: CONST.IMAGE_FILE_FORMAT.JPEG})
                         .then((convertedBlob) => {
-                            const jpegFile = Object.assign(new File([convertedBlob], name.replace(/\.(heic|heif)$/i, '.jpg'), {type: 'image/jpeg'}), {
+                            const jpegFile = Object.assign(new File([convertedBlob], name.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
                                 uri: URL.createObjectURL(convertedBlob),
                             });
                             onSuccess(jpegFile);

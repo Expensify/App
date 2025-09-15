@@ -1,30 +1,5 @@
 // TODO move variables to  CONST file
-/**
- * HEIC file signatures that should be present in the ftyp box
- */
-const HEIC_SIGNATURES = [
-    '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
-    '6674797068656978', // 'ftypheix' - Indicates a variation of HEIC
-    '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
-    '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
-];
-
-/**
- * JPEG file signatures - JPEG files start with these byte patterns
- */
-const JPEG_SIGNATURES = [
-    'ffd8ffe0', // JFIF format
-    'ffd8ffe1', // EXIF format
-    'ffd8ffe2', // Canon EXIF
-    'ffd8ffe3', // Samsung EXIF
-    'ffd8ffe8', // SPIFF format
-    'ffd8ffdb', // Samsung JPEG
-];
-
-/**
- * PNG file signature - PNG files always start with this exact signature
- */
-const PNG_SIGNATURE = '89504e470d0a1a0a';
+import CONST from '@src/CONST';
 
 /**
  * Verify if a blob contains HEIC format by checking the ftyp box signatures
@@ -54,7 +29,7 @@ const verifyHeicFormat = (blob: Blob): Promise<boolean> => {
                 .map((b) => b.toString(16).padStart(2, '0'))
                 .join('');
 
-            return HEIC_SIGNATURES.some((signature) => hex.startsWith(signature));
+            return CONST.HEIC_SIGNATURES.some((signature) => hex.startsWith(signature));
         })
         .catch((error) => {
             console.error('Error verifying HEIC format:', error);
@@ -80,7 +55,7 @@ const verifyJpegFormat = (blob: Blob): Promise<boolean> => {
                 .map((b) => b.toString(16).padStart(2, '0'))
                 .join('');
 
-            return JPEG_SIGNATURES.some((signature) => hex.startsWith(signature));
+            return CONST.JPEG_SIGNATURES.some((signature) => hex.startsWith(signature));
         })
         .catch((error) => {
             console.error('Error verifying JPEG format:', error);
@@ -106,7 +81,7 @@ const verifyPngFormat = (blob: Blob): Promise<boolean> => {
                 .map((b) => b.toString(16).padStart(2, '0'))
                 .join('');
 
-            return hex === PNG_SIGNATURE;
+            return hex === CONST.PNG_SIGNATURE;
         })
         .catch((error) => {
             console.error('Error verifying PNG format:', error);
