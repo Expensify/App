@@ -344,7 +344,14 @@ function NumberWithSymbolForm({
     useImperativeHandle(numberFormRef, () => ({
         clearSelection,
         updateNumber: (newNumber: string) => {
-            setCurrentNumber(newNumber);
+            let updatedNumber = newNumber;
+
+            if (allowFlippingAmount && newNumber.startsWith('-')) {
+                toggleNegative?.();
+                updatedNumber = updatedNumber.slice(1);
+            }
+
+            setCurrentNumber(updatedNumber);
             setSelection({start: newNumber.length, end: newNumber.length});
         },
         getNumber: () => currentNumber,
