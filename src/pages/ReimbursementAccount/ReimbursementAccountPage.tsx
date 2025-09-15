@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA, mapBankAccountToACHData, mapBankAccountToReimbursementAccountDraft} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
@@ -43,7 +43,7 @@ import {
 } from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {clearReimbursementAccountDraft, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -196,6 +196,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (policyIDParam ?? !bankAccountList) {
+            return;
+        }
+
+        const achDataFromBankAccount = mapBankAccountToACHData(bankAccountList);
+        const step = getCurrentStepFromBankAccount(bankAccountList);
+        if (achDataFromBankAccount) {
+            updateReimbursementAccount({...achDataFromBankAccount, currentStep: step});
+            setHasACHDataBeenLoaded(true);
+        }
+
+        const draftDataFromBankAccount = mapBankAccountToReimbursementAccountDraft(bankAccountList);
+        if (draftDataFromBankAccount) {
+            updateReimbursementAccountDraft(draftDataFromBankAccount);
+        }
+    }, [policyIDParam, bankAccountList]);
 
     /**
      * Retrieve verified business bank account currently being set up.
