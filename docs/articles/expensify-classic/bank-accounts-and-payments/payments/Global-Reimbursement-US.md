@@ -29,7 +29,7 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 # Step 2: Enable Global Reimbursement
 1. Go to **Settings > Workspaces > [Workspace Name] > Overview**.
 2. In the **Report Currency** dropdown, select **USD**.
-3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+3. Navigate to **Settings > Workspaces > [Workspace Name] > Workflows**.
 4. Scroll to **Make or track payments**.
 5. Set the reimbursement method to **Direct** and select the correct U.S. bank account.
 6. Go to **Settings > Account > Wallet**.
