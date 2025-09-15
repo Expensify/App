@@ -5402,6 +5402,7 @@ function getReportName(
 
     return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
 }
+
 function getSearchReportName(props: GetReportNameParams): string {
     const {report, policy} = props;
     if (isChatThread(report) && policy?.name) {
