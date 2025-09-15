@@ -96,7 +96,7 @@ function DebugReportPage({
             hasRBR,
             isReportArchived,
             isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
-            draftComment: draftComment,
+            draftComment,
         });
 
         return [
@@ -142,7 +142,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, translate]);
+    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (
