@@ -37,7 +37,7 @@ For example:
 ### Workspaces
 For example:
 - The Workspace Admin's accounting integration connection is broken
-- The QuickBooks Online export is broken and needs to be reauthenticated
+- The QuickBooks Online export is broken and needs to be re-authenticated
 - Your direct connection to your bank or Plaid is broken and needs to be reconnected
 - There is an error with your billing subscription
 - The Workspace Admin adds a new workspace member but gets an error message
