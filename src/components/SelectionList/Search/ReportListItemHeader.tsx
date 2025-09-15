@@ -162,6 +162,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     isIndeterminate,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -205,6 +206,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 item={reportItem}
                 handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
+                containerStyles={[styles.pr0]}
             />
         </View>
     ) : (

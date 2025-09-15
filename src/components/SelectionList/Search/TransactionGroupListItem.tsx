@@ -344,7 +344,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             <>
                                 {isLargeScreenWidth && (
                                     <View
-                                        style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}
+                                        style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}
                                     >
                                         <SearchTableHeader
                                             canSelectMultiple

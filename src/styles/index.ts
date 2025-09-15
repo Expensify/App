@@ -3708,6 +3708,11 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'flex-start',
         },
 
+        groupSearchListTableContainerStyle: {
+            minHeight: variables.h28,
+            paddingBottom: 0,
+        },
+
         narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
