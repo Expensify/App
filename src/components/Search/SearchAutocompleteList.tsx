@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -145,6 +146,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     return (
         <UserListItem
             pressableStyle={[styles.br2, styles.ph3]}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
@@ -248,7 +250,7 @@ function SearchAutocompleteList(
     }, [allRecentCategories]);
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
 
     const workspaceList = useMemo(
         () =>
@@ -359,6 +361,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
                 const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false, true, true).personalDetails.filter(
                     (participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()),

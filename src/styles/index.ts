@@ -486,6 +486,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
+            lineHeight: variables.lineHeightXSmall,
         },
         textDoubleDecker: {
             fontSize: variables.fontSizeSmall,
@@ -2305,6 +2306,11 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+            }) satisfies ViewStyle,
+
         emojiSkinToneTitle: {
             ...spacing.pv1,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -4027,12 +4033,10 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'middle',
         },
 
-        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
-            ({
-                position: 'absolute',
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
-                ...spacing.mh4,
-            }) satisfies ViewStyle,
+        stickyHeaderEmoji: {
+            position: 'absolute',
+            ...spacing.mh4,
+        } satisfies ViewStyle,
 
         reactionCounterText: {
             fontSize: 13,
@@ -5444,6 +5448,11 @@ const styles = (theme: ThemeColors) =>
             ...borders.br4,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
+        },
+
+        emptyStateTransactionMergeIllustration: {
+            width: 180,
+            height: 220,
         },
 
         pendingStateCardIllustration: {
