@@ -10,7 +10,7 @@ import {isMobileSafari} from '@libs/Browser';
 const IS_MOBILE_SAFARI = isMobileSafari();
 
 function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
-    return function forwardRef(node: FlatList) {
+    return function (node: FlatList) {
         args.forEach((ref) => {
             if (ref == null) {
                 return;
