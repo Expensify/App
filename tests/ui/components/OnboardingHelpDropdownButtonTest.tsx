@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 // Mock the dependencies
 jest.mock('@libs/actions/Link', () => ({
@@ -85,14 +86,18 @@ describe('OnboardingHelpDropdownButton', () => {
         });
     });
 
-    beforeEach(() => {
-        Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        });
         return waitForBatchedUpdates();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
         return waitForBatchedUpdates();
     });
 
@@ -162,8 +167,10 @@ describe('OnboardingHelpDropdownButton', () => {
             hasActiveScheduledCall: true,
         };
         // Given scheduled call data exists in Onyx
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${props.reportID}`, {
-            calendlyCalls: [mockScheduledCall],
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${props.reportID}`, {
+                calendlyCalls: [mockScheduledCall],
+            });
         });
 
         // When component is rendered
@@ -192,16 +199,20 @@ describe('OnboardingHelpDropdownButton', () => {
             shouldShowGuideBooking: false,
             hasActiveScheduledCall: true,
         };
-        beforeEach(() => {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${props.reportID}`, {
-                calendlyCalls: [mockScheduledCall],
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${props.reportID}`, {
+                    calendlyCalls: [mockScheduledCall],
+                });
             });
-            return waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
         it('should open webinar registration URL when webinar option is pressed', async () => {
             // Given scheduled call data exists in Onyx
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${props.reportID}`, {
-                calendlyCalls: [mockScheduledCall],
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${props.reportID}`, {
+                    calendlyCalls: [mockScheduledCall],
+                });
             });
 
             // When component is rendered and dropdown is opened
@@ -209,6 +220,8 @@ describe('OnboardingHelpDropdownButton', () => {
 
             const dropdownButton = screen.getByText(translateLocal('scheduledCall.callScheduled'));
             fireEvent.press(dropdownButton);
+
+            await waitForBatchedUpdatesWithAct();
 
             // When webinar menu item is pressed
             const webinarMenuItem = screen.getByText(translateLocal('getAssistancePage.registerForWebinar'));
