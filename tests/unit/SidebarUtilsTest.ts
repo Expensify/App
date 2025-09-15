@@ -1311,12 +1311,22 @@ describe('SidebarUtils', () => {
                     shouldShow: true,
                     pendingAction: null,
                 };
+
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 2,
+                };
+
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                await Onyx.set(ONYXKEYS.SESSION, session);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
                     name: "Three's Workspace",
                 });
+
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
