@@ -1742,11 +1742,22 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
     for (const report of data) {
         report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
+
     return data.sort((a, b) => {
-        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
-        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated ? b.transactions?.at(0)?.modifiedCreated : b.transactions?.at(0)?.created;
+        if (!a.created || !b.created) {
+            return 0;
+        }
+
+        // We don't use nullish coalescing because empty strings can be returned for the modifiedCreated and created dates
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated || a.transactions?.at(0)?.created || DateUtils.extractDate(a.created);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated || b.transactions?.at(0)?.created || DateUtils.extractDate(b.created);
 
         if (!aNewestTransaction || !bNewestTransaction) {
+            console.log(`A. ${a.transactions?.at(0)?.modifiedCreated} ${a.transactions?.at(0)?.created} ${DateUtils.extractDate(a.created)}`);
+            console.log(`B. ${b.transactions?.at(0)?.modifiedCreated} ${b.transactions?.at(0)?.created} ${DateUtils.extractDate(b.created)}`);
+
             return 0;
         }
 
