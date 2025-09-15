@@ -194,7 +194,7 @@ function SearchAutocompleteList(
     const currentType = typeFilter?.value;
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
 
-    const groupByAutocompleteList = useMemo(() => {
+    const groupByAutocompleteList = (() => {
         switch (currentType) {
             case undefined:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -203,9 +203,9 @@ function SearchAutocompleteList(
             default:
                 return [];
         }
-    }, [currentType]);
+    })();
 
-    const statusAutocompleteList = useMemo(() => {
+    const statusAutocompleteList = (() => {
         let suggestedStatuses;
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -233,7 +233,7 @@ function SearchAutocompleteList(
                 });
         }
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
-    }, [currentType]);
+    })();
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
@@ -279,10 +279,9 @@ function SearchAutocompleteList(
     const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags);
 
     const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
-        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
         return [parsedQuery, queryWithoutFilters];
-    }, [autocompleteQueryValue]);
+    }, [autocompleteQueryValue, parsedQuery]);
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
