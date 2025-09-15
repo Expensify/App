@@ -3469,7 +3469,7 @@ const translations = {
             card: 'Cartes',
             expensifyCard: 'Expensify Card',
             companyCards: "Cartes d'entreprise",
-            workflows: 'Workflows',
+            workflows: 'Flux de travail',
             workspace: 'Espace de travail',
             findWorkspace: "Trouver l'espace de travail",
             edit: "Modifier l'espace de travail",
@@ -3480,7 +3480,7 @@ const translations = {
             settings: 'Paramètres',
             reimburse: 'Remboursements',
             categories: 'Catégories',
-            tags: 'Tags',
+            tags: 'Étiquettes',
             customField1: 'Champ personnalisé 1',
             customField2: 'Champ personnalisé 2',
             customFieldHint: "Ajoutez un codage personnalisé qui s'applique à toutes les dépenses de ce membre.",
@@ -3488,7 +3488,7 @@ const translations = {
             reportFields: 'Champs de rapport',
             reportTitle: 'Titre du rapport',
             reportField: 'Champ de rapport',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             bills: 'Bills',
             invoices: 'Factures',
             perDiem: 'Per diem',
@@ -4734,7 +4734,7 @@ const translations = {
                 statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify.',
             },
             workflows: {
-                title: 'Workflows',
+                title: 'Flux de travail',
                 subtitle: 'Configurez comment les dépenses sont approuvées et payées.',
                 disableApprovalPrompt:
                     "Les cartes Expensify de cet espace de travail dépendent actuellement de l'approbation pour définir leurs limites intelligentes. Veuillez modifier les types de limites de toute carte Expensify avec des limites intelligentes avant de désactiver les approbations.",
@@ -4748,11 +4748,11 @@ const translations = {
                 subtitle: 'Suivre et organiser les dépenses.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Étiquettes',
                 subtitle: 'Classifiez les coûts et suivez les dépenses facturables.',
             },
             taxes: {
-                title: 'Taxes',
+                title: 'Impôts',
                 subtitle: 'Documentez et récupérez les taxes éligibles.',
             },
             reportFields: {
@@ -5140,7 +5140,7 @@ const translations = {
                 }
             },
             accounts: 'Plan comptable',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             imported: 'Importé',
             notImported: 'Non importé',
             importAsCategory: 'Importé en tant que catégories',
