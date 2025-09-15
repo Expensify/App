@@ -348,43 +348,20 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Normalizes the groupBy value into a single string.
+ * Normalizes a value that may be an array into a single value.
  * - If it's an array, returns the first element.
  * - Otherwise, returns the value as is.
  *
- * This ensures consistent usage of groupBy across the app,
- * since we only support filtering by a single valid groupBy key.
- *
- * @param groupBy - The raw groupBy value from SearchQueryJSON
- * @returns The normalized groupBy value
+ * Use the version with `undefined` when the value may be missing,
+ * and the non-undefined version when the value is guaranteed to exist.
  */
-function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroupBy | undefined {
-    if (Array.isArray(groupBy)) {
-        return groupBy.at(0);
+function normalizeValue<T>(value: T | T[]): T;
+function normalizeValue<T>(value?: T | T[]): T | undefined;
+function normalizeValue<T>(value?: T | T[]): T | undefined {
+    if (Array.isArray(value)) {
+        return value.at(0);
     }
-
-    return groupBy;
-}
-
-/**
- * Normalizes the type value into a single string.
- * - If it's an array, returns the first element.
- * - Otherwise, returns the value as is.
- *
- * This ensures consistent usage of type across the app,
- * since we only support filtering by a single valid type key.
- *
- * @param type - The raw type value from SearchQueryJSON
- * @returns The normalized type value
- */
-function getTypeValue(type: SearchDataTypes | SearchDataTypes[]): SearchDataTypes {
-    if (Array.isArray(type)) {
-        // This parameter can only be an array if there are at least two values, so the first element will always be here.
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return type.at(0)!;
-    }
-
-    return type;
+    return value;
 }
 
 /**
@@ -412,11 +389,11 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         }
 
         if (result.groupBy) {
-            result.groupBy = getGroupByValue(result.groupBy);
+            result.groupBy = normalizeValue(result.groupBy);
         }
 
         if (result.type) {
-            result.type = getTypeValue(result.type);
+            result.type = normalizeValue(result.type);
         }
 
         return result;
@@ -1123,5 +1100,4 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
-    getGroupByValue,
 };
