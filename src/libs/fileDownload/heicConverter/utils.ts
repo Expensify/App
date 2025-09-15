@@ -1,4 +1,3 @@
-// TODO move variables to  CONST file
 import CONST from '@src/CONST';
 
 /**
