@@ -521,6 +521,7 @@ function PaymentMethodList({
         <>
             <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
                 <FlashList<PaymentMethod | string>
+                    estimatedItemSize={variables.optionRowHeight}
                     data={itemsToRender}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}

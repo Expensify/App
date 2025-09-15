@@ -2167,7 +2167,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pdf (6.7.3):
+  - react-native-pdf (6.7.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2849,7 +2849,7 @@ PODS:
     - RNFBApp
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (2.25.0):
+  - RNGestureHandler (2.28.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3872,7 +3872,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
   react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
-  react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
+  react-native-pdf: 627c954988c313c3b72a642611ae9160669e2f32
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: e83dc18fa6752fcfb1a9bbe995f78a8a7c659fe1
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
@@ -3921,7 +3921,7 @@ SPEC CHECKSUMS:
   RNFBCrashlytics: c9dbfcf63b06cf8e8c4d960719e81160b6bc2e76
   RNFBPerf: c32ec64522c2e4d81d1562747809314e9050b75f
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
-  RNGestureHandler: b249b5be5a3659025aed8898aaaafd567dc2d660
+  RNGestureHandler: 61d3e94abb866ee955563ddf073e405e3f541359
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: 33974079f2be0b5c5e6032582c265494f00a8ce4
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
@@ -3944,6 +3944,6 @@ SPEC CHECKSUMS:
   VisionCamera: b3c0cf261b9ad1ac7d60ec292d252cf3368b801e
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
-PODFILE CHECKSUM: f7a8d931f2dd2be0fed9bb22df37140219a07ff3
+PODFILE CHECKSUM: 145b53efc0407146c2decf14202d64f78e7dbd96
 
 COCOAPODS: 1.15.2
