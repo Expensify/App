@@ -10,7 +10,7 @@ import type {WorkspaceConfirmationNavigatorParamList} from '@libs/Navigation/typ
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type WorkspaceCurrencyPickerProps = {
     /** Label for the input */

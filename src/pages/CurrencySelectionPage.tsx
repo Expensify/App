@@ -28,7 +28,7 @@ function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
     const {translate} = useLocalize();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [workspaceConfirmationFormDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
+    const [workspaceConfirmationFormDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {canBeMissing: true});
 
     const value = workspaceConfirmationFormDraft?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
