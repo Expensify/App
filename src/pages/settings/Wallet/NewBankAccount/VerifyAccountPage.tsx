@@ -11,4 +11,6 @@ function VerifyAccountPage() {
     );
 }
 
+VerifyAccountPage.displayName = 'VerifyAccountPage';
+
 export default VerifyAccountPage;
