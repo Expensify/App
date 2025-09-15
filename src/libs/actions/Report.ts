@@ -5190,40 +5190,6 @@ function moveIOUReportToPolicy(
 
     const failureData: OnyxUpdate[] = [];
 
-    if (useTemporaryOptimisticExpenseChatReportID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
-            value: {
-                reportID: optimisticExpenseChatReportID,
-                policyID,
-                ownerAccountID: employeeAccountID,
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            },
-        });
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
-            value: {isOptimisticReport: true, isLoadingInitialReportActions: true},
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
-            value: {isLoadingInitialReportActions: null},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
-            value: null,
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
-            value: null,
-        });
-    }
-
     // Next we need to convert the IOU report to Expense report.
     // We need to change:
     // - report type
