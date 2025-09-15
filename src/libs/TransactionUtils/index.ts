@@ -1035,14 +1035,14 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchR
  * Check if user should see broken connection violation warning based on selected transactions.
  */
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
-    transactions: Transaction[],
+    transactionIDs: string[],
     report: OnyxEntry<Report> | SearchReport,
     policy: OnyxEntry<Policy> | SearchPolicy,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
-    const violations = transactions.flatMap((transaction) => getTransactionViolations(transaction, transactionViolations));
+    const violations = transactionIDs.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
 
-    const brokenConnectionViolations = violations.filter((violation): violation is TransactionViolation => !!violation && isBrokenConnectionViolation(violation));
+    const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
 }

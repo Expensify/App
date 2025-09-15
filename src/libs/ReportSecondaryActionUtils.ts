@@ -223,6 +223,8 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
 
+    const transactionIDs = reportTransactions.map((t) => t.transactionID);
+
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
@@ -231,7 +233,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(reportTransactions, report, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
     const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
