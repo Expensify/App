@@ -1,11 +1,28 @@
 {
-    "extends": "../tsconfig.json",
     "ts-node": {
         "require": ["tsconfig-paths/register", "./stubReactNative.js"],
         "transpileOnly": true,
         "compilerOptions": {
             "module": "commonjs",
-            "target": "es2020"
+            "moduleResolution": "node",
+            "target": "es2020",
+            "types": ["node"],
+            "esModuleInterop": true,
+            "paths": {
+                "@assets/*": ["./assets/*"],
+                "@components/*": ["./src/components/*"],
+                "@desktop/*": ["./desktop/*"],
+                "@github/*": ["./.github/*"],
+                "@hooks/*": ["./src/hooks/*"],
+                "@libs/*": ["./src/libs/*"],
+                "@navigation/*": ["./src/libs/Navigation/*"],
+                "@pages/*": ["./src/pages/*"],
+                "@prompts/*": ["./prompts/*"],
+                "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
+                "@styles/*": ["./src/styles/*"],
+                "@src/*": ["./src/*"],
+                "@userActions/*": ["./src/libs/actions/*"]
+            }
         }
     }
 }
