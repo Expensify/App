@@ -1496,6 +1496,7 @@ const CONST = {
             FROM: 'from',
             TO: 'to',
         },
+        REPORT_TITLE_FIELD: 'expensify_text_title',
     },
     EXPORT_TEMPLATE_TYPES: {
         INTEGRATIONS: 'integrations',

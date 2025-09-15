@@ -37,6 +37,8 @@ function NewReportWorkspaceSelectionPage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -71,10 +73,10 @@ function NewReportWorkspaceSelectionPage() {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
                 return;
             }
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID, betas, betaConfiguration);
             navigateToNewReport(optimisticReportID);
         },
-        [currentUserPersonalDetails, navigateToNewReport],
+        [currentUserPersonalDetails, navigateToNewReport, betas, betaConfiguration],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

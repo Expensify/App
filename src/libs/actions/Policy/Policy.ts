@@ -81,10 +81,12 @@ import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage, navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
+import {shouldUpdateTitleField, updateTitleFieldWithExactValue} from '@libs/ReportTitleUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -98,6 +100,8 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    Beta,
+    BetaConfiguration,
     DuplicateWorkspace,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -5304,7 +5308,7 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
  * @param policyID - id of the policy to apply the naming pattern to
  * @param customName - name pattern to be used for the reports
  */
-function setPolicyDefaultReportTitle(policyID: string, customName: string) {
+function setPolicyDefaultReportTitle(policyID: string, customName: string, betas: Beta[], betaConfiguration: BetaConfiguration) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -5329,6 +5333,20 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             },
         },
     ];
+
+    if (Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+        const reports = ReportUtils.getAllPolicyReports(policyID);
+        for (const report of reports) {
+            if (!report) {
+                continue;
+            }
+            if (!shouldUpdateTitleField(report)) {
+                continue;
+            }
+
+            optimisticData.push(...updateTitleFieldWithExactValue(report.reportID, customName));
+        }
+    }
 
     const successData: OnyxUpdate[] = [
         {
