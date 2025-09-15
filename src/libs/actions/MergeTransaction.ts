@@ -1,3 +1,4 @@
+import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -140,6 +141,10 @@ function getOptimisticTargetTransactionData(targetTransaction: Transaction, merg
             // Special handling for comment field
             if (key === 'comment') {
                 return mergeValue !== targetTransaction.comment?.comment;
+            }
+
+            if (key === 'attendees') {
+                return !deepEqual(mergeValue, targetTransaction.comment?.attendees);
             }
 
             // For all other fields, compare directly
