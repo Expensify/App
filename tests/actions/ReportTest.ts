@@ -1748,7 +1748,7 @@ describe('actions/Report', () => {
 
             await waitForBatchedUpdates();
 
-            expect(global.fetch).toHaveBeenCalledTimes(0);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_ROOM_DESCRIPTION, 0);
         });
 
         it('should revert to correct previous description if UpdateRoomDescription API fails', async () => {

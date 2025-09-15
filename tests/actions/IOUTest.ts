@@ -4501,7 +4501,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (policy) {
-                        deleteWorkspace(policy.id, policy.name, undefined);
+                        deleteWorkspace(policy.id, policy.name, undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
