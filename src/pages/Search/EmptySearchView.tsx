@@ -430,6 +430,8 @@ function EmptySearchViewContent({
         hasTransactions,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
+        betas,
+        betaConfiguration,
     ]);
 
     return (

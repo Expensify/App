@@ -9,8 +9,8 @@ import type Report from '@src/types/onyx/Report';
 import type {FormulaContext} from './Formula';
 import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
-import type {WorkingUpdates, WorkingUpdateValue} from './OptimisticReportNamesCache';
-import {getCachedPolicyByID, getCachedReportByID, getCachedReportNameValuePairsByID, getCachedTransactionByID} from './OptimisticReportNamesCache';
+import type {WorkingUpdates} from './OptimisticReportNamesCache';
+import {applyUpdateToCache, getCachedPolicyByID, getCachedReportByID, getCachedReportNameValuePairsByID, getCachedTransactionByID} from './OptimisticReportNamesCache';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
 import {isArchivedReport} from './ReportUtils';
@@ -68,51 +68,6 @@ function getReportIDFromRNVPKey(key: string): string {
  */
 function getReportKey(reportID: string): OnyxKey {
     return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as OnyxKey;
-}
-
-/**
- * Apply an Onyx update to the working updates cache
- */
-function applyUpdateToCache(workingUpdates: WorkingUpdates, update: OnyxUpdate, context: UpdateContext): void {
-    const key = update.key;
-
-    switch (update.onyxMethod) {
-        case Onyx.METHOD.SET:
-            workingUpdates[key] = update.value as WorkingUpdateValue;
-            break;
-        case Onyx.METHOD.MERGE:
-            // Get the current value (from cache or original context)
-            const currentValue = workingUpdates[key] ?? getOriginalValueByKey(key, context);
-            workingUpdates[key] = {...currentValue, ...(update.value as WorkingUpdateValue)} as WorkingUpdateValue;
-            break;
-        case Onyx.METHOD.CLEAR:
-            delete workingUpdates[key];
-            break;
-        default:
-            // Default to MERGE for safety
-            const defaultCurrentValue = workingUpdates[key] ?? getOriginalValueByKey(key, context);
-            workingUpdates[key] = {...defaultCurrentValue, ...(update.value as WorkingUpdateValue)} as WorkingUpdateValue;
-            break;
-    }
-}
-
-/**
- * Get original value by key from context collections
- */
-function getOriginalValueByKey(key: string, context: UpdateContext): WorkingUpdateValue | undefined {
-    if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-        return context.allReports[key];
-    }
-    if (key.startsWith(ONYXKEYS.COLLECTION.POLICY)) {
-        return context.allPolicies[key];
-    }
-    if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-        return context.allTransactions[key];
-    }
-    if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
-        return context.allReportNameValuePairs[key];
-    }
-    return undefined;
 }
 
 /**
@@ -298,7 +253,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     });
 
     const additionalUpdates: OnyxUpdate[] = [];
-    const workingUpdates: WorkingUpdates = {};
+    let workingUpdates: WorkingUpdates = {};
 
     for (const update of updates) {
         const objectType = determineObjectTypeByKey(update.key);
@@ -307,7 +262,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             case 'report': {
                 // Apply this update to the working cache FIRST
                 // so all subsequent cached lookups will include this update
-                applyUpdateToCache(workingUpdates, update, context);
+                workingUpdates = applyUpdateToCache(workingUpdates, update, context);
                 const reportID = getReportIDFromKey(update.key);
                 const report = getCachedReportByID(reportID, context, workingUpdates);
 
@@ -329,7 +284,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             case 'policy': {
                 // Apply this update to the working cache FIRST
                 // so all subsequent cached lookups will include this update
-                applyUpdateToCache(workingUpdates, update, context);
+                workingUpdates = applyUpdateToCache(workingUpdates, update, context);
                 const policyID = getPolicyIDFromKey(update.key);
                 const affectedReports = getReportsForNameComputation(policyID, allReports, context, workingUpdates);
                 for (const report of affectedReports) {
@@ -351,7 +306,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             case 'transaction': {
                 // Apply this update to the working cache FIRST
                 // so all subsequent cached lookups will include this update
-                applyUpdateToCache(workingUpdates, update, context);
+                workingUpdates = applyUpdateToCache(workingUpdates, update, context);
                 let report: Report | undefined;
                 const transactionUpdate = update.value as Partial<Transaction>;
                 if (transactionUpdate.reportID) {
@@ -379,7 +334,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             case 'reportNameValuePairs': {
                 // Apply this update to the working cache FIRST
                 // so all subsequent cached lookups will include this update
-                applyUpdateToCache(workingUpdates, update, context);
+                workingUpdates = applyUpdateToCache(workingUpdates, update, context);
                 const reportID = getReportIDFromRNVPKey(update.key);
                 const report = getCachedReportByID(reportID, context, workingUpdates);
 

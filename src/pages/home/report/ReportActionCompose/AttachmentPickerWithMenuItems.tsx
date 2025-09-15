@@ -260,7 +260,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, betas, betaConfiguration, true), true),
             },
         ];
-    }, [currentUserPersonalDetails, report, selectOption, translate]);
+    }, [currentUserPersonalDetails, report, selectOption, translate, betas, betaConfiguration]);
 
     /**
      * Determines if we can show the task option
