@@ -85,14 +85,17 @@ function PolicyDistanceRatesPage({
 
     const rateIDs = useMemo(() => new Set(Object.keys(selectableRates)), [selectableRates]);
 
-    const policyReportsSelector = useCallback((reports: OnyxCollection<Report>) => {
-        return Object.values(reports ?? {}).reduce((reportIDs, report) => {
-            if (report && report.policyID === policyID) {
-                reportIDs.add(report.reportID);
-            }
-            return reportIDs;
-        }, new Set<string>());
-    }, [policyID]);
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        [policyID],
+    );
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: policyReportsSelector,

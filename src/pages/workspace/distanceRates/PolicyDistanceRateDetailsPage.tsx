@@ -44,14 +44,17 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const rate = customUnit?.rates[rateID];
     const customUnitID = customUnit?.customUnitID;
 
-    const policyReportsSelector = useCallback((reports: OnyxCollection<Report>) => {
-        return Object.values(reports ?? {}).reduce((reportIDs, report) => {
-            if (report && report.policyID === policyID) {
-                reportIDs.add(report.reportID);
-            }
-            return reportIDs;
-        }, new Set<string>());
-    }, [policyID]);
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        [policyID],
+    );
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: policyReportsSelector,
