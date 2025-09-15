@@ -36,6 +36,7 @@ const SCREENS = {
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
+        VERIFY_ACCOUNT: 'Travel_VerifyAccount',
     },
     SEARCH: {
         ROOT: 'Search_Root',
