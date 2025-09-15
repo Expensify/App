@@ -1,10 +1,10 @@
 import CONST from '@src/CONST';
 
 /**
- * Verify if a blob contains HEIC format by checking the ftyp box signatures
+ * Verify if a blob contains HEIC format by checking the file type box signatures
  */
 const verifyHeicFormat = (blob: Blob): Promise<boolean> => {
-    // Read first 16 bytes to check for ftyp box and signatures
+    // Read first 16 bytes to check for file type box and signatures
     return blob
         .slice(0, 16)
         .arrayBuffer()
@@ -15,7 +15,7 @@ const verifyHeicFormat = (blob: Blob): Promise<boolean> => {
                 return false;
             }
 
-            // Convert bytes 4-16 to hex string (this is where the ftyp signature is)
+            // Convert bytes 4-16 to hex string (this is where the file type signature is)
             const startOffset = 4;
             const bytesToRead = 12;
             const endOffset = startOffset + bytesToRead;
