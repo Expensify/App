@@ -215,7 +215,6 @@ import {
     isDuplicate,
     isFetchingWaypointsFromServer,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
-    isMapDistanceRequest,
     isOnHold,
     isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -1496,7 +1495,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const isManualDistanceEnabled = Permissions.isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE, allBetas);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
@@ -1513,14 +1511,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_MANUAL;
     }
 
-    if (isManualDistanceEnabled) {
-        if (isMapDistanceRequest(transaction)) {
-            newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP;
-        }
-        if (isManualDistanceRequestTransactionUtils(transaction)) {
-            newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL;
-        }
-    } else if (isDistanceRequestTransactionUtils(transaction)) {
+    if (isDistanceRequestTransactionUtils(transaction)) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
@@ -2527,7 +2518,6 @@ function buildOnyxDataForTrackExpense({
 
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const isManualDistanceEnabled = Permissions.isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE, allBetas);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
 
@@ -2540,16 +2530,7 @@ function buildOnyxDataForTrackExpense({
     if (isScanRequest) {
         newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_SCAN : CONST.QUICK_ACTIONS.REQUEST_SCAN;
     } else if (isDistanceRequest) {
-        if (isManualDistanceEnabled) {
-            if (isMapDistanceRequest(transaction)) {
-                newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP : CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP;
-            }
-            if (isManualDistanceRequestTransactionUtils(transaction)) {
-                newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL : CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL;
-            }
-        } else {
-            newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_DISTANCE : CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
-        }
+        newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_DISTANCE : CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
