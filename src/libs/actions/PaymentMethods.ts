@@ -27,7 +27,7 @@ import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, FundList, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
