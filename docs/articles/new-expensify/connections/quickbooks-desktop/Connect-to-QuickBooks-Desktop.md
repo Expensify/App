@@ -14,14 +14,14 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 
 # Step 1: Start the Setup in Expensify
 
-1. From the left-hand menu, select **Workspaces**  
-2. Choose the workspace you want to connect to  
-3. Click **More features** in the left-hand menu  
-4. In the **Integrate** section, toggle on **Accounting**  
-5. Click **Accounting** in the left-hand menu  
-6. Click **Set up** next to QuickBooks Desktop  
-7. Click **Copy** to copy the link, then paste the link into the computer that runs QuickBooks Desktop  
-8. Select your QuickBooks Desktop version  
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces**
+2. Choose the workspace you want to connect to
+3. Click **More features** in the left-hand menu
+4. In the **Integrate** section, toggle on **Accounting**
+5. Click **Accounting** in the left-hand menu
+6. Click **Set up** next to QuickBooks Desktop
+7. Click **Copy** to copy the link, then paste the link into the computer that runs QuickBooks Desktop
+8. Select your QuickBooks Desktop version
 
 ![QuickBooks Desktop version selection](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
 
@@ -29,9 +29,9 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 
 # Step 2: Install and Launch the Web Connector
 
-1. Download the Web Connector and follow the installation instructions  
-2. Open the Web Connector  
-3. When prompted, download the config file and open it using File Explorer. This will automatically load the application into the Web Connector  
+1. Download the Web Connector and follow the installation instructions
+2. Open the Web Connector
+3. When prompted, download the config file and open it using File Explorer. This will automatically load the application into the Web Connector
 
 **Note:** Make sure the correct company file is open in QuickBooks Desktop and that it’s the only one open.
 
@@ -39,10 +39,10 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 
 # Step 3: Authorize and Finalize the Connection
 
-1. In QuickBooks Desktop, select **Yes, always allow access, even when QuickBooks is not running**, then click **Continue**  
-2. Click **OK**, then click **Yes**  
-3. Click **Copy** to copy the password  
-4. Paste the password into the **Password** field in the Web Connector and press **Enter**  
+1. In QuickBooks Desktop, select **Yes, always allow access, even when QuickBooks is not running**, then click **Continue**
+2. Click **OK**, then click **Yes**
+3. Click **Copy** to copy the password
+4. Paste the password into the **Password** field in the Web Connector and press **Enter**
 5. Click **Yes** to save the password. The new connection will appear in the Web Connector. Save this password in a secure password manager. You'll need it for future configuration updates or troubleshooting.
 
 ![Save Web Connector password](https://help.expensify.com/assets/images/QBO_desktop_07.png){:width="100%"}
@@ -74,7 +74,7 @@ Yes. You can install one connector per company file. Multiple connectors can run
 
 Yes, in general. However:
 
-- If you select **Check** as your export option, the total report amount cannot be negative  
-- This also applies to debit card exports (QuickBooks Desktop treats these as non-reimbursable checks)  
+- If you select **Check** as your export option, the total report amount cannot be negative
+- This also applies to debit card exports (QuickBooks Desktop treats these as non-reimbursable checks)
 - Non-reimbursable checks must have a **positive** amount
 
