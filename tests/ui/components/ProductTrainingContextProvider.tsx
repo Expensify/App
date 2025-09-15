@@ -1,4 +1,4 @@
-import {render, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 import {createRef, forwardRef, useImperativeHandle} from 'react';
 import type {Ref} from 'react';
 import Onyx from 'react-native-onyx';
@@ -61,17 +61,21 @@ describe('ProductTrainingContextProvider', () => {
         return waitForBatchedUpdatesWithAct();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         // Set up test environment before each test
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
         signUpWithTestUser();
     });
 
     afterEach(async () => {
         // Clean up test environment after each test
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
         await waitForBatchedUpdatesWithAct();
     });
 
@@ -81,7 +85,9 @@ describe('ProductTrainingContextProvider', () => {
     describe('Basic Tooltip Registration', () => {
         it('should not register tooltips when app is loading', async () => {
             // When app is loading
-            Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
+            });
             await waitForBatchedUpdatesWithAct();
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
@@ -93,7 +99,9 @@ describe('ProductTrainingContextProvider', () => {
 
         it('should not register tooltips when onboarding is not completed', async () => {
             // When onboarding is not completed
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            });
             await waitForBatchedUpdatesWithAct();
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
@@ -105,7 +113,9 @@ describe('ProductTrainingContextProvider', () => {
 
         it('should register tooltips when onboarding is completed and user is not migrated', async () => {
             // When onboarding is completed
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            });
             await waitForBatchedUpdatesWithAct();
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
@@ -161,19 +171,60 @@ describe('ProductTrainingContextProvider', () => {
         });
     });
 
+    describe('Migrated User Scenarios', () => {
+        it('should not show tooltips for migrated users before welcome modal dismissal', async () => {
+            // When user is a migrated user and welcome modal is not dismissed
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then tooltips should not show
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+
+            // Expect tooltip to be hidden
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+        });
+
+        it('should show tooltips for migrated users after welcome modal dismissal', async () => {
+            // When migrated user has dismissed welcome modal
+            const date = new Date();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
+                await Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                    migratedUserWelcomeModal: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+
+            // Then tooltip should show
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+        });
+    });
+
     describe('Tooltip Dismissal', () => {
         it('should not show dismissed tooltips', async () => {
             // When a tooltip has been dismissed
             const date = new Date();
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
-            Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
-                [testTooltip]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                    migratedUserWelcomeModal: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                    [testTooltip]: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -184,18 +235,22 @@ describe('ProductTrainingContextProvider', () => {
         });
         it('should hide tooltip when hideProductTrainingTooltip is called', async () => {
             // When migrated user has dismissed welcome modal
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
-            Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                    migratedUserWelcomeModal: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // When the user dismiss the tooltip
-            result.current.hideProductTrainingTooltip();
+            await act(async () => {
+                result.current.hideProductTrainingTooltip();
+            });
             rerender({});
             // Then tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
@@ -219,7 +274,9 @@ describe('ProductTrainingContextProvider', () => {
             // When narrow layout is true
             mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
 
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            });
             await waitForBatchedUpdatesWithAct();
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
@@ -240,12 +297,14 @@ describe('ProductTrainingContextProvider', () => {
     describe('Priority Handling', () => {
         it('should show only highest priority tooltip when multiple are active', async () => {
             // When multiple tooltips are registered and no tooltips are dismissed
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
-            Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                    migratedUserWelcomeModal: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -268,18 +327,20 @@ describe('ProductTrainingContextProvider', () => {
 
         it('should show lower priority tooltip when higher priority is dismissed', async () => {
             // When higher priority tooltip is dismissed
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
             const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
             const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
 
-            Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
-                [highPriorityTooltip]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                    migratedUserWelcomeModal: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                    [highPriorityTooltip]: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -299,12 +360,14 @@ describe('ProductTrainingContextProvider', () => {
 
         it('should transition to next priority tooltip when current is dismissed', async () => {
             // When starting with all tooltips visible
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
-            Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                    migratedUserWelcomeModal: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -324,10 +387,12 @@ describe('ProductTrainingContextProvider', () => {
             expect(result.current.lower.shouldShowProductTrainingTooltip).toBe(false);
 
             // When dismissing higher priority tooltip
-            Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                [highPriorityTooltip]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                    [highPriorityTooltip]: {
+                        timestamp: DateUtils.getDBTime(date.valueOf()),
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
