@@ -14,9 +14,11 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
+import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
@@ -25,7 +27,6 @@ import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import TextInput from './TextInput';
-import WorkspaceCurrencyPicker from './WorkspaceCurrencyPicker';
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
@@ -177,10 +178,12 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
-                                InputComponent={WorkspaceCurrencyPicker}
+                                InputComponent={CurrencySelector}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
-                                defaultValue={userCurrency}
+                                value={userCurrency}
+                                shouldShowCurrencySymbol
+                                currencySelectorRoute={ROUTES.CURRENCY_SELECTION}
                             />
                         </View>
                     </View>
