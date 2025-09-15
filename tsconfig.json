@@ -24,7 +24,8 @@
             "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"]
+            "@userActions/*": ["./src/libs/actions/*"],
+            "@selectors/*": ["./src/selectors/*"]
         }
     },
     "include": [

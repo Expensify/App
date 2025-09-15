@@ -33,9 +33,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             country: values.country,
         });
         if (!isUserValidated) {
-            Navigation.navigate(
-                ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.TRAVEL_MY_TRIPS, ROUTES.TRAVEL_TCS.getRoute(route.params.domain) ?? CONST.TRAVEL.DEFAULT_DOMAIN),
-            );
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain));
             return;
         }
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});
