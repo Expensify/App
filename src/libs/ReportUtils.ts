@@ -10344,13 +10344,13 @@ function prepareOnboardingOnyxData(
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;
-    let isOpimiticAssignedGuide = false;
+    let isOptimisticAssignedGuide = false;
     if (assignedGuidePersonalDetail && assignedGuidePersonalDetail.accountID) {
-        isOpimiticAssignedGuide = assignedGuidePersonalDetail.isOptimisticPersonalDetail ?? false;
+        isOptimisticAssignedGuide = assignedGuidePersonalDetail.isOptimisticPersonalDetail ?? false;
         assignedGuideAccountID = assignedGuidePersonalDetail.accountID;
     } else {
         assignedGuideAccountID = generateAccountID(assignedGuideEmail);
-        isOpimiticAssignedGuide = !assignedGuidePersonalDetail;
+        isOptimisticAssignedGuide = !assignedGuidePersonalDetail;
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [assignedGuideAccountID]: {
@@ -10893,7 +10893,7 @@ function prepareOnboardingOnyxData(
         guidedSetupData.push({type: 'message', ...welcomeSignOffMessage});
     }
 
-    if (isOpimiticAssignedGuide) {
+    if (isOptimisticAssignedGuide) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
