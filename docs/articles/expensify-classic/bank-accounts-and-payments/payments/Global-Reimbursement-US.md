@@ -47,7 +47,7 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 
 ---
 
- # Step 4: Confirm Test Transactions
+# Step 4: Confirm Test Transactions
 
 1. **Expensify will send test deposits to the provided bank account:** These are small deposits from our global payments partner, **Corpay-Cambridge Mercantile**, and are part of the final verification step.
 2. **Check with your bank and let us know once you see them:** These test transactions won't appear in Expensify — you’ll need to monitor your bank account and tell us once they’re received.
