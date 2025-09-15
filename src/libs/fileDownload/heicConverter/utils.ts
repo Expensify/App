@@ -1,3 +1,4 @@
+// TODO move variables to  CONST file
 /**
  * HEIC file signatures that should be present in the ftyp box
  */
