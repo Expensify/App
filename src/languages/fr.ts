@@ -5449,6 +5449,7 @@ const translations = {
             updateWorkspaceCurrency: "Mettre à jour la devise de l'espace de travail",
             workspaceCurrencyNotSupported: "Devise de l'espace de travail non prise en charge",
             yourWorkspace: `Votre espace de travail est configuré avec une devise non prise en charge. Consultez la <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">liste des devises prises en charge</a>.`,
+            chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le propriétaire',

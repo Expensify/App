@@ -5432,6 +5432,7 @@ const translations = {
             updateWorkspaceCurrency: 'Zaktualizuj walutę przestrzeni roboczej',
             workspaceCurrencyNotSupported: 'Waluta przestrzeni roboczej nie jest obsługiwana',
             yourWorkspace: `Twoje miejsce pracy jest ustawione na nieobsługiwaną walutę. Zobacz <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">listę obsługiwanych walut</a>.`,
+            chooseAnExisting: 'Wybierz istniejące konto bankowe do płacenia wydatków lub dodaj nowe.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Przenieś właściciela',
