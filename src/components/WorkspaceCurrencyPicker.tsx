@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {WorkspaceConfirmationNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceConfirmationNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
