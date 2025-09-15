@@ -252,7 +252,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         return verifyAccountState;
     }
 
-    const state = getStateFromPath(normalizedPath) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const state = getStateFromPath(normalizedPath as RouteString) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }
