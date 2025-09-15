@@ -18,7 +18,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {
+    getReport,
+    getReportOrDraftReport,
+    isExpenseReport,
+    isIOUReport,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+    isWorkspaceEligibleForReportChange,
+} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -38,7 +46,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const isParentReportArchived = useReportIsArchived(getReportOrDraftReport(report?.parentReportID)?.reportID);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const isReportLastMessageArchived = useReportIsArchived(getReport(report?.parentReportID ?? '', allReports)?.reportID);
+    const isReportLastVisibleArchived = useReportIsArchived(getReportOrDraftReport(report?.parentReportID)?.reportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -59,12 +69,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isParentReportArchived);
+                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportLastMessageArchived, isReportLastVisibleArchived);
             } else {
-                changeReportPolicy(report, policy, reportNextStep, isParentReportArchived);
+                changeReportPolicy(report, policy, reportNextStep, isReportLastMessageArchived, isReportLastVisibleArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isParentReportArchived],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastMessageArchived, isReportLastVisibleArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

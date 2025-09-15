@@ -289,9 +289,9 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived);
+        editReportComment(reportID, originalReportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID, isOriginalReportArchived]);
+    }, [action, deleteDraft, draft, reportID, isOriginalReportArchived, originalReportID]);
 
     /**
      * @param emoji

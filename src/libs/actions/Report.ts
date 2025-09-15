@@ -2062,12 +2062,12 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(
     reportID: string | undefined,
+    originalReportID: string | undefined,
     originalReportAction: OnyxEntry<ReportAction>,
     textForNewComment: string,
     videoAttributeCache?: Record<string, string>,
     isOriginalReportArchived = false,
 ) {
-    const originalReportID = getOriginalReportID(reportID, originalReportAction);
     if (!originalReportID || !originalReportAction) {
         return;
     }
@@ -5709,7 +5709,14 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
     });
 }
 
-function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportNextStep?: ReportNextStep, optimisticPolicyExpenseChatReport?: Report, isParentReportArchived = false) {
+function buildOptimisticChangePolicyData(
+    report: Report,
+    policy: Policy,
+    reportNextStep?: ReportNextStep,
+    optimisticPolicyExpenseChatReport?: Report,
+    isReportLastMessageArchived = false,
+    isReportLastVisibleArchived = false,
+) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -5818,12 +5825,12 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
         const lastMessageText = getLastVisibleMessage(
             oldWorkspaceChatReportID,
             {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction},
-            isParentReportArchived,
+            isReportLastVisibleArchived,
         )?.lastMessageText;
         const lastVisibleActionCreated = getReportLastMessage(
             oldWorkspaceChatReportID,
             {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction},
-            isParentReportArchived,
+            isReportLastMessageArchived,
         )?.lastVisibleActionCreated;
 
         optimisticData.push({
@@ -5957,7 +5964,7 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: ReportNextStep, isParentReportArchived = false) {
+function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: ReportNextStep, isReportLastMessageArchived = false, isReportLastVisibleArchived = false) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
     }
@@ -5967,7 +5974,8 @@ function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: Rep
         policy,
         reportNextStep,
         undefined,
-        isParentReportArchived,
+        isReportLastMessageArchived,
+        isReportLastVisibleArchived,
     );
 
     const params = {
@@ -5991,7 +5999,8 @@ function changeReportPolicyAndInviteSubmitter(
     policy: Policy,
     employeeList: PolicyEmployeeList | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    isParentReportArchived = false,
+    isReportLastMessageArchived = false,
+    isReportLastVisibleArchived = false,
 ) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -6024,7 +6033,7 @@ function changeReportPolicyAndInviteSubmitter(
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(report, policy, undefined, membersChats.reportCreationData[submitterEmail], isParentReportArchived);
+    } = buildOptimisticChangePolicyData(report, policy, undefined, membersChats.reportCreationData[submitterEmail], isReportLastMessageArchived, isReportLastVisibleArchived);
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);
