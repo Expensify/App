@@ -124,14 +124,24 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
+            const lastRouteInMatchingFullScreen = matchingFullScreenRoute?.state?.routes?.at(-1);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const isMatchingRoutePreloaded = currentState.preloadedRoutes.some((preloadedRoute) => preloadedRoute.name === matchingFullScreenRoute.name);
+            const lastRouteInLastFullScreenRoute = lastFullScreenRoute?.state?.routes?.at(-1);
+            if (
+                matchingFullScreenRoute &&
+                lastFullScreenRoute &&
+                (matchingFullScreenRoute.name !== lastFullScreenRoute.name || lastRouteInMatchingFullScreen?.name !== lastRouteInLastFullScreenRoute?.name)
+            ) {
+                const isMatchingRoutePreloaded = currentState.preloadedRoutes.some(
+                    (preloadedRoute) =>
+                        preloadedRoute.name === matchingFullScreenRoute.name &&
+                        (!lastRouteInMatchingFullScreen?.name ||
+                            (preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === lastRouteInMatchingFullScreen?.name)),
+                );
                 if (isMatchingRoutePreloaded) {
                     navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
                 } else {
-                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
                     const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
                         screen: lastRouteInMatchingFullScreen?.name,
                         params: lastRouteInMatchingFullScreen?.params,
