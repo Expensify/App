@@ -53,6 +53,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const isPending = !!selectedFeedData?.pending;
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
             return undefined;
@@ -141,6 +142,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                 switchAccessibilityLabel={translate('workspace.moreFeatures.companyCards.personal')}
                                 onToggle={onToggleLiability}
                                 isActive={isPersonal}
+                                disabled={isPending}
                             />
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
