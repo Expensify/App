@@ -844,70 +844,56 @@ class TranslationGenerator {
                 };
             }
 
-            // For object literals, handle additions and cleanup.
+            // For object literals, handle additions and cleanup using bottom-up recursion
             if (ts.isObjectLiteralExpression(node)) {
-                // Analyze what changes are needed
-                const emptyPropsToRemove: ts.PropertyAssignment[] = [];
-                const additionsForThisNode: Array<{path: string; code: string}> = [];
-
-                // Find empty object properties that need removal
-                for (const prop of node.properties) {
-                    if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
-                        if (prop.initializer.properties.length === 0) {
-                            emptyPropsToRemove.push(prop);
+                return {
+                    action: TransformerAction.Replace,
+                    newNode: (transformedNode) => {
+                        if (!ts.isObjectLiteralExpression(transformedNode)) {
+                            return transformedNode;
                         }
-                    }
-                }
 
-                // Find additions needed for this node (if it's the main translations node)
-                if (node === mainTranslationsNode && currentPath === '') {
-                    for (const [addPath, translatedCodeString] of translatedCodeMap) {
-                        const pathParts = addPath.split('.');
-                        if (pathParts.length === 1) {
-                            additionsForThisNode.push({path: addPath, code: translatedCodeString});
-                        }
-                    }
-                }
+                        let properties = [...transformedNode.properties];
+                        let hasChanges = false;
 
-                // Only replace if they actually need changes (to avoid unnecessary diffs)
-                if (emptyPropsToRemove.length > 0 || additionsForThisNode.length > 0) {
-                    return {
-                        action: TransformerAction.Replace,
-                        newNode: (transformedNode) => {
-                            if (!ts.isObjectLiteralExpression(transformedNode)) {
-                                return transformedNode;
-                            }
-
-                            let properties = [...transformedNode.properties];
-
-                            // Remove empty object literals
-                            if (emptyPropsToRemove.length > 0) {
-                                properties = properties.filter((prop) => {
-                                    const shouldRemove = emptyPropsToRemove.includes(prop as ts.PropertyAssignment);
-                                    if (shouldRemove && this.verbose) {
-                                        const propName = ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) ? prop.name.text : prop.getText();
+                        // Remove empty object literals (cleanup after path removals during recursion)
+                        properties = properties.filter((prop) => {
+                            if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
+                                const isEmpty = prop.initializer.properties.length === 0;
+                                if (isEmpty) {
+                                    hasChanges = true;
+                                    if (this.verbose) {
+                                        const propName = ts.isIdentifier(prop.name) ? prop.name.text : prop.getText();
                                         console.log(`🧹 Removing empty object after incremental update: "${propName}"`);
                                     }
-                                    return !shouldRemove;
-                                });
-                            }
-
-                            // Add new properties
-                            for (const {path: pathToAdd, code} of additionsForThisNode) {
-                                const propertyName = pathToAdd.split('.').at(0);
-                                if (!propertyName) {
-                                    throw new Error('An unknown error occurred');
+                                    return false; // Remove empty objects
                                 }
-
-                                const translatedExpression = TSCompilerUtils.parseCodeStringToAST(code);
-                                const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedExpression);
-                                properties.push(newProperty);
                             }
+                            return true; // Keep non-object properties and non-empty objects
+                        });
 
-                            return ts.factory.createObjectLiteralExpression(properties);
-                        },
-                    };
-                }
+                        // Add new properties (if this is the main translations node)
+                        if (node === mainTranslationsNode && currentPath === '') {
+                            for (const [addPath, translatedCodeString] of translatedCodeMap) {
+                                const pathParts = addPath.split('.');
+                                if (pathParts.length === 1) {
+                                    const propertyName = pathParts.at(0);
+                                    if (!propertyName) {
+                                        throw new Error('An unknown error occurred');
+                                    }
+
+                                    hasChanges = true;
+                                    const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
+                                    const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedExpression);
+                                    properties.push(newProperty);
+                                }
+                            }
+                        }
+
+                        // Only create a new node if something actually changed
+                        return hasChanges ? ts.factory.createObjectLiteralExpression(properties) : transformedNode;
+                    },
+                };
             }
 
             return {action: TransformerAction.Continue};
