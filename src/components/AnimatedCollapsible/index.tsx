@@ -108,7 +108,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
     return (
         <View style={style}>
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
-                <View style={[styles.collapsibleHeaderStyle]}>{header}</View>
+                <View style={[styles.flex1]}>{header}</View>
                 <PressableWithFeedback
                     onPress={onPress}
                     disabled={disabled}

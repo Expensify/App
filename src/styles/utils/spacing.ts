@@ -475,6 +475,10 @@ export default {
         paddingVertical: 16,
     },
 
+    pv4Half: {
+        paddingVertical: 18,
+    },
+
     pv5: {
         paddingVertical: 20,
     },

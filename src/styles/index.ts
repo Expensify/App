@@ -4930,11 +4930,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
-        },
-
-        collapsibleHeaderStyle: {
             paddingVertical: 6,
-            flex: 1,
         },
 
         searchQueryListItemStyle: {
