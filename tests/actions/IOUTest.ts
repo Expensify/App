@@ -5878,11 +5878,6 @@ describe('actions/IOU', () => {
                 attendees: [
                     {
                         email: 'rory@expensifail.com',
-                        login: 'rory@expensifail.com',
-                        accountID: 3,
-                        text: 'rory@expensifail.com',
-                        selected: true,
-                        reportID: '0',
                         avatarUrl: '',
                         displayName: '',
                     },

@@ -17,7 +17,6 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     getLastActorDisplayName,
-    getMemberInviteOptions,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
     getShareDestinationOptions,
@@ -1137,20 +1136,6 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    describe('getMemberInviteOptions()', () => {
-        it('should sort personal details alphabetically', () => {
-            // Given a set of personalDetails
-            // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, []);
-
-            // Then personal details should be sorted alphabetically
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-            expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-            expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-            expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
-        });
-    });
-
     describe('getLastActorDisplayName()', () => {
         it('should return correct display name', () => {
             renderLocaleContextProvider();
@@ -1380,28 +1365,6 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.length).toBe(1);
             // Then the user to invite should be null
             expect(filteredOptions.userToInvite).toBe(null);
-        });
-
-        it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
-            // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
-            // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE);
-
-            // Then no personal details should be returned
-            expect(filteredOptions.personalDetails.length).toBe(0);
-        });
-
-        it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
-            // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
-            // When we call filterAndOrderOptions with a search value that matches an email
-            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE);
-
-            // Then one personal detail should be returned
-            expect(filteredOptions.personalDetails.length).toBe(1);
-            // Then the returned personal detail should match the search text
-            expect(filteredOptions.personalDetails.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should not show any recent reports if a search value does not match the group chat name (getShareDestinationsOptions)', () => {

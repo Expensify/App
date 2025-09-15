@@ -2,7 +2,7 @@ import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {createOptionList, filterAndOrderOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -136,12 +136,6 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() => getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
-    });
-
-    /* Testing getMemberInviteOptions */
-    test('[OptionsListUtils] getMemberInviteOptions', async () => {
-        await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {

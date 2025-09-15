@@ -2,9 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {useBetas} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetailsOptionsList} from '@components/PersonalDetailsOptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -15,153 +13,102 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
+import {getHeaderMessage, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Participant} from '@src/types/onyx/IOU';
 
-function useOptions() {
-    const betas = useBetas();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const currentVacationDelegate = vacationDelegate?.delegate;
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+const defaultListOptions = {
+    userToInvite: null,
+    recentOptions: [],
+    personalDetails: [],
+    selectedOptions: [],
+};
 
-    const excludeLogins = useMemo(
-        () => ({
-            ...CONST.EXPENSIFY_EMAILS_OBJECT,
-            [currentVacationDelegate ?? '']: true,
-        }),
-        [currentVacationDelegate],
-    );
-
-    const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = getValidOptions(
-            {
-                reports: optionsList.reports,
-                personalDetails: optionsList.personalDetails,
-            },
-            {
-                betas,
-                excludeLogins,
-            },
-        );
-
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
-
-        return {
-            userToInvite,
-            recentReports,
-            personalDetails,
-            currentUserOption,
-            headerMessage,
-        };
-    }, [optionsList.reports, optionsList.personalDetails, betas, excludeLogins]);
-
-    const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
-            excludeLogins,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue,
-        );
-
-        return {
-            ...filteredOptions,
-            headerMessage,
-        };
-    }, [debouncedSearchValue, defaultOptions, excludeLogins, countryCode]);
-
-    return {...options, vacationDelegate, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, delegatePersonalDetails};
-}
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'VacationDelegatePage.getValidOptions'});
 
 function VacationDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
-    const [newVacationDelegate, setNewVacationDelegate] = useState('');
+    const [newVacationDelegate, setNewVacationDelegate] = useState<OptionData | undefined>(undefined);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
-    const {vacationDelegate, userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized, delegatePersonalDetails} =
-        useOptions();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const {options, areOptionsInitialized} = usePersonalDetailsOptionsList();
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const currentVacationDelegate = vacationDelegate?.delegate;
+
+    const transformedOptions = useMemo(() => {
+        if (!currentVacationDelegate) {
+            return options;
+        }
+        return options.map((option) => ({
+            ...option,
+            isSelected: option.login === currentVacationDelegate,
+        }));
+    }, [currentVacationDelegate, options]);
+
+    const optionsList = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return defaultListOptions;
+        }
+        return memoizedGetValidOptions(transformedOptions, currentUserLogin ?? '', {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            searchString: debouncedSearchValue,
+            includeCurrentUser: false,
+            includeUserToInvite: true,
+        });
+    }, [areOptionsInitialized, currentUserLogin, debouncedSearchValue, transformedOptions]);
 
     const sections = useMemo(() => {
-        const sectionsList = [];
+        const sectionsArr = [];
 
-        if (vacationDelegate && delegatePersonalDetails) {
-            sectionsList.push({
-                title: undefined,
-                data: [
-                    {
-                        ...delegatePersonalDetails,
-                        text: delegatePersonalDetails?.displayName ?? vacationDelegate.delegate,
-                        alternateText: delegatePersonalDetails?.login ?? vacationDelegate.delegate,
-                        login: delegatePersonalDetails.login ?? vacationDelegate.delegate,
-                        keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
-                        isDisabled: false,
-                        isSelected: true,
-                        shouldShowSubscript: undefined,
-                        icons: [
-                            {
-                                source: delegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar,
-                                name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
-                                type: CONST.ICON_TYPE_AVATAR,
-                                id: delegatePersonalDetails?.accountID,
-                            },
-                        ],
-                    },
-                ],
-                shouldShow: true,
-            });
+        if (!areOptionsInitialized) {
+            return [];
         }
 
-        sectionsList.push({
-            title: translate('common.recents'),
-            data: recentReports,
-            shouldShow: recentReports?.length > 0,
-        });
-
-        sectionsList.push({
-            title: translate('common.contacts'),
-            data: personalDetails,
-            shouldShow: personalDetails?.length > 0,
-        });
-
-        if (userToInvite) {
-            sectionsList.push({
+        if (optionsList.userToInvite) {
+            sectionsArr.push({
                 title: undefined,
-                data: [userToInvite],
+                data: [optionsList.userToInvite],
                 shouldShow: true,
             });
+        } else {
+            if (optionsList.selectedOptions.length > 0) {
+                sectionsArr.push({
+                    title: undefined,
+                    data: optionsList.selectedOptions,
+                    shouldShow: true,
+                });
+            }
+            if (optionsList.recentOptions.length > 0) {
+                sectionsArr.push({
+                    title: translate('common.recents'),
+                    data: optionsList.recentOptions,
+                    shouldShow: true,
+                });
+            }
+            if (optionsList.personalDetails.length > 0) {
+                sectionsArr.push({
+                    title: translate('common.contacts'),
+                    data: optionsList.personalDetails,
+                    shouldShow: true,
+                });
+            }
         }
+        return sectionsArr;
+    }, [areOptionsInitialized, optionsList.userToInvite, optionsList.selectedOptions, optionsList.recentOptions, optionsList.personalDetails, translate]);
 
-        return sectionsList.map((section) => ({
-            ...section,
-            data: section.data.map((option) => ({
-                ...option,
-                text: option.text ?? option.displayName ?? '',
-                alternateText: option.alternateText ?? option.login ?? undefined,
-                keyForList: option.keyForList ?? '',
-                isDisabled: option.isDisabled ?? undefined,
-                isSelected: option.isSelected ?? undefined,
-                login: option.login ?? undefined,
-                shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-            })),
-        }));
-    }, [vacationDelegate, delegatePersonalDetails, personalDetails, recentReports, translate, userToInvite]);
+    const headerMessage = useMemo(() => (sections.length === 0 ? getHeaderMessage(translate, debouncedSearchValue.trim()) : ''), [sections.length, translate, debouncedSearchValue]);
 
     const onSelectRow = useCallback(
-        (option: Participant) => {
+        (option: OptionData) => {
             // Clear search to prevent "No results found" after selection
             setSearchValue('');
 
@@ -179,7 +126,7 @@ function VacationDelegatePage() {
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
                     setIsWarningModalVisible(true);
-                    setNewVacationDelegate(option?.login ?? '');
+                    setNewVacationDelegate(option);
                     return;
                 }
 
@@ -205,7 +152,7 @@ function VacationDelegatePage() {
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
+                        sections={sections}
                         ListItem={UserListItem}
                         onSelectRow={onSelectRow}
                         shouldSingleExecuteRowSelect
@@ -221,10 +168,10 @@ function VacationDelegatePage() {
             <ConfirmModal
                 isVisible={isWarningModalVisible}
                 title={translate('common.headsUp')}
-                prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate})}
+                prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: newVacationDelegate?.text ?? newVacationDelegate?.login ?? ''})}
                 onConfirm={() => {
                     setIsWarningModalVisible(false);
-                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
+                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate?.login ?? '', true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
                 }}
                 onCancel={() => {
                     setIsWarningModalVisible(false);

@@ -3,10 +3,11 @@ import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetailsOptionsList} from '@components/PersonalDetailsOptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,20 +15,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import memoize from '@libs/memoize';
-import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import {filterOption, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
+import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function getSelectedOptionData(option: Option) {
-    return {...option, reportID: `${option.reportID}`, selected: true};
-}
+type SectionBase = {
+    title: string | undefined;
+    shouldShow: boolean;
+};
 
-const optionsMatch = (opt1: Option, opt2: Option) => {
-    // Below is just a boolean expression.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
+type Section = SectionBase & {
+    data: OptionData[];
 };
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
@@ -47,94 +46,70 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {options} = useOptionsList();
+    const {options, currentOption} = usePersonalDetailsOptionsList();
     const personalDetails = usePersonalDetails();
+    const {login} = useCurrentUserPersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const initialSelectedOptions = useMemo(() => {
-        return value.reduce<OptionData[]>((acc, id) => {
+    const getInitialSelectedIDs = useCallback(() => {
+        return value.reduce<Set<string>>((acc, id) => {
             const participant = personalDetails?.[id];
             if (!participant) {
                 return acc;
             }
-
-            const optionData = getSelectedOptionData(participant);
-            if (optionData) {
-                acc.push(optionData);
-            }
-
+            acc.add(id);
             return acc;
-        }, []);
+        }, new Set<string>());
     }, [value, personalDetails]);
 
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedOptions);
+    const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(() => getInitialSelectedIDs());
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
-    const selectedAccountIDs = useMemo(() => {
-        return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
-    }, [selectedOptions]);
+    const transformedOptions = useMemo(
+        () =>
+            options.map((option) => ({
+                ...option,
+                isSelected: selectedAccountIDs.has(option.accountID.toString()),
+            })),
+        [options, selectedAccountIDs],
+    );
+
+    // Filter options based on search term
 
     const optionsList = useMemo(() => {
-        return memoizedGetValidOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeCurrentUser: true,
-            },
-        );
-    }, [options.reports, options.personalDetails]);
-
-    const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
+        return memoizedGetValidOptions(transformedOptions, login ?? '', {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            canInviteUser: false,
+            includeCurrentUser: false,
+            includeRecentReports: false,
+            searchString: cleanSearchTerm,
         });
-    }, [optionsList, cleanSearchTerm, countryCode]);
+    }, [transformedOptions, login, cleanSearchTerm]);
+
+    const filteredCurrentUserOption = useMemo(() => {
+        const newOption = filterOption(currentOption, cleanSearchTerm);
+        if (newOption) {
+            return {
+                ...newOption,
+                isSelected: selectedAccountIDs.has(newOption.accountID.toString()),
+            };
+        }
+        return newOption;
+    }, [currentOption, cleanSearchTerm, selectedAccountIDs]);
 
     const listData = useMemo(() => {
-        const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
-            ...participant,
-            isSelected: selectedAccountIDs.has(participant.accountID),
-        }));
-
-        const recentReportsList = filteredOptions.recentReports.map((report) => ({
-            ...report,
-            isSelected: selectedAccountIDs.has(report.accountID),
-        }));
-
-        const combined = [...personalDetailList, ...recentReportsList];
-
-        combined.sort((a, b) => {
-            // selected items first
-            if (a.isSelected && !b.isSelected) {
-                return -1;
-            }
-            if (!a.isSelected && b.isSelected) {
-                return 1;
-            }
-
-            // Put the current user at the top of the list
-            if (a.accountID === accountID) {
-                return -1;
-            }
-            if (b.accountID === accountID) {
-                return 1;
-            }
-            return 0;
-        });
-
-        return combined;
-    }, [filteredOptions, accountID, selectedAccountIDs]);
+        if (!filteredCurrentUserOption) {
+            return [...optionsList.selectedOptions, ...optionsList.personalDetails];
+        }
+        const isCurrentOptionSelected = filteredCurrentUserOption.isSelected;
+        if (isCurrentOptionSelected) {
+            return [filteredCurrentUserOption, ...optionsList.selectedOptions, ...optionsList.personalDetails];
+        }
+        return [...optionsList.selectedOptions, filteredCurrentUserOption, ...optionsList.personalDetails];
+    }, [filteredCurrentUserOption, optionsList.selectedOptions, optionsList.personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -155,20 +130,20 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [listData, translate]);
 
     const selectUser = useCallback(
-        (option: Option) => {
-            const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
+        (option: OptionData) => {
+            const isSelected = selectedAccountIDs.has(option.accountID.toString());
 
-            setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
+            setSelectedAccountIDs((prev) => (isSelected ? new Set([...prev].filter((id) => id !== option.accountID.toString())) : new Set([...prev, option.accountID.toString()])));
             selectionListRef?.current?.scrollToIndex(0, true);
         },
-        [selectedOptions],
+        [selectedAccountIDs],
     );
 
     const applyChanges = useCallback(() => {
-        const accountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
+        const accountIDs = Array.from(selectedAccountIDs);
         closeOverlay();
         onChange(accountIDs);
-    }, [closeOverlay, onChange, selectedOptions]);
+    }, [closeOverlay, onChange, selectedAccountIDs]);
 
     const resetChanges = useCallback(() => {
         onChange([]);
