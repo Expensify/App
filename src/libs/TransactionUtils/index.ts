@@ -606,7 +606,6 @@ function getUpdatedTransaction({
             toLocaleDigit(IntlStore.getCurrentLocale(), digit),
         );
 
-        updatedTransaction.amount = amount;
         updatedTransaction.modifiedAmount = amount;
         updatedTransaction.modifiedMerchant = updatedMerchant;
         updatedTransaction.modifiedCurrency = updatedCurrency;

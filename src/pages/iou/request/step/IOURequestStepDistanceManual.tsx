@@ -149,6 +149,7 @@ function IOURequestStepDistanceManual({
                         transactionID: transaction?.transactionID,
                         transactionThreadReportID: reportID,
                         distance: distanceAsFloat,
+                        // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
                     });
