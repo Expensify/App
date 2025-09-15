@@ -16,7 +16,22 @@ Non-React components that contain the business logic of the app.
 
 ## `/src/pages`
 React components that are organized by the hierarchy of the app. A "page" is the top-most UI controller for a given URL.
+## `/.github`
+GitHub-specific configurations, workflows, and actions for CI/CD and repository automation.
 
+### `/.github/workflows`
+Contains all GitHub Actions workflow definitions that automate our CI/CD processes, including builds, tests, deployments, and various checks. See the [workflows README](.github/workflows/README.md) for detailed documentation.
+
+### `/.github/actions`
+Custom GitHub Actions that provide reusable functionality for our workflows. These are organized into:
+- `composite/` - Composite actions that combine multiple workflow steps
+- `javascript/` - JavaScript actions for more complex logic
+
+### `/.github/scripts`
+Shell scripts and utilities used by workflows and actions for various automation tasks.
+
+### `/.github/libs`
+Shared TypeScript/JavaScript libraries and utilities used by our custom GitHub Actions.
 ### Rules
 #### - Page components MUST have the "Page" suffix (ie. `ConciergePage`)
 #### - Components used in a specific page SHOULD live in it's own sub-directory named after the page
