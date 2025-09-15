@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -13,28 +14,27 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {
+    buildMergeFieldsData,
     getMergeableDataAndConflictFields,
-    getMergeFieldTranslationKey,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
     getTransactionThreadReportID,
     isEmptyMergeValue,
 } from '@libs/MergeTransactionUtils';
-import type {MergeFieldKey, MergeValue} from '@libs/MergeTransactionUtils';
+import type {MergeFieldKey} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {buildTransactionThread, generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
-import {openReport} from '@userActions/Report';
-import type {TranslationPaths} from '@src/languages/types';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
@@ -55,6 +55,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         canBeMissing: true,
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
     const [iouActionForTargetTransaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
         {
@@ -72,10 +73,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         canBeMissing: true,
     });
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
-    const [diffFields, setDiffFields] = useState<MergeFieldKey[]>([]);
+    const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
     const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
 
     useEffect(() => {
@@ -83,29 +84,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
         setMergeTransactionKey(transactionID, mergeableData);
-        setDiffFields(conflictFields as MergeFieldKey[]);
+        setConflictFields(detectedConflictFields as MergeFieldKey[]);
     }, [targetTransaction, sourceTransaction, transactionID]);
-
-    const createTargetTransactionThreadReport = useCallback(() => {
-        const transactionThreadReportID = generateReportID();
-        const iouReport = getReportOrDraftReport(targetTransaction?.reportID);
-        const optimisticTransactionThread = buildTransactionThread(iouActionForTargetTransaction, iouReport, undefined, transactionThreadReportID);
-
-        openReport(
-            transactionThreadReportID,
-            undefined,
-            currentUserEmail ? [currentUserEmail] : [],
-            optimisticTransactionThread,
-            iouActionForTargetTransaction?.reportActionID,
-            false,
-            [],
-            undefined,
-            targetTransaction?.transactionID,
-        );
-    }, [currentUserEmail, iouActionForTargetTransaction, targetTransaction?.reportID, targetTransaction?.transactionID]);
 
     useEffect(() => {
         if (!isCheckingDataBeforeGoNext) {
@@ -119,7 +102,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             // If the report was already loaded before, but there are still no transaction thread report info, it means it hasn't been created yet.
             // So we should create it.
             if (hasOnceLoadedTransactionThreadReportActions) {
-                createTargetTransactionThreadReport();
+                createTransactionThreadReport(iouReportForTargetTransaction, iouActionForTargetTransaction);
                 setIsCheckingDataBeforeGoNext(false);
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
                 return;
@@ -144,33 +127,45 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         transactionID,
         hasOnceLoadedTransactionThreadReportActions,
         iouActionForTargetTransaction,
+        iouReportForTargetTransaction,
         currentUserEmail,
         targetTransaction?.transactionID,
-        createTargetTransactionThreadReport,
     ]);
 
     // Handle selection
-    const handleSelect = (field: MergeFieldKey, value: MergeValue) => {
-        // Clear error if it has
-        setHasErrors((prev) => {
-            const newErrors = {...prev};
-            delete newErrors[field];
-            return newErrors;
-        });
-        setMergeTransactionKey(transactionID, {
-            [field]: value.value,
-            ...(field === 'amount' && {currency: value.currency}),
-        });
-    };
+    const handleSelect = useCallback(
+        (transaction: Transaction, field: MergeFieldKey) => {
+            const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
+
+            // Clear error if it has
+            setHasErrors((prev) => {
+                const newErrors = {...prev};
+                delete newErrors[field];
+                return newErrors;
+            });
+
+            // Update both the field value and track which transaction was selected (persisted in Onyx)
+            const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+            setMergeTransactionKey(transactionID, {
+                [field]: fieldValue,
+                ...(field === 'amount' && {currency: getCurrency(transaction)}),
+                selectedTransactionByField: {
+                    ...currentSelections,
+                    [field]: transaction.transactionID,
+                } as Partial<Record<MergeFieldKey, string>>,
+            });
+        },
+        [mergeTransaction, transactionID],
+    );
 
     // Handle continue
-    const handleContinue = () => {
+    const handleContinue = useCallback(() => {
         if (!mergeTransaction) {
             return;
         }
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
-        diffFields.forEach((field) => {
+        conflictFields.forEach((field) => {
             if (!isEmptyMergeValue(mergeTransaction[field])) {
                 return;
             }
@@ -182,10 +177,16 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         if (isEmptyObject(newHasErrors)) {
             setIsCheckingDataBeforeGoNext(true);
         }
-    };
+    }, [mergeTransaction, conflictFields]);
+
+    // Build merge fields array with all necessary information
+    const mergeFields = useMemo(
+        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
+        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
+    );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
-    const shouldShowSubmitError = diffFields.length > 1 && !isEmptyObject(hasErrors);
+    const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         return <FullScreenLoadingIndicator />;
@@ -208,57 +209,14 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                     <View style={[styles.mb5]}>
                         <Text>{translate('transactionMerge.detailsPage.pageTitle')}</Text>
                     </View>
-                    {diffFields.map((field) => {
-                        const targetValue = getMergeFieldValue(targetTransaction, field);
-                        const sourceValue = getMergeFieldValue(sourceTransaction, field);
-
-                        const fieldTranslated = translate(getMergeFieldTranslationKey(field) as TranslationPaths);
-
-                        const formatValue = (mergeValue: MergeValue) => {
-                            const {value, currency} = mergeValue;
-
-                            if (isEmptyMergeValue(value)) {
-                                return '';
-                            }
-
-                            if (typeof value === 'boolean') {
-                                return value ? translate('common.yes') : translate('common.no');
-                            }
-
-                            if (field === 'amount') {
-                                return convertToDisplayString(Math.abs(Number(value)), currency);
-                            }
-
-                            return String(value);
-                        };
-
-                        const selectedValue = {
-                            value: mergeTransaction?.[field] ?? '',
-                            currency: mergeTransaction?.currency ?? '',
-                        };
-
-                        const targetMergeValue: MergeValue = {
-                            value: targetValue,
-                            currency: field === 'amount' ? getCurrency(targetTransaction) : '',
-                        };
-
-                        const sourceMergeValue: MergeValue = {
-                            value: sourceValue,
-                            currency: field === 'amount' ? getCurrency(sourceTransaction) : '',
-                        };
-
-                        return (
-                            <MergeFieldReview
-                                key={field}
-                                field={fieldTranslated}
-                                values={[targetMergeValue, sourceMergeValue]}
-                                selectedValue={selectedValue ?? {}}
-                                onValueSelected={(value) => handleSelect(field, value)}
-                                formatValue={formatValue}
-                                errorText={hasErrors[field] ? translate('transactionMerge.detailsPage.pleaseSelectError', {field: fieldTranslated}) : undefined}
-                            />
-                        );
-                    })}
+                    {mergeFields.map((mergeField) => (
+                        <MergeFieldReview
+                            key={mergeField.field}
+                            mergeField={mergeField}
+                            onValueSelected={handleSelect}
+                            errorText={hasErrors[mergeField.field] ? translate('transactionMerge.detailsPage.pleaseSelectError', {field: mergeField.label}) : undefined}
+                        />
+                    ))}
                 </ScrollView>
                 <FixedFooter style={styles.ph5}>
                     {shouldShowSubmitError && (
