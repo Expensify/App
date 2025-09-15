@@ -2497,10 +2497,11 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Zo bekijkt en werkt u uw werkruimte-instellingen bij:\n' +
-                    '1. Klik op het instellingentabblad.\n' +
-                    '2. Klik op *Werkruimtes* > [Uw werkruimte].\n' +
-                    `[Ga naar uw werkruimte](${workspaceSettingsLink}). We volgen ze in de #admins-kamer.`,
+                    'Oto jak przejrzeć i zaktualizować ustawienia obszaru roboczego:\n' +
+                    '1. Kliknij Obszary robocze.\n' +
+                    '2. Wybierz swój obszar roboczy.\n' +
+                    '3. Przejrzyj i zaktualizuj swoje ustawienia.\n' +
+                    `[Przejdź do swojego obszaru roboczego.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Maak uw eerste rapport',
