@@ -3,7 +3,7 @@ import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList} from '@src/types/onyx';
-import type {ACHData, BankAccountStep, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHData, ACHDataReimbursementAccount, BankAccountStep, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 
@@ -37,6 +37,27 @@ function getRouteForCurrentStep(currentStep: ReimbursementAccountStep): Reimburs
             return REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW;
     }
 }
+
+/**
+ * Returns true if a VBBA exists in any state other than OPEN or LOCKED
+ */
+const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
+    return !!achData?.bankAccountID && !!achData?.state && achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && achData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED;
+};
+
+/** Returns true if user passed first step of flow for non USD VBBA */
+const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount, nonUSDCountryDraftValue?: string): boolean => {
+    return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+};
+
+/** Returns true if VBBA flow is in progress */
+const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string) => {
+    if (isNonUSDWorkspace) {
+        return hasInProgressNonUSDVBBA(achData, nonUSDCountryDraftValue);
+    }
+
+    return hasInProgressUSDVBBA(achData);
+};
 
 /**
  * Maps bank account data from SETUP state to ACHData fields
@@ -216,5 +237,15 @@ function getSetupStateBankAccount(bankAccountList?: BankAccountList) {
     return setupStateBankAccounts.at(0) ?? null;
 }
 
-export {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, mapBankAccountToACHData, mapBankAccountToReimbursementAccountDraft, getCurrentStepFromBankAccount, getSetupStateBankAccount};
+export {
+    getRouteForCurrentStep,
+    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES,
+    mapBankAccountToACHData,
+    mapBankAccountToReimbursementAccountDraft,
+    getCurrentStepFromBankAccount,
+    getSetupStateBankAccount,
+    hasInProgressUSDVBBA,
+    hasInProgressNonUSDVBBA,
+    hasInProgressVBBA,
+};
 export type {ReimbursementAccountStepToOpen};
