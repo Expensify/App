@@ -161,11 +161,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         return;
                     }
 
-                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                        Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                        return;
-                    }
-
                     Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
                 }}
             />
