@@ -828,8 +828,9 @@ function createOption(
         }
 
         // Type/category flags already set in initialization above, but update brickRoadIndicator
-        result.allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const reportAttribute = reportAttributesDerived?.[report.reportID];
+        result.allReportErrors = reportAttribute?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
@@ -1624,6 +1625,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateWorkspaceChat,
         isPerDiemRequest = false,
         showRBR = true,
+        shouldShowGBR = false,
     } = config;
 
     const validReportOptions: SearchOptionData[] = [];
@@ -1667,6 +1669,10 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             lastIOUCreationDate,
             brickRoadIndicator: showRBR ? option.brickRoadIndicator : null,
         };
+
+        if (newReportOption.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            newReportOption.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : null;
+        }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
             newReportOption.text = getPolicyName({report});
@@ -1771,7 +1777,7 @@ function getValidOptions(
             loginsToExclude[option.login] = true;
         });
     }
-    const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
+    const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
 
     let filteredReports = options.reports;
 
@@ -1826,6 +1832,7 @@ function getValidOptions(
             shouldBoldTitleByDefault,
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
+            shouldShowGBR,
         });
 
         recentReportOptions = recentReports;
@@ -1890,6 +1897,9 @@ function getValidOptions(
                 currentUserRef.current = personalDetail;
             }
             personalDetail.isBold = shouldBoldTitleByDefault;
+            if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+                personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
+            }
         }
     }
 
@@ -1925,6 +1935,7 @@ function getSearchOptions(
     includeUserToInvite?: boolean,
     includeRecentReports = true,
     includeCurrentUser = false,
+    shouldShowGBR = false,
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1946,6 +1957,7 @@ function getSearchOptions(
         includeCurrentUser,
         searchString: searchQuery,
         includeUserToInvite,
+        shouldShowGBR,
     });
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
