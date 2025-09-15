@@ -448,6 +448,14 @@ function MoneyRequestView({
                         if (!transaction?.transactionID || !report?.reportID) {
                             return;
                         }
+
+                        if (isManualDistanceRequest) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                            );
+                            return;
+                        }
+
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                         );

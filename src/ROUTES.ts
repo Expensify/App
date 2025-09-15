@@ -1005,6 +1005,16 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
+    MONEY_REQUEST_STEP_DISTANCE_MANUAL: {
+        route: ':action/:iouType/distance-manual/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_MANUAL route');
+            }
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-manual/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
+    },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
         route: ':action/:iouType/distanceRate/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
