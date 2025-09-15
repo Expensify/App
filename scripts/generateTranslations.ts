@@ -249,7 +249,9 @@ class TranslationGenerator {
             );
 
             // Add a fun ascii art touch with a helpful message
-            finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+            if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
+                finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+            }
 
             fs.writeFileSync(outputPath, finalFileContent, 'utf8');
 
