@@ -184,18 +184,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const prevIsAnonymousUser = useRef(false);
 
     useEffect(() => {
-        if (isAnonymousUser) {
-            prevIsAnonymousUser.current = true;
-        }
-    }, [isAnonymousUser]);
-
-    useEffect(() => {
-        if (!isLoadingReportData && prevIsLoadingReportData && prevIsAnonymousUser.current && !isAnonymousUser) {
-            fetchReport();
-        }
-    }, [isLoadingReportData]);
-
-    useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
             const reportActionID = route?.params?.reportActionID;
@@ -530,6 +518,21 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
     ]);
+
+    useEffect(() => {
+        if (!isAnonymousUser) {
+            return;
+        }
+        prevIsAnonymousUser.current = true;
+    }, [isAnonymousUser]);
+
+    useEffect(() => {
+        if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
+            return;
+        }
+
+        fetchReport();
+    }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser, fetchReport]);
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
