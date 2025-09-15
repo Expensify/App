@@ -1,18 +1,16 @@
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, ScrollView as RNScrollView} from 'react-native';
+import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
-import type {PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScrollView from '@components/ScrollView';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -35,7 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
-import {isValidBulkPayOption, updateAdvancedFilters} from '@libs/actions/Search';
+import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -51,7 +49,6 @@ import {
 } from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,10 +59,6 @@ import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFilte
 import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
-
-type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
-
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void;
 
 type FilterItem = {
     label: string;
@@ -594,54 +587,6 @@ function SearchFiltersBar({
         return shouldRestrictUserAction;
     };
 
-    const handleSubItemSelected = (item: PopoverMenuItem, triggerKYCFlow: TriggerKYCFlow) => {
-        if (!isValidBulkPayOption(item)) {
-            return;
-        }
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return;
-        }
-
-        const shouldRestrictUser = checkRestrictUserBillingAction();
-
-        if (shouldRestrictUser) {
-            return;
-        }
-
-        const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
-        const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-        const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
-
-        const paymentMethod = item.key as PaymentMethod;
-        let paymentType;
-        switch (paymentMethod) {
-            case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
-                paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-                break;
-            case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
-                paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
-                break;
-            default:
-                paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-                break;
-        }
-
-        if (!!selectedPolicy || shouldSelectPaymentMethod) {
-            if (!isUserValidated) {
-                Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-                return;
-            }
-            triggerKYCFlow(undefined, paymentType, paymentMethod, selectedPolicy);
-
-            if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
-            }
-            return;
-        }
-        confirmPayment?.(paymentType as PaymentMethodType);
-    };
-
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (
@@ -661,7 +606,19 @@ function SearchFiltersBar({
                                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
-                                onSubItemSelected={(subItem) => handleSubItemSelected(subItem, triggerKYCFlow)}
+                                onSubItemSelected={(subItem) =>
+                                    handleBulkPayItemSelected(
+                                        subItem,
+                                        triggerKYCFlow,
+                                        isAccountLocked,
+                                        showLockedAccountModal,
+                                        currentPolicy,
+                                        latestBankItems,
+                                        activeAdminPolicies,
+                                        isUserValidated,
+                                        confirmPayment,
+                                    )
+                                }
                                 isSplitButton={false}
                                 buttonRef={buttonRef}
                                 anchorAlignment={{

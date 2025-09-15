@@ -1,10 +1,11 @@
+import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {PaymentMethod} from '@components/KYCWall/types';
+import type {PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
@@ -13,8 +14,10 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
+import {KYCFlowEvent} from '@libs/PaymentUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
@@ -22,8 +25,11 @@ import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
@@ -653,6 +659,63 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
     return Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod) || Object.values(CONST.IOU.PAYMENT_TYPE).includes(item.key as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
 }
 
+function handleBulkPayItemSelected(
+    item: PopoverMenuItem,
+    triggerKYCFlow: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void,
+    isAccountLocked: boolean,
+    showLockedAccountModal: () => void,
+    policy: OnyxEntry<Policy>,
+    latestBankItems: BankAccountMenuItem[] | undefined,
+    activeAdminPolicies: Policy[],
+    isUserValidated: boolean | undefined,
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
+) {
+    if (!isValidBulkPayOption(item)) {
+        return;
+    }
+    if (isAccountLocked) {
+        showLockedAccountModal();
+        return;
+    }
+
+    if (policy && shouldRestrictUserBillableActions(policy?.id)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
+        return;
+    }
+
+    const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
+    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
+    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
+
+    const paymentMethod = item.key as PaymentMethod;
+    let paymentType;
+    switch (paymentMethod) {
+        case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            break;
+        case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
+            break;
+        default:
+            paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+            break;
+    }
+
+    if (!!selectedPolicy || shouldSelectPaymentMethod) {
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+        triggerKYCFlow(undefined, paymentType, paymentMethod, selectedPolicy);
+
+        if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+        }
+        return;
+    }
+    confirmPayment?.(paymentType as PaymentMethodType);
+}
+
 export {
     saveSearch,
     search,
@@ -678,4 +741,5 @@ export {
     getPayOption,
     getFormattedAmount,
     isValidBulkPayOption,
+    handleBulkPayItemSelected,
 };
