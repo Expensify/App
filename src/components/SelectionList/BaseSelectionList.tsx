@@ -37,13 +37,13 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
-const DEFAULT_SELECTED_ITEMS: string[] = [];
 
 function BaseSelectionList<TItem extends ListItem>({
     sections,
@@ -145,7 +145,7 @@ function BaseSelectionList<TItem extends ListItem>({
     loaderSpeed,
     errorText,
     shouldUseDefaultRightHandSideCheckmark,
-    selectedItems = DEFAULT_SELECTED_ITEMS,
+    selectedItems = getEmptyArray<string>(),
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
