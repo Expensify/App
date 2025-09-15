@@ -1,8 +1,9 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import type {ContentStyle} from '@shopify/flash-list';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -58,19 +59,19 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
-import SearchScopeProvider from './SearchScopeProvider';
+import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: ContentStyle;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
@@ -187,6 +188,33 @@ function prepareTransactionsList(
     };
 }
 
+const archivedReportsSelector = (all: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
+    const ids = new Set<string>();
+    if (!all) {
+        return ids;
+    }
+
+    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+    for (const [key, value] of Object.entries(all)) {
+        if (isArchivedReport(value)) {
+            const reportID = key.slice(prefixLength);
+            ids.add(reportID);
+        }
+    }
+    return ids;
+};
+
+const exportReportActionsSelector = (allReportActions: OnyxCollection<ReportActions>) => {
+    return Object.fromEntries(
+        Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
+            const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter(
+                (action) => isExportIntegrationAction(action as ReportAction) || isIntegrationMessageAction(action as ReportAction),
+            );
+            return [reportID, filteredReportActions];
+        }),
+    );
+};
+
 function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -222,38 +250,17 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    const reportID = key.slice(prefixLength);
-                    ids.add(reportID);
-                }
-            }
-            return ids;
-        },
+        selector: archivedReportsSelector,
     });
 
-    // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: (allReportActions) => {
-            return Object.fromEntries(
-                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
-                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
-                    return [reportID, filteredReportActions];
-                }),
-            );
-        },
+        selector: exportReportActionsSelector,
     });
+
     const {defaultCardFeed} = useCardFeedsForDisplay();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
@@ -755,11 +762,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > data.length - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
-        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+
+        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
+    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
@@ -861,7 +870,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
 
     return (
-        <SearchScopeProvider isOnSearch>
+        <SearchScopeProvider>
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
@@ -891,7 +900,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             />
                         )
                     }
-                    contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
                     containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}

@@ -1,6 +1,6 @@
 import React from 'react';
-import {View  } from 'react-native';
-import type {ViewStyle, StyleProp} from 'react-native';
+import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +30,17 @@ function UserInfoAndActionButtonRow({
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, styles.ph3, containerStyles]}>
+        <View
+            style={[
+                styles.pt0,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd,
+                styles.gap2,
+                styles.ph3,
+                containerStyles,
+            ]}
+        >
             {shouldShowUserInfo && (
                 <UserInfoCellsWithArrow
                     shouldShowToRecipient={shouldShowToRecipient}

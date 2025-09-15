@@ -2485,9 +2485,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Vérifiez les [paramètres de l’espace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Voici comment vérifier et mettre à jour vos paramètres :\n' +
-                    '1. Cliquez sur l’onglet paramètres.\n' +
-                    '2. Cliquez sur *Espaces de travail* > [Votre espace].\n' +
-                    `[Accéder à votre espace](${workspaceSettingsLink}). Nous suivrons les changements dans la salle #admins.`,
+                    '1. Cliquez sur Espaces de travail.\n' +
+                    '2. Sélectionnez votre espace de travail.\n' +
+                    '3. Vérifiez et mettez à jour vos paramètres.\n' +
+                    `[Accéder à votre espace de travail.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Créer votre premier rapport',
@@ -5448,6 +5449,7 @@ const translations = {
             updateWorkspaceCurrency: "Mettre à jour la devise de l'espace de travail",
             workspaceCurrencyNotSupported: "Devise de l'espace de travail non prise en charge",
             yourWorkspace: `Votre espace de travail est configuré avec une devise non prise en charge. Consultez la <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">liste des devises prises en charge</a>.`,
+            chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le propriétaire',
