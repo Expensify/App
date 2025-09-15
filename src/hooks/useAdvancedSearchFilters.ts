@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -46,9 +47,10 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -82,9 +84,9 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -120,9 +122,9 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -197,7 +199,7 @@ function useAdvancedSearchFilters() {
         .map(getTagNamesFromTagsLists)
         .flat();
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
 
     const {sections: workspaces} = useWorkspaceList({
         policies,
@@ -220,6 +222,7 @@ function useAdvancedSearchFilters() {
         isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED) ||
         isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED);
     const areTaxEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED);
+    const shouldDisplayAttendeeFilter = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED);
     const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, selectedPolicyCategories?.length > 0);
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!selectedPolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
@@ -259,6 +262,9 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY && !shouldDisplayGroupCurrencyFilter) {
+                            return;
+                        }
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !shouldDisplayAttendeeFilter) {
                             return;
                         }
                         return key;
