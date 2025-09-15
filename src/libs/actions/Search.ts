@@ -26,7 +26,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

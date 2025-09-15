@@ -579,14 +579,6 @@ function SearchFiltersBar({
         ? translate('search.exportAll.allMatchingItemsSelected')
         : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
 
-    const checkRestrictUserBillingAction = () => {
-        const shouldRestrictUserAction = currentPolicy && shouldRestrictUserBillableActions(currentPolicy.id);
-        if (shouldRestrictUserAction) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(currentPolicy?.id));
-        }
-        return shouldRestrictUserAction;
-    };
-
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (

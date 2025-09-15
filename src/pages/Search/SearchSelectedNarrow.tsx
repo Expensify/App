@@ -51,14 +51,6 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
         option?.onSelected?.();
     };
 
-    const checkRestrictUserBillingAction = () => {
-        const shouldRestrictUserAction = currentPolicy && shouldRestrictUserBillableActions(currentPolicy.id);
-        if (shouldRestrictUserAction) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(currentPolicy?.id));
-        }
-        return shouldRestrictUserAction;
-    };
-
     return (
         <KYCWall
             chatReportID={currentSelectedReportID}
