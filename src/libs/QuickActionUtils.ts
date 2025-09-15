@@ -15,8 +15,6 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
             return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return Expensicons.CalendarSolid;
@@ -29,8 +27,6 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return Expensicons.Task;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
             return getIconForAction(CONST.IOU.TYPE.TRACK);
@@ -48,8 +44,6 @@ const getIOUType = (action: QuickActionName | undefined) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return CONST.IOU.TYPE.SUBMIT;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
@@ -57,8 +51,6 @@ const getIOUType = (action: QuickActionName | undefined) => {
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return CONST.IOU.TYPE.SPLIT;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return CONST.IOU.TYPE.TRACK;
@@ -78,11 +70,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return 'quickAction.scanReceipt';
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL:
             return 'quickAction.recordDistance';
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return 'quickAction.perDiem';
