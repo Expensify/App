@@ -787,11 +787,11 @@ describe('actions/Policy', () => {
 
         it('should return empty object when transactionTags is empty string', () => {
             const policyID = 'policy123';
-            const tagListName = 'Department';
+            const tagListName = 'Tag';
 
             const policyTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
+                Tag: {
+                    name: 'Tag',
                     orderWeight: 0,
                     required: false,
                     tags: {
@@ -819,8 +819,8 @@ describe('actions/Policy', () => {
             const transactionTags = 'Engineering';
 
             const policyTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
+                Tag: {
+                    name: 'Tag',
                     orderWeight: 0,
                     required: false,
                     tags: {
@@ -832,7 +832,7 @@ describe('actions/Policy', () => {
             };
 
             const existingRecentlyUsedTags: RecentlyUsedTags = {
-                Department: ['Marketing', 'Sales'],
+                Tag: ['Marketing', 'Sales'],
             };
 
             const result = buildOptimisticPolicyRecentlyUsedTags({
@@ -843,7 +843,7 @@ describe('actions/Policy', () => {
             });
 
             expect(result).toEqual({
-                Department: ['Engineering', 'Marketing', 'Sales'],
+                Tag: ['Engineering', 'Marketing', 'Sales'],
             });
         });
 
@@ -852,8 +852,8 @@ describe('actions/Policy', () => {
             const transactionTags = 'Engineering:Frontend';
 
             const policyTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
+                Tag: {
+                    name: 'Tag',
                     orderWeight: 0,
                     required: false,
                     tags: {
@@ -873,7 +873,7 @@ describe('actions/Policy', () => {
             };
 
             const existingRecentlyUsedTags: RecentlyUsedTags = {
-                Department: ['Marketing'],
+                Tag: ['Marketing'],
                 Team: ['Backend', 'DevOps'],
             };
 
@@ -885,7 +885,7 @@ describe('actions/Policy', () => {
             });
 
             expect(result).toEqual({
-                Department: ['Engineering', 'Marketing'],
+                Tag: ['Engineering', 'Marketing'],
                 Team: ['Frontend', 'Backend', 'DevOps'],
             });
         });
@@ -895,8 +895,8 @@ describe('actions/Policy', () => {
             const transactionTags = 'Engineering';
 
             const policyTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
+                Tag: {
+                    name: 'Tag',
                     orderWeight: 0,
                     required: false,
                     tags: {
@@ -915,7 +915,7 @@ describe('actions/Policy', () => {
             });
 
             expect(result).toEqual({
-                Department: ['Engineering'],
+                Tag: ['Engineering'],
             });
         });
 
@@ -924,8 +924,8 @@ describe('actions/Policy', () => {
             const transactionTags = 'Engineering';
 
             const policyTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
+                Tag: {
+                    name: 'Tag',
                     orderWeight: 0,
                     required: false,
                     tags: {
@@ -935,7 +935,7 @@ describe('actions/Policy', () => {
             };
 
             const existingRecentlyUsedTags: RecentlyUsedTags = {
-                Department: ['Engineering', 'Marketing', 'Sales'],
+                Tag: ['Engineering', 'Marketing', 'Sales'],
             };
 
             const result = buildOptimisticPolicyRecentlyUsedTags({
@@ -946,7 +946,7 @@ describe('actions/Policy', () => {
             });
 
             expect(result).toEqual({
-                Department: ['Engineering', 'Marketing', 'Sales'],
+                Tag: ['Engineering', 'Marketing', 'Sales'],
             });
         });
 
@@ -955,8 +955,8 @@ describe('actions/Policy', () => {
             const transactionTags = 'Engineering:Frontend';
 
             const policyTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
+                Tag: {
+                    name: 'Tag',
                     orderWeight: 0,
                     required: false,
                     tags: {
@@ -974,7 +974,7 @@ describe('actions/Policy', () => {
             };
 
             const existingRecentlyUsedTags: RecentlyUsedTags = {
-                OldDepartment: ['Marketing'],
+                OldTag: ['Marketing'],
                 Team: ['Backend'],
                 AnotherOldList: ['SomeTag'],
             };
@@ -987,7 +987,7 @@ describe('actions/Policy', () => {
             });
 
             expect(result).toEqual({
-                Department: ['Engineering'],
+                Tag: ['Engineering'],
                 Team: ['Frontend', 'Backend'],
             });
         });
@@ -1014,8 +1014,8 @@ describe('actions/Policy', () => {
             const transactionTags = 'Engineering';
 
             const policyTags: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
+                Tag: {
+                    name: 'Tag',
                     orderWeight: 0,
                     required: false,
                     tags: {
@@ -1027,7 +1027,7 @@ describe('actions/Policy', () => {
             };
 
             const existingRecentlyUsedTags: RecentlyUsedTags = {
-                Department: ['Marketing', 'Sales'],
+                Tag: ['Marketing', 'Sales'],
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, policyTags);
@@ -1050,7 +1050,7 @@ describe('actions/Policy', () => {
 
             await waitFor(() => {
                 expect(result.current).toEqual({
-                    Department: ['Engineering', 'Marketing', 'Sales'],
+                    Tag: ['Engineering', 'Marketing', 'Sales'],
                 });
             });
         });
