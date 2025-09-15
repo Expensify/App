@@ -18,7 +18,7 @@ function cacheAttachment({attachmentID, uri}: CacheAttachmentProps) {
                 return;
             }
             CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response)
-                .then((cacheRes) => {
+                .then(() => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                         attachmentID,
                         remoteSource: isLocalFile(uri) ? '' : uri,

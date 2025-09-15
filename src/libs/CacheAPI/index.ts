@@ -1,7 +1,8 @@
+import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
-type CacheNameType = (typeof CONST.CACHE_API_KEYS)[keyof typeof CONST.CACHE_API_KEYS];
+type CacheNameType = ValueOf<typeof CONST.CACHE_API_KEYS>;
 
 function init() {
     // Exit early if the Cache API is not supported in the current browser.
