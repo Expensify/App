@@ -1,8 +1,9 @@
 import type {SyntheticEvent} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
@@ -12,8 +13,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 import type ImageViewProps from './types';
@@ -40,7 +41,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const {isOffline} = useNetwork();
 
     const scrollableRef = useRef<HTMLDivElement>(null);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenUtil();
 
     const setScale = (newContainerWidth: number, newContainerHeight: number, newImageWidth: number, newImageHeight: number) => {
         if (!newContainerWidth || !newImageWidth || !newContainerHeight || !newImageHeight) {
@@ -79,9 +80,13 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         setIsZoomed(false);
     };
 
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {onAttachmentLoaded} = attachmentCarouselPagerContext ?? {};
+
     const imageLoad = ({nativeEvent}: ImageOnLoadEvent) => {
         setImageRegion(nativeEvent.width, nativeEvent.height);
         setIsLoading(false);
+        onAttachmentLoaded?.(url, true);
     };
 
     const onContainerPressIn = (e: GestureResponderEvent) => {
@@ -198,7 +203,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
     // isLocalToUserDeviceFile means the file is located on the user device,
     // not loaded on the server yet (the user is offline when loading this file in fact)
-    let isLocalToUserDeviceFile = FileUtils.isLocalFile(url);
+    let isLocalToUserDeviceFile = isLocalFile(url);
     if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')) {
         isLocalToUserDeviceFile = false;
     }
@@ -209,6 +214,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 uri={url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 onError={onError}
+                onLoad={() => onAttachmentLoaded?.(url, true)}
             />
         );
     }
