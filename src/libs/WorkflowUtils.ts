@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -304,6 +305,7 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     return updatedEmployeeList;
 }
+
 function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails}: UpdateWorkflowDataOnApproverRemovalParams): UpdateWorkflowDataOnApproverRemovalResult {
     const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
     const removedApproverEmail = removedApprover.login;
@@ -414,4 +416,24 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
     });
 }
 
-export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval};
+/**
+ * Get eligible business bank accounts for the workspace reimbursement workflow
+ */
+function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined) {
+    if (!bankAccountList || policyCurrency === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return account.bankCurrency === policyCurrency && account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+    });
+}
+
+export {
+    calculateApprovers,
+    convertPolicyEmployeesToApprovalWorkflows,
+    convertApprovalWorkflowToPolicyEmployees,
+    getEligibleExistingBusinessBankAccounts,
+    INITIAL_APPROVAL_WORKFLOW,
+    updateWorkflowDataOnApproverRemoval,
+};
