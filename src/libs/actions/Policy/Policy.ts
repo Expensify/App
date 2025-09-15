@@ -28,6 +28,7 @@ import type {
     InviteWorkspaceEmployeesToUberParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenDuplicatePolicyPageParams,
     OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
@@ -2021,6 +2022,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
                 defaultReimbursable: true,
@@ -2296,7 +2298,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
-        const {onboardingMessages} = getOnboardingMessages();
+        const {onboardingMessages} = getOnboardingMessages(true);
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2873,7 +2875,7 @@ function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boole
 
     const params: TogglePolicyUberAutoInvitePageParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.POLICY_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
 }
 
 function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boolean) {
@@ -2908,7 +2910,7 @@ function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boole
 
     const params: TogglePolicyUberAutoRemovePageParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.POLICY_UBER_AUTO_REMOVE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_REMOVE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -4329,6 +4331,12 @@ function openPolicyProfilePage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
 }
 
+function openDuplicatePolicyPage(policyID: string) {
+    const params: OpenDuplicatePolicyPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE, params);
+}
+
 function openPolicyInitialPage(policyID: string) {
     const params: OpenPolicyInitialPageParams = {policyID};
 
@@ -5664,7 +5672,10 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
         return;
     }
 
-    const autoApprovalValues = {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS};
+    const autoApprovalValues = {
+        auditRate: enabled ? CONST.POLICY.RANDOM_AUDIT_SUGGESTED_PERCENTAGE : 0,
+        limit: enabled ? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_SUGGESTED_CENTS : 0,
+    };
     const autoApprovalFailureValues = {autoApproval: {limit: policy?.autoApproval?.limit, auditRate: policy?.autoApproval?.auditRate, pendingFields: null}};
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5737,7 +5748,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
-    if (parsedLimit === (policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS)) {
+    if (parsedLimit === (policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS)) {
         return;
     }
 
@@ -5813,7 +5824,7 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
     }
 
     const autoReimbursementFailureValues = {autoReimbursement: {limit: policy?.autoReimbursement?.limit, pendingFields: null}};
-    const autoReimbursementValues = {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS};
+    const autoReimbursementValues = {limit: enabled ? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_SUGGESTED_CENTS : CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS};
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6325,6 +6336,7 @@ export {
     calculateBillNewDot,
     payAndDowngrade,
     togglePolicyUberAutoInvite,
+    openDuplicatePolicyPage,
     togglePolicyUberAutoRemove,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
