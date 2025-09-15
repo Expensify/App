@@ -43,6 +43,7 @@ import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
+const DEFAULT_SELECTED_ITEMS: string[] = [];
 
 function BaseSelectionList<TItem extends ListItem>({
     sections,
@@ -144,7 +145,7 @@ function BaseSelectionList<TItem extends ListItem>({
     loaderSpeed,
     errorText,
     shouldUseDefaultRightHandSideCheckmark,
-    selectedItems = [],
+    selectedItems = DEFAULT_SELECTED_ITEMS,
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
@@ -219,7 +220,6 @@ function BaseSelectionList<TItem extends ListItem>({
      * so we can calculate the position of any given item when scrolling programmatically
      */
     const flattenedSections = useMemo<FlattenedSectionsReturn<TItem>>(() => {
-        const time = performance.now();
         const allOptions: TItem[] = [];
 
         const disabledOptionsIndexes: number[] = [];
