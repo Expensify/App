@@ -74,7 +74,7 @@ function IOURequestStepDistanceManual({
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const activePolicy = useDefaultExpensePolicy();
+    const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
@@ -219,12 +219,17 @@ function IOURequestStepDistanceManual({
 
             // If there was no reportID, then that means the user started this flow from the global menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            if (
+                iouType === CONST.IOU.TYPE.CREATE &&
+                isPaidGroupPolicy(defaultExpensePolicy) &&
+                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
+            ) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID: activePolicyExpenseChat?.reportID,
                     isPolicyExpenseChat: true,
-                    policy: activePolicy,
+                    policy: defaultExpensePolicy,
                     lastSelectedDistanceRates,
                 });
                 setCustomUnitRateID(transactionID, rateID);
@@ -254,7 +259,7 @@ function IOURequestStepDistanceManual({
             currentUserPersonalDetails.accountID,
             reportNameValuePairs,
             isCreatingNewRequest,
-            activePolicy,
+            defaultExpensePolicy,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
