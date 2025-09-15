@@ -25,11 +25,9 @@ import {
     getSendInvoiceInformation,
     initMoneyRequest,
     initSplitExpense,
-    markRejectViolationAsResolved,
     mergeDuplicates,
     payMoneyRequest,
     putOnHold,
-    rejectMoneyRequest,
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
@@ -5050,7 +5048,7 @@ describe('actions/IOU', () => {
 
             const chatReportRNVP: ReportNameValuePairs = {private_isArchived: DateUtils.getDBTime()};
 
-            const invoiceReceiver = chatReport?.invoiceReceiver as {type: string; policyID: string; accountID: number};
+            const invoiceReceiver = chatReport?.invoiceReceiver as unknown as {type: string; policyID: string; accountID: number};
 
             const iouReport = {...createRandomReport(1), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
 
@@ -8183,155 +8181,6 @@ describe('actions/IOU', () => {
             expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
             expect(result.receiver).toBeDefined();
             expect(result.onyxData).toBeDefined();
-        });
-    });
-    describe('rejectMoneyRequest', () => {
-        const amount = 10000;
-        const comment = 'This expense is rejected';
-        let chatReport: OnyxEntry<Report>;
-        let iouReport: OnyxEntry<Report>;
-        let transaction: OnyxEntry<Transaction>;
-        let policy: OnyxEntry<Policy>;
-        const TEST_USER_ACCOUNT_ID = 1;
-        const MANAGER_ACCOUNT_ID = 2;
-        const ADMIN_ACCOUNT_ID = 3;
-
-        beforeEach(async () => {
-            // Set up test data
-            policy = createRandomPolicy(1);
-            policy.role = CONST.POLICY.ROLE.ADMIN;
-            policy.autoReporting = true;
-            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY;
-
-            chatReport = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID: policy?.id,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
-            iouReport = {
-                ...createRandomReport(2),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: TEST_USER_ACCOUNT_ID,
-                managerID: MANAGER_ACCOUNT_ID,
-                total: amount,
-                currency: CONST.CURRENCY.USD,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                policyID: policy?.id,
-                chatReportID: chatReport?.reportID,
-            };
-
-            transaction = {
-                ...createRandomTransaction(1),
-                reportID: iouReport?.reportID,
-                amount,
-                currency: CONST.CURRENCY.USD,
-                merchant: 'Test Merchant',
-                transactionID: '1',
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`, chatReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: ADMIN_ACCOUNT_ID});
-            await waitForBatchedUpdates();
-        });
-
-        afterEach(async () => {
-            await Onyx.clear();
-            jest.clearAllMocks();
-        });
-
-        it('should reject a money request and return navigation route', async () => {
-            // Given: An expense report (not IOU) for testing state update
-            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
-            await waitForBatchedUpdates();
-
-            // When: Reject the money request
-            if (!transaction?.transactionID || !iouReport?.reportID) {
-                throw new Error('Required transaction or report data is missing');
-            }
-            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
-
-            // Then: Should return navigation route to chat report
-            expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
-        });
-
-        it('should add AUTO_REPORTED_REJECTED_EXPENSE violation for expense reports', async () => {
-            // Given: An expense report (not IOU)
-            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
-            await waitForBatchedUpdates();
-
-            // When: Reject the money request
-            if (!transaction?.transactionID || !iouReport?.reportID) {
-                throw new Error('Required transaction or report data is missing');
-            }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
-            await waitForBatchedUpdates();
-
-            // Then: Verify violation is added
-            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
-            expect(violations).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                        type: CONST.VIOLATION_TYPES.WARNING,
-                        data: expect.objectContaining({
-                            comment,
-                        }),
-                    }),
-                ]),
-            );
-        });
-    });
-
-    describe('markRejectViolationAsResolved', () => {
-        let transaction: OnyxEntry<Transaction>;
-        let iouReport: OnyxEntry<Report>;
-
-        beforeEach(async () => {
-            transaction = createRandomTransaction(1);
-            iouReport = createRandomReport(1);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, [
-                {
-                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                    type: CONST.VIOLATION_TYPES.WARNING,
-                    data: {comment: 'Test reject reason'},
-                },
-            ]);
-            await waitForBatchedUpdates();
-        });
-
-        afterEach(async () => {
-            await Onyx.clear();
-            jest.clearAllMocks();
-        });
-
-        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation', async () => {
-            // When: Mark violation as resolved
-            if (!transaction?.transactionID || !iouReport?.reportID) {
-                throw new Error('Required transaction or report data is missing');
-            }
-            markRejectViolationAsResolved(transaction.transactionID, iouReport.reportID);
-            await waitForBatchedUpdates();
-
-            // Then: Verify violation is removed
-            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
-            expect(violations).not.toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
-                    }),
-                ]),
-            );
         });
     });
 });
