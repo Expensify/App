@@ -169,6 +169,7 @@ function MoneyRequestReportActionsList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
@@ -205,6 +206,7 @@ function MoneyRequestReportActionsList({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
     });
@@ -747,6 +749,15 @@ function MoneyRequestReportActionsList({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
             />
             <ConfirmModal
                 onConfirm={() => {

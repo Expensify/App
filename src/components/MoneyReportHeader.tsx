@@ -332,6 +332,7 @@ function MoneyReportHeader({
         [moneyRequestReport],
     );
 
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
@@ -343,6 +344,7 @@ function MoneyReportHeader({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
     });
@@ -608,8 +610,6 @@ function MoneyReportHeader({
     });
 
     const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy), [moneyRequestReport?.reportID, policy]);
-
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
         const options: Record<string, DropdownOption<string>> = {
