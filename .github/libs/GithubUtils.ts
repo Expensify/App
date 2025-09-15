@@ -675,6 +675,20 @@ class GithubUtils {
     }
 
     /**
+     * Get SVG files that were added or modified in a pull request
+     */
+    static async getPullRequestSVGFiles(pullRequestNumber: number): Promise<string[]> {
+        return this.octokit.pulls
+            .listFiles({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                pull_number: pullRequestNumber,
+                per_page: 100,
+            })
+            .then(({data}) => data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename));
+    }
+
+    /**
      * Get commits between two tags via the GitHub API
      */
     static async getCommitHistoryBetweenTags(fromTag: string, toTag: string, repositoryName: string): Promise<CommitType[]> {
