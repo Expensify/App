@@ -92,7 +92,7 @@ function PolicyDistanceRatesPage({
             }
             return reportIDs;
         }, new Set<string>());
-    }, []);
+    }, [policyID]);
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: policyReportsSelector,

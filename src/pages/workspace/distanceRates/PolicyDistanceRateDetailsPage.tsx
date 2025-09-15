@@ -51,7 +51,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
             }
             return reportIDs;
         }, new Set<string>());
-    }, []);
+    }, [policyID]);
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: policyReportsSelector,
@@ -75,7 +75,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 return transactionIDs;
             }, new Set<string>());
         },
-        [customUnit, rateID, policyReports],
+        [customUnitID, rateID, policyReports],
     );
 
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
