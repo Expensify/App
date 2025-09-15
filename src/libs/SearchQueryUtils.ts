@@ -366,12 +366,11 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  * @param value - The raw field value from SearchQueryJSON
  * @returns The normalized field value
  */
-function normalizeValue<T>(value: T | T[]): T;
-function normalizeValue<T>(value?: T | T[]): T | undefined;
-function normalizeValue<T>(value?: T | T[]): T | undefined {
+function normalizeValue<T>(value: T | T[]): T {
     if (Array.isArray(value)) {
-        return value.at(0);
+        return value.at(0) as T;
     }
+
     return value;
 }
 
