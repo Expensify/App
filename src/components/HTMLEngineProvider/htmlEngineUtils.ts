@@ -111,4 +111,42 @@ function isChildOfMutedTextLabel(tnode: TNode): boolean {
     return isChildOfMutedTextLabel(tnode.parent);
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isCommentTag, getFontSizeOfRBRChild, isChildOfMutedTextLabel};
+/**
+ * @returns Whether the node is a child of muted-text-xs
+ */
+function isChildOfMutedTextXS(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'muted-text-xs') {
+        return true;
+    }
+    return isChildOfMutedTextXS(tnode.parent);
+}
+
+/**
+ * @returns Whether the node is a child of muted-text-label
+ */
+function isChildOfMutedTextMicro(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'muted-text-micro') {
+        return true;
+    }
+    return isChildOfMutedTextMicro(tnode.parent);
+}
+
+export {
+    computeEmbeddedMaxWidth,
+    isChildOfComment,
+    isChildOfH1,
+    isDeletedNode,
+    isChildOfTaskTitle,
+    isChildOfRBR,
+    isCommentTag,
+    getFontSizeOfRBRChild,
+    isChildOfMutedTextLabel,
+    isChildOfMutedTextXS,
+    isChildOfMutedTextMicro,
+};
