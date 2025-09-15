@@ -359,12 +359,12 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Normalizes a value that may be an array into a single value.
+ * Normalizes the value into a single string.
  * - If it's an array, returns the first element.
  * - Otherwise, returns the value as is.
- *
- * Use the version with `undefined` when the value may be missing,
- * and the non-undefined version when the value is guaranteed to exist.
+
+ * @param value - The raw field value from SearchQueryJSON
+ * @returns The normalized field value
  */
 function normalizeValue<T>(value: T | T[]): T;
 function normalizeValue<T>(value?: T | T[]): T | undefined;
