@@ -1041,6 +1041,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
     const violations = transactions.flatMap((transaction) => getTransactionViolations(transaction, transactionViolations));
+
     const brokenConnectionViolations = violations.filter((violation): violation is TransactionViolation => !!violation && isBrokenConnectionViolation(violation));
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
