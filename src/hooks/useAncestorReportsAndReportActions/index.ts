@@ -17,7 +17,7 @@ function useAncestorReportsAndReportActions(
     reportID: string,
     includeTransactionThreadReportActions = false,
 ): {report: OnyxEntry<Report>; ancestorReportsAndReportActions: ReportsAndReportAction[]} {
-    const [ancestorReports, ancestorReportsMetadata] = useOnyx(
+    const [ancestorReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
             canBeMissing: false,
@@ -33,7 +33,6 @@ function useAncestorReportsAndReportActions(
         },
         [reportID],
     );
-    ancestorReportsMetadata
 
     const [ancestorReportsAndReportActions] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
