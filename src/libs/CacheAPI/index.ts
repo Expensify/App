@@ -41,8 +41,9 @@ function clear(cacheName?: CacheNameType) {
     const keys = Object.values(CONST.CACHE_API_KEYS);
     const deletePromises = keys.map((key) => caches.delete(key));
 
-    return Promise.all(deletePromises).then(Promise.resolve).catch(Promise.reject);
+    return Promise.all(deletePromises);
 }
+
 export default {
     init,
     put,
