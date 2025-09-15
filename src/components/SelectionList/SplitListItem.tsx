@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {Folder, Tag} from '@components/Icon/Expensicons';
@@ -23,6 +23,9 @@ function SplitListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,
+    index,
+    onInputFocus,
+    onInputBlur,
 }: SplitListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -40,6 +43,16 @@ function SplitListItem<TItem extends ListItem>({
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
     const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
+    const focusHandler = useCallback(() => {
+        if (!onInputFocus) {
+            return;
+        }
+
+        if (!index && index !== 0) {
+            return;
+        }
+        onInputFocus(index);
+    }, [onInputFocus, index]);
 
     return (
         <BaseListItem
@@ -164,6 +177,8 @@ function SplitListItem<TItem extends ListItem>({
                                 shouldApplyPaddingToContainer
                                 shouldUseDefaultLineHeightForPrefix={false}
                                 shouldWrapInputInContainer={false}
+                                onFocus={focusHandler}
+                                onBlur={onInputBlur}
                             />
                         )}
                     </View>

@@ -52,7 +52,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -76,7 +76,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -109,7 +109,7 @@ describe('EmptySearchView', () => {
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
                 const queryJSON = buildSearchQueryJSON(queryString);
@@ -118,7 +118,7 @@ describe('EmptySearchView', () => {
                 render(
                     <Wrapper>
                         <EmptySearchView
-                            hash={queryJSON?.hash ?? 1}
+                            similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
                             groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
@@ -143,7 +143,7 @@ describe('EmptySearchView', () => {
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
                 const queryJSON = buildSearchQueryJSON(queryString);
@@ -152,7 +152,7 @@ describe('EmptySearchView', () => {
                 render(
                     <Wrapper>
                         <EmptySearchView
-                            hash={queryJSON?.hash ?? 1}
+                            similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
                             groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
@@ -181,7 +181,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -204,7 +204,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />

@@ -41,11 +41,24 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
     const customUnitID = customUnit?.customUnitID;
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        canBeMissing: true,
+    });
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (transactions) => {
             return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
                 if (
                     transaction &&
+                    transaction.reportID &&
+                    policyReports?.has(transaction.reportID) &&
                     customUnitID &&
                     transaction?.comment?.customUnit?.customUnitID === customUnitID &&
                     transaction?.comment?.customUnit?.customUnitRateID &&
@@ -156,6 +169,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 isOn={rate?.enabled ?? false}
                                 onToggle={toggleRate}
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
+                                showLockIcon={!canDisableOrDeleteRate}
                             />
                         </View>
                     </OfflineWithFeedback>

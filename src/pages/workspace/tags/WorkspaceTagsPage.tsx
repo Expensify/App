@@ -9,6 +9,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,7 +22,6 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -604,45 +604,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
-                {!hasSyncError && isConnectionVerified ? (
-                    <Text>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                        <TextLink
-                            style={[styles.textNormal, styles.link]}
-                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                        >
-                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                        </TextLink>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                    </Text>
+                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                    <ImportedFromAccountingSoftware
+                        policyID={policyID}
+                        currentConnectionName={currentConnectionName}
+                        connectedIntegration={connectedIntegration}
+                        translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                    />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
                         {translate('workspace.tags.subtitle')}
                         {hasDependentTags && (
-                            <>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase1')}</Text>
-                                <TextLink
-                                    style={[styles.textNormal, styles.link]}
-                                    // TODO: Add a actual link to the help article https://github.com/Expensify/App/issues/63612
-                                    href={CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}
-                                >
-                                    {translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase2')}
-                                </TextLink>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase3')}</Text>
-                                <TextLink
-                                    style={[styles.textNormal, styles.link]}
-                                    onPress={() => {
-                                        Navigation.navigate(
-                                            isQuickSettingsFlow
-                                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
-                                        );
-                                    }}
-                                >
-                                    {translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase4')}
-                                </TextLink>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase5')}</Text>
-                            </>
+                            <View style={[styles.renderHTML]}>
+                                <RenderHTML
+                                    html={translate('workspace.tags.dependentMultiLevelTagsSubtitle', {
+                                        importSpreadsheetLink: isQuickSettingsFlow
+                                            ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
+                                            : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
+                                    })}
+                                />
+                            </View>
                         )}
                     </Text>
                 )}

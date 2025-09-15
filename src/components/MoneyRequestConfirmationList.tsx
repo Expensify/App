@@ -144,6 +144,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a distance expense */
     isDistanceRequest: boolean;
 
+    /** Whether the expense is a manual distance expense */
+    isManualDistanceRequest: boolean;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -202,6 +205,7 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
     isDistanceRequest,
+    isManualDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -874,7 +878,7 @@ function MoneyRequestConfirmationList({
             if (enabledTags.length !== 1 || getTag(transaction, index)) {
                 return;
             }
-            updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index);
+            updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index, policy?.hasMultipleTagLists ?? false);
         });
         if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
             setMoneyRequestTag(transactionID, updatedTagsString);
@@ -1134,6 +1138,7 @@ function MoneyRequestConfirmationList({
             iouType={iouType}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
+            isManualDistanceRequest={isManualDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}

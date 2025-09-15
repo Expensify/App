@@ -3,7 +3,6 @@ title: Track Personal Expenses
 description: Learn how to set up a New Expensify workspace and start tracking your personal or freelance expenses.
 keywords: [New Expensify, workspace setup, personal expenses, New Expensify, SmartScan, categories, free trial]
 ---
-<div id="new-expensify" markdown="1">
 
 If you're a freelancer, sole proprietor, or just want to track personal expenses, this guide walks you through setting up your workspace and starting your free 30-day trial. The trial begins once you start using your workspace.
 
@@ -26,7 +25,7 @@ To chat with Concierge, open your **chat inbox** anytime for help and guidance.
 
 Each workspace has its own rules and settings, even for personal expense tracking.
 
-1. Use the **left-hand navigation bar (LHB)** to go to **Workspaces**.
+1. Use the **navigation tabs (on the left on web, and at the bottom on mobile)** to go to **Workspaces**.
 2. Click **New workspace > Name** to rename the workspace.
 
 ---
@@ -76,7 +75,7 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 
 ## Connect a Bank Account
 
-1. Go to **Workspaces** in the left-hand navigation menu
+1. Go to **Workspaces** in the navigation tabs (on the left on web, and at the bottom on mobile).
 2. Click **[Workspace Name] > More features > Enable Workflows**.
 3. From the left-hand menu, click **Workflows**.
 4. Enable **Make or track payments**.
@@ -86,7 +85,7 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 
 ## Connect a Credit Card
 
-💳 For more information on connecting credit cards, check out this article: [Personal Cards](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Personal-Cards). 
+💳 For more information on connecting credit cards, check out this article: [Personal Cards](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Personal-Cards).
 
 ---
 
@@ -130,4 +129,3 @@ To enable a feature:
 
 You can track the status of your 30-day free trial on your **Subscription** page. We’ll send reminders near the end of your trial. To continue using all features, add a billing card when prompted.
 
-</div>

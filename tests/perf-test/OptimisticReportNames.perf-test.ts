@@ -20,14 +20,6 @@ jest.mock('@libs/ReportUtils', () => ({
     isExpenseReport: jest.fn(),
     getTitleReportField: jest.fn(),
 }));
-jest.mock('@libs/Performance', () => ({
-    markStart: jest.fn(),
-    markEnd: jest.fn(),
-}));
-jest.mock('@libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-}));
 jest.mock('@libs/Log', () => ({
     info: jest.fn(),
 }));
@@ -73,9 +65,11 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
     const mockContext: UpdateContext = {
         betas: ['authAutoReportTitle'],
+        betaConfiguration: {},
         allReports: mockReports,
         allPolicies: mockPolicies,
         allReportNameValuePairs: {},
+        allTransactions: {},
     };
 
     beforeAll(async () => {
@@ -259,9 +253,11 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         test('[OptimisticReportNames] missing policies and reports', async () => {
             const contextWithMissingData: UpdateContext = {
                 betas: ['authAutoReportTitle'],
+                betaConfiguration: {},
                 allReports: {},
                 allPolicies: {},
                 allReportNameValuePairs: {},
+                allTransactions: {},
             };
 
             const updates = Array.from({length: 10}, (_, i) => ({
