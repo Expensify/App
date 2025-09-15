@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -275,7 +276,7 @@ function MoneyRequestConfirmationListFooter({
         canBeMissing: true,
     });
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -320,7 +321,7 @@ function MoneyRequestConfirmationListFooter({
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
-    const selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
+    let selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
     const selectedReport = useMemo(() => {
         if (!selectedReportID) {
             return;
@@ -331,6 +332,7 @@ function MoneyRequestConfirmationListFooter({
 
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, selectedPolicy?.id, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
         reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
     }
 
