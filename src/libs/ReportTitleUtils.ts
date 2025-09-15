@@ -10,6 +10,7 @@ import {getReportNameValuePairs, getTitleReportField, isChatReport} from './Repo
  * Get the title field from report name value pairs
  */
 function getTitleFieldFromRNVP(reportID: string) {
+    // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = getReportNameValuePairs(reportID);
     return reportNameValuePairs?.[CONST.REPORT.REPORT_TITLE_FIELD];
 }
