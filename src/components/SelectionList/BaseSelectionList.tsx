@@ -18,7 +18,6 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
-import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -112,9 +111,8 @@ function BaseSelectionList<TItem extends ListItem>({
     includeSafeAreaPaddingBottom = true,
     shouldTextInputInterceptSwipe = false,
     listHeaderContent,
-    onEndReached = () => {},
+    onEndReached,
     onEndReachedThreshold,
-    shouldSkipShowMoreButton = false,
     windowSize = 5,
     updateCellsBatchingPeriod = 50,
     removeClippedSubviews = true,
@@ -209,8 +207,6 @@ function BaseSelectionList<TItem extends ListItem>({
         }));
     };
 
-    const incrementPage = () => setCurrentPage((prev) => prev + 1);
-
     const canShowProductTrainingTooltipMemo = useMemo(() => {
         return canShowProductTrainingTooltip && isFocused;
     }, [canShowProductTrainingTooltip, isFocused]);
@@ -297,15 +293,16 @@ function BaseSelectionList<TItem extends ListItem>({
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
-    const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
-        if (shouldSkipShowMoreButton) {
-            // When skipping the Show More button, return all sections without any slicing
-            const processedSections = getSectionsWithIndexOffset(sections as Array<SectionListDataType<TItem>>);
-            return [processedSections, null];
+    const incrementPage = useCallback(() => {
+        if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            return;
         }
+        setCurrentPage((prev) => prev + 1);
+    }, [flattenedSections.allOptions.length, currentPage]);
 
+    const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
-        const processedSections = getSectionsWithIndexOffset(
+        return getSectionsWithIndexOffset(
             sections.map((section) => {
                 const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
                 remainingOptionsLimit -= data.length;
@@ -316,21 +313,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 };
             }),
         );
-
-        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
-        const showMoreButton = shouldShowMoreButton ? (
-            <ShowMoreButton
-                containerStyle={[styles.mt2, styles.mb5]}
-                currentCount={CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage}
-                totalCount={flattenedSections.allOptions.length}
-                onPress={incrementPage}
-            />
-        ) : null;
-        return [processedSections, showMoreButton];
-        // we don't need to add styles here as they change
-        // we don't need to add flattenedSections here as they will change along with sections
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, currentPage, shouldSkipShowMoreButton]);
+    }, [sections, currentPage]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
@@ -1058,10 +1041,10 @@ function BaseSelectionList<TItem extends ListItem>({
                         ListFooterComponent={
                             <>
                                 {footerContentAbovePagination}
-                                {listFooterContent ?? ShowMoreButtonInstance}
+                                {listFooterContent}
                             </>
                         }
-                        onEndReached={onEndReached}
+                        onEndReached={onEndReached ?? incrementPage}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
                         addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
