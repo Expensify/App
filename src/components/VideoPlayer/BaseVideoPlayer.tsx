@@ -121,15 +121,18 @@ function BaseVideoPlayer({
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, reportID);
-        } else if (videoPlayerRef.current.playing && !isLoading) {
+            return;
+        }
+        if (isLoading) {
+            return;
+        }
+        if (videoPlayerRef.current.playing) {
             pauseVideo();
-        } else if (!isLoading) {
-            if (isEnded) {
-                replayVideo();
-            }
+        } else if (isEnded) {
+            replayVideo();
+        } else {
             playVideo();
         }
-        setIsEnded(false);
     }, [isCurrentlyURLSet, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, isEnded, playVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
