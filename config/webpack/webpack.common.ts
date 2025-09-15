@@ -136,6 +136,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     // These files are copied over as per instructions here
                     // https://github.com/wojtekmaj/react-pdf#copying-cmaps
                     {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
+
+                    // Group‑IB web SDK injection file
+                    {from: 'web/snippets/gib.js', to: 'gib.js'},
                 ],
             }),
             new EnvironmentPlugin({JEST_WORKER_ID: ''}),
@@ -153,6 +156,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
             new DefinePlugin({
                 ...(platform === 'desktop' ? {} : {process: {env: {}}}),
+                // Define EXPO_OS for web platform to fix expo-modules-core warning
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'process.env.EXPO_OS': JSON.stringify('web'),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
@@ -285,6 +291,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '@desktop': path.resolve(__dirname, '../../desktop'),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '@selectors': path.resolve(__dirname, '../../src/selectors/'),
             },
 
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
