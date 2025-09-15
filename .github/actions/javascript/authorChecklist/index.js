@@ -16143,6 +16143,19 @@ class GithubUtils {
         return Buffer.from(data.content, 'base64').toString('utf8');
     }
     /**
+     * Get SVG files that were added or modified in a pull request
+     */
+    static async getPullRequestSVGFiles(pullRequestNumber) {
+        return this.octokit.pulls
+            .listFiles({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        })
+            .then(({ data }) => data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename));
+    }
+    /**
      * Get commits between two tags via the GitHub API
      */
     static async getCommitHistoryBetweenTags(fromTag, toTag, repositoryName) {
