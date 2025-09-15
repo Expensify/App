@@ -79,11 +79,8 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             },
         ];
 
-        // Only show the bypass option if when current approver is looking at report and he is not a policy admin as well as prevent self-approval is not enabled.
         const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
-        const isNotPolicyAdmin = !isMemberPolicyAdmin(policy, getLoginByAccountID(currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID));
-
-        if ((!isCurrentUserManager || isNotPolicyAdmin) && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+        if (!isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
