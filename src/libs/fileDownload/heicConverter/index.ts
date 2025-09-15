@@ -1,4 +1,3 @@
-/* eslint-disable @lwc/lwc/no-async-await */
 import type {HeicConverterFunction} from './types';
 import {verifyHeicFormat, verifyJpegFormat, verifyPngFormat} from './utils';
 
@@ -92,57 +91,67 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
     const fetchBlobPromise = fetch(file.uri).then((response) => response.blob());
 
     Promise.all([libraryPromise, fetchBlobPromise])
-        .then(async ([heicConverter, blob]) => {
+        .then(([heicConverter, blob]) => {
             const fileName = file.name ?? 'temp-file.heic';
             const fileFromBlob = new File([blob], fileName, {type: blob.type});
 
             // Verify actual format based on file signatures
-            const isHeicBasedOnSignatures = await verifyHeicFormat(fileFromBlob);
+            return verifyHeicFormat(fileFromBlob).then((isHeicBasedOnSignatures) => {
+                if (needsConversion && !isHeicBasedOnSignatures) {
+                    return verifyJpegFormat(fileFromBlob).then((isJpg) => {
+                        if (isJpg) {
+                            const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: 'image/jpeg'}), {uri: URL.createObjectURL(blob)});
+                            onSuccess(correctedFile);
+                            return;
+                        }
 
-            if (needsConversion && !isHeicBasedOnSignatures) {
-                const isJpg = await verifyJpegFormat(fileFromBlob);
-                const isPng = await verifyPngFormat(fileFromBlob);
+                        return verifyPngFormat(fileFromBlob).then((isPng) => {
+                            if (isPng) {
+                                const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.png'), {type: 'image/png'}), {uri: URL.createObjectURL(blob)});
+                                onSuccess(correctedFile);
+                                return;
+                            }
 
-                if (isJpg) {
-                    const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: 'image/jpeg'}), {uri: URL.createObjectURL(blob)});
-                    onSuccess(correctedFile);
-                    return;
-                }
-                if (isPng) {
-                    const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.png'), {type: 'image/png'}), {uri: URL.createObjectURL(blob)});
-                    onSuccess(correctedFile);
-                    return;
-                }
-            }
-
-            // Strategy 1: Try heic-to library
-            if (heicConverter && typeof heicConverter.heicTo === 'function') {
-                return heicConverter
-                    .heicTo({blob, type: 'image/jpeg'})
-                    .then((convertedBlob) => {
-                        const jpegFile = Object.assign(new File([convertedBlob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: 'image/jpeg'}), {
-                            uri: URL.createObjectURL(convertedBlob),
+                            // Proceed with conversion strategies
+                            return processConversion(heicConverter, blob, fileFromBlob, fileName);
                         });
-                        onSuccess(jpegFile);
-                    })
-                    .catch(() => {
-                        // Strategy 2: Canvas fallback
-                        canvasFallback(fileFromBlob, fileName)
-                            .then(onSuccess)
-                            .catch((err) => {
-                                console.error('Canvas fallback failed:', err);
-                                onError(err, file);
+                    });
+                }
+
+                // Proceed with conversion strategies
+                return processConversion(heicConverter, blob, fileFromBlob, fileName);
+            });
+
+            function processConversion(converter: HeicConverter | null, blobData: Blob, fileData: File, name: string) {
+                // Strategy 1: Try heic-to library
+                if (converter && typeof converter.heicTo === 'function') {
+                    return converter
+                        .heicTo({blob: blobData, type: 'image/jpeg'})
+                        .then((convertedBlob) => {
+                            const jpegFile = Object.assign(new File([convertedBlob], name.replace(/\.(heic|heif)$/i, '.jpg'), {type: 'image/jpeg'}), {
+                                uri: URL.createObjectURL(convertedBlob),
                             });
+                            onSuccess(jpegFile);
+                        })
+                        .catch(() => {
+                            // Strategy 2: Canvas fallback
+                            canvasFallback(fileData, name)
+                                .then(onSuccess)
+                                .catch((err) => {
+                                    console.error('Canvas fallback failed:', err);
+                                    onError(err, file);
+                                });
+                        });
+                }
+
+                // No library - use canvas fallback
+                return canvasFallback(fileData, name)
+                    .then(onSuccess)
+                    .catch((err) => {
+                        console.error('Canvas fallback failed:', err);
+                        onError(err, file);
                     });
             }
-
-            // No library - use canvas fallback
-            canvasFallback(fileFromBlob, fileName)
-                .then(onSuccess)
-                .catch((err) => {
-                    console.error('Canvas fallback failed:', err);
-                    onError(err, file);
-                });
         })
         .catch((err) => {
             onError(err, file);
