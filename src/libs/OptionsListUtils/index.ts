@@ -415,6 +415,10 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         return '';
     }
 
+    if (lastActorDetails.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
@@ -541,6 +545,29 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
 
 function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
+}
+
+function getLastActorDisplayNameFromLastVisibleActions(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null): string {
+    const reportID = report?.reportID;
+    const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+
+    if (lastReportAction) {
+        const lastActorAccountID = lastReportAction.actorAccountID;
+        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (allPersonalDetails?.[lastActorAccountID] ?? null) : null;
+
+        if (!actorDetails && lastReportAction.person?.at(0)?.text) {
+            actorDetails = {
+                displayName: lastReportAction.person?.at(0)?.text,
+                accountID: lastActorAccountID,
+            };
+        }
+
+        if (actorDetails) {
+            return getLastActorDisplayName(actorDetails);
+        }
+    }
+
+    return getLastActorDisplayName(lastActorDetails);
 }
 
 /**
@@ -2606,6 +2633,7 @@ export {
     getIOUReportIDOfLastAction,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getLastActorDisplayName,
+    getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getManagerMcTestParticipant,
     getMemberInviteOptions,
