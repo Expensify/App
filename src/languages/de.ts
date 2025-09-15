@@ -2486,9 +2486,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Überprüfe deine [Workspace-Einstellungen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'So überprüfst und aktualisierst du deine Workspace-Einstellungen:\n' +
-                    '1. Klicke auf den Tab *Einstellungen*.\n' +
-                    '2. Klicke auf *Workspaces* > [Dein Workspace].\n' +
-                    `[Zum Workspace](${workspaceSettingsLink}). Wir verfolgen Änderungen im Raum #admins.`,
+                    '1. Klicke auf Workspaces.\n' +
+                    '2. Wähle deinen Workspace aus.\n' +
+                    '3. Überprüfe und aktualisiere deine Einstellungen.\n' +
+                    `[Gehe zu deinem Workspace.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Erstelle deinen ersten Bericht',
@@ -6364,7 +6365,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `${currency}${amount} anderswo bezahlt`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `bezahlte ${currency}${amount} über Integration`,
                 outdatedBankAccount: `konnte die Zahlung aufgrund eines Problems mit dem Bankkonto des Zahlers nicht verarbeiten`,
-                reimbursementACHBounce: `Konnte die Zahlung nicht verarbeiten, da der Zahler nicht über ausreichende Mittel verfügt.`,
+                reimbursementACHBounce: `konnte die Zahlung aufgrund eines Bankkontoproblems nicht verarbeiten`,
                 reimbursementACHCancelled: `die Zahlung storniert`,
                 reimbursementAccountChanged: `Konnte die Zahlung nicht verarbeiten, da der Zahler die Bankkonten gewechselt hat.`,
                 reimbursementDelayed: `hat die Zahlung bearbeitet, aber sie verzögert sich um 1-2 weitere Werktage`,

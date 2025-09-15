@@ -2373,6 +2373,10 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
     },
+    TRAVEL_VERIFY_ACCOUNT: {
+        route: `travel/:domain/${VERIFY_ACCOUNT}`,
+        getRoute: (domain: string) => `travel/${domain}/${VERIFY_ACCOUNT}` as const,
+    },
     ONBOARDING_ROOT: {
         route: 'onboarding',
 
