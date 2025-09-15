@@ -6368,7 +6368,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `payé ${currency}${amount} ailleurs`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `payé ${currency}${amount} via intégration`,
                 outdatedBankAccount: `n’a pas pu traiter le paiement en raison d’un problème avec le compte bancaire du payeur`,
-                reimbursementACHBounce: `impossible de traiter le paiement, car le payeur n'a pas suffisamment de fonds`,
+                reimbursementACHBounce: `n'a pas pu traiter le paiement en raison d'un problème de compte bancaire`,
                 reimbursementACHCancelled: `annulé le paiement`,
                 reimbursementAccountChanged: `impossible de traiter le paiement, car le payeur a changé de compte bancaire`,
                 reimbursementDelayed: `a traité le paiement mais il est retardé de 1 à 2 jours ouvrables supplémentaires`,
