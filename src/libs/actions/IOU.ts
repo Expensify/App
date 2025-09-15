@@ -249,7 +249,7 @@ import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy
 import type {GuidedSetupData} from './Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
-import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import {getRecentWaypoints, sanitizeWaypointsForAPI} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 import {getOnboardingMessages} from './Welcome/OnboardingFlow';
 
@@ -4145,7 +4145,12 @@ function getUpdateMoneyRequestParams(
 
     if (transactionDetails?.waypoints) {
         // This needs to be a JSON string since we're sending this to the MapBox API
-        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+        // If the waypoints are a string, we need to parse them as a WaypointCollection
+        let waypoints = transactionDetails.waypoints;
+        if (typeof waypoints === 'string') {
+            waypoints = JSON.parse(waypoints) as WaypointCollection;
+        }
+        transactionDetails.waypoints = JSON.stringify(sanitizeWaypointsForAPI(waypoints));
     }
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)));
@@ -4575,7 +4580,11 @@ function getUpdateTrackExpenseParams(
 
     if (transactionDetails?.waypoints) {
         // This needs to be a JSON string since we're sending this to the MapBox API
-        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+        let waypoints = transactionDetails.waypoints;
+        if (typeof waypoints === 'string') {
+            waypoints = JSON.parse(waypoints) as WaypointCollection;
+        }
+        transactionDetails.waypoints = JSON.stringify(sanitizeWaypointsForAPI(waypoints));
     }
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)));
@@ -4893,7 +4902,7 @@ function updateMoneyRequestDistance({
     transactionBackup,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
-        waypoints: sanitizeRecentWaypoints(waypoints),
+        waypoints: sanitizeWaypointsForAPI(waypoints),
         routes,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
@@ -5594,7 +5603,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
 
-    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
+    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeWaypointsForAPI(waypoints)) : undefined;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -6001,7 +6010,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
-    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeWaypointsForAPI(validWaypoints)) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
         report,
@@ -7615,7 +7624,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
-    const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeRecentWaypoints(validWaypoints) : null;
+    const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeWaypointsForAPI(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
             splitData,
