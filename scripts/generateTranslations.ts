@@ -238,9 +238,6 @@ class TranslationGenerator {
             const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
             fs.writeFileSync(outputPath, translatedCode, 'utf8');
 
-            // Format the file with prettier
-            await Prettier.format(outputPath);
-
             // Enforce that the type of translated files matches en.ts
             let finalFileContent = fs.readFileSync(outputPath, 'utf8');
             finalFileContent = finalFileContent.replace(
@@ -254,6 +251,9 @@ class TranslationGenerator {
             }
 
             fs.writeFileSync(outputPath, finalFileContent, 'utf8');
+
+            // Format the file with prettier
+            await Prettier.format(outputPath);
 
             console.log(`✅ Translated file created: ${outputPath}`);
         }
