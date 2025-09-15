@@ -323,6 +323,54 @@ function createPathAwareTransformer(visitor: (node: ts.Node, path: string) => Tr
     };
 }
 
+/**
+ * Check if a dot-notation path exists in an object literal expression.
+ *
+ * @param objectLiteral The object literal expression to search in
+ * @param dotNotationPath The path to look for (e.g., "common.save" or "errors.generic")
+ * @returns true if the path exists, false otherwise
+ * @disclaimer This does not handle computed properties.
+ */
+function objectHas(objectLiteral: ts.ObjectLiteralExpression, dotNotationPath: string): boolean {
+    const pathParts = dotNotationPath.split('.');
+    let currentNode: ts.ObjectLiteralExpression = objectLiteral;
+
+    // Traverse the path parts to see if the full path exists
+    for (const pathPart of pathParts) {
+        let found = false;
+
+        for (const property of currentNode.properties) {
+            if (ts.isPropertyAssignment(property)) {
+                const propertyKey = extractKeyFromPropertyNode(property);
+                if (propertyKey === pathPart) {
+                    // Found this path part
+                    if (pathPart === pathParts.at(-1)) {
+                        // This is the final path part - we found the complete path
+                        return true;
+                    }
+
+                    // Continue traversing - check if the next level is an object
+                    if (ts.isObjectLiteralExpression(property.initializer)) {
+                        currentNode = property.initializer;
+                        found = true;
+                        break;
+                    } else {
+                        // Next level is not an object, so path doesn't exist
+                        return false;
+                    }
+                }
+            }
+        }
+
+        if (!found) {
+            // Didn't find this path part
+            return false;
+        }
+    }
+
+    return false; // Shouldn't reach here, but just in case
+}
+
 export default {
     findAncestor,
     addImport,
@@ -334,6 +382,7 @@ export default {
     parseCodeStringToAST,
     createPathAwareVisitor,
     createPathAwareTransformer,
+    objectHas,
 };
 export {TransformerAction};
 export type {ExpressionWithType, TransformerResult};

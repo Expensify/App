@@ -884,4 +884,164 @@ describe('TSCompilerUtils', () => {
             expect(visitedPaths).toContain('farewell');
         });
     });
+
+    describe('objectHas', () => {
+        it('returns true for top-level property that exists', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {
+                        greeting: 'Hello',
+                        farewell: 'Goodbye',
+                    };
+                `),
+            );
+
+            // Find the object literal
+            const objectLiteral = findObjectLiteral(source);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'greeting')).toBe(true);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'farewell')).toBe(true);
+        });
+
+        it('returns false for top-level property that does not exist', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {
+                        greeting: 'Hello',
+                        farewell: 'Goodbye',
+                    };
+                `),
+            );
+
+            const objectLiteral = findObjectLiteral(source);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'nonexistent')).toBe(false);
+        });
+
+        it('returns true for nested property that exists', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {
+                        common: {
+                            save: 'Save',
+                            cancel: 'Cancel',
+                        },
+                        errors: {
+                            generic: 'An error occurred',
+                        },
+                    };
+                `),
+            );
+
+            const objectLiteral = findObjectLiteral(source);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'common.save')).toBe(true);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'common.cancel')).toBe(true);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'errors.generic')).toBe(true);
+        });
+
+        it('returns false for nested property that does not exist', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {
+                        common: {
+                            save: 'Save',
+                            cancel: 'Cancel',
+                        },
+                        errors: {
+                            generic: 'An error occurred',
+                        },
+                    };
+                `),
+            );
+
+            const objectLiteral = findObjectLiteral(source);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'common.nonexistent')).toBe(false);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'nonexistent.save')).toBe(false);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'errors.nonexistent')).toBe(false);
+        });
+
+        it('returns false when trying to traverse into a non-object property', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {
+                        greeting: 'Hello',
+                        common: {
+                            save: 'Save',
+                        },
+                    };
+                `),
+            );
+
+            const objectLiteral = findObjectLiteral(source);
+            // 'greeting' is a string, not an object, so 'greeting.something' should return false
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'greeting.something')).toBe(false);
+        });
+
+        it('returns true for deeply nested properties', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {
+                        level1: {
+                            level2: {
+                                level3: {
+                                    deepProperty: 'Deep value',
+                                },
+                            },
+                        },
+                    };
+                `),
+            );
+
+            const objectLiteral = findObjectLiteral(source);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'level1.level2.level3.deepProperty')).toBe(true);
+        });
+
+        it('returns false for partially correct deeply nested paths', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {
+                        level1: {
+                            level2: {
+                                level3: {
+                                    deepProperty: 'Deep value',
+                                },
+                            },
+                        },
+                    };
+                `),
+            );
+
+            const objectLiteral = findObjectLiteral(source);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'level1.level2.level3.wrongProperty')).toBe(false);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'level1.level2.wrongLevel.deepProperty')).toBe(false);
+        });
+
+        it('handles empty object', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const obj = {};
+                `),
+            );
+
+            const objectLiteral = findObjectLiteral(source);
+            expect(TSCompilerUtils.objectHas(objectLiteral, 'anything')).toBe(false);
+        });
+
+        // Helper function to find the first object literal in a source file
+        function findObjectLiteral(sourceFile: ts.SourceFile): ts.ObjectLiteralExpression {
+            let objectLiteral: ts.ObjectLiteralExpression | undefined;
+
+            function visit(node: ts.Node): void {
+                if (ts.isObjectLiteralExpression(node) && !objectLiteral) {
+                    objectLiteral = node;
+                    return;
+                }
+                ts.forEachChild(node, visit);
+            }
+
+            visit(sourceFile);
+            if (!objectLiteral) {
+                throw new Error('No object literal found in source file');
+            }
+            return objectLiteral;
+        }
+    });
 });

@@ -631,8 +631,9 @@ class TranslationGenerator {
                     const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
 
                     // Check each path in pathsToModify to see if it actually exists in this target file
+                    const existingTranslationsNode = this.findTranslationsNode(existingSourceFile);
                     for (const pathToCheck of this.pathsToModify) {
-                        if (!this.pathExistsInFile(existingSourceFile, pathToCheck)) {
+                        if (!TSCompilerUtils.objectHas(existingTranslationsNode, pathToCheck)) {
                             this.pathsToModify.delete(pathToCheck);
                             this.pathsToAdd.add(pathToCheck);
                         }
@@ -694,51 +695,6 @@ class TranslationGenerator {
         node.forEachChild((child) => {
             this.extractPathsFromChangedLines(child, addedLines, removedLines, isOldVersion);
         });
-    }
-
-    /**
-     * Check if a dot-notation path exists in the given source file.
-     */
-    private pathExistsInFile(sourceFile: ts.SourceFile, dotNotationPath: string): boolean {
-        const translationsNode = this.findTranslationsNode(sourceFile);
-
-        const pathParts = dotNotationPath.split('.');
-        let currentNode: ts.ObjectLiteralExpression = translationsNode;
-
-        // Traverse the path parts to see if the full path exists
-        for (const pathPart of pathParts) {
-            let found = false;
-
-            for (const property of currentNode.properties) {
-                if (ts.isPropertyAssignment(property)) {
-                    const propertyKey = TSCompilerUtils.extractKeyFromPropertyNode(property);
-                    if (propertyKey === pathPart) {
-                        // Found this path part
-                        if (pathPart === pathParts.at(-1)) {
-                            // This is the final path part - we found the complete path
-                            return true;
-                        }
-
-                        // Continue traversing - check if the next level is an object
-                        if (ts.isObjectLiteralExpression(property.initializer)) {
-                            currentNode = property.initializer;
-                            found = true;
-                            break;
-                        } else {
-                            // Next level is not an object, so path doesn't exist
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            if (!found) {
-                // Didn't find this path part
-                return false;
-            }
-        }
-
-        return false; // Shouldn't reach here, but just in case
     }
 
     /**
