@@ -87,6 +87,12 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
             // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
         };
+        // Unlike an inverted FlatList, a non-inverted FlatList can have data.length === 0,
+        // which causes the initial value of `minIndexForVisible` to be 0.
+        // When data.length increases and `minIndexForVisible` updates accordingly,
+        // it can lead to a crash due to inconsistent rendering behavior.
+        // Additionally, keeping `minIndexForVisible` at 1 may cause the scroll offset to shift
+        // when the height of the ListHeaderComponent changes, as FlatList tries to keep items within the visible viewport.
         if (!inverted) {
             config.minIndexForVisible = isInitialData ? 1 : 0;
         }
