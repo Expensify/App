@@ -346,10 +346,10 @@ describe('TransactionUtils', () => {
                         customUnitID: 'distance',
                         rates: {
                             default: {
-                                customUnitRateID: "1",
+                                customUnitRateID: '1',
                                 currency: CONST.CURRENCY.USD,
                                 rate: 1, // 1 USD per mile
-                            }
+                            },
                         },
                         attributes: {
                             unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
