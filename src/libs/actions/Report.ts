@@ -181,6 +181,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     Account,
+    Attachment,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -468,6 +469,13 @@ Onyx.connect({
 
         allTransactions = value;
     },
+});
+
+let allAttachments: OnyxCollection<Attachment> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.ATTACHMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allAttachments = value),
 });
 
 let environment: EnvironmentType;
@@ -1918,15 +1926,18 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
             const attachments = attachmentTags.flatMap((htmlTag, index) => {
                 const tag = htmlTag[0];
 
-                const attachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+                const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+                const attachmentID = dataAttachmentID ?? `${reportActionID}_${index + 1}`;
+                const attachment = allAttachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
 
                 return {
-                    attachmentID: attachmentID ?? `${reportActionID}_${index + 1}`,
+                    attachmentID,
+                    localSource: attachment?.source,
                 };
             });
 
             attachments.forEach((attachment) => {
-                removeCachedAttachment(attachment.attachmentID);
+                removeCachedAttachment({attachmentID: attachment.attachmentID, localSource: attachment.localSource});
             });
         });
     }

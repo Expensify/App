@@ -1,27 +1,36 @@
 import Onyx from 'react-native-onyx';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isLocalAttachment} from '@libs/AttachmentUtils';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CacheAttachmentProps, GetCachedAttachmentProps} from './types';
+import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
 function cacheAttachment({attachmentID, uri}: CacheAttachmentProps) {
-    return fetch(uri).then((response) => {
-        if (!response.ok) {
-            return;
-        }
-        CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response)
-            .then(() => {
-                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                    attachmentID,
-                    remoteSource: isLocalFile(uri) ? '' : uri,
+    const attachmentURL = isLocalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
+
+    return fetch(attachmentURL)
+        .then((response) => {
+            if (!response.ok) {
+                return;
+            }
+            CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response)
+                .then((cacheRes) => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                        attachmentID,
+                        remoteSource: isLocalFile(uri) ? '' : uri,
+                    });
+                })
+                .catch(() => {
+                    Log.warn('Failed to cache attachment');
                 });
-            })
-            .catch(() => {
-                Log.warn('Failed to cache attachment');
-            });
-    });
+        })
+        .catch(() => {
+            Log.warn('Failed to fetch attachment');
+        });
 }
 
 function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {
@@ -43,9 +52,24 @@ function getCachedAttachment({attachmentID, attachment, currentSource}: GetCache
     });
 }
 
-function removeCachedAttachment(attachmentID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
-    CacheAPI.remove(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
+function removeCachedAttachment({attachmentID}: RemoveCachedAttachmentProps) {
+    CacheAPI.remove(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID)
+        .then(() => {
+            Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+        })
+        .catch(() => {
+            Log.warn('Failed to remove cached attachment');
+        });
 }
 
-export {cacheAttachment, getCachedAttachment, removeCachedAttachment};
+function clearCachedAttachments() {
+    CacheAPI.clear(CONST.CACHE_API_KEYS.ATTACHMENTS)
+        .then(() => {
+            Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
+        })
+        .catch(() => {
+            Log.warn('Failed to clear cached attachments');
+        });
+}
+
+export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments};

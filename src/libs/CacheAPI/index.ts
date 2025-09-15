@@ -1,6 +1,8 @@
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
+type CacheNameType = (typeof CONST.CACHE_API_KEYS)[keyof typeof CONST.CACHE_API_KEYS];
+
 function init() {
     // Exit early if the Cache API is not supported in the current browser.
     if (!('caches' in window)) {
@@ -16,38 +18,29 @@ function init() {
         });
     });
 }
-function put(cacheName: string, key: string, value: Response) {
-    return new Promise((resolve, reject) => {
-        const cacheAPIKeys: string[] = Object.values(CONST.CACHE_API_KEYS);
-        if (!cacheAPIKeys.includes(cacheName)) {
-            reject(new Error('Failed to cache, invalid cacheName'));
-        }
-        caches
-            .open(cacheName)
-            .then((cache) => {
-                cache.put(key, value).then(resolve).catch(reject);
-            })
-            .catch(reject);
-    });
+
+function put(cacheName: CacheNameType, key: string, value: Response) {
+    return caches.open(cacheName).then((cache) => cache.put(key, value));
 }
-function get(cacheName: string, key: string) {
-    return caches.open(cacheName).then((cache) => {
-        return cache.match(key);
-    });
+
+function get(cacheName: CacheNameType, key: string) {
+    return caches.open(cacheName).then((cache) => cache.match(key));
 }
-function remove(cacheName: string, key: string) {
-    caches.open(cacheName).then((cache) => {
-        cache.delete(key);
-    });
+
+function remove(cacheName: CacheNameType, key: string) {
+    return caches.open(cacheName).then((cache) => cache.delete(key));
 }
-function clear() {
+
+function clear(cacheName?: CacheNameType) {
+    // If a cache name is provided, delete only that key.
+    if (cacheName) {
+        return caches.delete(cacheName);
+    }
+
     const keys = Object.values(CONST.CACHE_API_KEYS);
-    keys.forEach((key) => {
-        if (!key) {
-            return;
-        }
-        caches.delete(key);
-    });
+    const deletePromises = keys.map((key) => caches.delete(key));
+
+    return Promise.all(deletePromises).then(Promise.resolve).catch(Promise.reject);
 }
 export default {
     init,

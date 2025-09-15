@@ -23,4 +23,12 @@ type GetCachedAttachmentProps = {
     currentSource: string;
 };
 
-export type {CacheAttachmentProps, GetCachedAttachmentProps};
+type RemoveCachedAttachmentProps = {
+    /** Attachment ID based on the data-attachment-id attribute */
+    attachmentID: string;
+
+    /** Local source of the attachment (native-only) */
+    localSource?: string;
+};
+
+export type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps};
