@@ -1,7 +1,6 @@
 import {useMemo} from 'react';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {getTransactionViolations} from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
