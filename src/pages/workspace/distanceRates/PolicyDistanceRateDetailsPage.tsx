@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
@@ -38,14 +40,34 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`, {canBeMissing: true});
     const rateID = route.params.rateID;
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const rate = customUnit?.rates[rateID];
     const customUnitID = customUnit?.customUnitID;
-    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
+
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        [policyID],
+    );
+
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: policyReportsSelector,
+        canBeMissing: true,
+    });
+
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
             return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
                 if (
                     transaction &&
+                    transaction.reportID &&
+                    policyReports?.has(transaction.reportID) &&
                     customUnitID &&
                     transaction?.comment?.customUnit?.customUnitID === customUnitID &&
                     transaction?.comment?.customUnit?.customUnitRateID &&
@@ -56,6 +78,11 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 return transactionIDs;
             }, new Set<string>());
         },
+        [customUnitID, rateID, policyReports],
+    );
+
+    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionsSelector,
         canBeMissing: true,
     });
 

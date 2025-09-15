@@ -44,6 +44,7 @@ const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearch
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
                 transactionItem={transactionItem}
+                violations={transactionItem.violations}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
             />

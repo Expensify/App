@@ -11,7 +11,7 @@ Workspace admins can enable invoicing to send professional invoices and receive 
 
 # Enable Invoices
 
-1. From the left-hand menu, click **Workspaces > [Workspace Name] > More features**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace Name] > More features**.
 2. Under the **Earn** section, turn on the **Invoice** toggle.
 
 ---
@@ -20,7 +20,7 @@ Workspace admins can enable invoicing to send professional invoices and receive 
 
 **Note:** Only workspace admins can send invoices. You can invoice anyone, even if they don’t have an Expensify account.
 
-1. From the left-hand menu, click the **+** icon and select **Send Invoice**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), click the **+** icon and select **Send Invoice**.
 2. Enter the amount due and click or tap **Next**.
 3. Enter the recipient’s email or phone number.
 4. (Optional) Add invoice details like description, date, category, tag, or tax.

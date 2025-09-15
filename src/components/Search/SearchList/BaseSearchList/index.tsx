@@ -71,7 +71,7 @@ function BaseSearchList({
                 }
                 setFocusedIndex(index);
             };
-            return renderItem(item, isItemFocused, onFocus);
+            return renderItem(item, index, isItemFocused, onFocus);
         },
         [focusedIndex, renderItem, setFocusedIndex],
     );

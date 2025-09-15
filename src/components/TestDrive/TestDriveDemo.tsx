@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy, isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
@@ -28,9 +28,9 @@ function TestDriveDemo() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isUserPolicyAdmin(policy, currentUserPersonalDetails.login)),
+        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login)),
     });
 
     useEffect(() => {
@@ -64,12 +64,11 @@ function TestDriveDemo() {
                     type={CONST.MODAL.MODAL_TYPE.FULLSCREEN}
                     style={styles.backgroundWhite}
                     innerContainerStyle={{...styles.flex1, marginTop: paddingTop, marginBottom: paddingBottom}}
-                    useNativeDriver={false} // We need to disable native driver in order to prevent https://github.com/Expensify/App/issues/61032
                 >
                     <TestDriveBanner onPress={closeModal} />
                     <FullPageOfflineBlockingView>
                         <EmbeddedDemo
-                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected, isPolicyAdmin)}
+                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin)}
                             iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
                         />
                     </FullPageOfflineBlockingView>
