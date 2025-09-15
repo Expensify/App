@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -104,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -162,12 +164,14 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -272,7 +276,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -355,6 +358,7 @@ const translations = {
         selectMultiple: 'Sélectionner plusieurs',
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
+        submitted: 'Soumis',
         rotate: 'Pivoter',
         zoom: 'Zoom',
         password: 'Mot de passe',
@@ -399,6 +403,7 @@ const translations = {
         contacts: 'Contacts',
         recents: 'Récents',
         close: 'Fermer',
+        comment: 'Commentaire',
         download: 'Télécharger',
         downloading: 'Téléchargement en cours',
         uploading: 'Téléchargement en cours',
@@ -491,6 +496,7 @@ const translations = {
         join: 'Rejoindre',
         leave: 'Quitter',
         decline: 'Refuser',
+        reject: 'Rejeter',
         transferBalance: 'Transférer le solde',
         cantFindAddress: 'Impossible de trouver votre adresse ?',
         enterManually: 'Entrez-le manuellement',
@@ -656,6 +662,7 @@ const translations = {
         submitTo: 'Envoyer à',
         forwardTo: 'Transférer à',
         merge: 'Fusionner',
+        none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
         purchaseAmount: "Montant de l'achat",
@@ -817,9 +824,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Vous ne voulez pas vous connecter avec ${provider} ?`,
         continueWithMyCurrentSession: 'Continuer avec ma session actuelle',
         redirectToDesktopMessage: "Nous vous redirigerons vers l'application de bureau une fois que vous aurez terminé de vous connecter.",
-        signInAgreementMessage: 'En vous connectant, vous acceptez les',
-        termsOfService: "Conditions d'utilisation",
-        privacy: 'Confidentialité',
     },
     samlSignIn: {
         welcomeSAMLEnabled: "Continuez à vous connecter avec l'authentification unique :",
@@ -1398,6 +1402,24 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+        reject: {
+            educationalTitle: 'Faut-il mettre en attente ou rejeter ?',
+            educationalText: "Si vous n'êtes pas prêt à approuver ou à payer une dépense, vous pouvez la mettre en attente ou la rejeter.",
+            holdExpenseTitle: 'Mettez une dépense en attente pour demander plus de détails avant de l’approuver ou de la payer.',
+            heldExpenseLeftBehindTitle: 'Les dépenses mises en attente sont laissées de côté lorsque vous approuvez un rapport complet.',
+            rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
+            reasonPageTitle: 'Rejeter la dépense',
+            reasonPageDescription1:
+                'Rejetez une dépense si vous ne prévoyez jamais de l’approuver ou de la payer. Sinon, utilisez "Mettre en attente" pour la suspendre et demander plus de contexte.',
+            reasonPageDescription2: 'Si vous allez rejeter la dépense, veuillez ajouter un commentaire pour expliquer la raison :',
+            rejectReason: 'Raison du rejet',
+            markAsResolved: 'Marquer comme résolu',
+            rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
+            reportActions: {
+                rejectedExpense: 'a rejeté cette dépense',
+                markedAsResolved: 'a marqué la raison du rejet comme résolue',
+            },
+        },
         changeApprover: {
             title: "Modifier l'approbateur",
             subtitle: "Choisissez une option pour modifier l'approbateur de ce rapport.",
@@ -1419,7 +1441,7 @@ const translations = {
         listPage: {
             header: 'Fusionner les dépenses',
             noEligibleExpenseFound: 'Aucune dépense éligible trouvée',
-            noEligibleExpenseFoundSubtitle: `Vous n’avez aucune dépense pouvant être fusionnée avec celle-ci. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">En savoir plus</a> sur les dépenses éligibles.`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>Vous n’avez aucune dépense pouvant être fusionnée avec celle-ci. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">En savoir plus</a> sur les dépenses éligibles.</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Sélectionnez une <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">dépense éligible</a> à fusionner <strong>${reportName}</strong>.`,
         },
@@ -1655,12 +1677,7 @@ const translations = {
         restoreStashed: 'Restaurer la connexion mise en attente',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Lire le',
-            phrase2: "Conditions d'utilisation",
-            phrase3: 'et',
-            phrase4: 'Confidentialité',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et de <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Confidentialité</a>.</muted-text-micro>`,
         help: 'Aide',
         whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',
@@ -2186,12 +2203,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les paramètres de votre appareil.',
     },
     termsOfUse: {
-        phrase1: 'En vous connectant, vous acceptez les',
-        phrase2: "Conditions d'utilisation",
-        phrase3: 'et',
-        phrase4: 'Confidentialité',
-        phrase5: `La transmission d'argent est fournie par ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) conformément à ses`,
-        phrase6: 'licences',
+        terms: `<muted-text-xs>En vous connectant, vous acceptez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions de service</a> et de <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Confidentialité</a>.</muted-text-xs>`,
+        license: `<muted-text-xs>Le transfert de fonds est assuré par ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) conformément à ses <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licences</a>.</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Vous n'avez pas reçu de code magique ?",
@@ -2246,10 +2259,6 @@ const translations = {
             description:
                 'Une application pour gérer vos dépenses professionnelles et personnelles à la vitesse de la conversation. Essayez-la et faites-nous savoir ce que vous en pensez. Beaucoup plus à venir !',
             secondaryDescription: "Pour revenir à Expensify Classic, il suffit d'appuyer sur votre photo de profil > Aller à Expensify Classic.",
-        },
-        welcomeVideo: {
-            title: 'Bienvenue sur Expensify',
-            description: 'Une application pour gérer toutes vos dépenses professionnelles et personnelles dans un chat. Conçue pour votre entreprise, votre équipe et vos amis.',
         },
         getStarted: 'Commencer',
         whatsYourName: 'Quel est votre nom ?',
@@ -3396,11 +3405,8 @@ const translations = {
         tripSummary: 'Résumé du voyage',
         departs: 'Départs',
         errorMessage: 'Un problème est survenu. Veuillez réessayer plus tard.',
-        phoneError: {
-            phrase1: "S'il vous plaît",
-            link: 'ajoutez un e-mail professionnel comme identifiant principal',
-            phrase2: 'pour réserver un voyage.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr>Veuillez <a href="${phoneErrorMethodsRoute}">ajouter un courriel professionnel comme identifiant principal</a> pour réserver un voyage.</rbr>`,
         domainSelector: {
             title: 'Domaine',
             subtitle: "Choisissez un domaine pour la configuration d'Expensify Travel.",
@@ -4675,10 +4681,9 @@ const translations = {
                 cardName: 'Nom de la carte',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `${integration} ${type.toLowerCase()} exportation` : `exportation ${integration}`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
-                integrationExportTitlePart: 'Sélectionner un autre',
-                integrationExportTitleLinkPart: "option d'exportation",
-                integrationExportTitleSecondPart: 'pour changer les comptes disponibles.',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées. Sélectionnez une autre <a href="${exportPageLink}">option d'exportation</a> pour modifier les comptes disponibles.`,
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
@@ -4864,13 +4869,8 @@ const translations = {
             editTags: 'Modifier les balises',
             findTag: 'Trouver une balise',
             subtitle: 'Les étiquettes ajoutent des moyens plus détaillés pour classer les coûts.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Vous utilisez',
-                phrase2: 'balises dépendantes',
-                phrase3: '. Vous pouvez',
-                phrase4: 'réimporter une feuille de calcul',
-                phrase5: 'mettre à jour vos tags.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">balises dépendantes</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos balises.</muted-text>`,
             emptyTags: {
                 title: "Vous n'avez créé aucun tag",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -5313,7 +5313,8 @@ const translations = {
             continuousReconciliation: 'Réconciliation Continue',
             saveHoursOnReconciliation:
                 'Gagnez des heures sur la réconciliation à chaque période comptable en laissant Expensify réconcilier en continu les relevés et les règlements de la carte Expensify pour vous.',
-            enableContinuousReconciliation: 'Pour activer la Réconciliation Continue, veuillez activer',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Pour activer la réconciliation continue, veuillez activer la <a href="${accountingAdvancedSettingsLink}">synchronisation automatique</a> pour ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de votre carte Expensify seront rapprochés.',
                 accountMatches: 'Assurez-vous que ce compte correspond à votre',
@@ -5452,11 +5453,7 @@ const translations = {
             changeOwnerPageTitle: 'Transférer le propriétaire',
             addPaymentCardTitle: 'Entrez votre carte de paiement pour transférer la propriété',
             addPaymentCardButtonText: 'Accepter les conditions et ajouter une carte de paiement',
-            addPaymentCardReadAndAcceptTextPart1: 'Lire et accepter',
-            addPaymentCardReadAndAcceptTextPart2: 'politique pour ajouter votre carte',
-            addPaymentCardTerms: 'termes',
-            addPaymentCardPrivacy: 'confidentialité',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro>Lisez et acceptez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">termes</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politique de confidentialité</a> pour ajouter votre carte.</muted-text-micro>`,
             addPaymentCardPciCompliant: 'Conforme à la norme PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Chiffrement de niveau bancaire',
             addPaymentCardRedundant: 'Infrastructure redondante',
@@ -5634,7 +5631,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Payer et rétrograder',
             headline: 'Votre paiement final',
-            description1: 'Votre facture finale pour cet abonnement sera',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Votre facture finale pour cet abonnement sera de <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Voir votre répartition ci-dessous pour le ${date} :`,
             subscription:
                 "Attention ! Cette action mettra fin à votre abonnement Expensify, supprimera cet espace de travail et retirera tous les membres de l'espace de travail. Si vous souhaitez conserver cet espace de travail et seulement vous retirer, demandez à un autre administrateur de prendre en charge la facturation d'abord.",
@@ -6008,6 +6005,7 @@ const translations = {
         memberNotFound: 'Membre non trouvé.',
         useInviteButton: "Pour inviter un nouveau membre à la discussion, veuillez utiliser le bouton d'invitation ci-dessus.",
         notAuthorized: `Vous n'avez pas accès à cette page. Si vous essayez de rejoindre cette salle, demandez simplement à un membre de la salle de vous ajouter. Autre chose ? Contactez ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Il semblerait que cette salle ait été archivée. Si vous avez des questions, contactez ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Êtes-vous sûr de vouloir retirer ${memberName} de la salle ?`,
             other: 'Êtes-vous sûr de vouloir supprimer les membres sélectionnés de la salle ?',
@@ -6154,7 +6152,7 @@ const translations = {
             },
             status: 'Statut',
             keyword: 'Mot-clé',
-            hasKeywords: 'A des mots-clés',
+            keywords: 'Mots-clés',
             currency: 'Devise',
             link: 'Lien',
             pinned: 'Épinglé',
@@ -6370,7 +6368,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `payé ${currency}${amount} ailleurs`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `payé ${currency}${amount} via intégration`,
                 outdatedBankAccount: `n’a pas pu traiter le paiement en raison d’un problème avec le compte bancaire du payeur`,
-                reimbursementACHBounce: `impossible de traiter le paiement, car le payeur n'a pas suffisamment de fonds`,
+                reimbursementACHBounce: `n'a pas pu traiter le paiement en raison d'un problème de compte bancaire`,
                 reimbursementACHCancelled: `annulé le paiement`,
                 reimbursementAccountChanged: `impossible de traiter le paiement, car le payeur a changé de compte bancaire`,
                 reimbursementDelayed: `a traité le paiement mais il est retardé de 1 à 2 jours ouvrables supplémentaires`,
@@ -6617,8 +6615,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} a rejeté cette dépense avec le commentaire "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Cette dépense a été refusée.',
         billableExpense: "Facturable n'est plus valide",
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Catégorie non valide',
