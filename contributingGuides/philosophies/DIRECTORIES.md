@@ -4,18 +4,24 @@ Learn how files are organized in the project.
 ### RULES
 #### - Directory names MUST be camel-case
 #### - Directory names SHOULD be plural
+#### - Page components MUST have the "Page" suffix (ie. `ConciergePage`)
+#### - Components used in a specific page SHOULD live in it's own sub-directory named after the page
 
 ## `/src`
 All of the source code for the app is here.
 
-## `/src/components`
+### `/src/components`
 React components that are re-used in several places across the application are stored here.
 
-## `/src/libs`
+### `/src/libs`
 Non-React components that contain the business logic of the app.
 
-## `/src/pages`
+### `/src/pages`
 React components that are organized by the hierarchy of the app. A "page" is the top-most UI controller for a given URL.
+
+### `/src/styles`
+All the styles used in the application are here.
+
 ## `/.github`
 GitHub-specific configurations, workflows, and actions for CI/CD and repository automation.
 
@@ -32,18 +38,15 @@ Shell scripts and utilities used by workflows and actions for various automation
 
 ### `/.github/libs`
 Shared TypeScript/JavaScript libraries and utilities used by our custom GitHub Actions.
-### Rules
-#### - Page components MUST have the "Page" suffix (ie. `ConciergePage`)
-#### - Components used in a specific page SHOULD live in it's own sub-directory named after the page
-
-## `/src/styles`
-All the styles used in the application are here.
 
 ## `/contributingGuides`
 Guides and insights to aid developers in learning how to contribute to this repo
 
 ## `/docs`
 This houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
+
+## `/help`
+This houses a secondary and experimental help site. It's primarily used for the right-hand-pane help articles. It's a static site that's built with Jekyll and hosted on GitHub Pages.
 
 # File naming/structure
 
