@@ -105,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -275,7 +276,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -358,6 +358,7 @@ const translations = {
         selectMultiple: 'Sélectionner plusieurs',
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
+        submitted: 'Soumis',
         rotate: 'Pivoter',
         zoom: 'Zoom',
         password: 'Mot de passe',
@@ -402,6 +403,7 @@ const translations = {
         contacts: 'Contacts',
         recents: 'Récents',
         close: 'Fermer',
+        comment: 'Commentaire',
         download: 'Télécharger',
         downloading: 'Téléchargement en cours',
         uploading: 'Téléchargement en cours',
@@ -494,6 +496,7 @@ const translations = {
         join: 'Rejoindre',
         leave: 'Quitter',
         decline: 'Refuser',
+        reject: 'Rejeter',
         transferBalance: 'Transférer le solde',
         cantFindAddress: 'Impossible de trouver votre adresse ?',
         enterManually: 'Entrez-le manuellement',
@@ -1399,6 +1402,24 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+        reject: {
+            educationalTitle: 'Faut-il mettre en attente ou rejeter ?',
+            educationalText: "Si vous n'êtes pas prêt à approuver ou à payer une dépense, vous pouvez la mettre en attente ou la rejeter.",
+            holdExpenseTitle: 'Mettez une dépense en attente pour demander plus de détails avant de l’approuver ou de la payer.',
+            heldExpenseLeftBehindTitle: 'Les dépenses mises en attente sont laissées de côté lorsque vous approuvez un rapport complet.',
+            rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
+            reasonPageTitle: 'Rejeter la dépense',
+            reasonPageDescription1:
+                'Rejetez une dépense si vous ne prévoyez jamais de l’approuver ou de la payer. Sinon, utilisez "Mettre en attente" pour la suspendre et demander plus de contexte.',
+            reasonPageDescription2: 'Si vous allez rejeter la dépense, veuillez ajouter un commentaire pour expliquer la raison :',
+            rejectReason: 'Raison du rejet',
+            markAsResolved: 'Marquer comme résolu',
+            rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
+            reportActions: {
+                rejectedExpense: 'a rejeté cette dépense',
+                markedAsResolved: 'a marqué la raison du rejet comme résolue',
+            },
+        },
         changeApprover: {
             title: "Modifier l'approbateur",
             subtitle: "Choisissez une option pour modifier l'approbateur de ce rapport.",
@@ -4665,10 +4686,9 @@ const translations = {
                 cardName: 'Nom de la carte',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `${integration} ${type.toLowerCase()} exportation` : `exportation ${integration}`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
-                integrationExportTitlePart: 'Sélectionner un autre',
-                integrationExportTitleLinkPart: "option d'exportation",
-                integrationExportTitleSecondPart: 'pour changer les comptes disponibles.',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées. Sélectionnez une autre <a href="${exportPageLink}">option d'exportation</a> pour modifier les comptes disponibles.`,
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
@@ -5298,7 +5318,8 @@ const translations = {
             continuousReconciliation: 'Réconciliation Continue',
             saveHoursOnReconciliation:
                 'Gagnez des heures sur la réconciliation à chaque période comptable en laissant Expensify réconcilier en continu les relevés et les règlements de la carte Expensify pour vous.',
-            enableContinuousReconciliation: 'Pour activer la Réconciliation Continue, veuillez activer',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Pour activer la réconciliation continue, veuillez activer la <a href="${accountingAdvancedSettingsLink}">synchronisation automatique</a> pour ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de votre carte Expensify seront rapprochés.',
                 accountMatches: 'Assurez-vous que ce compte correspond à votre',
@@ -6352,7 +6373,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `payé ${currency}${amount} ailleurs`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `payé ${currency}${amount} via intégration`,
                 outdatedBankAccount: `n’a pas pu traiter le paiement en raison d’un problème avec le compte bancaire du payeur`,
-                reimbursementACHBounce: `impossible de traiter le paiement, car le payeur n'a pas suffisamment de fonds`,
+                reimbursementACHBounce: `n'a pas pu traiter le paiement en raison d'un problème de compte bancaire`,
                 reimbursementACHCancelled: `annulé le paiement`,
                 reimbursementAccountChanged: `impossible de traiter le paiement, car le payeur a changé de compte bancaire`,
                 reimbursementDelayed: `a traité le paiement mais il est retardé de 1 à 2 jours ouvrables supplémentaires`,
@@ -6599,8 +6620,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} a rejeté cette dépense avec le commentaire "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Cette dépense a été refusée.',
         billableExpense: "Facturable n'est plus valide",
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Catégorie non valide',
