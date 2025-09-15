@@ -1,4 +1,6 @@
+import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
@@ -642,65 +644,13 @@ describe('actions/Policy', () => {
     });
 
     describe('DeletePolicyTags', () => {
-        it('delete policy tag', () => {
+        it('should return early if no policyTag is found', () => {
             const fakePolicy = createRandomPolicy(0);
-            fakePolicy.areTagsEnabled = true;
-
-            const tagListName = 'Fake tag';
-            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
-            const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
-
-            mockFetch?.pause?.();
-
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                .then(() => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                })
-                .then(() => {
-                    deletePolicyTags(fakePolicy.id, tagsToDelete);
-                    return waitForBatchedUpdates();
-                })
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
-                                callback: (policyTags) => {
-                                    Onyx.disconnect(connection);
-
-                                    tagsToDelete.forEach((tagName) => {
-                                        expect(policyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                                    });
-
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(mockFetch?.resume)
-                .then(waitForBatchedUpdates)
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
-                                callback: (policyTags) => {
-                                    Onyx.disconnect(connection);
-
-                                    tagsToDelete.forEach((tagName) => {
-                                        expect(policyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
-                                    });
-
-                                    resolve();
-                                },
-                            });
-                        }),
-                );
+            const result = deletePolicyTags(fakePolicy.id, ['tag1'], {});
+            expect(result).toBeUndefined();
         });
 
-        it('reset the deleted policy tag when api returns error', () => {
+        it('delete policy tag', async () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
@@ -710,37 +660,99 @@ describe('actions/Policy', () => {
 
             mockFetch?.pause?.();
 
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                .then(() => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                })
-                .then(() => {
-                    mockFetch?.fail?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
-                    deletePolicyTags(fakePolicy.id, tagsToDelete);
-                    return waitForBatchedUpdates();
-                })
-                .then(mockFetch?.resume)
-                .then(waitForBatchedUpdates)
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
-                                callback: (policyTags) => {
-                                    Onyx.disconnect(connection);
+            deletePolicyTags(fakePolicy.id, tagsToDelete, fakePolicyTags);
+            await waitForBatchedUpdates();
 
-                                    tagsToDelete.forEach((tagName) => {
-                                        expect(policyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
-                                        expect(policyTags?.[tagListName]?.tags[tagName].errors).toBeTruthy();
-                                    });
+            // Verify optimistic data
+            let updatePolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatePolicyTags = val),
+            });
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                );
+            tagsToDelete.forEach((tagName) => {
+                expect(updatePolicyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            });
+
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Verify success data
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatePolicyTags = val),
+            });
+
+            tagsToDelete.forEach((tagName) => {
+                expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
+            });
+        });
+
+        it('reset the deleted policy tag when api returns error', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
+
+            mockFetch?.pause?.();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            mockFetch?.fail?.();
+            deletePolicyTags(fakePolicy.id, tagsToDelete, fakePolicyTags);
+            await waitForBatchedUpdates();
+
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Verify failure data
+            let updatePolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatePolicyTags = val),
+            });
+
+            tagsToDelete.forEach((tagName) => {
+                expect(updatePolicyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
+                expect(updatePolicyTags?.[tagListName]?.tags[tagName].errors).toBeTruthy();
+            });
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
+
+            await waitFor(() => {
+                expect(result.current[0]).toBeDefined();
+            });
+
+            deletePolicyTags(fakePolicy.id, tagsToDelete, result.current[0]);
+
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Verify success data
+            let updatePolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatePolicyTags = val),
+            });
+
+            tagsToDelete.forEach((tagName) => {
+                expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
+            });
         });
     });
 });
