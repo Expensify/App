@@ -1,25 +1,25 @@
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
-import { generateDefaultWorkspaceName, generatePolicyID } from '@libs/actions/Policy/Policy';
-import type { CustomRNImageManipulatorResult } from '@libs/cropOrRotateImage/types';
-import { addErrorMessage } from '@libs/ErrorUtils';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import Navigation from '@libs/Navigation/Navigation';
-import { getDefaultWorkspaceAvatar } from '@libs/ReportUtils';
-import { isRequiredFulfilled } from '@libs/ValidationUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import React, { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type { FormInputErrors, FormOnyxValues } from './Form/types';
+import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
@@ -194,5 +194,4 @@ WorkspaceConfirmationForm.displayName = 'WorkspaceConfirmationForm';
 
 export default WorkspaceConfirmationForm;
 
-export type { WorkspaceConfirmationSubmitFunctionParams };
-
+export type {WorkspaceConfirmationSubmitFunctionParams};
