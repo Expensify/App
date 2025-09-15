@@ -122,10 +122,7 @@ function Expensify() {
     }, [isCheckingPublicRoom]);
 
     const isAuthenticated = useIsAuthenticated();
-    const isAuthenticatedRef = useRef(isAuthenticated);
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    isAuthenticatedRef.current = isAuthenticated;
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
@@ -231,12 +228,12 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticatedRef.current);
+            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticatedRef.current);
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
