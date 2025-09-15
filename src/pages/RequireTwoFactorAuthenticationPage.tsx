@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -20,7 +20,15 @@ const selector = (account: OnyxEntry<Account>) => account?.validated;
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector, canBeMissing: false});
+    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector, canBeMissing: false});
+
+    const handleOnPress = useCallback(() => {
+        if (isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH));
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({backTo: ROUTES.REQUIRE_TWO_FACTOR_AUTH, forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute()}));
+    }, [isUserValidated]);
 
     return (
         <ScreenWrapper testID={RequireTwoFactorAuthenticationPage.displayName}>
@@ -41,13 +49,7 @@ function RequireTwoFactorAuthenticationPage() {
                         large
                         success
                         pressOnEnter
-                        onPress={() => {
-                            if (isUserValidated) {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH));
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({backTo: ROUTES.REQUIRE_TWO_FACTOR_AUTH, forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute()}));
-                        }}
+                        onPress={handleOnPress}
                         text={translate('twoFactorAuth.enableTwoFactorAuth')}
                     />
                 </View>
