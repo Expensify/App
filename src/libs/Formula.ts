@@ -408,7 +408,11 @@ function formatAmount(amount: number | undefined, currency: string | undefined):
     }
 
     const absoluteAmount = Math.abs(amount);
-    const formattedAmount = (absoluteAmount / 100).toFixed(2);
+    const dollarAmount = absoluteAmount / 100;
+    const formattedAmount = dollarAmount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
 
     if (currency) {
         return `${currency}${formattedAmount}`;
