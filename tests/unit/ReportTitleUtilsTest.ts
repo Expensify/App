@@ -22,10 +22,7 @@ describe('ReportTitleUtils', () => {
     describe('getTitleFieldFromRNVP', () => {
         const mockReportID = '12345';
         const mockTitleField = {
-            fieldID: 'title_field_1',
-            name: 'Title',
-            type: 'text',
-            value: 'Test Title',
+            defaultValue: 'Test Title',
         };
 
         it('should return title field when RNVP exists with title field', () => {
@@ -182,10 +179,7 @@ describe('ReportTitleUtils', () => {
     describe('shouldUpdateTitleField', () => {
         const mockReportID = '12345';
         const mockTitleField = {
-            fieldID: 'title_field_1',
-            name: 'Title',
-            type: 'text',
-            value: 'Test Title',
+            defaultValue: 'Test Title',
         };
 
         beforeEach(() => {
