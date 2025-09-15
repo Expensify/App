@@ -29,7 +29,6 @@ namespace margelo::nitro::utils {
     // C++ constructor (called from Java via `initHybrid()`)
     explicit JHybridContactsModuleSpec(jni::alias_ref<jhybridobject> jThis) :
       HybridObject(HybridContactsModuleSpec::TAG),
-      HybridBase(jThis),
       _javaPart(jni::make_global(jThis)) {}
 
   public:
@@ -40,7 +39,6 @@ namespace margelo::nitro::utils {
 
   public:
     size_t getExternalMemorySize() noexcept override;
-    void dispose() noexcept override;
 
   public:
     inline const jni::global_ref<JHybridContactsModuleSpec::javaobject>& getJavaPart() const noexcept {
