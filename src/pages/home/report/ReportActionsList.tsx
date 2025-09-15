@@ -366,7 +366,7 @@ function ReportActionsList({
         if (
             scrollingVerticalOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
-            reportActionSize.current > sortedVisibleReportActions.length &&
+            reportActionSize.current !== sortedVisibleReportActions.length &&
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
