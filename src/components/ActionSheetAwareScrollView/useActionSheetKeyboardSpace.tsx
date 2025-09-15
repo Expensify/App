@@ -37,7 +37,6 @@ const useAnimatedKeyboard = () => {
                     heightWhenOpened.set(e.height);
                     height.set(0);
                 }
-                // height.set(heightWhenOpened.get());
                 lastHeight.set(e.height);
                 state.set(e.height > 0 ? KeyboardState.OPENING : KeyboardState.CLOSING);
                 height.set(e.height > 0 ? 0 : heightWhenOpened.get());

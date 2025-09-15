@@ -72,6 +72,7 @@ import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/o
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
+import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
@@ -221,6 +222,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -481,6 +483,11 @@ type OptimisticSubmittedReportAction = Pick<
 >;
 
 type OptimisticHoldReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+>;
+
+type OptimisticRejectReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
@@ -4462,6 +4469,24 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
     }
 };
 
+const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void => {
+    if (!isMoneyRequestAction(reportAction)) {
+        return;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const moneyRequestReportID = originalMessage?.IOUReportID;
+    const transactionID = originalMessage?.IOUTransactionID;
+
+    if (!transactionID || !moneyRequestReportID) {
+        Log.warn('Missing transactionID and moneyRequestReportID during the change of the money request hold status');
+        return;
+    }
+
+    const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
+    Navigation.navigate(ROUTES.REJECT_MONEY_REQUEST_REASON.getRoute(transactionID, moneyRequestReportID, activeRoute));
+};
+
 /**
  * Gets all transactions on an IOU report with a receipt
  */
@@ -5014,6 +5039,15 @@ function getReportActionMessage({
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translateLocal('iou.unheldExpense');
     }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
+        return translateLocal('iou.reject.reportActions.rejectedExpense');
+    }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
+        return translateLocal('iou.reject.reportActions.markedAsResolved');
+    }
+
     if (isApprovedOrSubmittedReportAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         return getReportActionMessageText(reportAction);
     }
@@ -5531,7 +5565,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
@@ -5565,7 +5599,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     }
 
     return {
-        reportName: getReportName(parentReport),
+        reportName: getReportName(parentReport, undefined, undefined, undefined, undefined, reportAttributes),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -11369,6 +11403,33 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
+function canRejectReportAction(report: Report, policy?: Policy): boolean {
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const isReportBeingProcessed = isProcessingReport(report);
+    const isApproved = isReportApproved({report});
+    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isIOU = isIOUReport(report);
+
+    const userCanReject = isReportApprover || isReportPayer;
+
+    if (!userCanReject) {
+        return false; // must be approver or payer
+    }
+
+    if (isIOU) {
+        return true; // IOU reports can always be rejected by approver/payer
+    }
+
+    if (isReportBeingProcessed) {
+        return true; // non-IOU reports can be rejected while processing
+    }
+
+    if (isReportPayer && isApproved) {
+        return true; // payers can also reject approved reports
+    }
+
+    return false;
+}
 
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     // If report object is provided and has the property, use it directly
@@ -11406,6 +11467,99 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
     return getReportName(iouReport) || action.childReportName;
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticRejectReportAction(created = DateUtils.getDBTime()): OptimisticRejectReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: translateLocal('iou.reject.reportActions.rejectedExpense'),
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticRejectReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: comment,
+                html: comment,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been marked as resolved optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTime()): OptimisticRejectReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: translateLocal('iou.reject.reportActions.markedAsResolved'),
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
 }
 
 /**
@@ -11490,6 +11644,9 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
     buildOptimisticDetachReceipt,
+    buildOptimisticRejectReportAction,
+    buildOptimisticRejectReportActionComment,
+    buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
     buildOptimisticChangeApproverReportAction,
@@ -11756,6 +11913,7 @@ export {
     isCurrentUserInvoiceReceiver,
     isDraftReport,
     changeMoneyRequestHoldStatus,
+    rejectMoneyRequestReason,
     isAdminOwnerApproverOrReportOwner,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
@@ -11828,6 +11986,7 @@ export {
     isWorkspaceEligibleForReportChange,
     pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
+    canRejectReportAction,
     hasReportBeenReopened,
     hasReportBeenRetracted,
     getMoneyReportPreviewName,
@@ -11838,7 +11997,6 @@ export {
     getReportStatusTranslation,
     getMovedActionMessage,
 };
-
 export type {
     Ancestor,
     DisplayNameWithTooltips,
