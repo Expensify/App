@@ -714,10 +714,6 @@ const SCREENS = {
         SELECTION: 'Currency_Selection',
     },
 
-    WELCOME_VIDEO: {
-        ROOT: 'Welcome_Video_Root',
-    },
-
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
     },
