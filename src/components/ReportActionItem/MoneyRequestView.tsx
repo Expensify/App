@@ -131,10 +131,8 @@ function MoneyRequestView({
         canEvict: false,
         canBeMissing: true,
     });
-
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isFromMergeTransaction = !!mergeTransactionID;
-
     const linkedTransactionID = useMemo(() => {
         if (!parentReportAction) {
             return undefined;
