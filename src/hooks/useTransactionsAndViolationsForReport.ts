@@ -2,6 +2,7 @@ import {useMemo} from 'react';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 
@@ -20,8 +21,8 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
         const filteredViolations = Object.keys(violations).reduce(
             (filteredTransactionViolations, transactionViolationKey) => {
                 const transactionID = transactionViolationKey.split('_').at(1) ?? '';
-                const transaction = transactions[transactionID];
-                filteredTransactionViolations[transactionID] = getTransactionViolations(transaction, violations) ?? [];
+                const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                filteredTransactionViolations[transactionViolationKey] = getTransactionViolations(transaction, violations) ?? [];
                 return filteredTransactionViolations;
             },
             {} as Record<string, TransactionViolations>,
