@@ -15,7 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
 import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
-import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
+import checkFileExists from '@libs/fileDownload/checkFileExists';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
@@ -31,7 +32,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {showErrorAlert} from './ShareRootPage';
+import {showErrorAlert} from '../ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
 function SubmitDetailsPage({
@@ -160,25 +161,24 @@ function SubmitDetailsPage({
         }
     };
 
-    const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
+    const onSuccess = (receipt: Receipt, locationPermissionGranted?: boolean) => {
         const participant = selectedParticipants.at(0);
         if (!participant) {
             return;
         }
 
-        const receipt: Receipt = file;
-        receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        const receiptWithState = {...receipt, state: receipt && CONST.IOU.RECEIPT_STATE.SCAN_READY};
         if (locationPermissionGranted) {
             getCurrentPosition(
                 (successData) => {
-                    finishRequestAndNavigate(participant, receipt, {
+                    finishRequestAndNavigate(participant, receiptWithState, {
                         lat: successData.coords.latitude,
                         long: successData.coords.longitude,
                     });
                 },
                 (errorData) => {
                     Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
-                    finishRequestAndNavigate(participant, receipt);
+                    finishRequestAndNavigate(participant, receiptWithState);
                 },
                 {
                     maximumAge: CONST.GPS.MAX_AGE,
@@ -187,7 +187,7 @@ function SubmitDetailsPage({
             );
             return;
         }
-        finishRequestAndNavigate(participant, receipt);
+        finishRequestAndNavigate(participant, receiptWithState);
     };
 
     const onConfirm = (gpsRequired?: boolean) => {
@@ -205,13 +205,28 @@ function SubmitDetailsPage({
             return;
         }
 
-        readFileAsync(
-            fileUri,
-            fileName,
-            (file) => onSuccess(file, shouldStartLocationPermissionFlow),
-            () => {},
-            fileType,
-        );
+        // Native platform: Use checkFileExists for memory-safe validation
+        checkFileExists(fileUri)
+            .then((exists) => {
+                if (!exists) {
+                    Log.warn('File does not exist for sharing:', {path: fileUri});
+                    return;
+                }
+
+                // Create receipt object with path-based approach (no file loading)
+                const receipt: Receipt = {
+                    source: fileUri,
+                    name: fileName,
+                    filename: fileName,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                    type: fileType,
+                };
+
+                onSuccess(receipt, shouldStartLocationPermissionFlow);
+            })
+            .catch((error) => {
+                Log.warn('Error checking file existence for sharing:', {message: error});
+            });
     };
 
     return (

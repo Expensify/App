@@ -81,10 +81,10 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import type {WithFullTransactionOrNotFoundProps} from '../withFullTransactionOrNotFound';
+import withFullTransactionOrNotFound from '../withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from '../withWritableReportOrNotFound';
+import withWritableReportOrNotFound from '../withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;

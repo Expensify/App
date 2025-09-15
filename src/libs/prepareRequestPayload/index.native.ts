@@ -1,4 +1,5 @@
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import checkFileExists from '@libs/fileDownload/checkFileExists';
+import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
@@ -18,19 +19,45 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
-            if ((key === 'receipt' || key === 'file') && initiatedOffline) {
-                const {uri: path = '', source} = value as File;
+            // Handle receipt key separately (memory-efficient path-based approach)
+            if (key === 'receipt') {
+                const receiptValue = value as File;
+                const {source} = receiptValue;
+
+                // Note: isFileUploadable check already done in IOU.ts before calling API
+                if (source) {
+                    return checkFileExists(source).then((exists) => {
+                        if (!exists) {
+                            return;
+                        }
+
+                        const receiptFormData = {
+                            uri: source,
+                            name: receiptValue.name ?? getFileName(source),
+                            type: receiptValue.type && receiptValue.type !== '' ? receiptValue.type : 'image/jpeg',
+                        };
+
+                        validateFormDataParameter(command, key, receiptFormData);
+                        formData.append(key, receiptFormData as File);
+                    });
+                }
+            }
+
+            // Handle file key separately (original readFileAsync logic)
+            if (key === 'file' && initiatedOffline) {
+                const fileValue = value as File;
+                const {uri: path = '', source} = fileValue;
+
                 if (!source) {
                     validateFormDataParameter(command, key, value);
                     formData.append(key, value as string | Blob);
-
                     return Promise.resolve();
                 }
+
                 return readFileAsync(source, path, () => {}).then((file) => {
                     if (!file) {
                         return;
                     }
-
                     validateFormDataParameter(command, key, file);
                     formData.append(key, file);
                 });
