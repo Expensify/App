@@ -1,25 +1,25 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
-import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import { generateDefaultWorkspaceName, generatePolicyID } from '@libs/actions/Policy/Policy';
+import type { CustomRNImageManipulatorResult } from '@libs/cropOrRotateImage/types';
+import { addErrorMessage } from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import { getDefaultWorkspaceAvatar } from '@libs/ReportUtils';
+import { isRequiredFulfilled } from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View } from 'react-native';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from './Form/types';
+import type { FormInputErrors, FormOnyxValues } from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
@@ -79,11 +79,12 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const [session, metadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {canBeMissing: true});
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
-    const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const userCurrency = draftValues?.currency ?? allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
         avatarUri: null,
@@ -193,4 +194,5 @@ WorkspaceConfirmationForm.displayName = 'WorkspaceConfirmationForm';
 
 export default WorkspaceConfirmationForm;
 
-export type {WorkspaceConfirmationSubmitFunctionParams};
+export type { WorkspaceConfirmationSubmitFunctionParams };
+

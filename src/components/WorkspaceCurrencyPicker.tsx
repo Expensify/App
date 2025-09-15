@@ -1,13 +1,16 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useOnyx from '@hooks/useOnyx';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {WorkspaceConfirmationNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 type WorkspaceCurrencyPickerProps = {
     /** Label for the input */
@@ -33,6 +36,9 @@ function WorkspaceCurrencyPicker({label, value, errorText, style, onInputChange,
     const didOpenCurrencySelector = useRef(false);
     const isFocused = useIsFocused();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {canBeMissing: true});
+
+    const route = useRoute<PlatformStackRouteProp<WorkspaceConfirmationNavigatorParamList, typeof SCREENS.CURRENCY.SELECTION>>();
+    const backTo = route.params?.backTo;
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -60,7 +66,7 @@ function WorkspaceCurrencyPicker({label, value, errorText, style, onInputChange,
             style={style}
             onPress={() => {
                 didOpenCurrencySelector.current = true;
-                Navigation.navigate(ROUTES.CURRENCY_SELECTION);
+                Navigation.navigate(ROUTES.CURRENCY_SELECTION.getRoute(backTo));
             }}
         />
     );
