@@ -25,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
+import {getCurrentStepFromBankAccount, getRouteForCurrentStep, mapBankAccountToACHData, mapBankAccountToReimbursementAccountDraft} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -40,7 +40,7 @@ import {
     updateReimbursementAccountDraft,
 } from '@userActions/BankAccounts';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {clearReimbursementAccountDraft, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -131,7 +131,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     const hasInProgressVBBA = useCallback((): boolean => {
-        if (!policy){
+        if (!policy) {
             return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP);
         }
         return !!achData?.bankAccountID && !!achData?.state && achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && achData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED;
@@ -161,6 +161,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (policyIDParam ?? !bankAccountList) {
+            return;
+        }
+
+        const achDataFromBankAccount = mapBankAccountToACHData(bankAccountList);
+        const step = getCurrentStepFromBankAccount(bankAccountList);
+        if (achDataFromBankAccount) {
+            updateReimbursementAccount({...achDataFromBankAccount, currentStep: step});
+            setHasACHDataBeenLoaded(true);
+        }
+
+        const draftDataFromBankAccount = mapBankAccountToReimbursementAccountDraft(bankAccountList);
+        if (draftDataFromBankAccount) {
+            updateReimbursementAccountDraft(draftDataFromBankAccount);
+        }
+    }, [policyIDParam, bankAccountList]);
 
     /**
      * Retrieve verified business bank account currently being set up.
