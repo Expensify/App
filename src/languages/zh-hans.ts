@@ -105,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -357,6 +358,7 @@ const translations = {
         selectMultiple: '选择多个',
         saveChanges: '保存更改',
         submit: '提交',
+        submitted: '已提交',
         rotate: '旋转',
         zoom: 'Zoom',
         password: '密码',
@@ -2465,9 +2467,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `\u67e5\u770b\u60a8\u7684[\u5de5\u4f5c\u533a\u8bbe\u7f6e](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     '\u4ee5\u4e0b\u662f\u67e5\u770b\u548c\u66f4\u65b0\u60a8\u5de5\u4f5c\u533a\u8bbe\u7f6e\u7684\u65b9\u6cd5\uff1a\n' +
-                    '1. \u70b9\u51fb\u8bbe\u7f6e\u9009\u9879\u5361\u3002\n' +
-                    '2. \u70b9\u51fb *\u5de5\u4f5c\u533a* > [\u60a8\u7684\u5de5\u4f5c\u533a]\u3002\n' +
-                    `[\u524d\u5f80\u60a8\u7684\u5de5\u4f5c\u533a](${workspaceSettingsLink})\u3002\u6211\u4eec\u5c06\u5728 #admins \u804a\u5929\u5ba4\u4e2d\u8ddf\u8e2a\u5b83\u4eec\u3002`,
+                    '1. \u70b9\u51fb\u5de5\u4f5c\u533a\u3002\n' +
+                    '2. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n' +
+                    '3. \u67e5\u770b\u548c\u66f4\u65b0\u60a8\u7684\u8bbe\u7f6e\u3002\n' +
+                    `[\u524d\u5f80\u60a8\u7684\u5de5\u4f5c\u533a\u3002](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: '\u521b\u5efa\u60a8\u7684\u7b2c\u4e00\u4efd\u62a5\u544a',
@@ -4592,10 +4595,9 @@ const translations = {
                 cardholder: '持卡人',
                 cardName: '卡片名称',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `选择应导出交易的${integration}账户。`,
-                integrationExportTitlePart: '选择不同的',
-                integrationExportTitleLinkPart: '导出选项',
-                integrationExportTitleSecondPart: '更改可用账户。',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `选择应导出交易的${integration}账户。`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `选择应导出交易的${integration}账户。选择不同的<a href="${exportPageLink}">导出选项</a>，更改可用账户。`,
                 lastUpdated: '最后更新',
                 transactionStartDate: '交易开始日期',
                 updateCard: '更新卡片',
@@ -5215,7 +5217,8 @@ const translations = {
             reconciliationAccount: '对账账户',
             continuousReconciliation: '持续对账',
             saveHoursOnReconciliation: '通过让Expensify持续为您对账Expensify卡的对账单和结算，您可以在每个会计期间节省数小时的对账时间。',
-            enableContinuousReconciliation: '为了启用持续对账，请启用',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>要启用持续对账，请启用 ${connectionName} 的<a href="${accountingAdvancedSettingsLink}">自动同步</a>功能。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: '选择用于对账您的 Expensify Card 支付的银行账户。',
                 accountMatches: '确保此账户与您的账户匹配',
@@ -6237,7 +6240,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `在其他地方支付了${currency}${amount}`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `通过集成支付了${currency}${amount}`,
                 outdatedBankAccount: `由于付款人的银行账户出现问题，无法处理付款。`,
-                reimbursementACHBounce: `无法处理付款，因为付款人资金不足。`,
+                reimbursementACHBounce: `由于银行账户问题，无法处理付款。`,
                 reimbursementACHCancelled: `取消了付款`,
                 reimbursementAccountChanged: `无法处理付款，因为付款人更换了银行账户。`,
                 reimbursementDelayed: `已处理付款，但会延迟1-2个工作日。`,

@@ -74,14 +74,14 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     test('when there were no substitutions', () => {
         const userQuery = 'foo bar';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {});
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {}, 12345);
 
         expect(result).toStrictEqual({});
     });
     test('when query has a single substitution', () => {
         const userQuery = 'foo from:12345';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {});
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, {}, cardFeedsMock, {}, 11111);
 
         expect(result).toStrictEqual({
             'from:John Doe': '12345',
@@ -91,7 +91,7 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
     test('when query has multiple substitutions of different types', () => {
         const userQuery = 'from:78901,12345 to:nonExistingGuy@mail.com cardID:11223344 in:rep123 taxRate:id_TAX_1 groupBy:cards feed:"1234_oauth.americanexpressfdx.com 1001"';
 
-        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {});
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {}, 11111);
 
         expect(result).toStrictEqual({
             'from:Jane Doe': '78901',
