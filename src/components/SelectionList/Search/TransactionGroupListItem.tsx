@@ -33,6 +33,7 @@ import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
+import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -331,7 +332,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             key={transaction.transactionID}
                                             report={transaction.report}
                                             transactionItem={transaction}
-                                            violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                                            violations={getTransactionViolations(transaction, violations)}
                                             isSelected={!!transaction.isSelected}
                                             dateColumnSize={dateColumnSize}
                                             amountColumnSize={amountColumnSize}
