@@ -6464,6 +6464,7 @@ const CONST = {
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
+        ME: 'me',
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
