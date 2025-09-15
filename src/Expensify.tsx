@@ -122,7 +122,6 @@ function Expensify() {
     }, [isCheckingPublicRoom]);
 
     const isAuthenticated = useIsAuthenticated();
-
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
