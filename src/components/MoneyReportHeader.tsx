@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -178,9 +179,8 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const {login} = useCurrentUserPersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -558,6 +558,7 @@ function MoneyReportHeader({
 
     const primaryAction = useMemo(() => {
         return getReportPrimaryAction({
+            currentUserEmail: login ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -582,6 +583,7 @@ function MoneyReportHeader({
         reportActions,
         isChatReportArchived,
         invoiceReceiverPolicy,
+        login,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -903,6 +905,7 @@ function MoneyReportHeader({
             return [];
         }
         return getSecondaryReportActions({
+            currentUserEmail: login ?? '',
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -913,7 +916,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived, login]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
