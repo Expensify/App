@@ -164,6 +164,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type PhoneErrorRouteParams = {
+    phoneErrorMethodsRoute: string;
+};
+
 type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
@@ -288,8 +292,6 @@ type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerc
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type WalletProgramParams = {walletProgram: string};
-
-type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
 type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
 
@@ -906,6 +908,14 @@ type SubmittedWithMemoParams = {
     memo?: string;
 };
 
+type DependentMultiLevelTagsSubtitleParams = {
+    importSpreadsheetLink: string;
+};
+
+type PayAndDowngradeDescriptionParams = {
+    formattedAmount: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1069,7 +1079,6 @@ export type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsInvoiceMarkupParams,
@@ -1186,6 +1195,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
@@ -1209,4 +1219,6 @@ export type {
     SubmittedWithMemoParams,
     SignerInfoMessageParams,
     BusinessRegistrationNumberParams,
+    DependentMultiLevelTagsSubtitleParams,
+    PayAndDowngradeDescriptionParams,
 };

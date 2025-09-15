@@ -64,16 +64,7 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import type {
-    Comment,
-    Receipt,
-    TransactionChanges,
-    TransactionCustomUnit,
-    TransactionPendingFieldsKey,
-    UnreportedTransaction,
-    Waypoint,
-    WaypointCollection,
-} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
 
@@ -1065,7 +1056,7 @@ function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Pol
     const isReportOpen = isOpenExpenseReport(iouReport);
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
-        return isSubmitter;
+        return isSubmitter || isPolicyAdmin(policy);
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
@@ -1919,10 +1910,6 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
-function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
-    return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-}
-
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2032,7 +2019,6 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
-    isExpenseUnreported,
 };
 
 export type {TransactionChanges};

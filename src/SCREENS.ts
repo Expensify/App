@@ -68,6 +68,7 @@ const SCREENS = {
         ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP: 'Search_Advanced_Filters_Withdrawal_Type_RHP',
         ADVANCED_FILTERS_WITHDRAWAL_ID_RHP: 'Search_Advanced_Filters_Withdrawal_ID_RHP',
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
+        ADVANCED_FILTERS_HAS_RHP: 'Search_Advanced_Filters_Has_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         ADVANCED_FILTERS_TITLE_RHP: 'Search_Advanced_Filters_Title_RHP',
@@ -250,6 +251,7 @@ const SCREENS = {
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
         HOLD: 'Money_Request_Hold_Reason',
+        REJECT: 'Money_Request_Reject_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
@@ -708,10 +710,6 @@ const SCREENS = {
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
-    WELCOME_VIDEO: {
-        ROOT: 'Welcome_Video_Root',
-    },
-
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
     },
@@ -783,6 +781,7 @@ const SCREENS = {
     },
     REPORT_CHANGE_APPROVER: {
         ROOT: 'Report_Change_Approver_Root',
+        ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',

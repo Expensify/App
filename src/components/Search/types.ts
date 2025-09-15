@@ -35,6 +35,12 @@ type SelectedTransactionInfo = {
 
     /** The transaction amount */
     amount: number;
+
+    /** The converted transaction amount into either group currency, or the active policy currency */
+    convertedAmount: number;
+
+    /** The currency that the converted amount is in */
+    convertedCurrency: string;
 };
 
 /** Model of selected transactions */
@@ -120,6 +126,14 @@ type QueryFilter = {
 };
 
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
+
+type SearchTextFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
 
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
@@ -227,4 +241,5 @@ export type {
     SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
+    SearchTextFilterKeys,
 };
