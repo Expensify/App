@@ -86,6 +86,7 @@ function OnboardingModalNavigator() {
         return {
             headerShown: false,
             animation: Animations.SLIDE_FROM_RIGHT,
+            animationTypeForReplace: 'pop',
             gestureDirection: 'horizontal',
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
