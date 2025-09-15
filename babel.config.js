@@ -129,6 +129,7 @@ const metro = {
                     '@userActions': './src/libs/actions',
                     '@desktop': './desktop',
                     '@github': './.github',
+                    '@selectors': './src/selectors',
                 },
             },
         ],
