@@ -191,7 +191,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, validFilesToUpload]);
 
     // const confirmAndContinue = useCallback(() => {
-    //     if (fileError !== CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+    //     if (fileError !== CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
     //         return;
     //     }
 

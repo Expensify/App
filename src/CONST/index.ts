@@ -1992,21 +1992,22 @@ const CONST = {
         VIDEO: /\.(mov|mp4)$/,
     },
 
-    SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS: {
-        NO_FILE_PROVIDED: 'noFileProvided',
-        FILE_INVALID: 'fileInvalid',
-        WRONG_FILE_TYPE: 'wrongFileType',
-        FILE_TOO_LARGE: 'fileTooLarge',
-        FILE_TOO_SMALL: 'fileTooSmall',
-        FILE_CORRUPTED: 'fileCorrupted',
-        PROTECTED_FILE: 'protectedFile',
-    },
-
-    MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS: {
-        WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
-        FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
-        FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
-        MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
+    ATTACHMENT_VALIDATION_ERRORS: {
+        SINGLE_FILE: {
+            NO_FILE_PROVIDED: 'noFileProvided',
+            FILE_INVALID: 'fileInvalid',
+            WRONG_FILE_TYPE: 'wrongFileType',
+            FILE_TOO_LARGE: 'fileTooLarge',
+            FILE_TOO_SMALL: 'fileTooSmall',
+            FILE_CORRUPTED: 'fileCorrupted',
+            PROTECTED_FILE: 'protectedFile',
+        },
+        MULTIPLE_FILES: {
+            WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
+            FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
+            FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
+            MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
+        },
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
