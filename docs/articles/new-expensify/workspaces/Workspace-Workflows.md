@@ -43,7 +43,13 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 ## Delay Submissions
 
 - Controls when expenses are automatically submitted.
-- Choose how frequently expenses are submitted (e.g., daily, weekly).
+- Choose how frequently expenses are submitted:
+   - Daily – Reports are submitted every evening. Violations are submitted once corrected.
+   - Weekly – Reports are submitted weekly. Violations are submitted on Sunday after correction.
+   - Twice a month – Reports are submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
+   - Monthly – Reports are submitted once a month on your selected day. Violations are submitted the following month.
+   - By trip – A report is submitted when no new expenses are added for two full days. A new trip report starts after that.
+   - Manually – Expenses are auto-added to a report, but employees must submit them manually.
 - If turned **off**, all reimbursable and non-reimbursable expenses are submitted instantly.
 
 ---

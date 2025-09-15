@@ -360,6 +360,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
                 const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false, true, true).personalDetails.filter(
                     (participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()),
