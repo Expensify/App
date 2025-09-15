@@ -13,11 +13,15 @@ function HelpButton({style}: HelpButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {openSidePanel, shouldHideHelpButton} = useSidePanel();
+    const {openSidePanel} = useSidePanel();
 
-    if (shouldHideHelpButton) {
-        return null;
-    }
+    return null;
+
+    // The Help panel is currently disabled. To open it manually, run:
+    // Onyx.set('nvp_sidePanel', { open: true }) in the console.
+    // if (shouldHideHelpButton) {
+    //   return null;
+    // }
 
     return (
         <Tooltip text={translate('common.help')}>
