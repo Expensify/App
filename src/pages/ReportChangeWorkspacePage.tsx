@@ -19,7 +19,6 @@ import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/typ
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {
-    getReport,
     getReportOrDraftReport,
     isExpenseReport,
     isIOUReport,
@@ -47,7 +46,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const isReportLastMessageArchived = useReportIsArchived(getReport(report?.parentReportID ?? '', allReports)?.reportID);
     const isReportLastVisibleArchived = useReportIsArchived(getReportOrDraftReport(report?.parentReportID)?.reportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
@@ -69,12 +67,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportLastMessageArchived, isReportLastVisibleArchived);
+                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportLastVisibleArchived);
             } else {
-                changeReportPolicy(report, policy, reportNextStep, isReportLastMessageArchived, isReportLastVisibleArchived);
+                changeReportPolicy(report, policy, reportNextStep, isReportLastVisibleArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastMessageArchived, isReportLastVisibleArchived],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

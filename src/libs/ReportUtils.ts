@@ -11996,7 +11996,6 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
-    getReport,
     getMovedActionMessage,
 };
 export type {

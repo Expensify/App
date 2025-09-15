@@ -5714,7 +5714,6 @@ function buildOptimisticChangePolicyData(
     policy: Policy,
     reportNextStep?: ReportNextStep,
     optimisticPolicyExpenseChatReport?: Report,
-    isReportLastMessageArchived = false,
     isReportLastVisibleArchived = false,
 ) {
     const optimisticData: OnyxUpdate[] = [];
@@ -5830,7 +5829,7 @@ function buildOptimisticChangePolicyData(
         const lastVisibleActionCreated = getReportLastMessage(
             oldWorkspaceChatReportID,
             {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction},
-            isReportLastMessageArchived,
+            isReportLastVisibleArchived,
         )?.lastVisibleActionCreated;
 
         optimisticData.push({
@@ -5964,7 +5963,7 @@ function buildOptimisticChangePolicyData(
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: ReportNextStep, isReportLastMessageArchived = false, isReportLastVisibleArchived = false) {
+function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: ReportNextStep, isReportLastVisibleArchived = false) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
     }
@@ -5974,7 +5973,6 @@ function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: Rep
         policy,
         reportNextStep,
         undefined,
-        isReportLastMessageArchived,
         isReportLastVisibleArchived,
     );
 
@@ -5999,7 +5997,6 @@ function changeReportPolicyAndInviteSubmitter(
     policy: Policy,
     employeeList: PolicyEmployeeList | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    isReportLastMessageArchived = false,
     isReportLastVisibleArchived = false,
 ) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
@@ -6033,7 +6030,7 @@ function changeReportPolicyAndInviteSubmitter(
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(report, policy, undefined, membersChats.reportCreationData[submitterEmail], isReportLastMessageArchived, isReportLastVisibleArchived);
+    } = buildOptimisticChangePolicyData(report, policy, undefined, membersChats.reportCreationData[submitterEmail], isReportLastVisibleArchived);
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);
