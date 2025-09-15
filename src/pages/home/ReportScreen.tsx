@@ -175,6 +175,26 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
+    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+        canBeMissing: false,
+    });
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const prevIsLoadingReportData = usePrevious(isLoadingReportData);
+    const prevIsAnonymousUser = useRef(false);
+
+    useEffect(() => {
+        if (isAnonymousUser) {
+            prevIsAnonymousUser.current = true;
+        }
+    }, [isAnonymousUser]);
+
+    useEffect(() => {
+        if (!isLoadingReportData && prevIsLoadingReportData && prevIsAnonymousUser.current && !isAnonymousUser) {
+            fetchReport();
+        }
+    }, [isLoadingReportData]);
+
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
