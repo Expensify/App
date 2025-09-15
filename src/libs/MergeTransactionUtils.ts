@@ -8,6 +8,7 @@ import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
+import localeCompare from './LocaleCompare';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
@@ -232,8 +233,8 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         }
 
         if (field === 'attendees') {
-            const targetAttendeeLogins = (targetValue as Attendee[] | undefined)?.map((attendee: Attendee) => attendee.login ?? attendee.email);
-            const sourceAttendeeLogins = (sourceValue as Attendee[] | undefined)?.map((attendee: Attendee) => attendee.login ?? attendee.email);
+            const targetAttendeeLogins = ((targetValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
+            const sourceAttendeeLogins = ((sourceValue as Attendee[] | undefined)?.map((attendee) => attendee.login ?? attendee.email) ?? []).sort(localeCompare);
 
             if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
                 mergeableData[field] = targetValue;
