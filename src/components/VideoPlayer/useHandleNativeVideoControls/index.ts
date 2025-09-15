@@ -8,8 +8,7 @@ import type UseHandleNativeVideoControl from './types';
  */
 const useHandleNativeVideoControls: UseHandleNativeVideoControl = ({videoViewRef, isLocalFile, isOffline}) => {
     useEffect(() => {
-        // @ts-expect-error Property 'videoRef' does not exist on type VideoView
-        const videoElement = videoViewRef?.current?.videoRef as HTMLVideoElement;
+        const videoElement = videoViewRef?.current?.nativeRef.current as HTMLVideoElement;
         if (!videoElement) {
             return;
         }

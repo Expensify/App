@@ -139,7 +139,7 @@
     "expo-image": "^2.1.6",
     "expo-image-manipulator": "^13.1.5",
     "expo-secure-store": "~14.2.4",
-    "expo-video": "^3.0.10",
+    "expo-video": "^3.0.11",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
