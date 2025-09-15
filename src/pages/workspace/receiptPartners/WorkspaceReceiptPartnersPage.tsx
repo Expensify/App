@@ -15,6 +15,7 @@ import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnecte
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,11 +54,15 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const isAutoInvite = !!integrations?.uber?.autoInvite;
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
 
+    // Track focus and connection change to route to the invite flow once after successful connection
+    const prevIsUberConnected = usePrevious(isUberConnected);
+
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
             switch (name) {
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
-                    openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
+                    const formData = String(integrations?.uber?.connectFormData ?? '');
+                    openExternalLink(`${CONST.UBER_CONNECT_URL}?${formData}`);
                     break;
                 }
                 default: {
@@ -77,6 +82,14 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // When Uber connection status flips from false -> true, navigate to the invite flow once
+    useEffect(() => {
+        if (!isUberConnected || prevIsUberConnected) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+    }, [prevIsUberConnected, isUberConnected, policyID]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
