@@ -31,7 +31,7 @@ type BaseSearchListProps = Pick<
     /** The columns that might change to trigger re-render via extraData */
     columns: SearchColumnType[];
 
-    /** The new transactions might change to trigger re-render via extraData */
+    /** The transactions that might trigger re-render via extraData */
     newTransactions: Transaction[];
 
     /** The length of the flattened items in the list */
