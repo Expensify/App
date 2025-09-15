@@ -2,7 +2,6 @@ import '@testing-library/react-native';
 
 const isVerbose = process.argv.includes('--verbose') || process.env.JEST_VERBOSE === 'true';
 
-
 beforeEach(() => {
     if (isVerbose) {
         return;
