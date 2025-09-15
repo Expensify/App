@@ -52,7 +52,7 @@ import {
 } from './TransactionUtils';
 
 type GetReportPrimaryActionParams = {
-    report: Report;
+    report: Report | undefined;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
@@ -61,6 +61,8 @@ type GetReportPrimaryActionParams = {
     reportActions?: ReportAction[];
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
+    isPaidAnimationRunning?: boolean;
+    isSubmittingAnimationRunning?: boolean;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
@@ -349,7 +351,29 @@ function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: Repor
 }
 
 function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy} = params;
+    const {
+        report,
+        reportTransactions,
+        violations,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        isChatReportArchived,
+        chatReport,
+        invoiceReceiverPolicy,
+        isPaidAnimationRunning,
+        isSubmittingAnimationRunning,
+    } = params;
+
+    if (isPaidAnimationRunning) {
+        return CONST.REPORT.PRIMARY_ACTIONS.PAY;
+    }
+    if (isSubmittingAnimationRunning) {
+        return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+    }
+    if (!report) {
+        return '';
+    }
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
