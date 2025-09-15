@@ -32,7 +32,7 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
-function useFilesValidation(onFilesValidated: (files: FileObject[]) => void, isValidatingReceipts = true) {
+function useFilesValidation(onFilesValidated: (files: FileObject[]) => void, isValidatingReceipts = true, onSourceChanged?: (source: string | undefined) => void) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -277,6 +277,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[]) => void, isV
             validateMultipleAttachmentFiles(files).then((result) => {
                 if (result.isValid) {
                     validateAndResizeFiles(result.validatedFiles, items ?? []);
+                    onSourceChanged?.(result.validatedFiles.at(0)?.source);
                     return;
                 }
 
@@ -295,6 +296,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[]) => void, isV
         validateAttachmentFile(files).then((result) => {
             if (result.isValid) {
                 validateAndResizeFiles([result.validatedFile.file], items ?? []);
+                onSourceChanged?.(result.validatedFile.source);
                 return;
             }
 

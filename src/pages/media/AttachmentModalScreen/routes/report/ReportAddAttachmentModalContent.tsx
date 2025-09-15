@@ -8,7 +8,6 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
-import {isMultipleAttachmentsValidationResult, isSingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -115,18 +114,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
     const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
-
-    const onFilesValidated = useCallback((files: FileObject[]) => {
-        setValidFilesToUpload(files);
-
-        if (isSingleAttachmentValidationResult(result)) {
-            setSource(result.validatedFile.source);
-        } else if (isMultipleAttachmentsValidationResult(result)) {
-            setSource(result.validatedFiles.at(0)?.source);
-        }
-    }, []);
-
-    const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated, false);
+    const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(setValidFilesToUpload, false, setSource);
 
     useEffect(() => {
         if (!file) {
