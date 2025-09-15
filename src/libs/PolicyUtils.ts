@@ -43,6 +43,17 @@ import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} 
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
+/**
+ * If DeleteWorkspace endpoint fails, we show a modal with the error message that BE responds with.
+ */
+type DeleteWorkspaceErrorModal = {
+    /** Whether the modal should be visible */
+    isVisible: boolean;
+
+    /** The error message to display in the modal */
+    errorMessage: string;
+};
+
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type WorkspaceDetails = {
@@ -150,6 +161,10 @@ function shouldShowPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
  */
 function shouldShowPolicyError(policy: OnyxEntry<Policy>): boolean {
     return Object.keys(policy?.errors ?? {}).length > 0 ? isPolicyAdmin(policy) : shouldShowPolicyErrorFields(policy);
+}
+
+function isDeleteWorkspaceAnnualSubscriptionError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.errors ?? {}).some((error) => error === CONST.ERROR_TITLE.CANNOT_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION);
 }
 
 /**
@@ -1559,6 +1574,7 @@ export {
     hasPolicyCategoriesError,
     shouldShowPolicyError,
     shouldShowPolicyErrorFields,
+    isDeleteWorkspaceAnnualSubscriptionError,
     shouldShowTaxRateError,
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
@@ -1677,4 +1693,4 @@ export {
     isMemberPolicyAdmin,
 };
 
-export type {MemberEmailsToAccountIDs};
+export type {DeleteWorkspaceErrorModal, MemberEmailsToAccountIDs};

@@ -4,6 +4,7 @@ import {FlatList, InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import DeleteWorkspaceErrorConfirmModal from '@components/DeleteWorkspaceErrorConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -30,6 +31,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -40,12 +42,14 @@ import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import type {DeleteWorkspaceErrorModal} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
@@ -110,6 +114,7 @@ function WorkspacesListPage() {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [deleteWorkspaceErrorModal, setDeleteWorkspaceErrorModal] = useState<DeleteWorkspaceErrorModal | null>(null);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -123,7 +128,9 @@ function WorkspacesListPage() {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const [wasPolicyDeletedWhileOffline, setWasPolicyDeletedWhileOffline] = useState(false);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
@@ -145,11 +152,14 @@ function WorkspacesListPage() {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policyToDelete = getPolicy(policyIDToDelete);
+    const prevPolicyToDelete = usePrevious(policyToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
+    const isPendingDelete = isPendingDeletePolicy(policyToDelete);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
 
     const isSupportalAction = isSupportAuthToken();
 
@@ -164,6 +174,7 @@ function WorkspacesListPage() {
 
         deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, lastPaymentMethod);
         setIsDeleteModalOpen(false);
+        setWasPolicyDeletedWhileOffline(isOffline);
     };
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
@@ -191,6 +202,18 @@ function WorkspacesListPage() {
         },
         [session?.accountID],
     );
+
+    useEffect(() => {
+        if (!isFocused || wasPolicyDeletedWhileOffline || !prevIsPendingDelete || isPendingDelete || deleteWorkspaceErrorModal?.isVisible) {
+            return;
+        }
+
+        const policyErrorMessage = getLatestErrorMessage(policyToDelete);
+        setDeleteWorkspaceErrorModal({
+            isVisible: true,
+            errorMessage: policyErrorMessage,
+        });
+    }, [deleteWorkspaceErrorModal?.isVisible, isFocused, policyIDToDelete, policyToDelete, wasPolicyDeletedWhileOffline, prevIsPendingDelete, isPendingDelete]);
 
     /**
      * Gets the menu item for each workspace
@@ -283,6 +306,7 @@ function WorkspacesListPage() {
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
+                    shouldShowErrorMessages={!deleteWorkspaceErrorModal?.isVisible}
                     errorRowStyles={styles.ph5}
                     onClose={item.dismissError}
                     errors={item.errors}
@@ -328,7 +352,6 @@ function WorkspacesListPage() {
             fundList,
             styles.mb2,
             styles.mh5,
-            styles.ph5,
             duplicateWorkspace?.policyID,
             styles.hoveredComponentBG,
             styles.offlineFeedback.deleted,
@@ -341,6 +364,7 @@ function WorkspacesListPage() {
             isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
+            deleteWorkspaceErrorModal?.isVisible,
         ],
     );
 
@@ -537,46 +561,58 @@ function WorkspacesListPage() {
     }
 
     return (
-        <ScreenWrapper
-            shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorInWideScreen
-            testID={WorkspacesListPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-        >
-            <View style={styles.flex1}>
-                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
-                <FlatList
-                    ref={flatlistRef}
-                    data={filteredWorkspaces}
-                    onScrollToIndexFailed={(info) => {
-                        flatlistRef.current?.scrollToOffset({
-                            offset: info.averageItemLength * info.index,
-                            animated: true,
-                        });
-                    }}
-                    renderItem={getMenuItem}
-                    ListHeaderComponent={listHeaderComponent}
-                    keyboardShouldPersistTaps="handled"
+        <>
+            <ScreenWrapper
+                shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicatorInWideScreen
+                testID={WorkspacesListPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
+                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            >
+                <View style={styles.flex1}>
+                    <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
+                    {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
+                    <FlatList
+                        ref={flatlistRef}
+                        data={filteredWorkspaces}
+                        onScrollToIndexFailed={(info) => {
+                            flatlistRef.current?.scrollToOffset({
+                                offset: info.averageItemLength * info.index,
+                                animated: true,
+                            });
+                        }}
+                        renderItem={getMenuItem}
+                        ListHeaderComponent={listHeaderComponent}
+                        keyboardShouldPersistTaps="handled"
+                    />
+                </View>
+                <ConfirmModal
+                    title={translate('workspace.common.delete')}
+                    isVisible={isDeleteModalOpen}
+                    onConfirm={confirmDeleteAndHideModal}
+                    onCancel={() => setIsDeleteModalOpen(false)}
+                    prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
                 />
-            </View>
-            <ConfirmModal
-                title={translate('workspace.common.delete')}
-                isVisible={isDeleteModalOpen}
-                onConfirm={confirmDeleteAndHideModal}
-                onCancel={() => setIsDeleteModalOpen(false)}
-                prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-            <SupportalActionRestrictedModal
-                isModalOpen={isSupportalActionRestrictedModalOpen}
-                hideSupportalModal={hideSupportalModal}
-            />
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-        </ScreenWrapper>
+                <SupportalActionRestrictedModal
+                    isModalOpen={isSupportalActionRestrictedModalOpen}
+                    hideSupportalModal={hideSupportalModal}
+                />
+                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            </ScreenWrapper>
+            {deleteWorkspaceErrorModal?.isVisible ? (
+                <DeleteWorkspaceErrorConfirmModal
+                    onModalHide={() => {
+                        setDeleteWorkspaceErrorModal(null);
+                        setWasPolicyDeletedWhileOffline(false);
+                        clearDeleteWorkspaceError(policyIDToDelete);
+                    }}
+                    errorMessage={deleteWorkspaceErrorModal?.errorMessage}
+                />
+            ) : null}
+        </>
     );
 }
 
