@@ -25,7 +25,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {
+    getCurrentStepFromBankAccount,
+    getRouteForCurrentStep,
+    hasInProgressUSDVBBA,
+    hasInProgressVBBA,
+    mapBankAccountToACHData,
+    mapBankAccountToReimbursementAccountDraft,
+} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -40,7 +47,7 @@ import {
     updateReimbursementAccountDraft,
 } from '@userActions/BankAccounts';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {clearReimbursementAccountDraft, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -66,6 +73,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const session = useSession();
     const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -141,6 +149,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (policyIDParam ?? !bankAccountList) {
+            return;
+        }
+
+        const achDataFromBankAccount = mapBankAccountToACHData(bankAccountList);
+        const step = getCurrentStepFromBankAccount(bankAccountList);
+        if (achDataFromBankAccount) {
+            updateReimbursementAccount({...achDataFromBankAccount, currentStep: step});
+            setHasACHDataBeenLoaded(true);
+        }
+
+        const draftDataFromBankAccount = mapBankAccountToReimbursementAccountDraft(bankAccountList);
+        if (draftDataFromBankAccount) {
+            updateReimbursementAccountDraft(draftDataFromBankAccount);
+        }
+    }, [policyIDParam, bankAccountList]);
 
     /**
      * Retrieve verified business bank account currently being set up.
