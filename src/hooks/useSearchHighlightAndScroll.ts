@@ -61,29 +61,21 @@ function useSearchHighlightAndScroll({
 
     const newTransactions = useMemo(() => {
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
-        const transactionsIDs = Object.keys(transactions ?? {});
 
         if (previousTransactionsIDs.length === 0) {
             return [];
         }
 
-        const previousTransactionsIDsSet = new Set(previousTransactionsIDs);
-        const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionsIDs.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+        const previousIDs = new Set(previousTransactionsIDs);
+        const result: Transaction[] = [];
 
-        if (!hasTransactionsIDsChange) {
-            return [];
-        }
-
-        const newTransactionsResult = [];
-        for (const id of transactionsIDs) {
-            if (!previousTransactionsIDsSet.has(id)) {
-                const transaction = transactions?.[id];
-                if (transaction) {
-                    newTransactionsResult.push(transaction);
-                }
+        for (const [id, transaction] of Object.entries(transactions ?? {})) {
+            if (!previousIDs.has(id) && transaction) {
+                result.push(transaction);
             }
         }
-        return newTransactionsResult;
+
+        return result;
     }, [previousTransactions, transactions]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
