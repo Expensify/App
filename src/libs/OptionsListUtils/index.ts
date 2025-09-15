@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
+import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import keyBy from 'lodash/keyBy';
@@ -1103,6 +1104,8 @@ function processReport(
 }
 
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+    const span = Sentry.startInactiveSpan({ name: 'createOptionList' });
+
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
@@ -1133,6 +1136,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             reportAttributesDerived,
         ),
     }));
+
+    span.setAttributes({
+        personalDetails: allPersonalDetailsOptions.length,
+        reports: allReportOptions.length,
+    });
+    span.end();
 
     return {
         reports: allReportOptions,

@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -930,4 +931,4 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 Search.displayName = 'Search';
 
 export type {SearchProps};
-export default Search;
+export default Sentry.withProfiler(Search);
