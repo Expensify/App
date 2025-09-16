@@ -2,7 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
@@ -80,6 +80,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Reference to the outer element */
+    ref?: Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {
@@ -95,8 +98,8 @@ function MoneyRequestParticipantsSelector(
         iouType,
         action,
         isPerDiemRequest = false,
+        ref,
     }: MoneyRequestParticipantsSelectorProps,
-    ref: Ref<InputFocusRef>,
 ) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -631,6 +634,6 @@ function MoneyRequestParticipantsSelector(
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default memo(
-    forwardRef(MoneyRequestParticipantsSelector),
+    MoneyRequestParticipantsSelector,
     (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
 );
