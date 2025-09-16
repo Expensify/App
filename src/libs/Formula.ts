@@ -407,9 +407,9 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
         const hours = date.getHours();
         const minutes = date.getMinutes();
         const seconds = date.getSeconds();
-        const hours12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-        const ampm = hours >= 12 ? 'pm' : 'am';
-        const AMPM = hours >= 12 ? 'PM' : 'AM';
+        const hours12 = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
+        const meridiem = hours >= 12 ? 'pm' : 'am';
+        const meridiemUpperCase = hours >= 12 ? 'PM' : 'AM';
         
         // Phase 1: Replace tokens with unique placeholders
         const tokens = [
@@ -438,7 +438,7 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
             { token: 'S', value: getOrdinalSuffix(day) },
             
             // Time formats (longest to shortest)
-            { token: 'tt', value: AMPM },
+            { token: 'tt', value: meridiemUpperCase },
             { token: 'hh', value: hours12.toString().padStart(2, '0') },
             { token: 'HH', value: hours.toString().padStart(2, '0') },
             { token: 'mm', value: minutes.toString().padStart(2, '0') },
@@ -449,8 +449,8 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
             { token: 'g', value: hours12.toString() },
             { token: 'i', value: minutes.toString().padStart(2, '0') },
             { token: 's', value: seconds.toString().padStart(2, '0') },
-            { token: 'A', value: AMPM },
-            { token: 'a', value: ampm },
+            { token: 'A', value: meridiemUpperCase },
+            { token: 'a', value: meridiem },
         ];
         
         // Sort tokens by length (longest first)
@@ -459,7 +459,7 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
         // Phase 1: Replace tokens with unique placeholders (using only digits and special chars)
         const placeholderMap: Record<string, string> = {};
         for (let i = 0; i < tokens.length; i++) {
-            const { token, value } = tokens[i];
+            const { token, value } = tokens.at(i)!;
             const placeholder = `###${i.toString().padStart(3, '0')}###`;
             const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
             
