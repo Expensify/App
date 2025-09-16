@@ -1,4 +1,4 @@
-import type {FlashList, FlashListProps} from '@shopify/flash-list';
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchColumnType} from '@components/Search/types';
@@ -12,20 +12,15 @@ type BaseSearchListProps = Pick<
     | 'onEndReachedThreshold'
     | 'ListFooterComponent'
     | 'onViewableItemsChanged'
-    | 'estimatedItemSize'
-    | 'overrideItemLayout'
-    | 'estimatedListSize'
     | 'keyExtractor'
     | 'showsVerticalScrollIndicator'
-    | 'removeClippedSubviews'
-    | 'drawDistance'
     | 'onLayout'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];
 
     /** The function to render each item in the list */
-    renderItem: (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
+    renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The columns that might change to trigger re-render via extraData */
     columns: SearchColumnType[];
@@ -36,14 +31,11 @@ type BaseSearchListProps = Pick<
     /** The callback, which is run when a row is pressed */
     onSelectRow: (item: SearchListItem) => void;
 
-    /** The height of the list */
-    calculatedListHeight: number;
-
     /** Whether the screen containing the list is focused */
     isFocused?: boolean;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashList<SearchListItem>>;
+    ref: ForwardedRef<FlashListRef<SearchListItem>>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;

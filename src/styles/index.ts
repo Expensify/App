@@ -2,9 +2,9 @@
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
+import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
-import {Platform, StyleSheet} from 'react-native';
+import {Animated, Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -12,6 +12,7 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
+import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -68,7 +69,7 @@ type WebViewStyle = {
 
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
-type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
+type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
@@ -480,6 +481,7 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
+            lineHeight: variables.lineHeightXSmall,
         },
         textDoubleDecker: {
             fontSize: variables.fontSizeSmall,
@@ -806,10 +808,6 @@ const staticStyles = (theme: ThemeColors) =>
         noLeftBorderRadius: {
             borderTopLeftRadius: 0,
             borderBottomLeftRadius: 0,
-        },
-
-        buttonCTA: {
-            ...spacing.mh4,
         },
 
         buttonCTAIcon: {
@@ -1507,13 +1505,6 @@ const staticStyles = (theme: ThemeColors) =>
             // Adding border to prevent a bug with the appearance of lines during gesture events for MultiGestureCanvas
             borderWidth: 1,
             borderColor: theme.appBG,
-        },
-
-        sidebarFooter: {
-            display: 'flex',
-            justifyContent: 'center',
-            width: '100%',
-            paddingLeft: 20,
         },
 
         sidebarAvatar: {
@@ -2765,7 +2756,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         navigationScreenCardStyle: {
-            backgroundColor: theme.appBG,
             height: '100%',
         },
 
@@ -3580,6 +3570,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiReactionBubbleText: {
             verticalAlign: 'middle',
+        },
+
+        stickyHeaderEmoji: {
+            position: 'absolute',
+            ...spacing.mh4,
         },
 
         reactionCounterText: {
@@ -4943,6 +4938,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateTransactionMergeIllustration: {
+            width: 180,
+            height: 220,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5157,6 +5157,10 @@ const staticStyles = (theme: ThemeColors) =>
             aspectRatio: 1.7,
         },
 
+        topBarWrapper: {
+            zIndex: 15,
+        },
+
         receiptPreview: {
             position: 'absolute',
             left: 60,
@@ -5176,8 +5180,12 @@ const staticStyles = (theme: ThemeColors) =>
             ...sizing.h100,
             backgroundColor: colors.green800,
         },
-        topBarWrapper: {
-            zIndex: 15,
+
+        wideRHPExtendedCardInterpolatorStyles: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            height: '100%',
+            right: 0,
+            width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
     }) satisfies StaticStyles;
 
@@ -5285,6 +5293,23 @@ const dynamicStyles = (theme: ThemeColors) =>
                 right: 0,
             }) satisfies ViewStyle,
 
+        modalStackNavigatorContainer: (isSmallScreenWidth: boolean) =>
+            ({
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                height: '100%',
+                right: 0,
+                position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            }) satisfies ViewStyle,
+
+        animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
+            ({
+                height: '100%',
+                width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, receiptPaneRHPWidth)),
+                right: 0,
+                position: 'absolute',
+                overflow: 'hidden',
+            }) satisfies ViewStyle,
+
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
                 width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
@@ -5315,16 +5340,16 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
-        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
+        overlayStyles: ({progress, hasMarginRight = false, hasMarginLeft = false}: {progress: OverlayStylesParams; hasMarginRight?: boolean; hasMarginLeft?: boolean}) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
+                left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
+                right: hasMarginRight ? variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
-                opacity: current.progress.interpolate({
+                opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
@@ -5408,6 +5433,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
             ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
+
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
         growlNotificationTranslateY: (translateY: SharedValue<number>) => {
@@ -5463,13 +5489,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 top: fileTopPosition,
             }) satisfies ViewStyle,
 
-        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
-            ({
-                position: 'absolute',
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
-                ...spacing.mh4,
-            }) satisfies ViewStyle,
-
         tabText: (isSelected: boolean, hasIcon = false) =>
             ({
                 marginLeft: hasIcon ? 8 : 0,
@@ -5507,6 +5526,12 @@ const dynamicStyles = (theme: ThemeColors) =>
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
 
+        screenWrapperContainer: (minHeight: number | undefined) => ({
+            flex: 1,
+            minHeight,
+            backgroundColor: theme.appBG,
+        }),
+
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
@@ -5518,6 +5543,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             alignItems: isIllustration ? 'center' : undefined,
             justifyContent: isIllustration ? 'center' : undefined,
         }),
+
+        emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+            }) satisfies ViewStyle,
 
         sidePanelOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
@@ -5789,4 +5819,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};

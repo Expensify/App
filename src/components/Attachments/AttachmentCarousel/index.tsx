@@ -15,7 +15,19 @@ import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink, onAttachmentError}: AttachmentCarouselProps) {
+function AttachmentCarousel({
+    report,
+    attachmentID,
+    source,
+    onNavigate,
+    setDownloadButtonVisibility,
+    type,
+    accountID,
+    onClose,
+    attachmentLink,
+    onAttachmentError,
+    onAttachmentLoaded,
+}: AttachmentCarouselProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const canUseTouchScreen = canUseTouchScreenUtil();
@@ -111,6 +123,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             attachmentID={attachmentID}
             source={source}
             onNavigate={onNavigate}
+            onAttachmentLoaded={onAttachmentLoaded}
         />
     );
 }
