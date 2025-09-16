@@ -3,13 +3,14 @@ import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+// import Icon from '@components/Icon';
+// import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
-import {PressableWithFeedback} from '@components/Pressable';
+// import {PressableWithFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+
+// import CONST from '@src/CONST';
 
 type AnimatedCollapsibleProps = {
     /** Whether the component is expanded */
@@ -109,7 +110,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
         <View style={style}>
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
                 <View style={[styles.flex1]}>{header}</View>
-                <PressableWithFeedback
+                {/* <PressableWithFeedback
                     onPress={onPress}
                     disabled={disabled}
                     style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, styles.pl0, expandButtonStyle]}
@@ -123,7 +124,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
                             small
                         />
                     )}
-                </PressableWithFeedback>
+                </PressableWithFeedback> */}
             </View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
                 <View

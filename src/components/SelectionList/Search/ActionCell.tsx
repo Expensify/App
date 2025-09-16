@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -44,6 +45,7 @@ type ActionCellProps = {
     reportID?: string;
     hash?: number;
     amount?: number;
+    buttonInnerStyles?: StyleProp<ViewStyle>;
 };
 
 function ActionCell({
@@ -58,6 +60,7 @@ function ActionCell({
     reportID = '',
     hash,
     amount,
+    buttonInnerStyles: buttonInnerStylesProp,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -106,7 +109,7 @@ function ActionCell({
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction || isChildListItem) {
-        const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
+        const buttonInnerStyles = isSelected ? [styles.buttonDefaultSelected, buttonInnerStylesProp] : buttonInnerStylesProp;
 
         return isLargeScreenWidth ? (
             <Button
@@ -157,6 +160,7 @@ function ActionCell({
             success
             isDisabled={isOffline}
             isNested
+            innerStyles={buttonInnerStylesProp}
         />
     );
 }

@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type ReportSearchHeaderProps from './types';
 
 function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
@@ -17,9 +18,11 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableDetailPageNavigation={false}
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
+                customDisplayNameStyle={styles.fontWeightNormal}
+                size={CONST.AVATAR_SIZE.SMALL}
             />
         );
-    }, [report, transactions, avatarBorderColor]);
+    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal]);
 
     return (
         <View

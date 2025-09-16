@@ -218,6 +218,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={() => {
+                        if (isEmpty && !shouldDisplayEmptyView) {
+                            onPress();
+                        }
+                        handleToggle();
+                    }}
+                    isExpanded={isExpanded}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.FROM]: (
@@ -258,7 +265,22 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
+    }, [
+        groupItem,
+        onSelectRow,
+        onCheckboxPress,
+        isDisabledOrEmpty,
+        isFocused,
+        canSelectMultiple,
+        isSelectAllChecked,
+        isIndeterminate,
+        groupBy,
+        handleToggle,
+        isExpanded,
+        shouldDisplayEmptyView,
+        onPress,
+        isEmpty,
+    ]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
