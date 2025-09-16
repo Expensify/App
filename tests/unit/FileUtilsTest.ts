@@ -45,31 +45,31 @@ describe('FileUtils', () => {
     });
 
     describe('validateAttachment', () => {
-        it('should not return FILE_TOO_SMALL when validating small attachment', () => {
+        it('should not return SINGLE_FILE.FILE_TOO_SMALL when validating small attachment', () => {
             const file = createMockFile('file.csv', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
             const error = FileUtils.validateAttachment(file, false, false);
             expect(error).not.toBe(CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL);
         });
 
-        it('should return FILE_TOO_SMALL when validating small receipt', () => {
+        it('should return SINGLE_FILE.FILE_TOO_SMALL when validating small receipt', () => {
             const file = createMockFile('receipt.jpg', CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE - 1);
             const error = FileUtils.validateAttachment(file, false, true);
             expect(error).toBe(CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL);
         });
 
-        it('should return FILE_TOO_LARGE for large non-image file', () => {
+        it('should return SINGLE_FILE.FILE_TOO_LARGE for large non-image file', () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
             const error = FileUtils.validateAttachment(file);
             expect(error).toBe(CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
         });
 
-        it('should return FILE_TOO_LARGE_MULTIPLE when checking multiple files', () => {
+        it('should return MULTIPLE_FILES.FILE_TOO_LARGE when checking multiple files', () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
             const error = FileUtils.validateAttachment(file, true);
             expect(error).toBe(CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.FILE_TOO_LARGE);
         });
 
-        it('should return WRONG_FILE_TYPE for invalid receipt extension', () => {
+        it('should return SINGLE_FILE.WRONG_FILE_TYPE for invalid receipt extension', () => {
             const file = createMockFile('receipt.exe', CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1);
             const error = FileUtils.validateAttachment(file, false, true);
             expect(error).toBe(CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
