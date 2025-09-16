@@ -53,7 +53,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         return res;
     }, [report]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleOption, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -109,11 +109,11 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         return sectionsArray;
     }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions, translate]);
 
-    const handleToggleOption = useCallback(
+    const handleToggleSelection = useCallback(
         (option: OptionData) => {
-            toggleOption(option);
+            toggleSelection(option);
         },
-        [toggleOption],
+        [toggleSelection],
     );
 
     const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
@@ -196,7 +196,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
                 headerMessage={headerMessage}
-                onSelectRow={handleToggleOption}
+                onSelectRow={handleToggleSelection}
                 onConfirm={inviteUsers}
                 showScrollIndicator
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

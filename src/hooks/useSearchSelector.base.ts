@@ -92,8 +92,8 @@ type UseSearchSelectorReturn = {
     /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;
 
-    /** Function to toggle option selection */
-    toggleOption: (option: OptionData) => void;
+    /** Function to toggle selection state of an option */
+    toggleSelection: (option: OptionData) => void;
 
     /** Whether options are initialized */
     areOptionsInitialized: boolean;
@@ -232,9 +232,9 @@ function useSearchSelectorBase({
     }, [searchOptions]);
 
     /**
-     * Toggle option selection based on selection mode
+     * Toggle selection state of option based on selection mode
      */
-    const toggleOption = useCallback(
+    const toggleSelection = useCallback(
         (option: OptionData) => {
             if (selectionMode === CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE) {
                 onSingleSelect?.(option);
@@ -278,7 +278,7 @@ function useSearchSelectorBase({
         availableOptions,
         selectedOptions,
         setSelectedOptions,
-        toggleOption,
+        toggleSelection,
         areOptionsInitialized,
         contactState: undefined,
         onListEndReached,
