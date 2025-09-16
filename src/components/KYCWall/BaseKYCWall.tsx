@@ -160,7 +160,19 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, allReports, onSuccessfulKYC, source, walletTerms?.source],
+        [
+            addBankAccountRoute,
+            addDebitCardRoute,
+            chatReport,
+            iouReport,
+            onSelectPaymentMethod,
+            formatPhoneNumber,
+            lastPaymentMethod,
+            allReports,
+            onSuccessfulKYC,
+            source,
+            walletTerms?.source,
+        ],
     );
 
     /**
