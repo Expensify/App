@@ -5,7 +5,7 @@ import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
 type PopoverReactionListProps = {
-    /** Referenece to the outer element */
+    /** Reference to the outer element */
     ref?: ForwardedRef<ReactionListRef>;
 };
 
