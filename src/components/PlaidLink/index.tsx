@@ -8,6 +8,9 @@ import {isMobileSafari, isSafari} from '@libs/Browser';
 import Log from '@libs/Log';
 import type PlaidLinkProps from './types';
 
+// Helper to remove the state added by Plaid on Safari after the Plaid flow ends.
+// We need to manually clear it because Plaid doesn't remove it on its own after exiting on Safari,
+// which may cause the navigation state to reload when a Modal with the `shouldHandleNavigationBack` prop is used immediately afterward.
 function clearSafariHistoryState() {
     const isSafariBrowser = isSafari() || isMobileSafari();
     if (window.history.state === null && isSafariBrowser) {
