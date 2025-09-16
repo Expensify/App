@@ -1612,19 +1612,33 @@ const styles = (theme: ThemeColors) =>
             left: 0,
         },
 
-        signInPageGradientMobile: {
-            height: 300,
-            width: 800,
+        signInPageGradientBottomMobile: {
+            height: 200,
+            width: '100%',
             position: 'absolute',
             top: 0,
             left: 0,
+        },
+
+        signInPageGradientTopMobile: {
+            height: 500,
+            width: '100%',
+            position: 'absolute',
+            bottom: 0,
+            transform: [{rotate: '180deg'}],
         },
 
         signInBackground: {
             position: 'absolute',
             bottom: 0,
             left: 0,
-            minHeight: 700,
+        },
+        signInBackgroundNative: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            minHeight: 600,
+            width: variables.signInHeroBackgroundWidthMobile,
         },
 
         signInPageInner: {
