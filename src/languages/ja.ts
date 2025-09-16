@@ -666,6 +666,7 @@ const translations = {
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
         purchaseAmount: '購入金額',
+        link: 'リンク',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6119,7 +6120,6 @@ const translations = {
             keyword: 'キーワード',
             keywords: 'キーワード',
             currency: '通貨',
-            link: 'リンク',
             pinned: '固定済み',
             read: '既読',
             unread: '未読',

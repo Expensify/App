@@ -657,6 +657,7 @@ const translations = {
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
+        link: 'Link',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -6121,7 +6122,6 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             currency: 'Currency',
-            link: 'Link',
             pinned: 'Pinned',
             unread: 'Unread',
             read: 'Read',

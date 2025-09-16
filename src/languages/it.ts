@@ -666,6 +666,7 @@ const translations = {
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
+        link: 'Link',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6163,7 +6164,6 @@ const translations = {
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
             currency: 'Valuta',
-            link: 'Link',
             pinned: 'Aggiunto ai preferiti',
             read: 'Letto',
             unread: 'Non letto',

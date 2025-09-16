@@ -665,6 +665,7 @@ const translations = {
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
         enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
         purchaseAmount: 'Aankoopbedrag',
+        link: 'Link',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -6154,7 +6155,6 @@ const translations = {
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             currency: 'Valuta',
-            link: 'Link',
             pinned: 'Vastgezet',
             read: 'Gelezen',
             unread: 'Ongelezen',

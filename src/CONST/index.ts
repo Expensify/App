@@ -6695,6 +6695,7 @@ const CONST = {
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
             ATTENDEE: 'attendee',
+            IS: 'is',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {

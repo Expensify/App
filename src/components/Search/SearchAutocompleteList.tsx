@@ -545,6 +545,7 @@ function SearchAutocompleteList(
         booleanTypes,
         workspaceList,
         currentUserLogin,
+        isFilterList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

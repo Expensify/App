@@ -666,6 +666,7 @@ const translations = {
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
         purchaseAmount: "Montant de l'achat",
+        link: 'Lien',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -6162,7 +6163,6 @@ const translations = {
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
             currency: 'Devise',
-            link: 'Lien',
             pinned: 'Épinglé',
             read: 'Lu',
             unread: 'Non lu',
