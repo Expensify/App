@@ -636,6 +636,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(translateLocal('iou.unheldExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
+                    Clipboard.setString(translateLocal('iou.reject.reportActions.rejectedExpense'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
+                    Clipboard.setString(translateLocal('iou.reject.reportActions.markedAsResolved'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
                     Clipboard.setString(translateLocal('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
@@ -682,7 +686,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedApprovalRuleMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(reportAction, originalReport));
