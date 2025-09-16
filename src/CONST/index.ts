@@ -265,6 +265,25 @@ const CONST = {
         MAX_FILE_LIMIT: 30,
     },
 
+    ATTACHMENT_VALIDATION_ERRORS: {
+        SINGLE_FILE: {
+            NO_FILE_PROVIDED: 'noFileProvided',
+            FILE_INVALID: 'fileInvalid',
+            WRONG_FILE_TYPE: 'wrongFileType',
+            FILE_TOO_LARGE: 'fileTooLarge',
+            FILE_TOO_SMALL: 'fileTooSmall',
+            FILE_CORRUPTED: 'fileCorrupted',
+            PROTECTED_FILE: 'protectedFile',
+            FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        },
+        MULTIPLE_FILES: {
+            WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
+            FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
+            FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
+            MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
+        },
+    },
+
     // Allowed extensions for spreadsheets import
     ALLOWED_SPREADSHEET_EXTENSIONS: ['xls', 'xlsx', 'csv', 'txt'],
 
@@ -1991,25 +2010,6 @@ const CONST = {
         // Video MimeTypes allowed by iOS photos app.
         VIDEO: /\.(mov|mp4)$/,
     },
-
-    ATTACHMENT_VALIDATION_ERRORS: {
-        SINGLE_FILE: {
-            NO_FILE_PROVIDED: 'noFileProvided',
-            FILE_INVALID: 'fileInvalid',
-            WRONG_FILE_TYPE: 'wrongFileType',
-            FILE_TOO_LARGE: 'fileTooLarge',
-            FILE_TOO_SMALL: 'fileTooSmall',
-            FILE_CORRUPTED: 'fileCorrupted',
-            PROTECTED_FILE: 'protectedFile',
-        },
-        MULTIPLE_FILES: {
-            WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',
-            FILE_TOO_LARGE: 'multipleAttachmentsFileTooLarge',
-            FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
-            MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
-        },
-    },
-
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
