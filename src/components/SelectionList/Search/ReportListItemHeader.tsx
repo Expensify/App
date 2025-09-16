@@ -104,7 +104,7 @@ function HeaderFirstRow<TItem extends ListItem>({
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
@@ -184,7 +184,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
                         amount={reportItem.total}
-                        extraSmall={shouldUseNarrowLayout}
+                        extraSmall={!isLargeScreenWidth}
                     />
                 </View>
             )}

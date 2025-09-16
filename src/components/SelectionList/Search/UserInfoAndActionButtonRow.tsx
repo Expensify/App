@@ -21,7 +21,7 @@ function UserInfoAndActionButtonRow({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
@@ -54,7 +54,7 @@ function UserInfoAndActionButtonRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
-                    extraSmall={shouldUseNarrowLayout}
+                    extraSmall={!isLargeScreenWidth}
                 />
             </View>
         </View>
