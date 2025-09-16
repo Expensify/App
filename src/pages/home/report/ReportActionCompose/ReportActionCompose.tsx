@@ -315,7 +315,14 @@ function ReportActionCompose({
                     });
                 } else {
                     // Handle single file
-                    addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
+                    addAttachmentReportActions(
+                        transactionThreadReportID ?? reportID,
+                        reportID,
+                        attachmentFileRef.current,
+                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        newCommentTrimmed,
+                        true,
+                    );
                 }
                 attachmentFileRef.current = null;
             } else {

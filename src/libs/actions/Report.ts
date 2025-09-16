@@ -3882,7 +3882,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 function inviteToRoomAction(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
 
-    addComment(reportID, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
+    addComment(reportID, reportID, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
