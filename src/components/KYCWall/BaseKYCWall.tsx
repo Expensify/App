@@ -163,8 +163,7 @@ function KYCWall({
     );
 
     /**
-     * Take the position of the button that calls this method an
-     * d show the Add Payment method menu when the user has no valid payment method.
+     * Take the position of the button that calls this method and show the Add Payment method menu when the user has no valid payment method.
      * If they do have a valid payment method they are navigated to the "enable payments" route to complete KYC checks.
      * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
      *
