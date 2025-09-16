@@ -24,7 +24,7 @@ type DateTimeSelectorProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
 
-    // The ref is required by InputWrapper in DebugDetails.tsx, even though it's not used in this component yet.
+    // The ref is required by InputWrapper, even though it's not used in this component yet.
     ref?: ForwardedRef<View>;
 };
 
