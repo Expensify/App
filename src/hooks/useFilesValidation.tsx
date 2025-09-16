@@ -8,15 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
 import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
-import {
-    getFileValidationErrorText,
-    isHeicOrHeifImage,
-    normalizeFileObject,
-    resizeImageIfNeeded,
-    splitExtensionFromFileName,
-    validateAttachment,
-    validateImageForCorruption,
-} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText, isHeicOrHeifImage, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -101,38 +93,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[]) => void, isV
         setIsErrorModalVisible(true);
     };
 
-    const isValidFile = (originalFile: FileObject, item: DataTransferItem | undefined, isCheckingMultipleFiles?: boolean) => {
-        if (item && item.kind === 'file' && 'webkitGetAsEntry' in item) {
-            const entry = item.webkitGetAsEntry();
-
-            if (entry?.isDirectory) {
-                collectedErrors.current.push({error: CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED});
-                return Promise.resolve(false);
-            }
-        }
-
-        return normalizeFileObject(originalFile)
-            .then((normalizedFile) =>
-                validateImageForCorruption(normalizedFile).then(() => {
-                    const error = validateAttachment(normalizedFile, isCheckingMultipleFiles, isValidatingReceipts);
-                    if (error) {
-                        const errorData = {
-                            error,
-                            fileExtension:
-                                error === CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE ? splitExtensionFromFileName(normalizedFile.name ?? '').fileExtension : undefined,
-                        };
-                        collectedErrors.current.push(errorData);
-                        return false;
-                    }
-                    return true;
-                }),
-            )
-            .catch(() => {
-                collectedErrors.current.push({error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_CORRUPTED});
-                return false;
-            });
-    };
-
     const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
         return new Promise((resolve, reject) => {
             convertHeicImage(file, {
@@ -189,7 +149,18 @@ function useFilesValidation(onFilesValidated: (files: FileObject[]) => void, isV
             originalFileOrder.current.set(file.uri ?? '', index);
         });
 
-        Promise.all(files.map((file, index) => isValidFile(file, items.at(index), files.length > 1).then((isValid) => (isValid ? file : null))))
+        Promise.all(
+            files.map((file, index) =>
+                validateAttachmentFile(file, items.at(index)).then((result) => {
+                    if (result.isValid) {
+                        onSourceChanged?.(result.validatedFile.source);
+                        return file;
+                    }
+                    collectedErrors.current.push({error: result.error});
+                    return null;
+                }),
+            ),
+        )
             .then((validationResults) => {
                 const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
                 const pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
