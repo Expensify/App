@@ -195,7 +195,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
         return {
             file: validFilesToUpload,
-            fileToDisplayIndex: 0,
             source,
             isLoading,
             isAuthTokenRequired,
