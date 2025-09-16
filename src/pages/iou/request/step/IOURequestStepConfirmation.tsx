@@ -42,7 +42,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {buildOptimisticChatReport, findSelfDMReportID, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -168,13 +168,23 @@ function IOURequestStepConfirmation({
         transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
     const report = useMemo(() => {
         if (isUnreported) {
-            return selfDMReport;
+            // If no selfDM report is found we use an optimistic one with reportID = 0
+            // By defaults tracking into reportID = 0 will track into the selfDM report and proactively creates it
+            // s77rt TODO: Generate random report ID and have BE use it instead + use buildOptimisticSelfDMReport
+            return (
+                selfDMReport ??
+                buildOptimisticChatReport({
+                    participantList: [currentUserPersonalDetails.accountID],
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    optimisticReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                })
+            );
         }
         if (shouldUseTransactionReport) {
             return transactionReport;
         }
         return reportReal ?? reportDraft;
-    }, [isUnreported, selfDMReport, shouldUseTransactionReport, transactionReport, reportReal, reportDraft]);
+    }, [isUnreported, selfDMReport, shouldUseTransactionReport, transactionReport, reportReal, reportDraft, currentUserPersonalDetails.accountID]);
     const policy = policyReal ?? policyDraft;
     const policyID = isUnreported ? policy?.id : getIOURequestPolicyID(transaction, report);
     const isDraftPolicy = policy === policyDraft;
