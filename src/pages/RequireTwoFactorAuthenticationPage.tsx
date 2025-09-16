@@ -15,12 +15,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Account from '@src/types/onyx/Account';
 
-const selector = (account: OnyxEntry<Account>) => account?.validated;
+const accountValidatedSelector = (account: OnyxEntry<Account>) => account?.validated;
 
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector, canBeMissing: true});
+    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountValidatedSelector, canBeMissing: true});
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {
