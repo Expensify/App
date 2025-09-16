@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AvailableBookingDay from './AvailableBookingDay';
+import {useSession} from '@components/OnyxListItemProvider';
 
 type TimeSlot = {
     guideAccountID: number;
@@ -43,6 +44,7 @@ function ScheduleCallPage() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
+    const session = useSession();
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
@@ -70,7 +72,7 @@ function ScheduleCallPage() {
 
     useEffect(() => {
         return () => {
-            sendScheduleCallNudge(reportID);
+            sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
         };
     }, []);
 

@@ -94,9 +94,10 @@ function cancelBooking(call: CalendlyCall) {
     openExternalLink(cancelURL);
 }
 
-function sendScheduleCallNudge(reportID: string)
+function sendScheduleCallNudge(accountID: number, reportID: string)
 {
     const params: SendScheduleCallNudgeParams = {
+        accountID,
         reportID,
     };
     API.write(WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE, params);
