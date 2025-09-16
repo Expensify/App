@@ -1,8 +1,10 @@
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
@@ -10,7 +12,6 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import SwipeableView from '@components/SwipeableView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -43,6 +44,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useReportFooterStyles from './useReportFooterStyles';
 
 type ReportFooterProps = {
     /** Report object for the current report */
@@ -71,6 +73,15 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** The native ID for this component */
+    nativeID?: string;
+
+    /** Callback when layout of composer changes */
+    onLayout: (height: number) => void;
+
+    /** The current fixed header height of the chat */
+    headerHeight: number;
 };
 
 const isAnonymousUserSelector = (session: OnyxEntry<OnyxTypes.Session>) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
@@ -85,12 +96,17 @@ function ReportFooter({
     onComposerBlur,
     onComposerFocus,
     reportTransactions,
+    nativeID,
+    onLayout,
+    headerHeight,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    const reportFooterStyles = useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize});
     const personalDetail = useCurrentUserPersonalDetails();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
@@ -191,6 +207,16 @@ function ReportFooter({
         setDidHideComposerInput(true);
     }, [shouldShowComposeInput, didHideComposerInput]);
 
+    const onLayoutInternal = useCallback(
+        (event: LayoutChangeEvent) => {
+            const {height} = event.nativeEvent.layout;
+
+            setComposerHeight(height);
+            onLayout(height);
+        },
+        [onLayout],
+    );
+
     return (
         <>
             {!!shouldHideComposer && (
@@ -224,22 +250,22 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
-                <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose
-                            onSubmit={onSubmitComment}
-                            onComposerFocus={onComposerFocus}
-                            onComposerBlur={onComposerBlur}
-                            reportID={report.reportID}
-                            report={report}
-                            lastReportAction={lastReportAction}
-                            pendingAction={pendingAction}
-                            isComposerFullSize={isComposerFullSize}
-                            didHideComposerInput={didHideComposerInput}
-                            reportTransactions={reportTransactions}
-                        />
-                    </SwipeableView>
-                </View>
+                <Animated.View style={[chatFooterStyles, reportFooterStyles]}>
+                    <ReportActionCompose
+                        onSubmit={onSubmitComment}
+                        onComposerFocus={onComposerFocus}
+                        onComposerBlur={onComposerBlur}
+                        reportID={report.reportID}
+                        report={report}
+                        lastReportAction={lastReportAction}
+                        pendingAction={pendingAction}
+                        isComposerFullSize={isComposerFullSize}
+                        didHideComposerInput={didHideComposerInput}
+                        reportTransactions={reportTransactions}
+                        nativeID={nativeID}
+                        onLayout={onLayoutInternal}
+                    />
+                </Animated.View>
             )}
         </>
     );

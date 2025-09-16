@@ -18,6 +18,7 @@ import FullScreenLoaderContextProvider from './components/FullScreenLoaderContex
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
+import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import {ModalProvider} from './components/Modal/Global';
@@ -116,6 +117,7 @@ function App() {
                                         VideoPopoverMenuContextProvider,
                                         KeyboardProvider,
                                         KeyboardStateProvider,
+                                        KeyboardDismissibleFlatListContextProvider,
                                         SearchRouterContextProvider,
                                         ProductTrainingContextProvider,
                                         InputBlurContextProvider,

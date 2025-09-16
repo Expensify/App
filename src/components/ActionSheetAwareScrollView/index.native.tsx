@@ -1,12 +1,19 @@
+import type {ReactNode} from 'react';
 import React, {forwardRef, useCallback} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
+import type {AnimatedScrollViewProps, SharedValue} from 'react-native-reanimated';
 import Reanimated, {useAnimatedRef, useAnimatedStyle} from 'react-native-reanimated';
+import type {AnimatedScrollView} from 'react-native-reanimated/lib/typescript/component/ScrollView';
+// eslint-disable-next-line no-restricted-imports
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
-import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+import type {RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, ...props}, ref) => {
+type PropsWithAnimatedChildren = AnimatedScrollViewProps & {
+    children?: ReactNode | SharedValue<ReactNode>;
+};
+
+const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, PropsWithAnimatedChildren>(({style, children, ...props}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
 
     const onRef = useCallback(
