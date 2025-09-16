@@ -308,12 +308,6 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-    callback: (value) => (nvpDismissedProductTraining = value),
-});
-
 /**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
@@ -1702,7 +1696,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 /**
  * Whether user submitted already an expense or scanned receipt
  */
-function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
+function getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean {
     return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
 }
 
