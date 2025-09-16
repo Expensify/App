@@ -37,6 +37,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
@@ -158,7 +159,7 @@ function BaseSelectionList<TItem extends ListItem>({
     loaderSpeed,
     errorText,
     shouldUseDefaultRightHandSideCheckmark,
-    selectedItems = [],
+    selectedItems = getEmptyArray<string>(),
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
@@ -205,7 +206,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const [currentPage, setCurrentPage] = useState(() => calculateInitialCurrentPage());
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
-    const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const itemHeights = useRef<Record<string, number>>({});
     const pendingScrollIndexRef = useRef<number | null>(null);
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
@@ -214,11 +215,10 @@ function BaseSelectionList<TItem extends ListItem>({
         }
 
         const {height} = event.nativeEvent.layout;
-
-        setItemHeights((prevHeights) => ({
-            ...prevHeights,
+        itemHeights.current = {
+            ...itemHeights.current,
             [itemKey]: height,
-        }));
+        };
     };
 
     const canShowProductTrainingTooltipMemo = useMemo(() => {
@@ -272,7 +272,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
                 const defaultItemHeight = getItemHeight ? getItemHeight(item) : getDefaultItemHeight(ListItem);
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : defaultItemHeight;
+                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : defaultItemHeight;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -296,7 +296,6 @@ function BaseSelectionList<TItem extends ListItem>({
             );
         }
         const totalSelectable = allOptions.length - disabledOptionsIndexes.length;
-
         return {
             allOptions,
             selectedOptions,
@@ -307,7 +306,7 @@ function BaseSelectionList<TItem extends ListItem>({
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
             ListItem,
         };
-    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
@@ -368,9 +367,9 @@ function BaseSelectionList<TItem extends ListItem>({
             // the top of the viewable area at all times by adjusting the viewOffset.
             if (shouldKeepFocusedItemAtTopOfViewableArea) {
                 const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
-                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
+                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights.current[firstPreviousItem.keyForList] : 0;
                 const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
-                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights[secondPreviousItem.keyForList] : 0;
+                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights.current[secondPreviousItem.keyForList] : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 

@@ -829,10 +829,6 @@ const styles = (theme: ThemeColors) =>
             borderBottomLeftRadius: 0,
         },
 
-        buttonCTA: {
-            ...spacing.mh4,
-        },
-
         buttonCTAIcon: {
             marginRight: 22,
             marginLeft: 8,
@@ -2306,6 +2302,11 @@ const styles = (theme: ThemeColors) =>
             height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
             justifyContent: 'center',
         },
+
+        emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+            }) satisfies ViewStyle,
 
         emojiSkinToneTitle: {
             ...spacing.pv1,
@@ -4025,12 +4026,10 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'middle',
         },
 
-        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
-            ({
-                position: 'absolute',
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
-                ...spacing.mh4,
-            }) satisfies ViewStyle,
+        stickyHeaderEmoji: {
+            position: 'absolute',
+            ...spacing.mh4,
+        } satisfies ViewStyle,
 
         reactionCounterText: {
             fontSize: 13,
