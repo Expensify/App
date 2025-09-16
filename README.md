@@ -439,7 +439,7 @@ Files should be named after the component/function/constants they export, respec
 - If you export a component named `Text`, the file/directory should be named `Text`.
 - If you export a function named `guid`, the file/directory should be named `guid`.
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withOnyx`.
+- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withReportOrNotFound`.
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
