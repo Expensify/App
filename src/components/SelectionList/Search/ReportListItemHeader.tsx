@@ -184,7 +184,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
                         amount={reportItem.total}
-                        buttonInnerStyles={shouldUseNarrowLayout && styles.minHeight5}
+                        extraSmall={shouldUseNarrowLayout}
                     />
                 </View>
             )}

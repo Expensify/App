@@ -730,6 +730,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonDefaultBG,
         },
 
+        buttonXSmall: {
+            borderRadius: variables.buttonBorderRadius,
+            minHeight: variables.componentSizeXSmall,
+            minWidth: variables.componentSizeXSmall,
+            paddingHorizontal: 8,
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeNormal,
@@ -747,6 +755,12 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonSmallText: {
+            fontSize: variables.fontSizeSmall,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            textAlign: 'center',
+        },
+
+        buttonXSmallText: {
             fontSize: variables.fontSizeSmall,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             textAlign: 'center',

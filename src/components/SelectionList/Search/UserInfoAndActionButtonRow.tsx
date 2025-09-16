@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -20,6 +21,7 @@ function UserInfoAndActionButtonRow({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
@@ -52,6 +54,7 @@ function UserInfoAndActionButtonRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
+                    extraSmall={shouldUseNarrowLayout}
                 />
             </View>
         </View>

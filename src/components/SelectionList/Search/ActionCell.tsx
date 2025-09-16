@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -45,7 +44,7 @@ type ActionCellProps = {
     reportID?: string;
     hash?: number;
     amount?: number;
-    buttonInnerStyles?: StyleProp<ViewStyle>;
+    extraSmall?: boolean;
 };
 
 function ActionCell({
@@ -60,7 +59,7 @@ function ActionCell({
     reportID = '',
     hash,
     amount,
-    buttonInnerStyles: buttonInnerStylesProp,
+    extraSmall = false,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -100,7 +99,7 @@ function ActionCell({
                         StyleUtils.getMinimumHeight(variables.h20),
                         isSelected ? StyleUtils.getBorderColorStyle(theme.buttonHoveredBG) : StyleUtils.getBorderColorStyle(theme.border),
                     ]}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
+                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeSmall)}
                     iconStyles={styles.mr0}
                     success
                 />
@@ -109,13 +108,14 @@ function ActionCell({
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction || isChildListItem) {
-        const buttonInnerStyles = isSelected ? [styles.buttonDefaultSelected, buttonInnerStylesProp] : buttonInnerStylesProp;
+        const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
 
         return isLargeScreenWidth ? (
             <Button
                 text={text}
                 onPress={goToItem}
                 small
+                xsmall={extraSmall}
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
@@ -155,12 +155,12 @@ function ActionCell({
             text={text}
             onPress={goToItem}
             small
+            xsmall={extraSmall}
             style={[styles.w100]}
             isLoading={isLoading}
             success
             isDisabled={isOffline}
             isNested
-            innerStyles={buttonInnerStylesProp}
         />
     );
 }
