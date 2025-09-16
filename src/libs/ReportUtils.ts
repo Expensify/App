@@ -7880,6 +7880,10 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
     };
 }
 
+function shouldPinAdminRoomByDefault() {
+    return !isExpensifyTeam(currentUserEmail);
+}
+
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
     const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
@@ -7890,7 +7894,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
             policyID,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: policyName,
-            isPinned: true,
+            isPinned: shouldPinAdminRoomByDefault(),
         }),
     };
     const adminsChatReportID = adminsChatData.reportID;
