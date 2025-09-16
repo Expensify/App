@@ -22,10 +22,11 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     trackExpense,
+    updateMoneyRequestDistance,
 } from '@libs/actions/IOU';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -80,8 +81,9 @@ function IOURequestStepDistanceManual({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreatingNewRequest = !(backTo || isEditing);
+
+    const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
@@ -95,12 +97,12 @@ function IOURequestStepDistanceManual({
     }, [distance]);
 
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (isSplitBill || !skipConfirmation || !report?.reportID) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
-    }, [report, isSplitBill, skipConfirmation, reportNameValuePairs]);
+    }, [report, skipConfirmation, reportNameValuePairs]);
 
     useFocusEffect(
         useCallback(() => {
@@ -120,14 +122,11 @@ function IOURequestStepDistanceManual({
 
     const buttonText = useMemo(() => {
         if (shouldSkipConfirmation) {
-            if (iouType === CONST.IOU.TYPE.SPLIT) {
-                return translate('iou.split');
-            }
             return translate('iou.createExpense');
         }
 
         return isCreatingNewRequest ? translate('common.next') : translate('common.save');
-    }, [shouldSkipConfirmation, translate, isCreatingNewRequest, iouType]);
+    }, [shouldSkipConfirmation, translate, isCreatingNewRequest]);
 
     const navigateToConfirmationPage = useCallback(() => {
         switch (iouType) {
@@ -142,7 +141,22 @@ function IOURequestStepDistanceManual({
     const navigateToNextPage = useCallback(
         (amount: string) => {
             const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-            setMoneyRequestDistance(transactionID, distanceAsFloat, isCreatingNewRequest);
+            setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
+
+            if (action === CONST.IOU.ACTION.EDIT) {
+                if (distance !== distanceAsFloat) {
+                    updateMoneyRequestDistance({
+                        transactionID: transaction?.transactionID,
+                        transactionThreadReportID: reportID,
+                        distance: distanceAsFloat,
+                        // Not required for manual distance request
+                        transactionBackup: undefined,
+                        policy,
+                    });
+                }
+                Navigation.goBack(backTo);
+                return;
+            }
 
             if (backTo) {
                 Navigation.goBack(backTo);
@@ -253,7 +267,7 @@ function IOURequestStepDistanceManual({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             reportNameValuePairs,
-            isCreatingNewRequest,
+            isTransactionDraft,
             activePolicy,
             shouldSkipConfirmation,
             personalDetails,
@@ -263,6 +277,8 @@ function IOURequestStepDistanceManual({
             customUnitRateID,
             translate,
             navigateToConfirmationPage,
+            action,
+            distance,
         ],
     );
 

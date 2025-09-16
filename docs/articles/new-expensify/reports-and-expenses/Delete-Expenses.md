@@ -9,9 +9,9 @@ Do you need to remove an expense in New Expensify? The steps differ depending on
 
 # Delete an Individual Expense
 
-1. From the left-hand menu, head to **Reports > Expenses**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Check the box next to the expense(s).
-3. Click the green **Selected** button and choose **Delete**. 
+3. Click the green **Selected** button and choose **Delete**.
 
 ---
 
@@ -19,7 +19,7 @@ Do you need to remove an expense in New Expensify? The steps differ depending on
 
 You can delete any out-of-pocket expense that hasn’t been submitted yet:
 
-1. From the left-hand menu, head to **Reports > Reports**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
 2. Open the report containing the expense.
 3. Select the checkbox next to the expense you want to delete.
 4. Choose **Delete** from the drop-down menu.
@@ -42,7 +42,7 @@ You’ll need to reopen the report first:
 Some company card expenses can’t be deleted if the card settings don’t allow it. This usually happens when the card was imported without the **Allow Deleting Transactions** setting enabled. Once **Allow Deleting Transactions** is enabled, any future imported expenses can be deleted normally.
 
 To delete existing company card draft expenses:
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Company cards**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Company cards**.
 2. Unassign the card connected to the expenses you want to delete.
 3. All **draft expenses** from that card will be removed automatically.
 

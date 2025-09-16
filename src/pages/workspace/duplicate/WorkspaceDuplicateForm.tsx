@@ -61,8 +61,8 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                 return;
             }
             const newPolicyID = generatePolicyID();
-            setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
-            Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID, ROUTES.WORKSPACES_LIST.route));
+            setDuplicateWorkspaceData({policyID: newPolicyID, name, fileURI: avatarFile?.uri});
+            Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
         },
         [policyID],
     );

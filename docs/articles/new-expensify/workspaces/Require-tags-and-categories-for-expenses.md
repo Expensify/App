@@ -16,7 +16,7 @@ When this setting is turned on, expenses must include a **tag** or **category** 
 
 ## On Web
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Tags** or **Categories**.
 4. In the top-right corner, click **Settings**.
@@ -42,7 +42,7 @@ Expensify learns how you categorize expenses by merchant and automatically appli
 
 ## Manage Default Spend Categories
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
 4. Click **Settings** in the top-right.

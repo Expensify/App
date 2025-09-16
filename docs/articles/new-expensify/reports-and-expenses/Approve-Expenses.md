@@ -16,7 +16,7 @@ When an expense is submitted to an individual (rather than on a workspace), it w
 
 # Expenses Submitted on a Workspace
 
-When an expense is submitted on a workspace with an approval workflow configured, it must be approved before it can be paid. 
+When an expense is submitted on a workspace with an approval workflow configured, it must be approved before it can be paid.
 
 **For each expense report, you can:**
 
@@ -26,7 +26,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To set up an approval workflow:**
 
-1. In the left-hand menu, go to **Workspaces > [Workspace Name] > Workflows**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Workflows**.
 2. Create a custom workflow to route expenses to the appropriate approvers.
 
 ---
@@ -34,7 +34,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 # Approve an Expense
 
 1. You’ll receive an in-app and email notification when an expense is submitted.
-2. Click the notification to review the expense in Expensify, or you can find the expense in your **Inbox**. 
+2. Click the notification to review the expense in Expensify, or you can find the expense in your **Inbox**.
 3. Review details like the receipt, amount, and description.
 4. Click **Approve**.
 
@@ -46,7 +46,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To place an expense on hold:**
 
-1. In the left-hand menu, head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Locate the expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -54,7 +54,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To take an expense off hold to approve:**
 
-1. In the left-hand menu, head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Locate the held expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -67,7 +67,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 # Unapprove an Expense
 
-1. In the left-hand menu, head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Locate the expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -81,9 +81,9 @@ The submitter will be notified so they can revise or delete the expense.
 
 # FAQ
 
-## Why is an employee expense showing as pending? 
+## Why is an employee expense showing as pending?
 Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels).
 
-## What are expense reports? 
+## What are expense reports?
 Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Reports > Expenses**.
 

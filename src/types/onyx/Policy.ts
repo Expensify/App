@@ -127,36 +127,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: {
-        /**
-         * fname for uber partner
-         */
-        fname?: string;
-        /**
-         * hash for uber partner
-         */
-        hash: string;
-        /**
-         * id for uber partner
-         */
-        id: string;
-        /**
-         * lname for uber partner
-         */
-        lname?: string;
-        /**
-         * name for uber partner
-         */
-        name: string;
-        /**
-         * query for uber partner
-         */
-        query: string;
-        /**
-         * requestID for uber partner
-         */
-        requestID?: string;
-    };
+    connectFormData: string;
     /**
      * auto invite for uber connection
      */
@@ -165,6 +136,10 @@ type UberReceiptPartner = {
      * auto remove for uber connection
      */
     autoRemove?: boolean;
+    /**
+     * Whether uber is enabled for user
+     */
+    enabled?: boolean;
     /**
      * organization id for connected uber
      */

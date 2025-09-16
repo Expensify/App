@@ -18,3 +18,4 @@ modules/ExpensifyNitroUtils/nitrogen/**
 Mobile-Expensify/**
 vendor
 modules/group-ib-fp/**
+web/snippets/gib.js

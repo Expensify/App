@@ -10,7 +10,8 @@ type OldCard = Card & {isVirtual?: boolean};
 // This migration changes the property name on each card from card list from isVirtual to nameValuePairs.isVirtual
 export default function () {
     return new Promise<void>((resolve) => {
-        const connection = Onyx.connect({
+        // We still have the migration running so we use `connectWithoutView` here
+        const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.CARD_LIST,
             callback: (cardList: OnyxEntry<Record<string, OldCard>>) => {
                 Onyx.disconnect(connection);

@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {updateChatPriorityMode} from '@libs/actions/User';
@@ -24,7 +25,7 @@ import FocusModeNotification from './FocusModeNotification';
  *
  */
 export default function PriorityModeController() {
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (priorityMode) => priorityMode === CONST.PRIORITY_MODE.GSD, canBeMissing: true});
     const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
@@ -50,7 +51,13 @@ export default function PriorityModeController() {
     // Listen for state changes and trigger the #focus mode when appropriate
     useEffect(() => {
         // Wait for Onyx state to fully load
-        if (isLoadingReportData !== false || !accountID || isLoadingOnyxValue(isInFocusModeMetadata, hasTriedFocusModeMetadata)) {
+        if (
+            isLoadingReportData !== false ||
+            !accountID ||
+            isLoadingOnyxValue(isInFocusModeMetadata, hasTriedFocusModeMetadata) ||
+            typeof isInFocusMode !== 'boolean' ||
+            typeof hasTriedFocusMode !== 'boolean'
+        ) {
             return;
         }
 
