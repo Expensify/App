@@ -6157,6 +6157,7 @@ const translations = {
             currency: 'Moeda',
             link: 'Link',
             pinned: 'Fixado',
+            read: 'Lido',
             unread: 'Não lido',
             completed: 'Concluído',
             amount: {

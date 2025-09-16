@@ -6146,6 +6146,7 @@ const translations = {
             currency: 'Divisa',
             link: 'Enlace',
             pinned: 'Fijado',
+            read: 'Leído',
             unread: 'No leído',
             completed: 'Completadas',
             card: {

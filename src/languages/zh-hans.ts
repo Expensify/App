@@ -6035,6 +6035,7 @@ const translations = {
             keywords: '关键词',
             currency: '货币',
             link: '链接',
+            read: '已读',
             pinned: '固定',
             unread: '未读',
             completed: '已完成',

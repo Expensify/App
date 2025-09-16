@@ -6121,6 +6121,7 @@ const translations = {
             currency: '通貨',
             link: 'リンク',
             pinned: '固定済み',
+            read: '既読',
             unread: '未読',
             completed: '完了しました',
             amount: {

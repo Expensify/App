@@ -499,6 +499,13 @@ function SearchAutocompleteList(
                     text: hasValue,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS: {
+                const filteredIsValues = Object.values(CONST.SEARCH.IS_FILTERS).filter((isValue) => {
+                    return isValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(isValue.toLowerCase());
+                });
+
+                return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS, text: isValue}));
+            }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:

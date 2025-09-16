@@ -6164,6 +6164,7 @@ const translations = {
             currency: 'Devise',
             link: 'Lien',
             pinned: 'Épinglé',
+            read: 'Lu',
             unread: 'Non lu',
             completed: 'Terminé',
             amount: {

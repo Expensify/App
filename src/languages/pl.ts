@@ -6143,6 +6143,7 @@ const translations = {
             currency: 'Waluta',
             link: 'Link',
             pinned: 'Przypięte',
+            read: 'Przeczytane',
             unread: 'Nieprzeczytane',
             completed: 'Zakończono',
             amount: {
