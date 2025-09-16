@@ -474,8 +474,8 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
 
     const {optimisticData, successData, failureData, parameters} = buildTaskData(taskReport, taskReportID);
 
-    playSound(SOUNDS.SUCCESS);
     if (!shouldOnlyCreateOptimisticData) {
+        playSound(SOUNDS.SUCCESS);
         API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
     }
     return {optimisticData, successData, failureData};
