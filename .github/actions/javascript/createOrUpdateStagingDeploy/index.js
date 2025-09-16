@@ -12015,7 +12015,6 @@ const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
-    static internalOctokit;
     /**
      * Initialize internal octokit.
      * NOTE: When using GithubUtils in CI, you don't need to call this manually.
