@@ -351,6 +351,19 @@ module.exports = {
     },
 
     overrides: [
+        // Prevent adding new `backTo` params to screen type definitions
+        {
+            files: ['src/libs/Navigation/types.ts'],
+            rules: {
+                'no-restricted-syntax': [
+                    'error',
+                    {
+                        selector: 'TSPropertySignature[key.name="backTo"]',
+                        message: 'The `backTo` route param is deprecated. Do not add new `backTo` properties to screen param lists. See contributingGuides/NAVIGATION.md.',
+                    },
+                ],
+            },
+        },
         // Enforces every Onyx type and its properties to have a comment explaining its purpose.
         {
             files: ['src/types/onyx/**/*.ts'],
