@@ -102,7 +102,6 @@ function KYCWall({
         if (!transferBalanceButtonRef.current) {
             return;
         }
-
         const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current as HTMLDivElement);
         const position = getAnchorPosition(buttonPosition);
 
@@ -121,7 +120,7 @@ function KYCWall({
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
-                    const adminPolicy = policy?.id ? (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] as Policy | undefined) : undefined;
+                    const adminPolicy = policy?.id ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] : undefined;
                     if (adminPolicy) {
                         const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber);
                         if (inviteResult?.policyExpenseChatReportID) {
