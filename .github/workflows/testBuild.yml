@@ -257,7 +257,7 @@ jobs:
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
     outputs:
-      S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
+      ROCK_APK_PATH: ${{ steps.rock-remote-build-android.outputs.artifact-url }}
     steps:
       - name: Checkout
         # v4
@@ -340,6 +340,7 @@ jobs:
           echo "keystore_content=$(base64 -w 0 Mobile-Expensify/Android/upload-key.keystore)" >> $GITHUB_OUTPUT 
 
       - name: Rock Remote Build - Android
+        id: rock-remote-build-android
         # rock v3
         uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
         env:
@@ -365,7 +366,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
     runs-on: macos-15-xlarge
     outputs:
-      IOS_PATH: ${{ steps.export-ios-path.outputs.IOS_PATH }}
+      ROCK_IOS_PATH: ${{ steps.rock-remote-build-ios.outputs.artifact-url }}
     steps:
       - name: Checkout
         # v4
@@ -450,6 +451,7 @@ jobs:
           echo "profile-base64=$(base64 -i ./OldApp_AdHoc.mobileprovision)" >> "$GITHUB_OUTPUT"
 
       - name: Rock Remote Build - iOS
+        id: rock-remote-build-ios
         # rock v3
         uses: callstackincubator/ios@08a533dbeda6adec39f94d08d820091514d1f7af
         env:
@@ -499,9 +501,9 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iosHybrid.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_APK_PATH }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ inputs.APP_PULL_REQUEST_NUMBER }}/NewExpensify.dmg
-          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_PATH }}
           WEB_LINK: https://${{ inputs.APP_PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
 
       - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
@@ -513,5 +515,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
-          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_APK_PATH }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_PATH }}
