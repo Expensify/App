@@ -1719,12 +1719,17 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
  * based on dynamic business logic and feature flags.
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
-function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
+function getRestrictedLogins(
+    config: GetOptionsConfig,
+    options: OptionList,
+    canShowManagerMcTest: boolean,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+): Record<string, boolean> {
     const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
     return {
         [CONST.EMAIL.MANAGER_MCTEST]:
             !canShowManagerMcTest ||
-            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
+            (getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
             isCurrentUserMemberOfAnyPolicy(),
     };
@@ -1748,10 +1753,11 @@ function getValidOptions(
         searchString,
         maxElements,
         includeUserToInvite = false,
+        nvpDismissedProductTraining,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
-    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
+    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {

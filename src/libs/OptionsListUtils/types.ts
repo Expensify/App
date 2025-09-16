@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, DismissedProductTraining, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -189,6 +189,7 @@ type GetOptionsConfig = {
     searchString?: string;
     maxElements?: number;
     includeUserToInvite?: boolean;
+    nvpDismissedProductTraining?: OnyxEntry<DismissedProductTraining>;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
