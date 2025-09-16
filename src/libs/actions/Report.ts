@@ -5367,10 +5367,12 @@ function moveIOUReportToPolicy(
  * @param policyID - The ID of the policy to move the report to
  */
 function moveIOUReportToPolicyAndInviteSubmitter(
-    iouReport: Report,
+    reportID: string,
     policy: Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): {policyExpenseChatReportID?: string} | undefined {
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
     if (!policy || !iouReport) {
         return;
     }
