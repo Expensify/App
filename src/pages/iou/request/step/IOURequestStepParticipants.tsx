@@ -278,7 +278,7 @@ function IOURequestStepParticipants({
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
-            (iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK) ? CONST.IOU.TYPE.SUBMIT : iouType,
+            iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
             initialTransactionID,
             newReportID,
             undefined,
