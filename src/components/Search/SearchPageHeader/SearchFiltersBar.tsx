@@ -1,5 +1,5 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useMemo, useContext, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports

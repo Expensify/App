@@ -617,17 +617,24 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
     const firstReport = selectedReports.at(0);
     const hasLastPaymentMethod =
         selectedReports.length > 0
-            ? selectedReports.some((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-            : Object.keys(selectedTransactions ?? {}).some((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
-    // We will show the bulk option, if all the selected reports have the same action type, report type and policyID.
+            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
+            : Object.keys(selectedTransactions ?? {}).every((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
+
     const shouldShowBulkPayOption =
         selectedReports.length > 0
-            ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY) &&
-              selectedReports.every((report) => getReportType(report.reportID) === getReportType(firstReport?.reportID)) &&
-              selectedReports.every((report) => report.policyID === firstReport?.policyID)
-            : transactionKeys.every((transactionIdKey) => selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY) &&
-              transactionKeys.every((transactionIdKey) => getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID)) &&
-              transactionKeys.every((transactionIdKey) => selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID);
+            ? selectedReports.every(
+                  (report) =>
+                      report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) &&
+                      ((hasLastPaymentMethod && report.policyID) || (getReportType(report.reportID) === getReportType(firstReport?.reportID) && report.policyID === firstReport?.policyID)),
+              )
+            : transactionKeys.every(
+                  (transactionIdKey) =>
+                      selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                      ((hasLastPaymentMethod && selectedTransactions[transactionIdKey].policyID) ||
+                          (getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID) &&
+                              selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID)),
+              );
+    console.log('shouldShowBulkPayOption', shouldShowBulkPayOption);
 
     return {
         shouldEnableBulkPayOption: shouldShowBulkPayOption,
