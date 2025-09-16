@@ -89,18 +89,16 @@ type InputFocusRef = {
     focus?: () => void;
 };
 
-function MoneyRequestParticipantsSelector(
-    {
-        participants = CONST.EMPTY_ARRAY,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        onFinish = (_value?: string) => {},
-        onParticipantsAdded,
-        iouType,
-        action,
-        isPerDiemRequest = false,
-        ref,
-    }: MoneyRequestParticipantsSelectorProps,
-) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onFinish = (_value?: string) => {},
+    onParticipantsAdded,
+    iouType,
+    action,
+    isPerDiemRequest = false,
+    ref,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -633,7 +631,4 @@ function MoneyRequestParticipantsSelector(
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(
-    MoneyRequestParticipantsSelector,
-    (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
-);
+export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);

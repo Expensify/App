@@ -12,7 +12,7 @@ type RequestorStepProps = {
     shouldShowOnfido: boolean;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<View>
+    ref?: ForwardedRef<View>;
 };
 
 function RequestorStep({shouldShowOnfido, onBackButtonPress, ref}: RequestorStepProps) {

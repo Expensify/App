@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import React, { useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';

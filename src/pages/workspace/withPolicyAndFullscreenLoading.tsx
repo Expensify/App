@@ -26,14 +26,12 @@ type ComponentWithPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscr
 export default function withPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps>(
     WrappedComponent: ComponentType<TProps>,
 ): ComponentWithPolicyAndFullscreenLoading<TProps> {
-    function WithPolicyAndFullscreenLoading(
-        {
-            policy = policyDefaultProps.policy,
-            policyDraft = policyDefaultProps.policyDraft,
-            isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
-            ...rest
-        }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>,
-    ) {
+    function WithPolicyAndFullscreenLoading({
+        policy = policyDefaultProps.policy,
+        policyDraft = policyDefaultProps.policyDraft,
+        isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
+        ...rest
+    }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>) {
         const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
         const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 

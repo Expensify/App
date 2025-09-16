@@ -1,9 +1,9 @@
+import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {ReactionListAnchor, ReactionListEvent, ReactionListRef} from '@pages/home/ReportScreenContext';
 import type {ReportActionReactions} from '@src/types/onyx';
-import type { ForwardedRef } from 'react';
 
 type BasePopoverReactionListProps = {
     /** The ID of the report action */

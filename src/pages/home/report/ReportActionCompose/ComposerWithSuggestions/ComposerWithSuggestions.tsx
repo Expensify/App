@@ -197,46 +197,44 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
  * However, double check if the component really needs access, as it will re-render
  * on every key press.
  */
-function ComposerWithSuggestions(
-    {
-        // Props: Report
-        reportID,
-        includeChronos,
-        lastReportAction,
-        isGroupPolicyReport,
-        policyID,
+function ComposerWithSuggestions({
+    // Props: Report
+    reportID,
+    includeChronos,
+    lastReportAction,
+    isGroupPolicyReport,
+    policyID,
 
-        // Focus
-        onFocus,
-        onBlur,
-        onValueChange,
+    // Focus
+    onFocus,
+    onBlur,
+    onValueChange,
 
-        // Composer
-        isComposerFullSize,
-        setIsFullComposerAvailable,
-        isMenuVisible,
-        inputPlaceholder,
-        displayFilesInModal,
-        disabled,
-        setIsCommentEmpty,
-        handleSendMessage,
-        shouldShowComposeInput,
-        measureParentContainer = () => {},
-        isScrollLikelyLayoutTriggered,
-        raiseIsScrollLikelyLayoutTriggered,
-        onCleared = () => {},
-        onLayout: onLayoutProps,
+    // Composer
+    isComposerFullSize,
+    setIsFullComposerAvailable,
+    isMenuVisible,
+    inputPlaceholder,
+    displayFilesInModal,
+    disabled,
+    setIsCommentEmpty,
+    handleSendMessage,
+    shouldShowComposeInput,
+    measureParentContainer = () => {},
+    isScrollLikelyLayoutTriggered,
+    raiseIsScrollLikelyLayoutTriggered,
+    onCleared = () => {},
+    onLayout: onLayoutProps,
 
-        // Refs
-        suggestionsRef,
-        isNextModalWillOpenRef,
-        ref,
+    // Refs
+    suggestionsRef,
+    isNextModalWillOpenRef,
+    ref,
 
-        // For testing
-        children,
-        didHideComposerInput,
-    }: ComposerWithSuggestionsProps,
-) {
+    // For testing
+    children,
+    didHideComposerInput,
+}: ComposerWithSuggestionsProps) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
     const styles = useThemeStyles();

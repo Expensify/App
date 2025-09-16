@@ -38,7 +38,7 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 type PopoverReportActionContextMenuProps = {
     /** Reference to the outer element */
     ref?: ForwardedRef<ReportActionContextMenu>;
-}
+};
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();

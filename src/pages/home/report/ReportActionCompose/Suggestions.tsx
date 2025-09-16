@@ -45,7 +45,7 @@ type SuggestionProps = {
     policyID?: string;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<SuggestionsRef>,
+    ref?: ForwardedRef<SuggestionsRef>;
 };
 
 /**
@@ -53,21 +53,19 @@ type SuggestionProps = {
  * If you want to add a new suggestion type, add it here.
  *
  */
-function Suggestions(
-    {
-        value,
-        selection,
-        setSelection,
-        updateComment,
-        resetKeyboardInput,
-        measureParentContainerAndReportCursor,
-        isAutoSuggestionPickerLarge = true,
-        isComposerFocused,
-        isGroupPolicyReport,
-        policyID,
-        ref,
-    }: SuggestionProps,
-) {
+function Suggestions({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    resetKeyboardInput,
+    measureParentContainerAndReportCursor,
+    isAutoSuggestionPickerLarge = true,
+    isComposerFocused,
+    isGroupPolicyReport,
+    policyID,
+    ref,
+}: SuggestionProps) {
     const suggestionEmojiRef = useRef<SuggestionsRef>(null);
     const suggestionMentionRef = useRef<SuggestionsRef>(null);
     const {isDraggingOver} = useContext(DragAndDropContext);

@@ -61,9 +61,7 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     navigation: ScreenProps['navigation'];
 };
 
-export default function (
-    shouldRequireReportID = true,
-): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: React.ComponentType<TProps>) => React.ComponentType<TProps> {
+export default function (shouldRequireReportID = true): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: React.ComponentType<TProps>) => React.ComponentType<TProps> {
     return function <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
         function WithReportOrNotFound(props: TProps) {
             const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});

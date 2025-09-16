@@ -35,9 +35,7 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
 };
 
-export default function <TProps extends WithReportAndReportActionOrNotFoundProps>(
-    WrappedComponent: ComponentType<TProps>,
-): ComponentType<TProps> {
+export default function <TProps extends WithReportAndReportActionOrNotFoundProps>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
     function WithReportOrNotFound(props: TProps) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

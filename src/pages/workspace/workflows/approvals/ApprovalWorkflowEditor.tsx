@@ -36,7 +36,7 @@ type ApprovalWorkflowEditorProps = {
     policyID: string;
 
     /** Forwarded ref to pass to the ScrollView */
-    ref: ForwardedRef<ScrollViewRN>
+    ref: ForwardedRef<ScrollViewRN>;
 };
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {

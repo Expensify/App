@@ -167,7 +167,7 @@ type NewChatPageRef = {
 type NewChatPageProps = {
     /** Reference to the outer element */
     ref?: Ref<NewChatPageRef>;
-}
+};
 function NewChatPage({ref}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

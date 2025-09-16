@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, { useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {View} from 'react-native';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';

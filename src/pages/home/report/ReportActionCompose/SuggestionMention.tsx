@@ -56,9 +56,18 @@ type SuggestionPersonalDetailsList = Record<
     | null
 >;
 
-function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID, ref}: SuggestionProps,
-) {
+function SuggestionMention({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    isAutoSuggestionPickerLarge,
+    measureParentContainerAndReportCursor,
+    isComposerFocused,
+    isGroupPolicyReport,
+    policyID,
+    ref,
+}: SuggestionProps) {
     const personalDetails = usePersonalDetails();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);

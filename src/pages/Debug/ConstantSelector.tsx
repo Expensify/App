@@ -31,7 +31,7 @@ type ConstantSelectorProps = {
     policyID?: string;
 
     // The ref is required by InputWrapper, even though it's not used in this component yet.
-    ref: ForwardedRef<View>,
+    ref: ForwardedRef<View>;
 };
 
 function ConstantSelector(

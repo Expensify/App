@@ -36,9 +36,17 @@ const defaultSuggestionsValues: SuggestionsValue = {
     shouldShowSuggestionMenu: false,
 };
 
-function SuggestionEmoji(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, resetKeyboardInput, measureParentContainerAndReportCursor, isComposerFocused, ref}: SuggestionEmojiProps,
-) {
+function SuggestionEmoji({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    isAutoSuggestionPickerLarge,
+    resetKeyboardInput,
+    measureParentContainerAndReportCursor,
+    isComposerFocused,
+    ref,
+}: SuggestionEmojiProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, selector: getPreferredSkinToneIndex});
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
