@@ -337,7 +337,7 @@ jobs:
       - name: Convert keystore to base64
         id: keystore-base64
         run: |
-          echo "keystore_content=$(base64 -w 0 Mobile-Expensify/Android/upload-key.keystore)" >> $GITHUB_OUTPUT 
+          echo "keystore_content=$(base64 -w 0 Mobile-Expensify/Android/upload-key.keystore)" >> "$GITHUB_OUTPUT" 
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
