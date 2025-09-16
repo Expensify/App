@@ -237,6 +237,8 @@ function IOURequestStepParticipants({
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
+
+            // IOUs are always reported
             shouldAutoReport.current = !isPolicyExpenseChat || !!policy?.autoReporting || !!personalPolicy?.autoReporting;
         },
         [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, personalPolicy, lastSelectedDistanceRates],
