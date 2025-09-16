@@ -277,7 +277,7 @@ function getExpensesCount(reportID: string): number {
     }
 
     const transactions = getReportTransactions(reportID);
-    return transactions.filter((transaction) => !isPartialTransaction(transaction)).length;
+    return transactions?.filter((transaction) => !isPartialTransaction(transaction))?.length ?? 0;
 }
 
 /**
