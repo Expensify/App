@@ -1,6 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -33,7 +33,8 @@ import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {SearchContext} from '@components/Search/SearchContext';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -495,7 +496,14 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
-    const {isOnSearch, currentSearchHash} = useSearchContext();
+
+    const isOnSearch = useIsOnSearch();
+    let currentSearchHash: number | undefined;
+    if (isOnSearch) {
+        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
+        currentSearchHash = searchContextCurrentSearchHash;
+    }
+
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
     const dismissError = useCallback(() => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
