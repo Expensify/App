@@ -36,6 +36,7 @@ const SCREENS = {
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
+        VERIFY_ACCOUNT: 'Travel_VerifyAccount',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -79,6 +80,7 @@ const SCREENS = {
         ADVANCED_FILTERS_ACTION_RHP: 'Search_Advanced_Filters_Action_RHP',
         ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP: 'Search_Advanced_Filters_Purchase_Currency_RHP',
         ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP: 'Search_Advanced_Filters_Purchase_Amount_RHP',
+        ADVANCED_FILTERS_ATTENDEE_RHP: 'Search_Advanced_Filters_Attendee_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
@@ -152,6 +154,7 @@ const SCREENS = {
         },
 
         DELEGATE: {
+            VERIFY_ACCOUNT: 'Settings_Delegate_VerifyAccount',
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
@@ -249,6 +252,7 @@ const SCREENS = {
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
         HOLD: 'Money_Request_Hold_Reason',
+        REJECT: 'Money_Request_Reject_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
@@ -612,6 +616,7 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
+        WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
