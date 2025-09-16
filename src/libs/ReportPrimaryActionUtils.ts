@@ -255,7 +255,7 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[]) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction, true));
 
     if (!hasDuplicates) {
         return false;
