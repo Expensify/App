@@ -55,6 +55,7 @@ function KYCWall({
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -120,13 +121,14 @@ function KYCWall({
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
-                    if (policy) {
-                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber);
+                    const adminPolicy = policy?.id ? (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] as Policy | undefined) : undefined;
+                    if (adminPolicy) {
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber);
                         if (inviteResult?.policyExpenseChatReportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
                         } else {
-                            const moveResult = moveIOUReportToPolicy(iouReport, policy, true);
-                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
+                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, true);
+                            savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
                             }

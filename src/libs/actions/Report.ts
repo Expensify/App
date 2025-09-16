@@ -5367,15 +5367,10 @@ function moveIOUReportToPolicy(
  * @param policyID - The ID of the policy to move the report to
  */
 function moveIOUReportToPolicyAndInviteSubmitter(
-    reportID: string,
-    policyID: string,
+    iouReport: Report,
+    policy: Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): {policyExpenseChatReportID?: string} | undefined {
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(policyID);
-
     if (!policy || !iouReport) {
         return;
     }
