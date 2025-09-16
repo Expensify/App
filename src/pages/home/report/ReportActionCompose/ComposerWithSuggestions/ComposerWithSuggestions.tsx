@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
@@ -144,6 +144,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ComposerRef>;
 };
 
 type SwitchToCurrentReportProps = {
@@ -227,12 +230,12 @@ function ComposerWithSuggestions(
         // Refs
         suggestionsRef,
         isNextModalWillOpenRef,
+        ref,
 
         // For testing
         children,
         didHideComposerInput,
     }: ComposerWithSuggestionsProps,
-    ref: ForwardedRef<ComposerRef>,
 ) {
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -860,6 +863,6 @@ function ComposerWithSuggestions(
 
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
-export default memo(forwardRef(ComposerWithSuggestions));
+export default memo(ComposerWithSuggestions);
 
 export type {ComposerWithSuggestionsProps, ComposerRef};
