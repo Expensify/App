@@ -123,6 +123,18 @@ function IOURequestStepDestination({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOffline]);
 
+    useEffect(() => {
+        // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory
+        // So, we set these in the transaction when the rates are fetched in fetchPerDiemRates
+        const perDiemUnit = getPerDiemCustomUnit(policy);
+        if (!perDiemUnit || transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID || !!transaction?.category) {
+            return;
+        }
+        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [transactionID, policy?.customUnits]);
+
     return (
         <ScreenWrapper
             includePaddingTop={false}
