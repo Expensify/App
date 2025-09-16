@@ -8019,12 +8019,11 @@ function buildTransactionThread(
     moneyRequestReport: OnyxEntry<Report>,
     existingTransactionThreadReportID?: string,
     optimisticTransactionThreadReportID?: string,
-    transactionThreadReport?: OnyxEntry<Report>,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
-    const existingTransactionThreadReport = transactionThreadReport ?? getReportOrDraftReport(existingTransactionThreadReportID);
+    const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
 
-    if ((existingTransactionThreadReportID ?? transactionThreadReport) && existingTransactionThreadReport) {
+    if (existingTransactionThreadReportID && existingTransactionThreadReport) {
         return {
             ...existingTransactionThreadReport,
             parentReportActionID: reportAction?.reportActionID,
@@ -12092,5 +12091,4 @@ export type {
     MissingPaymentMethod,
     OptimisticNewReport,
     SelfDMParameters,
-    UpdateOptimisticParentReportAction,
 };
