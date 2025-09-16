@@ -90,6 +90,10 @@ function removeCachedAttachment({attachmentID, localSource}: RemoveCachedAttachm
         return;
     }
     RNFS.exists(localSource).then((exists) => {
+        if (!exists) {
+            Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+            return;
+        }
         RNFS.unlink(localSource)
             .then(() => {
                 Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
