@@ -1653,6 +1653,18 @@ const translations = {
             recordTroubleshootData: 'Registrazione dei dati di risoluzione dei problemi',
             softKillTheApp: "Disattivare l'applicazione",
             kill: 'Uccidere',
+            biometrics: {
+                biometricsRegistered: 'Biometria (Registrata)',
+                biometricsNotRegistered: 'Biometria (Non registrata)',
+                test: 'Test',
+                softPromptTitle: "Verifica le transazioni con il tuo volto o l'impronta digitale",
+                softPromptContent: "Abilita una verifica rapida e sicura tramite il tuo volto o l'impronta digitale-non sono necessarie password o codici.",
+                notificationTitle: 'Autenticazione riuscita',
+                notificationContent: 'Autenticazione effettuata correttamente tramite Face ID.',
+                biometricsTest: 'Test biometrico',
+                errorPageTitle: 'Oops, qualcosa è andato storto',
+                errorPageContent: 'Impossibile registrare il dispositivo.',
+            },
         },
         debugConsole: {
             saveLog: 'Salva registro',
