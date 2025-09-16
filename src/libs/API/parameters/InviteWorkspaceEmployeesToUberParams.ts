@@ -1,6 +1,6 @@
 type InviteWorkspaceEmployeesToUberParams = {
     policyID: string;
-    emails: string[];
+    emailList: string[];
 };
 
 export default InviteWorkspaceEmployeesToUberParams;

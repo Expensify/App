@@ -2925,7 +2925,7 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
 
     const params: InviteWorkspaceEmployeesToUberParams = {
         policyID,
-        emails,
+        emailList: emails,
     };
 
     // Build optimistic employees mapping: mark invited emails as invited
