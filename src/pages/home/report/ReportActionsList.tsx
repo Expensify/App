@@ -53,9 +53,8 @@ import {
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
-    isExpenseReport,
     isInvoiceReport,
-    isIOUReport,
+    isMoneyRequestReport,
     isTaskReport,
     isUnread,
 } from '@libs/ReportUtils';
@@ -206,15 +205,17 @@ function ReportActionsList({
     const linkedReportActionID = route?.params?.reportActionID;
 
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction), [parentReportAction]);
+    const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
+    const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
 
     // FlatList displays items from top to bottom, so we need the oldest actions first.
     // Since sortedReportActions and sortedVisibleReportActions are ordered from newest to oldest,
     // we use toReversed() to reverse the order when using FlatList, ensuring the oldest action appears at the top.
     // InvertedFlatList automatically shows the newest action at the bottom, so no reversal is needed there.
-    const reportActions = useMemo(() => (isTransactionThreadReport ? sortedReportActions.toReversed() : sortedReportActions), [isTransactionThreadReport, sortedReportActions]);
+    const reportActions = useMemo(() => (shouldFocusToTopOnMount ? sortedReportActions.toReversed() : sortedReportActions), [shouldFocusToTopOnMount, sortedReportActions]);
     const visibleReportActions = useMemo(
-        () => (isTransactionThreadReport ? sortedVisibleReportActions.toReversed() : sortedVisibleReportActions),
-        [isTransactionThreadReport, sortedVisibleReportActions],
+        () => (shouldFocusToTopOnMount ? sortedVisibleReportActions.toReversed() : sortedVisibleReportActions),
+        [shouldFocusToTopOnMount, sortedVisibleReportActions],
     );
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
@@ -365,7 +366,7 @@ function ReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
-        isInverted: !isTransactionThreadReport,
+        isInverted: !shouldFocusToTopOnMount,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             // On mobile Safari, when the keyboard is open, the content is pushed up then we apply a marginTop to push the page down.
             // This push caused onScroll to be triggered but we don't want to consider this as user scrolling.
@@ -373,8 +374,8 @@ function ReportActionsList({
             if (safariViewportOffsetTop > 0) {
                 return;
             }
-            if (isTransactionThreadReport) {
-                // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
+            if (shouldFocusToTopOnMount) {
+                // For money requests, calculate distance from bottom like MoneyRequestReportActionsList
                 const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
                 scrollingVerticalOffset.current = contentSize.height - layoutMeasurement.height - contentOffset.y;
 
@@ -389,15 +390,15 @@ function ReportActionsList({
     });
 
     const scrollToBottom = useCallback(() => {
-        if (isTransactionThreadReport) {
-            // In a transaction thread, we want to scroll to the end of the list
+        if (shouldFocusToTopOnMount) {
+            // In money requests, we want to scroll to the end of the list
             reportScrollManager.scrollToEnd(true);
             return;
         }
 
         // On remaining reports, we want to scroll to the bottom of the inverted FlatList which is the top of the list (offset: 0)
         reportScrollManager.scrollToBottom();
-    }, [isTransactionThreadReport, reportScrollManager]);
+    }, [shouldFocusToTopOnMount, reportScrollManager]);
 
     useEffect(() => {
         if (
@@ -456,7 +457,7 @@ function ReportActionsList({
 
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
-            if (!isTransactionThreadReport) {
+            if (!shouldFocusToTopOnMount) {
                 scrollToBottom();
             }
         });
@@ -637,8 +638,8 @@ function ReportActionsList({
             return !isCanceledTaskReport(report, parentReportAction);
         }
 
-        return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
-    }, [isTransactionThreadReport, parentReportAction, report, sortedVisibleReportActions]);
+        return isMoneyRequestOrInvoiceReport;
+    }, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport, parentReportAction, report, sortedVisibleReportActions]);
 
     useEffect(() => {
         if (report.reportID !== prevReportID) {
@@ -682,7 +683,7 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const actionIndex = isTransactionThreadReport ? sortedVisibleReportActions.length - index - 1 : index;
+            const actionIndex = shouldFocusToTopOnMount ? sortedVisibleReportActions.length - index - 1 : index;
             const originalReportID = getOriginalReportID(report.reportID, reportAction);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
@@ -731,7 +732,7 @@ function ReportActionsList({
             );
         },
         [
-            isTransactionThreadReport,
+            shouldFocusToTopOnMount,
             sortedVisibleReportActions,
             report,
             draftMessage,
@@ -839,24 +840,24 @@ function ReportActionsList({
 
     // FlatList is used for transaction threads to keep the list scrolled at the top and display actions in chronological order.
     // InvertedFlatList is used for regular reports, always scrolling to the bottom initially and showing the newest messages at the bottom.
-    const ListComponent = isTransactionThreadReport ? FlatList : InvertedFlatList;
+    const ListComponent = shouldFocusToTopOnMount ? FlatList : InvertedFlatList;
     const contentContainerStyle = useMemo(() => {
         const baseStyles: StyleProp<ViewStyle> = [styles.chatContentScrollView];
 
-        if (isTransactionThreadReport) {
+        if (shouldFocusToTopOnMount) {
             // InvertedFlatList applies a scale: -1 transform, so top padding becomes bottom padding and vice versa.
-            // When using FlatList for transaction threads, we need to manually add top padding (pt4) and remove bottom padding (pb0)
+            // When using FlatList for money requests, we need to manually add top padding (pt4) and remove bottom padding (pb0)
             // to maintain consistent spacing and visual appearance at the top of the list.
             baseStyles.push(styles.pb0, styles.pt4);
 
-            // In transaction threads, we want the content to be vertically aligned to the bottom of the screen, but only on wide screens.
+            // For money requests, we want the content to be vertically aligned to the bottom of the screen, but only on wide screens.
             if (!isInNarrowPaneModal) {
                 baseStyles.push(styles.justifyContentEnd);
             }
         }
 
         return baseStyles;
-    }, [isInNarrowPaneModal, isTransactionThreadReport, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
+    }, [isInNarrowPaneModal, shouldFocusToTopOnMount, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
 
     /**
      * Wraps the provided renderScrollComponent to pass isInvertedScrollView prop.
@@ -867,12 +868,12 @@ function ReportActionsList({
         (render: NonNullable<RenderScrollComponentType>) => (props: ScrollViewProps) =>
             render({
                 ...props,
-                isInvertedScrollView: !isTransactionThreadReport,
+                isInvertedScrollView: !shouldFocusToTopOnMount,
             }),
-        [isTransactionThreadReport],
+        [shouldFocusToTopOnMount],
     );
 
-    const ListWrapper = isTransactionThreadReport ? KeyboardAvoidingView : View;
+    const ListWrapper = shouldFocusToTopOnMount ? KeyboardAvoidingView : View;
 
     return (
         <>
