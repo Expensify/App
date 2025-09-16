@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,7 +22,7 @@ function IOURequestStepAccountant({
         params: {transactionID, reportID, iouType, backTo, action},
     },
 }: IOURequestStepAccountantProps) {
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const {translate} = useLocalize();
 
     const setAccountant = useCallback(
