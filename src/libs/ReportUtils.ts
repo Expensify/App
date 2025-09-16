@@ -11502,8 +11502,9 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
+    const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
-    const userCanReject = isReportApprover || isReportPayer;
+    const userCanReject = (isReportApprover && isCurrentUserManager) || isReportPayer;
 
     if (!userCanReject) {
         return false; // must be approver or payer
