@@ -5050,6 +5050,11 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        addToWalletButtonSize: {
+            width: CONST.WALLET.ADD_TO_WALLET_BUTTON.WIDTH,
+            height: CONST.WALLET.ADD_TO_WALLET_BUTTON.HEIGHT,
+        },
+
         plaidIcon: {
             height: variables.iconSizeMegaLarge,
             width: variables.iconSizeMegaLarge,
