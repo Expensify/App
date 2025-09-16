@@ -146,32 +146,21 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm];
 
-    let amountFilter = '';
+    const amountStrings = [];
 
-    if (equalTo && typeof equalTo === 'string') {
-        amountFilter += `${filterKey}:${equalTo}`;
+    if (equalTo) {
+        amountStrings.push(`${filterKey}:${equalTo}`);
     }
 
-    if (greaterThan && typeof greaterThan === 'string') {
-        if (amountFilter) {
-            amountFilter += ' ';
-        }
-        amountFilter += `${filterKey}>${greaterThan}`;
+    if (lessThan) {
+        amountStrings.push(`${filterKey}<${lessThan}`);
     }
 
-    if (lessThan && greaterThan) {
-        amountFilter += ' ';
-    } else if (lessThan && (equalTo ?? (!greaterThan && !equalTo))) {
-        if (amountFilter) {
-            amountFilter += ' ';
-        }
+    if (greaterThan) {
+        amountStrings.push(`${filterKey}>${greaterThan}`);
     }
 
-    if (lessThan && typeof lessThan === 'string') {
-        amountFilter += `${filterKey}<${lessThan}`;
-    }
-
-    return amountFilter;
+    return amountStrings.join(' ');
 }
 
 /**

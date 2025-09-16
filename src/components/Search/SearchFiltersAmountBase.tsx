@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -20,20 +20,25 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAmountFilterKeys} from './types';
 
 function SearchFiltersAmountBase({title, filterKey, testID}: {title: TranslationPaths; filterKey: SearchAmountFilterKeys; testID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput();
     const [selectedModifier, setSelectedModifier] = useState<string | null>(null);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
-    const equalTo = searchAdvancedFiltersForm?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof typeof searchAdvancedFiltersForm];
+    const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
+    const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
+    const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
+    
+    const equalTo = searchAdvancedFiltersForm?.[equalToKey];
     const equalToFormattedAmount = equalTo ? convertToFrontendAmountAsString(Number(equalTo)) : undefined;
-    const greaterThan = searchAdvancedFiltersForm?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof typeof searchAdvancedFiltersForm];
+    const greaterThan = searchAdvancedFiltersForm?.[greaterThanKey];
     const greaterThanFormattedAmount = greaterThan ? convertToFrontendAmountAsString(Number(greaterThan)) : undefined;
-    const lessThan = searchAdvancedFiltersForm?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof typeof searchAdvancedFiltersForm];
+    const lessThan = searchAdvancedFiltersForm?.[lessThanKey];
     const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan)) : undefined;
 
     const goBack = () => {
@@ -49,50 +54,52 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
             return;
         }
 
-        const fieldKey = `${filterKey}${selectedModifier}` as keyof typeof searchAdvancedFiltersForm;
-        const rawAmount = values[fieldKey] as unknown;
-        const amountStr = rawAmount == null ? '' : String(rawAmount);
-        const isEmpty = amountStr.trim() === '';
+        const fieldKey = `${filterKey}${selectedModifier}` as keyof SearchAdvancedFiltersForm;
+        const fieldValue = values[fieldKey as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>];
+        const rawAmount = String(fieldValue ?? '');
+        const isEmpty = rawAmount.trim() === '';
+
+        if (isEmpty) {
+            updateAdvancedFilters({ [fieldKey]: null });
+            goBack();
+            return;
+        }
 
         // Build updates: clear on empty, otherwise persist formatted amount.
         const updates: Record<string, string | null> = {
-            [String(fieldKey)]: isEmpty ? null : convertToBackendAmount(Number(amountStr)).toString(),
+            [fieldKey]: convertToBackendAmount(Number(rawAmount)).toString(),
         };
 
         // When setting an Equal To value, clear Greater Than and Less Than to avoid conflicting filters.
-        if (!isEmpty && selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
-            updates[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = null;
-            updates[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = null;
+        if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
+            updates[greaterThanKey] = null;
+            updates[lessThanKey] = null;
         }
 
         // When setting Greater Than or Less Than, clear Equal To to avoid conflicting filters.
         if (
-            !isEmpty &&
-            (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN)
+            selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN
         ) {
-            updates[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = null;
+            updates[equalToKey] = null;
         }
 
         updateAdvancedFilters(updates);
         goBack();
     };
 
-    const reset = useCallback(() => {
+    const reset = () => {
         updateAdvancedFilters({
-            [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`]: null,
-            [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: null,
-            [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]: null,
+            [equalToKey]: null,
+            [greaterThanKey]: null,
+            [lessThanKey]: null,
         });
-    }, [filterKey]);
+    };
 
-    const save = useCallback(() => {
+    const save = () => {
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, []);
+    };
 
-    const getTitle = () => {
-        if (!selectedModifier) {
-            return translate(title);
-        }
+    const getTitle = useMemo(() => {
         switch (selectedModifier) {
             case CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO:
                 return translate('search.filters.amount.equalTo');
@@ -103,36 +110,26 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
             default:
                 return translate(title);
         }
-    };
+    }, [selectedModifier, title, translate]);
 
     const getCurrentValue = () => {
         if (!selectedModifier) {
             return undefined;
         }
-        const fieldKey = `${filterKey}${selectedModifier}` as keyof typeof searchAdvancedFiltersForm;
+        const fieldKey = `${filterKey}${selectedModifier}` as keyof SearchAdvancedFiltersForm;
         const value = searchAdvancedFiltersForm?.[fieldKey];
         return value ? convertToFrontendAmountAsString(Number(value)) : undefined;
     };
 
-    const handleModifierSelect = useCallback((modifier: string) => {
+    const handleModifierSelect = (modifier: string) => {
         setSelectedModifier(modifier);
-    }, []);
-
-    useEffect(() => {
-        if (!selectedModifier) {
-            return;
-        }
-        const handle = InteractionManager.runAfterInteractions(() => {
-            inputRef.current?.focus?.();
-        });
-        return () => handle.cancel();
-    }, [selectedModifier, inputRef]);
+    };
 
     if (!selectedModifier) {
         return (
             <ScreenWrapper testID={testID}>
                 <HeaderWithBackButton
-                    title={translate(title)}
+                    title={getTitle}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
                 />
                 <View style={styles.flex1}>
@@ -176,7 +173,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         <ScreenWrapper testID={testID}>
             <HeaderWithBackButton
                 onBackButtonPress={goBack}
-                title={getTitle()}
+                title={getTitle}
             />
             <FormProvider
                 style={[styles.flex1, styles.ph4]}
@@ -191,11 +188,12 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         inputID={`${filterKey}${selectedModifier}`}
                         name={`${filterKey}${selectedModifier}`}
                         defaultValue={getCurrentValue()}
-                        label={getTitle()}
-                        accessibilityLabel={getTitle()}
+                        label={getTitle}
+                        accessibilityLabel={getTitle}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         inputMode={CONST.INPUT_MODE.DECIMAL}
+                        autoFocus
                         uncontrolled
                     />
                 </View>
