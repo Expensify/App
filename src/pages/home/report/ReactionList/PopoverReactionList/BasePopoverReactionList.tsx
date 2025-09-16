@@ -1,5 +1,4 @@
 import React, {useImperativeHandle} from 'react';
-import type {ForwardedRef} from 'react';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -8,14 +7,10 @@ import type {BasePopoverReactionListProps} from '@hooks/useBasePopoverReactionLi
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
-import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListProps & {
-    /** Reference to the outer element */
-    ref?: ForwardedRef<Partial<ReactionListRef>>;
-};
+type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListProps;
 
 function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails, ref}: PopoverReactionListProps) {
     const {preferredLocale} = useLocalize();
