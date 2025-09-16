@@ -694,6 +694,7 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
@@ -2895,9 +2896,14 @@ const CONST = {
             USER: 'user',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
-        AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS: 10000,
-        AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 10000,
-        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.05,
+
+        // Auto-reimbursement and auto-approval defaults are 0, but when enabled will use the suggested limit
+        AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS: 0,
+        AUTO_REIMBURSEMENT_LIMIT_SUGGESTED_CENTS: 10000,
+        AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS: 0,
+        AUTO_APPROVE_REPORTS_UNDER_SUGGESTED_CENTS: 10000,
+        RANDOM_AUDIT_DEFAULT_PERCENTAGE: 0.0,
+        RANDOM_AUDIT_SUGGESTED_PERCENTAGE: 0.05,
 
         AUTO_REPORTING_FREQUENCIES: {
             INSTANT: 'instant',
@@ -2977,6 +2983,7 @@ const CONST = {
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
+            IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -6452,6 +6459,7 @@ const CONST = {
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
+        ME: 'me',
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
@@ -6626,6 +6634,7 @@ const CONST = {
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
+            ATTENDEE: 'attendee',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6677,6 +6686,7 @@ const CONST = {
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
+            ATTENDEE: 'attendee',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -6727,7 +6737,13 @@ const CONST = {
             FADE_DURATION: 200,
         },
     },
-
+    SEARCH_SELECTOR: {
+        SELECTION_MODE_SINGLE: 'single',
+        SELECTION_MODE_MULTI: 'multi',
+        SEARCH_CONTEXT_GENERAL: 'general',
+        SEARCH_CONTEXT_SEARCH: 'search',
+        SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
+    },
     EXPENSE: {
         TYPE: {
             CASH_CARD_NAME: 'Cash Expense',
@@ -6929,6 +6945,14 @@ const CONST = {
                 title: 'workspace.upgrade.travel.title' as const,
                 description: 'workspace.upgrade.travel.description' as const,
                 icon: 'Luggage',
+            },
+            distanceRates: {
+                id: 'distanceRates' as const,
+                alias: 'distance-rates',
+                name: 'Distance Rates',
+                title: 'workspace.upgrade.distanceRates.title' as const,
+                description: 'workspace.upgrade.distanceRates.description' as const,
+                icon: 'CarIce',
             },
         };
     },
@@ -7236,6 +7260,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];
 
 const FEATURE_IDS = {
