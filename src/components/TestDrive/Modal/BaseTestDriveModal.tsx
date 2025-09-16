@@ -41,7 +41,7 @@ function BaseTestDriveModal({
 
     useEffect(
         () => () => {
-            // When the app is closed, this callback still gets executed, and `currentRoute` is set to an empty string (`''`).
+            // On Android, when the app is closed, this callback still gets executed, and `currentRoute` is set to an empty string (`''`).
             const currentRoute = Navigation.getActiveRoute();
             if (!currentRoute) {
                 return;
@@ -50,6 +50,7 @@ function BaseTestDriveModal({
         },
         [],
     );
+
     return (
         <FeatureTrainingModal
             image={TestDrive}
