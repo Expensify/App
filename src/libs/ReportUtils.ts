@@ -11496,6 +11496,7 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
+    const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
     const userCanReject = (isReportApprover && isCurrentUserManager) || isReportPayer;
@@ -11505,7 +11506,11 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
     }
 
     if (isIOU) {
-        return true; // IOU reports can always be rejected by approver/payer
+        return false; // Disable IOU
+    }
+
+    if (isInvoice) {
+        return false; // Disable invoice
     }
 
     if (isReportBeingProcessed) {
