@@ -2,10 +2,11 @@ import {execSync} from 'child_process';
 
 /**
  * Represents a single changed line in a git diff.
+ * With -U0, only added and removed lines are present (no context).
  */
 type DiffLine = {
     lineNumber: number;
-    type: 'added' | 'removed' | 'context';
+    type: 'added' | 'removed';
     content: string;
 };
 
@@ -72,8 +73,8 @@ class Git {
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
     static diff(fromRef: string, toRef?: string, filePath?: string): DiffResult {
-        // Build git diff command
-        let command = `git diff ${fromRef}`;
+        // Build git diff command (with 0 context lines for easier parsing)
+        let command = `git diff -U0 ${fromRef}`;
         if (toRef) {
             command += ` ${toRef}`;
         }
@@ -177,15 +178,8 @@ class Git {
                         content,
                     });
                     currentFile.removedLines.add(lineNumber);
-                } else if (firstChar === ' ') {
-                    // For context lines, use new file line numbers
-                    const lineNumber = this.calculateLineNumber(currentHunk, 'context');
-
-                    currentHunk.lines.push({
-                        lineNumber,
-                        type: 'context',
-                        content,
-                    });
+                } else {
+                    throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
             }
         }
@@ -253,17 +247,15 @@ class Git {
     /**
      * Calculate the line number for a diff line based on the hunk and line type.
      */
-    private static calculateLineNumber(hunk: DiffHunk, lineType: 'added' | 'removed' | 'context'): number {
+    private static calculateLineNumber(hunk: DiffHunk, lineType: 'added' | 'removed'): number {
         const addedCount = hunk.lines.filter((l) => l.type === 'added').length;
-        const contextCount = hunk.lines.filter((l) => l.type === 'context').length;
         const removedCount = hunk.lines.filter((l) => l.type === 'removed').length;
 
         switch (lineType) {
             case 'added':
-            case 'context':
-                return hunk.newStart + addedCount + contextCount;
+                return hunk.newStart + addedCount;
             case 'removed':
-                return hunk.oldStart + removedCount + contextCount;
+                return hunk.oldStart + removedCount;
             default:
                 throw new Error(`Unknown line type: ${String(lineType)}`);
         }

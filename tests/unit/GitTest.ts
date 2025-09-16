@@ -65,7 +65,7 @@ describe('Git', () => {
                 files: [],
                 hasChanges: false,
             });
-            expect(mockExecSync).toHaveBeenCalledWith('git diff main', {
+            expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 main', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -77,12 +77,10 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/src/file.ts
                 +++ b/src/file.ts
-                @@ -1,3 +1,4 @@
-                 const greeting = 'Hello';
+                @@ -2,1 +2,2 @@
                 -const farewell = 'Goodbye';
                 +const farewell = 'Farewell';
                 +const newLine = 'New';
-                 export default greeting;
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -106,36 +104,26 @@ describe('Git', () => {
             if (!hunk) {
                 return;
             }
-            expect(hunk.oldStart).toBe(1);
-            expect(hunk.oldCount).toBe(3);
-            expect(hunk.newStart).toBe(1);
-            expect(hunk.newCount).toBe(4);
+            expect(hunk.oldStart).toBe(2);
+            expect(hunk.oldCount).toBe(1);
+            expect(hunk.newStart).toBe(2);
+            expect(hunk.newCount).toBe(2);
 
-            expect(hunk.lines).toHaveLength(5); // Updated based on actual output
+            expect(hunk.lines).toHaveLength(3);
             expect(hunk.lines.at(0)).toEqual({
-                lineNumber: 1,
-                type: 'context',
-                content: "const greeting = 'Hello';",
-            });
-            expect(hunk.lines.at(1)).toEqual({
                 lineNumber: 2,
                 type: 'removed',
                 content: "const farewell = 'Goodbye';",
             });
-            expect(hunk.lines.at(2)).toEqual({
+            expect(hunk.lines.at(1)).toEqual({
                 lineNumber: 2,
                 type: 'added',
                 content: "const farewell = 'Farewell';",
             });
-            expect(hunk.lines.at(3)).toEqual({
+            expect(hunk.lines.at(2)).toEqual({
                 lineNumber: 3,
                 type: 'added',
                 content: "const newLine = 'New';",
-            });
-            expect(hunk.lines.at(4)).toEqual({
-                lineNumber: 4,
-                type: 'context',
-                content: 'export default greeting;',
             });
 
             // 1 removed, 2 added = 1 modified + 1 added
@@ -150,12 +138,10 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/src/file.ts
                 +++ b/src/file.ts
-                @@ -1,2 +1,2 @@
+                @@ -1,1 +1,1 @@
                 -const old1 = 'old';
                 +const new1 = 'new';
-                 const unchanged = 'same';
-                @@ -10,2 +10,3 @@
-                 const middle = 'middle';
+                @@ -10,1 +10,2 @@
                 -const old2 = 'old';
                 +const new2 = 'new';
                 +const added = 'added';
@@ -194,7 +180,7 @@ describe('Git', () => {
             // First hunk: 1 removed, 1 added = 1 modified
             // Second hunk: 1 removed, 2 added = 1 modified + 1 added
             expect(file.modifiedLines.size).toBe(2);
-            expect(Array.from(file.addedLines)).toEqual([12]);
+            expect(Array.from(file.addedLines)).toEqual([11]);
             expect(Array.from(file.removedLines)).toEqual([]);
         });
 
@@ -211,8 +197,7 @@ describe('Git', () => {
                 index 7890abc..word123 100644
                 --- a/src/file2.ts
                 +++ b/src/file2.ts
-                @@ -1,1 +1,2 @@
-                 existing line
+                @@ -2,0 +2,1 @@
                 +added line
             `);
 
@@ -249,17 +234,15 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/src/languages/en.ts
                 +++ b/src/languages/en.ts
-                @@ -5,1 +5,2 @@
-                     greeting: 'Hello',
+                @@ -6,0 +6,1 @@
                 +    newKey: 'New value',
-                 };
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
 
             const result = Git.diff('main', undefined, 'src/languages/en.ts');
 
-            expect(mockExecSync).toHaveBeenCalledWith('git diff main -- "src/languages/en.ts"', {
+            expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 main -- "src/languages/en.ts"', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -306,20 +289,16 @@ describe('Git', () => {
             expect(() => Git.diff('main', undefined, 'nonexistent.ts')).toThrow("fatal: pathspec 'nonexistent.ts' did not match any files");
         });
 
-        it('handles unified diff format with context lines', () => {
+        it('handles unified diff format without context lines', () => {
             const mockDiffOutput = dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -2,5 +2,6 @@
-                 line 1
-                 line 2
-                -line 3 old
-                +line 3 new
-                +line 4 added
-                 line 5
-                 line 6
+                @@ -4,1 +4,2 @@
+                -line 1 old
+                +line 1 new
+                +line 2 added
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -338,49 +317,25 @@ describe('Git', () => {
                 return;
             }
 
-            expect(hunk.lines).toHaveLength(7);
-
-            // Check context lines
-            expect(hunk.lines.at(0)).toEqual({
-                lineNumber: 2,
-                type: 'context',
-                content: 'line 1',
-            });
-            expect(hunk.lines.at(1)).toEqual({
-                lineNumber: 3,
-                type: 'context',
-                content: 'line 2',
-            });
+            expect(hunk.lines).toHaveLength(3);
 
             // Check removed line
-            expect(hunk.lines.at(2)).toEqual({
+            expect(hunk.lines.at(0)).toEqual({
                 lineNumber: 4,
                 type: 'removed',
-                content: 'line 3 old',
+                content: 'line 1 old',
             });
 
             // Check added lines
-            expect(hunk.lines.at(3)).toEqual({
+            expect(hunk.lines.at(1)).toEqual({
                 lineNumber: 4,
                 type: 'added',
-                content: 'line 3 new',
+                content: 'line 1 new',
             });
-            expect(hunk.lines.at(4)).toEqual({
+            expect(hunk.lines.at(2)).toEqual({
                 lineNumber: 5,
                 type: 'added',
-                content: 'line 4 added',
-            });
-
-            // Check remaining context lines
-            expect(hunk.lines.at(5)).toEqual({
-                lineNumber: 6,
-                type: 'context',
-                content: 'line 5',
-            });
-            expect(hunk.lines.at(6)).toEqual({
-                lineNumber: 7,
-                type: 'context',
-                content: 'line 6',
+                content: 'line 2 added',
             });
         });
 
@@ -391,13 +346,11 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -1,4 +1,4 @@
-                 line1
+                @@ -2,2 +2,2 @@
+                -old line1
                 -old line2
-                -old line3
+                +new line1
                 +new line2
-                +new line3
-                 line4
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -422,13 +375,11 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -1,3 +1,5 @@
-                 line1
-                -old line2
-                +new line2
+                @@ -2,1 +2,3 @@
+                -old line1
+                +new line1
+                +additional line2
                 +additional line3
-                +additional line4
-                 line3
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -453,13 +404,11 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -1,5 +1,3 @@
-                 line1
+                @@ -2,3 +2,1 @@
+                -old line1
                 -old line2
                 -old line3
-                -old line4
-                +new line2
-                 line5
+                +new line1
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -484,11 +433,9 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -1,2 +1,4 @@
-                 line1
-                 line2
-                +new line3
-                +new line4
+                @@ -2,0 +3,2 @@
+                +new line1
+                +new line2
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -512,11 +459,9 @@ describe('Git', () => {
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -1,4 +1,2 @@
-                 line1
-                 line2
-                -line3
-                -line4
+                @@ -3,2 +3,0 @@
+                -line1
+                -line2
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -534,18 +479,17 @@ describe('Git', () => {
         });
 
         it('handles interleaved additions and removals correctly', () => {
-            // Non-consecutive additions and removals within a hunk
+            // Non-consecutive additions and removals within a hunk (with -U0, they're in separate hunks)
             const mockDiffOutput = dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -1,6 +1,6 @@
+                @@ -1,1 +1,1 @@
                 -removed1
                 +added1
-                 context1
+                @@ -3,1 +3,2 @@
                 -removed2
-                 context2
                 +added2
                 +added3
             `);
