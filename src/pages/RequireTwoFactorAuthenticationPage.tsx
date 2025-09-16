@@ -20,7 +20,7 @@ const selector = (account: OnyxEntry<Account>) => account?.validated;
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector, canBeMissing: false});
+    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector, canBeMissing: true});
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {
