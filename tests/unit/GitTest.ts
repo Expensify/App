@@ -138,8 +138,10 @@ describe('Git', () => {
                 content: 'export default greeting;',
             });
 
-            expect(Array.from(file.addedLines).sort()).toEqual([2, 3]);
-            expect(Array.from(file.removedLines)).toEqual([2]);
+            // 1 removed, 2 added = 1 modified + 1 added
+            expect(file.modifiedLines.size).toBe(1);
+            expect(Array.from(file.addedLines)).toEqual([3]);
+            expect(Array.from(file.removedLines)).toEqual([]);
         });
 
         it('handles multiple hunks in a single file', () => {
@@ -189,8 +191,11 @@ describe('Git', () => {
                 expect(secondHunk.newStart).toBe(10);
             }
 
-            expect(Array.from(file.addedLines).sort()).toEqual([1, 11, 12]);
-            expect(Array.from(file.removedLines).sort()).toEqual([1, 11]);
+            // First hunk: 1 removed, 1 added = 1 modified
+            // Second hunk: 1 removed, 2 added = 1 modified + 1 added
+            expect(file.modifiedLines.size).toBe(2);
+            expect(Array.from(file.addedLines)).toEqual([12]);
+            expect(Array.from(file.removedLines)).toEqual([]);
         });
 
         it('handles multiple files in diff', () => {
@@ -229,8 +234,10 @@ describe('Git', () => {
             expect(file1.filePath).toBe('src/file1.ts');
             expect(file2.filePath).toBe('src/file2.ts');
 
-            expect(Array.from(file1.addedLines)).toEqual([1]);
-            expect(Array.from(file1.removedLines)).toEqual([1]);
+            // 1 removed, 1 added = 1 modified
+            expect(file1.modifiedLines.size).toBe(1);
+            expect(Array.from(file1.addedLines)).toEqual([]);
+            expect(Array.from(file1.removedLines)).toEqual([]);
 
             expect(Array.from(file2.addedLines)).toEqual([2]);
             expect(file2.removedLines.size).toBe(0);
@@ -377,18 +384,20 @@ describe('Git', () => {
             });
         });
 
-        it('calculates modified lines correctly', () => {
+        it('calculates modified lines correctly when lines are replaced', () => {
+            // 2 lines removed, 2 lines added = 2 modified lines
             const mockDiffOutput = dedent(`
                 diff --git a/test.ts b/test.ts
                 index 1234567..abcdefg 100644
                 --- a/test.ts
                 +++ b/test.ts
-                @@ -1,3 +1,3 @@
-                -old line 1
-                +new line 1
-                 unchanged line 2
-                -old line 3
-                +new line 3
+                @@ -1,4 +1,4 @@
+                 line1
+                -old line2
+                -old line3
+                +new line2
+                +new line3
+                 line4
             `);
 
             mockExecSync.mockReturnValue(mockDiffOutput);
@@ -400,9 +409,160 @@ describe('Git', () => {
                 return;
             }
 
-            // Lines that are close together (within 2 lines) and have both additions/removals
-            // should be considered modified
-            expect(file.modifiedLines.size).toBeGreaterThan(0);
+            // Should have 2 modified lines (the minimum of 2 removed and 2 added)
+            expect(file.modifiedLines.size).toBe(2);
+            expect(file.addedLines.size).toBe(0); // No net additions since all were modifications
+            expect(file.removedLines.size).toBe(0); // No net removals since all were modifications
+        });
+
+        it('calculates modified lines with net additions', () => {
+            // 1 line removed, 3 lines added = 1 modified line + 2 added lines
+            const mockDiffOutput = dedent(`
+                diff --git a/test.ts b/test.ts
+                index 1234567..abcdefg 100644
+                --- a/test.ts
+                +++ b/test.ts
+                @@ -1,3 +1,5 @@
+                 line1
+                -old line2
+                +new line2
+                +additional line3
+                +additional line4
+                 line3
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            // Should have 1 modified line + 2 net additions
+            expect(file.modifiedLines.size).toBe(1);
+            expect(file.addedLines.size).toBe(2);
+            expect(file.removedLines.size).toBe(0);
+        });
+
+        it('calculates modified lines with net removals', () => {
+            // 3 lines removed, 1 line added = 1 modified line + 2 removed lines
+            const mockDiffOutput = dedent(`
+                diff --git a/test.ts b/test.ts
+                index 1234567..abcdefg 100644
+                --- a/test.ts
+                +++ b/test.ts
+                @@ -1,5 +1,3 @@
+                 line1
+                -old line2
+                -old line3
+                -old line4
+                +new line2
+                 line5
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            // Should have 1 modified line + 2 net removals
+            expect(file.modifiedLines.size).toBe(1);
+            expect(file.addedLines.size).toBe(0);
+            expect(file.removedLines.size).toBe(2);
+        });
+
+        it('handles pure additions correctly', () => {
+            // 0 lines removed, 2 lines added = 0 modified lines + 2 added lines
+            const mockDiffOutput = dedent(`
+                diff --git a/test.ts b/test.ts
+                index 1234567..abcdefg 100644
+                --- a/test.ts
+                +++ b/test.ts
+                @@ -1,2 +1,4 @@
+                 line1
+                 line2
+                +new line3
+                +new line4
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.modifiedLines.size).toBe(0);
+            expect(file.addedLines.size).toBe(2);
+            expect(file.removedLines.size).toBe(0);
+        });
+
+        it('handles pure removals correctly', () => {
+            // 2 lines removed, 0 lines added = 0 modified lines + 2 removed lines
+            const mockDiffOutput = dedent(`
+                diff --git a/test.ts b/test.ts
+                index 1234567..abcdefg 100644
+                --- a/test.ts
+                +++ b/test.ts
+                @@ -1,4 +1,2 @@
+                 line1
+                 line2
+                -line3
+                -line4
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.modifiedLines.size).toBe(0);
+            expect(file.addedLines.size).toBe(0);
+            expect(file.removedLines.size).toBe(2);
+        });
+
+        it('handles interleaved additions and removals correctly', () => {
+            // Non-consecutive additions and removals within a hunk
+            const mockDiffOutput = dedent(`
+                diff --git a/test.ts b/test.ts
+                index 1234567..abcdefg 100644
+                --- a/test.ts
+                +++ b/test.ts
+                @@ -1,6 +1,6 @@
+                -removed1
+                +added1
+                 context1
+                -removed2
+                 context2
+                +added2
+                +added3
+            `);
+
+            mockExecSync.mockReturnValue(mockDiffOutput);
+
+            const result = Git.diff('main');
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            // 2 removed, 3 added = 2 modified + 1 added
+            expect(file.modifiedLines.size).toBe(2);
+            expect(file.addedLines.size).toBe(1);
+            expect(file.removedLines.size).toBe(0);
         });
     });
 });
