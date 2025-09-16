@@ -167,7 +167,6 @@ class Git {
                         type: 'added',
                         content,
                     });
-                    currentFile.addedLines.add(lineNumber);
                 } else if (firstChar === '-') {
                     // For removed lines, use old file line numbers
                     const lineNumber = this.calculateLineNumber(currentHunk, 'removed');
@@ -177,7 +176,6 @@ class Git {
                         type: 'removed',
                         content,
                     });
-                    currentFile.removedLines.add(lineNumber);
                 } else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
@@ -195,15 +193,6 @@ class Git {
         // Calculate modified, added, and removed lines
         for (const file of files) {
             for (const hunk of file.hunks) {
-                // Clear any lines that were added during parsing - we'll recalculate them properly
-                for (const line of hunk.lines) {
-                    if (line.type === 'added') {
-                        file.addedLines.delete(line.lineNumber);
-                    } else if (line.type === 'removed') {
-                        file.removedLines.delete(line.lineNumber);
-                    }
-                }
-
                 // Collect all removed and added lines from this hunk
                 const removedLines = hunk.lines.filter((line) => line.type === 'removed');
                 const addedLines = hunk.lines.filter((line) => line.type === 'added');
