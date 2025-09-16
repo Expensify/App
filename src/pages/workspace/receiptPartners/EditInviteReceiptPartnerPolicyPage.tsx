@@ -135,7 +135,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                         small
                         text={translate('workspace.receiptPartners.uber.status.resend')}
                         onPress={() => inviteOrResend(email)}
-                        isDisabled={isOffline}
                         style={[styles.ml3]}
                     />
                 );
@@ -148,7 +147,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                         text={translate('workspace.receiptPartners.uber.status.invite')}
                         onPress={() => inviteOrResend(email)}
                         success
-                        isDisabled={isOffline}
                         style={[styles.ml3]}
                     />
                 );
