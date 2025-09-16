@@ -51,6 +51,9 @@ type ReportActionsViewProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** The oldest unread report action ID */
+    oldestUnreadReportActionID?: string;
+
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
@@ -75,6 +78,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    oldestUnreadReportActionID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -86,15 +90,15 @@ function ReportActionsView({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
-    const reportActionID = route?.params?.reportActionID;
-    const prevReportActionID = usePrevious(reportActionID);
+    const reportActionIDFromRoute = route?.params?.reportActionID;
+    const prevReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
+    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionIDFromRoute);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -106,15 +110,15 @@ function ReportActionsView({
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
-        if (!reportActionID || !isOffline) {
+        if (!reportActionIDFromRoute || !isOffline) {
             return;
         }
         updateLoadingInitialReportAction(report.reportID);
-    }, [isOffline, report.reportID, reportActionID]);
+    }, [isOffline, report.reportID, reportActionIDFromRoute]);
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionID && !prevReportActionID) {
+        if (!reportActionIDFromRoute && !prevReportActionIDFromRoute) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
@@ -124,7 +128,7 @@ function ReportActionsView({
 
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, reportActionID]);
+    }, [route, reportActionIDFromRoute]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -232,7 +236,6 @@ function ReportActionsView({
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
-        reportActionID,
         reportActions,
         allReportActionIDs,
         transactionThreadReport,
@@ -254,7 +257,7 @@ function ReportActionsView({
     }, []);
 
     // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
+    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionIDFromRoute;
 
     useEffect(() => {
         let timerID: NodeJS.Timeout;
@@ -293,7 +296,7 @@ function ReportActionsView({
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
+    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionIDFromRoute || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
             <ReportActionsList
@@ -302,11 +305,13 @@ function ReportActionsView({
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
+                oldestUnreadReportActionID={oldestUnreadReportActionID}
                 sortedReportActions={reportActions}
                 sortedVisibleReportActions={visibleReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
+                hasNewerActions={hasNewerActions}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
