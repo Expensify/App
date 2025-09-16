@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -279,7 +280,7 @@ function MoneyRequestConfirmationListFooter({
         canBeMissing: true,
     });
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
 
     const allOutstandingReports = useMemo(() => {
         const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
@@ -480,6 +481,11 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transactionID) {
+                            return;
+                        }
+
+                        if (isManualDistanceRequest) {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                             return;
                         }
 

@@ -158,7 +158,6 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
-
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
@@ -217,7 +216,7 @@ function parseForLiveMarkdown(
     return ranges
         .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
         .map((range) => {
-            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName;
+            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
 
             return {start: range.start, type, length: range.length};
