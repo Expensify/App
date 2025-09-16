@@ -6550,14 +6550,6 @@ const CONST = {
                 CURRENT: 'current',
                 PAST: 'past',
             },
-            CHAT: {
-                ALL: '',
-                UNREAD: 'unread',
-                SENT: 'sent',
-                ATTACHMENTS: 'attachments',
-                LINKS: 'links',
-                PINNED: 'pinned',
-            },
             TASK: {
                 ALL: '',
                 OUTSTANDING: 'outstanding',
