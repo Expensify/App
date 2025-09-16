@@ -265,7 +265,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('common.remove')}
                         icon={Trashcan}
-                        iconFill={theme.danger}
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 showDelegateNoAccessModal();
