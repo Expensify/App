@@ -12,6 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
     copyFile: jest.fn(() => Promise.resolve()),
+    exists: jest.fn(() => Promise.resolve(false)),
 }));
 
 jest.mock('react-native-blob-util', () => ({
