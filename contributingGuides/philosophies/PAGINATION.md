@@ -52,7 +52,39 @@ It makes sense to paginate the loading of a resource when the volume of that is 
         LIMIT 50;
         ```
 
-4. TODO: Define two types of pagination (unidirectional and bidirectional), as that determines whether you need gap detection
-5. TODO: Describe front-end with and without gap detection
+4. Determine whether your use-case calls for **unidirectional** or **bidirectional** pagination. Generally, **bidirectional** pagination will be useful if:
+
+    - The list live-updates and the user can "jump" to an arbitrary point in the list without loading all the data between the start of the list and that point.
+    - The list doesn't live-update (i.e: if a user scrolls back in the list, and while they're looking at older items, they're not receiving newer items as they come in).
+
+    If you need bidiectional pagination, you'll need to ensure that you craft queries and API endpoints to fetch data from a given cursor in both directions. In the example query above, it could be as simple as switching `<` to `>=`
+
+> [!NOTE]
+> At the time of writing, [RecyclerListView](https://github.com/Flipkart/recyclerlistview) and [FlashList](https://github.com/Shopify/flash-list) _do not_ support bidirectional pagination.
+> React Native's built-in [FlatList](https://reactnative.dev/docs/flatlist) and [legend-list](https://github.com/LegendApp/legend-list) are some examples that _do_ support bidirectional pagination via the `onStartReached` prop.
+
+5. Determine whether it's possible for **gaps** to appear in your data. It's non-trivial to list all the ways gaps can appear in a list, but here are couple examples, one real and one contrived:
+    - "Comment linking"
+        1. User has a simple paginated list of integers in ascending order, and it currently contains items 1-50.
+        2. User jumps to the middle of the list (say for simplicity that they are looking at items 15-35)
+        3. While they're looking at the middle of the list, more than 1 page (50 items) of data is added to the front of the list. Let's say these items are items 50-150.
+        4. They jump back to the front of the page, and fetch the page at the front, 100-150.
+            - _Note:_ Fetching "all the data they missed" generally isn't a scalable solution, because it's unbounded, and the unbounded loading of data is the problem pagination seeks to solve.
+        5. Now there is a gap between items 50-100 :boom:
+    - "Over-eager eviction"
+        1. A user scrolls far back in the list. So far, that we decide there's too much data for us to handle all at once. Performance degrades, and we decide to start evicting the data at the front that's less-recently viewed. Let's say that the user now has items 50-100 loaded, and we've evicted items 100-200
+        2. New data appears at the front of the list, say items 200-250. We add these items to the list as we normally would if they're looking at the front of the list.
+        3. Now there is a gap between items 100-200 (the data we evicted) :boom:
+
+    If it turns out you _do_ need a strategy for gap detection, here's a high-level summary of how you'd handle it:
+
+    1. Start keeping track of the pages you've loaded in a `*pages_` Onyx key. This is a _sorted_ list of data.
+    2. Post-process network requests in the [Pagination Middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts) to keep track of the start and end point of the page you loaded in a request, and [merge it to existing pages if it overlaps](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L104).
+    3. When rendering your list, use the `pages*` key for your sorting order, and insert "gap markers" between the edges of the pages you've loaded.
+    4. When rendering your list, [only render a single continuous chunk](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L166) containing your current "anchor point" (the reportAction you linked to, for example), up until you reach the end of the list in either direction or a gap marker.
+    5. Then when you scroll, you'll hit your gap marker and can make network requests to fill in the gap.
+
+    More details can be found in [the Pagination middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts). Efforts were made to generalize this code, but so far it has only been used for reportActions.
+
 6. TODO: Describe (aspirational) two-layer pagination (RAM -> Disk -> Server)
 7. TODO: Describe (aspirational) data pre-loading
