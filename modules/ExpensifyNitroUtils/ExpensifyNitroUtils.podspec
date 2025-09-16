@@ -23,6 +23,9 @@ Pod::Spec.new do |s|
   ]
 
   s.pod_target_xcconfig = {
+    "HEADER_SEARCH_PATHS" => [
+      "${PODS_ROOT}/RCT-Folly",
+    ],
     "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES",
   }
 
