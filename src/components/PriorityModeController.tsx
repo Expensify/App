@@ -28,7 +28,7 @@ export default function PriorityModeController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (priorityMode) => priorityMode === CONST.PRIORITY_MODE.GSD, canBeMissing: true});
-    const [hasTriedFocusMode = true, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
+    const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentRouteName = useCurrentRouteName();
     const [shouldShowModal, setShouldShowModal] = useState(false);
@@ -51,7 +51,13 @@ export default function PriorityModeController() {
     // Listen for state changes and trigger the #focus mode when appropriate
     useEffect(() => {
         // Wait for Onyx state to fully load
-        if (isLoadingReportData !== false || !accountID || isLoadingOnyxValue(isInFocusModeMetadata, hasTriedFocusModeMetadata)) {
+        if (
+            isLoadingReportData !== false ||
+            !accountID ||
+            isLoadingOnyxValue(isInFocusModeMetadata, hasTriedFocusModeMetadata) ||
+            typeof isInFocusMode !== 'boolean' ||
+            typeof hasTriedFocusMode !== 'boolean'
+        ) {
             return;
         }
 
