@@ -32,7 +32,7 @@ PODS:
   - EXAV (15.1.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (17.1.5):
+  - EXConstants (17.1.7):
     - ExpoModulesCore
   - EXImageLoader (5.1.0):
     - ExpoModulesCore
@@ -86,7 +86,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Expo (53.0.7):
+  - Expo (53.0.11):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -117,7 +117,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (13.3.1):
     - ExpoModulesCore
-  - ExpoImage (2.1.6):
+  - ExpoImage (2.4.0):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -128,7 +128,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.3.12):
+  - ExpoModulesCore (2.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -396,7 +396,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroModules (0.29.2):
+  - NitroModules (0.26.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1871,7 +1871,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blob-util (0.19.4):
+  - react-native-blob-util (0.22.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2934,7 +2934,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Turf
     - Yoga
-  - RNNitroSQLite (9.1.11):
+  - RNNitroSQLite (9.1.10):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3766,16 +3766,16 @@ SPEC CHECKSUMS:
   boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
-  EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
+  EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
-  ExpensifyNitroUtils: fb0098627e13de07aef912c0bb70e8f307f01f60
-  Expo: a02b1eb4c08689dc866eabf48e2eefee712ded6b
+  ExpensifyNitroUtils: e0db1bd03c2ee179bdca45c57bf0497e626b18cd
+  Expo: 63b9951a116c03a63215ae0a116e52b50107cecd
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
-  ExpoImage: a5b427e52ee7a04921081e59aac5eef7a8134ba0
+  ExpoImage: 04ffc79f9a0391573b77efbc549d59c655caa5a8
   ExpoImageManipulator: 7096d6bf874c0a0a649f60733fef8a99c4ad0fe2
-  ExpoModulesCore: 5411340438617e068df45f70127ff34640f3f337
+  ExpoModulesCore: 4f1efd2360fd016b3ab7f13c9983320412208976
   ExpoSecureStore: 833b24a0d7feffef4505184910c058221066011e
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 84b955f7b4da8b895faf5946f73748267347c975
@@ -3816,7 +3816,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroModules: 1db6751c40aa0f741503015a9aef3f4c7bfd03eb
+  NitroModules: faec300c5f7074ec6d3255b2f6aedb94ac8a2d3d
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 0245dba46f3e3a10bbaf3969fc7c947a22fb46fa
@@ -3860,7 +3860,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: d247018c1658160139c72dd3a44a1054f9ec00e5
   react-native-airship: ff2599900d29e0e64ff2b2dd9f897c0c220a9163
   react-native-app-logs: 6540c5f6f66f33cb52d0bb62f0a10131ff3a9589
-  react-native-blob-util: a013bd1bb12de304a726c2308cc0e219f34ab66c
+  react-native-blob-util: 68f288ed8fd64a191a4d83ffa5a1dd375dc786d2
   react-native-cameraroll: d98f8a64b53620754864c33a034e054ca4a3b360
   react-native-config: ab9f9cc16883aed5355ca43478fe39e6aec5ebb9
   react-native-document-picker: 06ad77eb1650e628def114ff74f9f767f1888edd
@@ -3926,7 +3926,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 33974079f2be0b5c5e6032582c265494f00a8ce4
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 315b95f92be3bf9c86cac2925e39c9ab2ad2c793
-  RNNitroSQLite: e36968e81bbcab6c9e97a35e74ae34c7420d734c
+  RNNitroSQLite: a1b0f1a665c54fc0f2510a292c1bf8ac4d44231b
   RNPermissions: fd6b2676e74ecb6d2dec0a6168502ab7af733e34
   RNReactNativeHapticFeedback: 85c0a6ff490d52f5e8073040296fefe5945ebbfa
   RNReanimated: 0692f0b36f15b83a7936c3611cab923e1396eeb9
