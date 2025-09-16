@@ -6,11 +6,10 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Network from '@src/types/onyx/Network';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
-import {setConnectionChanges, setIsOffline, setNetWorkStatus, setPoorConnectionTimeoutID} from './actions/Network';
+import {setConnectionChanges, setIsOffline, setNetworkLastOffline, setNetWorkStatus, setPoorConnectionTimeoutID} from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
 import DateUtils from './DateUtils';
 import Log from './Log';
@@ -76,7 +75,9 @@ let isOfflineFlag: boolean | undefined;
 let networkTimeSkew = 0;
 let isNetworkStatusInitialized = false;
 
-Onyx.connect({
+// We do not depend on updates on the UI to determine the network status
+// or the offline status, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -85,16 +86,15 @@ Onyx.connect({
 
         networkTimeSkew = network?.timeSkew ?? 0;
         if (!network?.lastOfflineAt) {
-            NetworkActions.setNetworkLastOffline(DateUtils.getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+            setNetworkLastOffline(new Date().toISOString());
         }
 
         const newIsOffline = network?.isOffline ?? network?.shouldForceOffline;
         if (newIsOffline && isOfflineFlag === false) {
-            NetworkActions.setNetworkLastOffline(DateUtils.getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+            setNetworkLastOffline(new Date().toISOString());
         }
         isOfflineFlag = newIsOffline;
         isNetworkStatusInitialized = true;
-
 
         simulatePoorConnection(network);
 
