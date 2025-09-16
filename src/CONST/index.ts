@@ -275,6 +275,7 @@ const CONST = {
             FILE_CORRUPTED: 'fileCorrupted',
             PROTECTED_FILE: 'protectedFile',
             FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+            HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         },
         MULTIPLE_FILES: {
             WRONG_FILE_TYPE: 'multipleAttachmentsWrongFileType',

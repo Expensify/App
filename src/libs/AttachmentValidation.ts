@@ -34,8 +34,14 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
 
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
 
-    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
-        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE});
+    const isImage = Str.isImage(file.name ?? '');
+
+    if (isImage && isHeicOrHeifImage(file)) {
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE, file});
+    }
+
+    if (!isImage && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE, file});
     }
 
     if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
