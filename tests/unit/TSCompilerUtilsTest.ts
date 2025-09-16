@@ -1044,4 +1044,253 @@ describe('TSCompilerUtils', () => {
             return objectLiteral;
         }
     });
+
+    describe('injectDeepObjectValue', () => {
+        it('should inject value into basic nested structure', () => {
+            // Start with empty object
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+
+            // Create a final value
+            const finalValue = ts.factory.createStringLiteral('test value');
+
+            // Add nested path
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'test.nested', finalValue);
+
+            // Verify structure was created
+            expect(updatedObject.properties).toHaveLength(1);
+            const testProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            expect(ts.isPropertyAssignment(testProp)).toBe(true);
+            expect((testProp.name as ts.Identifier).text).toBe('test');
+
+            const testValue = testProp.initializer as ts.ObjectLiteralExpression;
+            expect(ts.isObjectLiteralExpression(testValue)).toBe(true);
+            expect(testValue.properties).toHaveLength(1);
+
+            const nestedProp = testValue.properties[0] as ts.PropertyAssignment;
+            expect((nestedProp.name as ts.Identifier).text).toBe('nested');
+            expect(ts.isStringLiteral(nestedProp.initializer)).toBe(true);
+            expect((nestedProp.initializer as ts.StringLiteral).text).toBe('test value');
+        });
+
+        it('should throw error when trying to inject into non-object property', () => {
+            // Start with existing property that's not an object
+            const existingProperty = ts.factory.createPropertyAssignment('existing', ts.factory.createStringLiteral('value'));
+            const objectLiteral = ts.factory.createObjectLiteralExpression([existingProperty]);
+
+            const finalValue = ts.factory.createStringLiteral('new value');
+
+            // Try to add nested path under a non-object property
+            expect(() => {
+                TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'existing.nested', finalValue);
+            }).toThrow('Cannot inject into path "existing.nested": property "existing" exists but is not an object');
+        });
+
+        it('should inject into existing nested object structure', () => {
+            // Start with existing nested structure
+            const nestedObj = ts.factory.createObjectLiteralExpression([ts.factory.createPropertyAssignment('existingNested', ts.factory.createStringLiteral('existing value'))]);
+            const existingProperty = ts.factory.createPropertyAssignment('existing', nestedObj);
+            const objectLiteral = ts.factory.createObjectLiteralExpression([existingProperty]);
+
+            const finalValue = ts.factory.createStringLiteral('new value');
+
+            // Add new path under existing structure
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'existing.newNested', finalValue);
+
+            // Should preserve existing structure and add new value
+            expect(updatedObject.properties).toHaveLength(1);
+            const updatedProperty = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            expect((updatedProperty.name as ts.Identifier).text).toBe('existing');
+
+            const updatedNestedObj = updatedProperty.initializer as ts.ObjectLiteralExpression;
+            expect(updatedNestedObj.properties).toHaveLength(2);
+
+            // Check existing property is preserved
+            const existingNestedProp = updatedNestedObj.properties.find(
+                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'existingNested',
+            ) as ts.PropertyAssignment;
+            expect(existingNestedProp).toBeDefined();
+            expect((existingNestedProp.initializer as ts.StringLiteral).text).toBe('existing value');
+
+            // Check new property was added
+            const newNestedProp = updatedNestedObj.properties.find(
+                (prop) => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'newNested',
+            ) as ts.PropertyAssignment;
+            expect(newNestedProp).toBeDefined();
+            expect((newNestedProp.initializer as ts.StringLiteral).text).toBe('new value');
+        });
+
+        it('should replace existing value when path points to existing property', () => {
+            // Start with existing nested structure
+            const existingProperty = ts.factory.createPropertyAssignment('existing', ts.factory.createStringLiteral('old value'));
+            const objectLiteral = ts.factory.createObjectLiteralExpression([existingProperty]);
+
+            const newValue = ts.factory.createStringLiteral('new value');
+
+            // Replace existing value
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'existing', newValue);
+
+            // Should replace the existing value
+            expect(updatedObject.properties).toHaveLength(1);
+            const updatedProperty = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            expect((updatedProperty.name as ts.Identifier).text).toBe('existing');
+            expect((updatedProperty.initializer as ts.StringLiteral).text).toBe('new value');
+        });
+
+        it('should handle single-level paths', () => {
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+            const finalValue = ts.factory.createStringLiteral('single value');
+
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'single', finalValue);
+
+            expect(updatedObject.properties).toHaveLength(1);
+            const prop = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            expect((prop.name as ts.Identifier).text).toBe('single');
+            expect(ts.isStringLiteral(prop.initializer)).toBe(true);
+            expect((prop.initializer as ts.StringLiteral).text).toBe('single value');
+        });
+
+        it('should handle deep nested paths', () => {
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+            const finalValue = ts.factory.createStringLiteral('deep value');
+
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'a.b.c.d', finalValue);
+
+            expect(updatedObject.properties).toHaveLength(1);
+
+            // Navigate down the nested structure
+            const aProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            expect((aProp.name as ts.Identifier).text).toBe('a');
+
+            const bObj = aProp.initializer as ts.ObjectLiteralExpression;
+            const bProp = bObj.properties[0] as ts.PropertyAssignment;
+            expect((bProp.name as ts.Identifier).text).toBe('b');
+
+            const cObj = bProp.initializer as ts.ObjectLiteralExpression;
+            const cProp = cObj.properties[0] as ts.PropertyAssignment;
+            expect((cProp.name as ts.Identifier).text).toBe('c');
+
+            const dObj = cProp.initializer as ts.ObjectLiteralExpression;
+            const dProp = dObj.properties[0] as ts.PropertyAssignment;
+            expect((dProp.name as ts.Identifier).text).toBe('d');
+
+            expect(ts.isStringLiteral(dProp.initializer)).toBe(true);
+            expect((dProp.initializer as ts.StringLiteral).text).toBe('deep value');
+        });
+
+        it('should preserve existing properties when adding new ones', () => {
+            // Start with multiple existing properties
+            const existingProps = [
+                ts.factory.createPropertyAssignment('first', ts.factory.createStringLiteral('first value')),
+                ts.factory.createPropertyAssignment('second', ts.factory.createStringLiteral('second value')),
+            ];
+            const objectLiteral = ts.factory.createObjectLiteralExpression(existingProps);
+
+            const finalValue = ts.factory.createStringLiteral('new nested value');
+
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'newSection.nested', finalValue);
+
+            // Should have all original properties plus the new one
+            expect(updatedObject.properties).toHaveLength(3);
+
+            // Check that existing properties are preserved
+            expect(updatedObject.properties.at(0)).toBe(existingProps.at(0));
+            expect(updatedObject.properties.at(1)).toBe(existingProps.at(1));
+
+            // Check the new nested property
+            const newProp = updatedObject.properties.at(2) as ts.PropertyAssignment;
+            expect((newProp.name as ts.Identifier).text).toBe('newSection');
+
+            const nestedObj = newProp.initializer as ts.ObjectLiteralExpression;
+            const nestedProp = nestedObj.properties[0] as ts.PropertyAssignment;
+            expect((nestedProp.name as ts.Identifier).text).toBe('nested');
+            expect((nestedProp.initializer as ts.StringLiteral).text).toBe('new nested value');
+        });
+
+        it('should handle complex expressions as final values', () => {
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+
+            // Create a template literal expression
+            const finalValue = ts.factory.createTemplateExpression(ts.factory.createTemplateHead('Hello '), [
+                ts.factory.createTemplateSpan(ts.factory.createIdentifier('name'), ts.factory.createTemplateTail('!')),
+            ]);
+
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'test.greeting', finalValue);
+
+            expect(updatedObject.properties).toHaveLength(1);
+            const testProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            const testObj = testProp.initializer as ts.ObjectLiteralExpression;
+            const greetingProp = testObj.properties[0] as ts.PropertyAssignment;
+
+            expect(ts.isTemplateExpression(greetingProp.initializer)).toBe(true);
+        });
+
+        it('should handle arrow function expressions as final values', () => {
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+
+            // Create an arrow function expression
+            const finalValue = ts.factory.createArrowFunction(
+                undefined,
+                undefined,
+                [ts.factory.createParameterDeclaration(undefined, undefined, 'name')],
+                undefined,
+                ts.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                ts.factory.createStringLiteral('Hello'),
+            );
+
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'test.func', finalValue);
+
+            expect(updatedObject.properties).toHaveLength(1);
+            const testProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            const testObj = testProp.initializer as ts.ObjectLiteralExpression;
+            const funcProp = testObj.properties[0] as ts.PropertyAssignment;
+
+            expect(ts.isArrowFunction(funcProp.initializer)).toBe(true);
+        });
+
+        it('should throw error for empty path', () => {
+            const existingProperty = ts.factory.createPropertyAssignment('existing', ts.factory.createStringLiteral('value'));
+            const objectLiteral = ts.factory.createObjectLiteralExpression([existingProperty]);
+            const finalValue = ts.factory.createStringLiteral('ignored');
+
+            expect(() => {
+                TSCompilerUtils.injectDeepObjectValue(objectLiteral, '', finalValue);
+            }).toThrow('Invalid path: empty path provided');
+        });
+
+        it('should throw error for paths with empty parts', () => {
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+            const finalValue = ts.factory.createStringLiteral('test value');
+
+            // Path with empty part (double dot) should throw error
+            expect(() => {
+                TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'test..nested', finalValue);
+            }).toThrow('Invalid path: empty key found in path "test..nested"');
+        });
+
+        it('should throw error for paths starting with dot', () => {
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+            const finalValue = ts.factory.createStringLiteral('test value');
+
+            // Path starting with dot should throw error
+            expect(() => {
+                TSCompilerUtils.injectDeepObjectValue(objectLiteral, '.test.nested', finalValue);
+            }).toThrow('Invalid path: empty key found in path ".test.nested"');
+        });
+
+        it('should handle numeric-like property names', () => {
+            const objectLiteral = ts.factory.createObjectLiteralExpression([]);
+            const finalValue = ts.factory.createStringLiteral('numeric value');
+
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, '123.456', finalValue);
+
+            expect(updatedObject.properties).toHaveLength(1);
+            const numericProp = updatedObject.properties.at(0) as ts.PropertyAssignment;
+            expect((numericProp.name as ts.Identifier).text).toBe('123');
+
+            const nestedObj = numericProp.initializer as ts.ObjectLiteralExpression;
+            const nestedProp = nestedObj.properties[0] as ts.PropertyAssignment;
+            expect((nestedProp.name as ts.Identifier).text).toBe('456');
+            expect((nestedProp.initializer as ts.StringLiteral).text).toBe('numeric value');
+        });
+    });
 });

@@ -371,6 +371,75 @@ function objectHas(objectLiteral: ts.ObjectLiteralExpression, dotNotationPath: s
     return false; // Shouldn't reach here, but just in case
 }
 
+/**
+ * Injects a value into a deeply nested object structure based on a dot-notation path.
+ * Creates the nested structure if it doesn't exist, and returns a new ObjectLiteralExpression.
+ *
+ * @param objectLiteral - The ObjectLiteralExpression to inject the value into
+ * @param dotPath - The dot-notation path (e.g., "manualTest.simple.deep")
+ * @param value - The value to inject at the end of the path
+ * @returns New ObjectLiteralExpression with the injected value
+ */
+function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPath: string, value: ts.Expression): ts.ObjectLiteralExpression {
+    if (!dotPath) {
+        throw new Error(`Invalid path: empty path provided`);
+    }
+
+    const pathParts = dotPath.split('.');
+
+    // Check for empty parts anywhere in the path
+    if (pathParts.some((part) => !part)) {
+        throw new Error(`Invalid path: empty key found in path "${dotPath}"`);
+    }
+
+    const topLevelKey = pathParts.at(0);
+    if (!topLevelKey) {
+        throw new Error(`Invalid path: empty key found in path "${dotPath}"`);
+    }
+
+    const remainingPath = pathParts.slice(1).join('.');
+
+    // Check if top-level key already exists
+    const existingProperty = objectLiteral.properties.find(
+        (prop): prop is ts.PropertyAssignment => ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === topLevelKey,
+    );
+
+    if (existingProperty) {
+        // Key exists - we need to recursively inject into the existing structure
+        if (!remainingPath) {
+            // This is the final key, replace the existing value
+            const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, value);
+            const updatedProperties = objectLiteral.properties.map((prop) => (prop === existingProperty ? updatedProperty : prop));
+            return ts.factory.createObjectLiteralExpression(updatedProperties);
+        }
+
+        // Recursively inject into the existing nested structure
+        if (!ts.isObjectLiteralExpression(existingProperty.initializer)) {
+            throw new Error(`Cannot inject into path "${dotPath}": property "${topLevelKey}" exists but is not an object`);
+        }
+
+        const updatedNestedObject = injectDeepObjectValue(existingProperty.initializer, remainingPath, value);
+        const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, updatedNestedObject);
+        const updatedProperties = objectLiteral.properties.map((prop) => (prop === existingProperty ? updatedProperty : prop));
+        return ts.factory.createObjectLiteralExpression(updatedProperties);
+    }
+
+    // Key doesn't exist - create new nested structure
+    if (!remainingPath) {
+        // This is a direct property, just add it
+        const newProperty = ts.factory.createPropertyAssignment(topLevelKey, value);
+        return ts.factory.createObjectLiteralExpression([...objectLiteral.properties, newProperty]);
+    }
+
+    // Create nested structure recursively by creating an empty object and injecting into it
+    const emptyNestedObject = ts.factory.createObjectLiteralExpression([]);
+    const nestedObjectWithValue = injectDeepObjectValue(emptyNestedObject, remainingPath, value);
+    const newProperty = ts.factory.createPropertyAssignment(topLevelKey, nestedObjectWithValue);
+
+    // Return new ObjectLiteralExpression with the added property
+    return ts.factory.createObjectLiteralExpression([...objectLiteral.properties, newProperty]);
+}
+
 export default {
     findAncestor,
     addImport,
@@ -383,6 +452,7 @@ export default {
     createPathAwareVisitor,
     createPathAwareTransformer,
     objectHas,
+    injectDeepObjectValue,
 };
 export {TransformerAction};
 export type {ExpressionWithType, TransformerResult};
