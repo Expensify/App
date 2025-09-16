@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import React, {useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -28,7 +29,7 @@ import SCREENS from '@src/SCREENS';
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {environmentURL} = useEnvironment();
     const {result, login, backTo} = params;
