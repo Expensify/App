@@ -62,7 +62,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {formatPhoneNumber, translate} = useLocalize();
-    const theme = useTheme();
     const themeStyles = useThemeStyles();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
