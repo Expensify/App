@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -141,14 +141,20 @@ describe('MoneyRequestReportPreview', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        return act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     it('renders transaction details and associated report name correctly', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
-        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
+        await act(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+            await waitForBatchedUpdatesWithAct();
+        });
         await waitForBatchedUpdatesWithAct();
         const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
@@ -165,7 +171,9 @@ describe('MoneyRequestReportPreview', () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
-        await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
+        await act(async () => {
+            await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
+        });
         await waitForBatchedUpdatesWithAct();
         expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
@@ -175,8 +183,10 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+        });
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getAllByTestId('TransactionPreviewSkeletonView')).toHaveLength(2);

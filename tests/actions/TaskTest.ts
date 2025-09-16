@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -29,7 +29,7 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock API and Navigation
 jest.mock('@libs/API');
@@ -67,7 +67,7 @@ describe('actions/Task', () => {
             keys: ONYXKEYS,
         });
         initOnyxDerivedValues();
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
     });
 
     describe('canModify and canAction task', () => {
@@ -111,20 +111,22 @@ describe('actions/Task', () => {
             initOnyxDerivedValues();
 
             // Store all the necessary data in Onyx
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportWithNoParent.reportID}`, taskReportWithNoParent);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportParent.reportID}`, taskReportParent);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelled.reportID}`, taskReportCancelled);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelledParent.reportID}`, taskReportCancelledParent);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchived.reportID}`, taskReportArchived);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchivedParent.reportID}`, taskReportArchivedParent);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportWithNoParent.reportID}`, taskReportWithNoParent);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportParent.reportID}`, taskReportParent);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelled.reportID}`, taskReportCancelled);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelledParent.reportID}`, taskReportCancelledParent);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchived.reportID}`, taskReportArchived);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportArchivedParent.reportID}`, taskReportArchivedParent);
 
-            // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${taskReportArchivedParent.reportID}`, {
-                private_isArchived: new Date().toString(),
+                // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${taskReportArchivedParent.reportID}`, {
+                    private_isArchived: new Date().toString(),
+                });
             });
 
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
 
         describe('canModifyTask', () => {
@@ -187,16 +189,20 @@ describe('actions/Task', () => {
             describe('testing with report action', () => {
                 beforeAll(async () => {
                     taskReport.parentReportActionID = 'a1';
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                    await act(async () => {
+                        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
 
-                    // Given that the task is assigned to a user who is not the author of the task
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`, {
-                        a1: {
-                            ...getFakeReportAction(),
-                            reportID: taskReport.parentReportID,
-                            childManagerAccountID: taskAssigneeAccountID,
-                        },
+                        // Given that the task is assigned to a user who is not the author of the task
+                        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`, {
+                            a1: {
+                                ...getFakeReportAction(),
+                                reportID: taskReport.parentReportID,
+                                childManagerAccountID: taskAssigneeAccountID,
+                            },
+                        });
                     });
+
+                    await waitForBatchedUpdatesWithAct();
                 });
 
                 it('returns false if the logged in user is not the author or the one assigned to the task', () => {
@@ -216,7 +222,9 @@ describe('actions/Task', () => {
             describe('testing with report.managerID', () => {
                 beforeAll(async () => {
                     taskReport.managerID = taskAssigneeAccountID;
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                    await act(async () => {
+                        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                    });
                 });
 
                 it('returns false if the logged in user is not the author or the one assigned to the task', () => {
@@ -257,22 +265,25 @@ describe('actions/Task', () => {
         };
 
         beforeEach(async () => {
-            await Onyx.clear();
-            await Onyx.multiSet({
-                ...reportCollectionDataSet,
-                ...reportActionsCollectionDataSet,
-                [ONYXKEYS.NVP_INTRO_SELECTED]: {
-                    viewTour: testDriveTaskReport.reportID,
-                },
-                [ONYXKEYS.SESSION]: {
-                    accountID,
-                },
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    ...reportCollectionDataSet,
+                    ...reportActionsCollectionDataSet,
+                    [ONYXKEYS.NVP_INTRO_SELECTED]: {
+                        viewTour: testDriveTaskReport.reportID,
+                    },
+                    [ONYXKEYS.SESSION]: {
+                        accountID,
+                    },
+                });
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
 
-        it('Completes test drive task', () => {
+        it('Completes test drive task', async () => {
             completeTestDriveTask();
+            await waitForBatchedUpdatesWithAct();
             expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR)).length).toBe(0);
         });
     });
@@ -285,13 +296,15 @@ describe('actions/Task', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`]: parentReport,
         };
         beforeEach(async () => {
-            await Onyx.clear();
-            await Onyx.multiSet({
-                ...reportCollectionDataSet,
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    ...reportCollectionDataSet,
+                });
+                await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
+                await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, setupCategories: taskReport.reportID});
             });
-            await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
-            await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, setupCategories: taskReport.reportID});
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
         it('Return not empty object', () => {
             expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBeGreaterThan(0);
@@ -300,8 +313,10 @@ describe('actions/Task', () => {
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.reportID}`, reportNameValuePairs);
-            await waitForBatchedUpdates();
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.reportID}`, reportNameValuePairs);
+            });
+            await waitForBatchedUpdatesWithAct();
             expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBe(0);
         });
     });
@@ -368,22 +383,24 @@ describe('actions/Task', () => {
             mockIsHiddenForCurrentUser.mockReturnValue(false);
             mockFormatReportLastMessageText.mockReturnValue('Last message text');
 
-            await Onyx.clear();
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: mockCurrentUserEmail,
-                accountID: mockCurrentUserAccountID,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`, {
-                reportID: mockParentReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [mockCurrentUserAccountID]: {
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: mockCurrentUserEmail,
+                    accountID: mockCurrentUserAccountID,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`, {
+                    reportID: mockParentReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [mockCurrentUserAccountID]: {
+                            role: CONST.REPORT.ROLE.MEMBER,
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
                     },
-                },
+                });
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
 
         it('should create task and navigate successfully with basic parameters', () => {
@@ -436,7 +453,7 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should handle task creation without assignee chat report', () => {
+        it('should handle task creation without assignee chat report', async () => {
             // Given: Task creation without assignee chat report
             const mockQuickAction = {
                 action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
@@ -456,6 +473,8 @@ describe('actions/Task', () => {
                 false, // isCreatedUsingMarkdown
                 mockQuickAction,
             );
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
@@ -486,7 +505,7 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should handle task creation with markdown', () => {
+        it('should handle task creation with markdown', async () => {
             // Given: Task creation with markdown flag
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_456',
@@ -513,6 +532,8 @@ describe('actions/Task', () => {
                 {}, // quickAction
             );
 
+            await waitForBatchedUpdatesWithAct();
+
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith('CreateTask', expect.any(Object), expect.any(Object));
 
@@ -520,7 +541,7 @@ describe('actions/Task', () => {
             expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
         });
 
-        it('should handle task creation with default policy ID', () => {
+        it('should handle task creation with default policy ID', async () => {
             // Given: Task creation with default policy ID
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_789',
@@ -547,6 +568,8 @@ describe('actions/Task', () => {
                 {}, // quickAction
             );
 
+            await waitForBatchedUpdatesWithAct();
+
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
                 'CreateTask',
@@ -561,7 +584,7 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should handle task creation with assignee as current user', () => {
+        it('should handle task creation with assignee as current user', async () => {
             // Given: Task creation where assignee is the current user
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_self',
@@ -588,6 +611,8 @@ describe('actions/Task', () => {
                 {}, // quickAction
             );
 
+            await waitForBatchedUpdatesWithAct();
+
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (API.write as jest.Mock).mock.calls;
             expect(calls.length).toBe(1);
@@ -612,7 +637,7 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should return early when parentReportID is undefined', () => {
+        it('should return early when parentReportID is undefined', async () => {
             // Given: Undefined parent report ID
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_undefined',
@@ -639,11 +664,13 @@ describe('actions/Task', () => {
                 {}, // quickAction
             );
 
+            await waitForBatchedUpdatesWithAct();
+
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).not.toHaveBeenCalled();
         });
 
-        it('should handle task creation with first quick action', () => {
+        it('should handle task creation with first quick action', async () => {
             // Given: Task creation with empty quick action (first quick action)
             const mockAssigneeChatReport = {
                 reportID: 'assignee_chat_first',
@@ -669,6 +696,8 @@ describe('actions/Task', () => {
                 false, // isCreatedUsingMarkdown
                 {}, // quickAction is empty
             );
+
+            await waitForBatchedUpdatesWithAct();
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(

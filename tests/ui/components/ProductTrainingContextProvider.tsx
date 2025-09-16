@@ -92,6 +92,8 @@ describe('ProductTrainingContextProvider', () => {
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
             // Then tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
@@ -106,6 +108,8 @@ describe('ProductTrainingContextProvider', () => {
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
             // Then tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
@@ -120,6 +124,8 @@ describe('ProductTrainingContextProvider', () => {
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
             // Then tooltip should show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
@@ -183,6 +189,8 @@ describe('ProductTrainingContextProvider', () => {
             // Then tooltips should not show
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
             // Expect tooltip to be hidden
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
@@ -204,6 +212,8 @@ describe('ProductTrainingContextProvider', () => {
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
             // Then tooltip should show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
@@ -229,6 +239,8 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
 
             // Then tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
@@ -247,11 +259,15 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
             // When the user dismiss the tooltip
-            await act(async () => {
+            act(() => {
                 result.current.hideProductTrainingTooltip();
             });
             rerender({});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitForBatchedUpdatesWithAct();
             // Then tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
             // And dismissed tooltip should be recorded in Onyx
@@ -281,12 +297,14 @@ describe('ProductTrainingContextProvider', () => {
 
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
             // Then wide layout tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
 
             // When narrow layout changes to false
             mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
             rerender({});
+            await waitForBatchedUpdatesWithAct();
             await waitForBatchedUpdatesWithAct();
 
             // Then wide layout tooltip should show
@@ -319,6 +337,7 @@ describe('ProductTrainingContextProvider', () => {
                 }),
                 {wrapper},
             );
+            await waitForBatchedUpdatesWithAct();
 
             // Expect only higher priority tooltip to be visible
             expect(result.current.higher.shouldShowProductTrainingTooltip).toBe(true);
@@ -352,6 +371,7 @@ describe('ProductTrainingContextProvider', () => {
                 }),
                 {wrapper},
             );
+            await waitForBatchedUpdatesWithAct();
 
             // Expect higher priority tooltip to be hidden and lower priority to be visible
             expect(result.current.higher.shouldShowProductTrainingTooltip).toBe(false);
@@ -381,6 +401,7 @@ describe('ProductTrainingContextProvider', () => {
                 }),
                 {wrapper},
             );
+            await waitForBatchedUpdatesWithAct();
 
             // Then initially higher priority should be visible
             expect(result.current.higher.shouldShowProductTrainingTooltip).toBe(true);

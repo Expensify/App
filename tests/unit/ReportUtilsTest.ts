@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/naming-convention */
 import {beforeAll} from '@jest/globals';
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -131,7 +133,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
@@ -326,15 +328,17 @@ describe('ReportUtils', () => {
         Onyx.init({keys: ONYXKEYS});
 
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
-        Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
-            [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-            [ONYXKEYS.COUNTRY_CODE]: 1,
-            ...policyCollectionDataSet,
+        act(() => {
+            Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.COUNTRY_CODE]: 1,
+                ...policyCollectionDataSet,
+            });
         });
-        return waitForBatchedUpdates();
+        return waitForBatchedUpdatesWithAct();
     });
-    beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+    beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdatesWithAct));
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -632,7 +636,9 @@ describe('ReportUtils', () => {
 
         describe('Default Policy Room', () => {
             afterEach(async () => {
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+                await act(async () => {
+                    await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+                });
             });
 
             const baseAdminsRoom = {
@@ -650,7 +656,9 @@ describe('ReportUtils', () => {
             });
 
             test('Archived', async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
+                });
 
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseAdminsRoom.reportID));
 
@@ -664,7 +672,9 @@ describe('ReportUtils', () => {
 
         describe('User-Created Policy Room', () => {
             afterEach(async () => {
-                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+                await act(async () => {
+                    await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+                });
             });
 
             const baseUserCreatedRoom = {
@@ -686,7 +696,9 @@ describe('ReportUtils', () => {
                     ...baseUserCreatedRoom,
                 };
 
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
+                });
 
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseUserCreatedRoom.reportID));
 
@@ -744,7 +756,9 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
+                    await act(async () => {
+                        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
+                    });
 
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseArchivedPolicyExpenseChat.reportID));
 
@@ -852,8 +866,10 @@ describe('ReportUtils', () => {
             });
 
             beforeAll(async () => {
-                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
-                    report_1: report,
+                await act(async () => {
+                    await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                        report_1: report,
+                    });
                 });
             });
 
@@ -1048,7 +1064,7 @@ describe('ReportUtils', () => {
         beforeAll(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReportID}`, archivedReportNameValuePairs);
             await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
         });
 
         afterAll(async () => {
@@ -1971,7 +1987,7 @@ describe('ReportUtils', () => {
             Onyx.multiSet({
                 ...reportCollectionDataSet,
             });
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
@@ -1989,8 +2005,10 @@ describe('ReportUtils', () => {
 
     describe('requiresAttentionFromCurrentUser', () => {
         afterEach(async () => {
-            await Onyx.clear();
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            });
         });
 
         it('returns false when there is no report', () => {
@@ -2010,12 +2028,13 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
-                reportID: '1',
-                ownerAccountID: 99,
-            }).then(() => {
-                expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+            act(() => {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                    reportID: '1',
+                    ownerAccountID: 99,
+                });
             });
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
         });
 
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
@@ -2957,7 +2976,7 @@ describe('ReportUtils', () => {
                 ...reportCollectionDataSet,
                 ...reportActionCollectionDataSet,
             });
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
         afterAll(() => Onyx.clear());
@@ -3108,7 +3127,7 @@ describe('ReportUtils', () => {
             expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
 
             putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // canUnholdRequest should be true after the transaction is held.
             expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: false, canUnholdRequest: true});
@@ -4318,7 +4337,7 @@ describe('ReportUtils', () => {
                 lastVisitTime: '2024-01-01 04:56:47.233',
             });
 
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
         afterAll(async () => {
@@ -4361,7 +4380,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ownedReport.reportID}`, ownedReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${nonOwnedReport.reportID}`, nonOwnedReport);
 
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 
         afterAll(async () => {
@@ -4801,9 +4820,14 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.AUDITOR,
         };
 
-        beforeAll(async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policyTest);
+        beforeAll(() => {
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.COLLECTION.POLICY]: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyTest,
+                },
+            });
+            return waitForBatchedUpdatesWithAct();
         });
 
         afterAll(() => Onyx.clear());
@@ -6794,7 +6818,7 @@ describe('ReportUtils', () => {
                 [parentReportAction1.reportActionID]: parentReportAction1,
             });
 
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
         it("should return nothing when there's no actions required", () => {
             expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, false)).toEqual({
@@ -6818,7 +6842,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionWithError.reportID}`, {
                 [reportActionWithError.reportActionID]: reportActionWithError,
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithError, false)).toEqual({
                 errors: {
                     reportID: 'Error message',
@@ -6844,7 +6868,7 @@ describe('ReportUtils', () => {
                 amount: 0,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, false);
             expect(Object.keys(errors)).toHaveLength(1);
             expect(Object.keys(errors).at(0)).toBe('smartscan');
@@ -6869,7 +6893,7 @@ describe('ReportUtils', () => {
                 amount: 0,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
             expect(Object.keys(errors)).toHaveLength(0);
             expect(reportAction).toBeUndefined();
