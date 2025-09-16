@@ -5,6 +5,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -24,14 +25,22 @@ import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
+import {
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
+    isInviteOrRemovedAction,
+    isMoneyRequestAction,
+    shouldReportActionBeVisibleAsLastAction,
+} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OptionRowLHNData from './OptionRowLHNData';
@@ -217,22 +226,38 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
-            let lastAction;
+
+            // const lastAction = useMemo(() => {
+            //     if (!itemReportActions || !fullReport) {
+            //         return undefined;
+            //     }
+
+            //     const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+            //     const actionsArray = getSortedReportActions(Object.values(itemReportActions));
+
+            //     const reportActionsForDisplay = actionsArray.filter(
+            //         (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            //     );
+
+            //     return reportActionsForDisplay.at(-1);
+            // }, [reportActions, fullReport, isReportArchived]);
+            let lastAction: ReportAction | undefined;
             if (!itemReportActions || !item) {
                 lastAction = undefined;
+            } else {
+                const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
+                const actionsArray = getSortedReportActions(Object.values(itemReportActions));
+                const reportActionsForDisplay = actionsArray.filter(
+                    (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                );
+                lastAction = reportActionsForDisplay.at(-1);
             }
 
-            const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
-            const actionsArray = sortedReportActions(Object.values(reportActions));
-
-            const reportActionsForDisplay = actionsArray.filter(
-                (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-            );
-
-            lastAction = reportActionsForDisplay.at(-1);
-
-            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-            const lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID ?? CONST.DEFAULT_NUMBER_ID}`];
+            let lastActionReport: OnyxEntry<Report> | undefined;
+            if (isInviteOrRemovedAction(lastAction)) {
+                const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
+                lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID ?? CONST.DEFAULT_NUMBER_ID}`];
+            }
 
             return (
                 <OptionRowLHNData
@@ -266,8 +291,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
                     isReportArchived={isReportArchived}
-                    lastAction
-                    lastActionReport
+                    lastAction={lastAction}
+                    lastActionReport={lastActionReport}
                 />
             );
         },
