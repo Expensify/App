@@ -168,7 +168,6 @@ function KYCWall({
             onSelectPaymentMethod,
             formatPhoneNumber,
             lastPaymentMethod,
-            allReports,
             onSuccessfulKYC,
             source,
             walletTerms?.source,
