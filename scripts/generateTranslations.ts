@@ -871,20 +871,22 @@ class TranslationGenerator {
 
                         // Add new properties (if this is the main translations node)
                         if (node === mainTranslationsNode && currentPath === '') {
-                            for (const [addPath, translatedCodeString] of translatedCodeMap) {
-                                const pathParts = addPath.split('.');
-                                if (pathParts.length === 1) {
-                                    const propertyName = pathParts.at(0);
-                                    if (!propertyName) {
-                                        throw new Error('An unknown error occurred');
-                                    }
+                            // Start with current properties
+                            let updatedProperties = [...properties];
 
-                                    hasChanges = true;
-                                    const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
-                                    const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedExpression);
-                                    properties.push(newProperty);
-                                }
+                            for (const [addPath, translatedCodeString] of translatedCodeMap) {
+                                // Parse the translated code string back to an AST expression
+                                const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
+
+                                // Inject the value at the correct nested path
+                                const currentObject = ts.factory.createObjectLiteralExpression(updatedProperties);
+                                const updatedObject = TSCompilerUtils.injectDeepObjectValue(currentObject, addPath, translatedExpression);
+                                updatedProperties = [...updatedObject.properties];
+                                hasChanges = true;
                             }
+
+                            // Update properties with the final result
+                            properties = updatedProperties;
                         }
 
                         // Only create a new node if something actually changed
