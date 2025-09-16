@@ -21,16 +21,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {
-    createTransactionThreadReport,
-    deleteAppReport,
-    downloadReportPDF,
-    exportReportToCSV,
-    exportReportToPDF,
-    exportToIntegration,
-    markAsManuallyExported,
-    openUnreportedExpense,
-} from '@libs/actions/Report';
+import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -48,6 +39,7 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    getAddExpenseDropdownOptions,
     getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
@@ -108,6 +100,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import AnimatedSubmitButton from './AnimatedSubmitButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -263,7 +256,8 @@ function MoneyReportHeader({
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
+        usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -550,13 +544,6 @@ function MoneyReportHeader({
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     const primaryAction = useMemo(() => {
-        // It's necessary to allow payment animation to finish before button is changed
-        if (isPaidAnimationRunning || isApprovedAnimationRunning) {
-            return CONST.REPORT.PRIMARY_ACTIONS.PAY;
-        }
-        if (!moneyRequestReport) {
-            return '';
-        }
         return getReportPrimaryAction({
             report: moneyRequestReport,
             chatReport,
@@ -567,18 +554,20 @@ function MoneyReportHeader({
             reportActions,
             isChatReportArchived,
             invoiceReceiverPolicy,
+            isPaidAnimationRunning,
+            isSubmittingAnimationRunning,
         });
     }, [
         isPaidAnimationRunning,
-        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
         moneyRequestReport,
-        reportNameValuePairs,
-        policy,
+        chatReport,
         transactions,
         violations,
+        policy,
+        reportNameValuePairs,
         reportActions,
         isChatReportArchived,
-        chatReport,
         invoiceReceiverPolicy,
     ]);
 
@@ -613,38 +602,7 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
-    const addExpenseDropdownOptions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> = useMemo(
-        () => [
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-                text: translate('iou.createExpense'),
-                icon: Expensicons.Plus,
-                onSelected: () => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
-                },
-            },
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-                text: translate('iou.addUnreportedExpense'),
-                icon: Expensicons.ReceiptPlus,
-                onSelected: () => {
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    openUnreportedExpense(moneyRequestReport?.reportID);
-                },
-            },
-        ],
-        [moneyRequestReport?.reportID, policy, translate],
-    );
+    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy), [moneyRequestReport?.reportID, policy]);
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
 
@@ -753,13 +711,14 @@ function MoneyReportHeader({
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
-            <Button
+            <AnimatedSubmitButton
                 success
                 text={translate('common.submit')}
                 onPress={() => {
                     if (!moneyRequestReport) {
                         return;
                     }
+                    startSubmittingAnimation();
                     submitReport(moneyRequestReport);
                     if (currentSearchQueryJSON) {
                         search({
@@ -770,6 +729,8 @@ function MoneyReportHeader({
                         });
                     }
                 }}
+                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                onAnimationFinish={stopAnimation}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
