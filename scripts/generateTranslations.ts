@@ -650,10 +650,7 @@ class TranslationGenerator {
                 console.log(`🗑️ Paths to remove: ${Array.from(this.pathsToRemove).join(', ')}`);
             }
         } catch (error) {
-            if (this.verbose) {
-                console.warn('⚠️ Error building paths from git diff, falling back to full translation:', error);
-            }
-            // On error, don't populate any paths (will fall back to full translation)
+            throw new Error('Error building paths from git diff, giving up on --compare-ref incremental translation');
         }
     }
 
