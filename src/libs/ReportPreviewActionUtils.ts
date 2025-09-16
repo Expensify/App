@@ -72,7 +72,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return true;
     }
 
-    // The report need manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
+    // The report needs manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
     const needsManualSubmit = isManualSubmitEnabled || (isOpen && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
     return baseCanSubmit && needsManualSubmit;
 }

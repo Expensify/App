@@ -109,7 +109,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return true;
     }
 
-    // The report need manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
+    // The report needs manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
     const needsManualSubmit = isManualSubmitEnabled || (isOpenReport && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
     return needsManualSubmit && baseIsSubmit;
 }
