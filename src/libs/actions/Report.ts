@@ -4332,12 +4332,9 @@ function completeOnboarding({
         });
     }
 
-    if (
-        !shouldSkipTestDriveModal &&
-        // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
-        // because we don't want the modal to reappear when returning from oldDot.
-        !(engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && willRedirectToOldDotFromOnboarding)
-    ) {
+    // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
+    // because we don't want the modal to reappear when returning from oldDot.
+    if (!shouldSkipTestDriveModal && !(engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && willRedirectToOldDotFromOnboarding)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
