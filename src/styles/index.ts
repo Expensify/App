@@ -5754,7 +5754,7 @@ const customPickerStyles = (theme: ThemeColors) => ({
             },
         }) satisfies CustomPickerStyle,
 });
-// Styles that don't satify the StyleSheet.create typing, because they are not defined on the top level of the object
+// Styles that don't sastify the StyleSheet.create typing, because they are not defined on the top level of the object
 const nestedStyles = (theme: ThemeColors) =>
     ({
         webViewStyles: webViewStyles(theme),
