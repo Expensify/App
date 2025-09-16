@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
@@ -43,6 +43,9 @@ type SuggestionProps = {
 
     /** The policyID of the report connected to current composer */
     policyID?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SuggestionsRef>,
 };
 
 /**
@@ -62,8 +65,8 @@ function Suggestions(
         isComposerFocused,
         isGroupPolicyReport,
         policyID,
+        ref,
     }: SuggestionProps,
-    ref: ForwardedRef<SuggestionsRef>,
 ) {
     const suggestionEmojiRef = useRef<SuggestionsRef>(null);
     const suggestionMentionRef = useRef<SuggestionsRef>(null);
@@ -178,6 +181,6 @@ function Suggestions(
 
 Suggestions.displayName = 'Suggestions';
 
-export default forwardRef(Suggestions);
+export default Suggestions;
 
 export type {SuggestionProps};
