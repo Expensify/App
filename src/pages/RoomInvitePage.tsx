@@ -12,6 +12,7 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {Section} from '@components/SelectionList/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -62,6 +63,7 @@ function RoomInvitePage({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const isReportArchived = useReportIsArchived(report.reportID);
+    const personalDetails = useCurrentUserPersonalDetails();
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -207,11 +209,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            inviteToRoomAction(reportID, invitedEmailsToAccountIDs);
+            inviteToRoomAction(reportID, invitedEmailsToAccountIDs, personalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
             clearUserSearchPhrase();
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID, backTo));
         }
-    }, [validate, selectedOptions, reportID, backTo]);
+    }, [validate, selectedOptions, reportID, personalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
