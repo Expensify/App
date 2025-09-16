@@ -12,10 +12,8 @@ export default function (): void {
         tracesSampleRate: 1.0,
         profilesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
-        replaysSessionSampleRate: 1,
-        replaysOnErrorSampleRate: 1,
         enableUserInteractionTracing: true,
-        integrations: [Sentry.mobileReplayIntegration(), navigationIntegration],
+        integrations: [navigationIntegration],
         environment: `${CONFIG.ENVIRONMENT}-${CONFIG.IS_HYBRID_APP ? 'hybrid' : 'standalone'}`,
         release: `${pkg.name}@${pkg.version}`,
     });
