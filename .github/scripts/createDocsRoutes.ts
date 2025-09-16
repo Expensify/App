@@ -66,7 +66,7 @@ function getArticleObj(filename: string, order?: number): Article {
     const href = filename.replace('.md', '');
     return {
         href,
-        title: toTitleCase(href.replace(/-/g, ' ')),
+        title: toTitleCase(href.replaceAll('-', ' ')),
         order,
     };
 }
@@ -131,7 +131,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
             pushOrCreateEntry(routeHubs, hub, 'sections', {
                 href: section,
-                title: toTitleCase(section.replace(/-/g, ' ')),
+                title: toTitleCase(section.replaceAll('-', ' ')),
                 articles,
             });
         });
