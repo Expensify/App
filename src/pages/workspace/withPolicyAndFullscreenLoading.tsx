@@ -1,6 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef} from 'react';
+import type {ComponentType} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
@@ -19,13 +19,13 @@ type WithPolicyAndFullscreenLoadingOnyxProps = {
 
 type WithPolicyAndFullscreenLoadingProps = WithPolicyProps & WithPolicyAndFullscreenLoadingOnyxProps;
 
-type ComponentWithPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps, TRef> = ComponentType<
-    Omit<Omit<TProps & RefAttributes<TRef>, keyof WithPolicyAndFullscreenLoadingOnyxProps>, keyof WithPolicyOnyxProps>
+type ComponentWithPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps> = ComponentType<
+    Omit<Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>, keyof WithPolicyOnyxProps>
 >;
 
-export default function withPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): ComponentWithPolicyAndFullscreenLoading<TProps, TRef> {
+export default function withPolicyAndFullscreenLoading<TProps extends WithPolicyAndFullscreenLoadingProps>(
+    WrappedComponent: ComponentType<TProps>,
+): ComponentWithPolicyAndFullscreenLoading<TProps> {
     function WithPolicyAndFullscreenLoading(
         {
             policy = policyDefaultProps.policy,
@@ -33,7 +33,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
             isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
             ...rest
         }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>,
-        ref: ForwardedRef<TRef>,
     ) {
         const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
         const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -50,14 +49,13 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
                 personalDetails={personalDetails}
                 policy={policy}
                 policyDraft={policyDraft}
-                ref={ref}
             />
         );
     }
 
     WithPolicyAndFullscreenLoading.displayName = `WithPolicyAndFullscreenLoading`;
 
-    return withPolicy(forwardRef(WithPolicyAndFullscreenLoading));
+    return withPolicy(WithPolicyAndFullscreenLoading);
 }
 
 export type {WithPolicyAndFullscreenLoadingProps};
