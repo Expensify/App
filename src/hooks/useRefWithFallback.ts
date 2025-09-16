@@ -1,11 +1,11 @@
 import {useRef} from 'react';
 import type {ForwardedRef} from 'react';
 
-function useWithFallbackRef<RefType, ForwardedRefType = RefType>(ref: ForwardedRef<ForwardedRefType>) {
+function useRefWithFallback<RefType, ForwardedRefType = RefType>(ref: ForwardedRef<ForwardedRefType>) {
     const fallbackRef = useRef<RefType>(null);
     const combinedRef = (ref as React.RefObject<RefType>) ?? fallbackRef;
 
     return combinedRef;
 }
 
-export default useWithFallbackRef;
+export default useRefWithFallback;
