@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import Navigation from '@libs/Navigation/Navigation';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import {isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency, updateGeneralSettings} from '@userActions/Policy/Policy';
@@ -33,6 +34,8 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const {isBetaEnabled} = usePermissions();
     const [isForcedToChangeCurrency] = useOnyx(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, {canBeMissing: true});
     const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: (value) => value?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN, canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
@@ -46,6 +49,11 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             setIsForcedToChangeCurrency(false);
 
             if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
+                const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode).length > 0;
+                if (hasValidExistingAccounts) {
+                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policy.id));
+                    return;
+                }
                 navigateToBankAccountRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id), {forceReplace: true});
                 return;
             }

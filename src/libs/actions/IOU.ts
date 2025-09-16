@@ -247,7 +247,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -259,6 +259,7 @@ type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
 type BaseTransactionParams = {
     amount: number;
+    modifiedAmount?: number;
     currency: string;
     created: string;
     merchant: string;
@@ -3374,6 +3375,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         attendees,
         amount,
         distance,
+        modifiedAmount,
         comment = '',
         currency,
         source = '',
@@ -3469,6 +3471,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         transactionParams: {
             amount: isExpenseReport(iouReport) ? -amount : amount,
             distance,
+            ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReport(iouReport) ? -modifiedAmount : modifiedAmount}),
             currency,
             reportID: iouReport.reportID,
             comment,
@@ -4306,7 +4309,6 @@ function getUpdateMoneyRequestParams(
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
-            pendingFields,
             errorFields: null,
         },
     });
@@ -4843,12 +4845,12 @@ function updateMoneyRequestTaxAmount(
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
-    API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
 }
 
 type UpdateMoneyRequestTaxRateParams = {
-    transactionID: string;
-    optimisticReportActionID: string;
+    transactionID: string | undefined;
+    optimisticReportActionID: string | undefined;
     taxCode: string;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -4863,13 +4865,15 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
-    API.write('UpdateMoneyRequestTaxRate', params, onyxData);
+
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
 }
 
 type UpdateMoneyRequestDistanceParams = {
     transactionID: string | undefined;
     transactionThreadReportID: string | undefined;
-    waypoints: WaypointCollection;
+    waypoints?: WaypointCollection;
+    distance?: number;
     routes?: Routes;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -4882,6 +4886,7 @@ function updateMoneyRequestDistance({
     transactionID,
     transactionThreadReportID,
     waypoints,
+    distance,
     routes = undefined,
     policy = {} as OnyxTypes.Policy,
     policyTagList = {},
@@ -4889,8 +4894,9 @@ function updateMoneyRequestDistance({
     transactionBackup,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
-        waypoints: sanitizeRecentWaypoints(waypoints),
+        ...(waypoints && {waypoints: sanitizeRecentWaypoints(waypoints)}),
         routes,
+        ...(distance && {distance}),
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -4902,12 +4908,14 @@ function updateMoneyRequestDistance({
     }
     const {params, onyxData} = data;
 
-    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
-    onyxData?.failureData?.push({
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
-        value: recentServerValidatedWaypoints,
-    });
+    if (!distance) {
+        const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+            value: recentServerValidatedWaypoints,
+        });
+    }
 
     if (transactionBackup) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -9615,15 +9623,21 @@ function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxE
 }
 
 function canSubmitReport(
+    currentUserAccountID: number | undefined,
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
+    reportActions: OnyxTypes.ReportActions | OnyxTypes.ReportAction[],
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
 ) {
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    // If we don't have a current user, they can't submit a report
+    if (currentUserAccountID === undefined) {
+        return false;
+    }
+
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
@@ -9637,7 +9651,7 @@ function canSubmitReport(
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
         transactions.length > 0;
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
+
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
     if (baseCanSubmit && hasBeenRetracted) {
         return true;
@@ -11907,7 +11921,12 @@ const expenseReportStatusFilterMapping = {
 };
 
 //  Determines whether the current search results should be optimistically updated
-function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSON, iouReport: OnyxEntry<OnyxTypes.Report>, isInvoice: boolean | undefined) {
+function shouldOptimisticallyUpdateSearch(
+    currentSearchQueryJSON: SearchQueryJSON,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    isInvoice: boolean | undefined,
+    transaction?: OnyxEntry<OnyxTypes.Transaction>,
+) {
     if (currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE && currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
         return false;
     }
@@ -11931,13 +11950,17 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
 
+    const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
+
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
 
     return (
         shouldOptimisticallyUpdateByStatus &&
         validSearchTypes &&
-        (currentSearchQueryJSON.flatFilters.length === 0 || [submitQueryJSON?.hash, approveQueryJSON?.hash].includes(currentSearchQueryJSON.hash))
+        (currentSearchQueryJSON.flatFilters.length === 0 ||
+            [submitQueryJSON?.similarSearchHash, approveQueryJSON?.similarSearchHash].includes(currentSearchQueryJSON.similarSearchHash) ||
+            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash && isExpenseReport(iouReport) && transaction?.reimbursable))
     );
 }
 
@@ -11955,7 +11978,7 @@ function getSearchOnyxUpdate({
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
-        if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice)) {
+        if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
             const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
             const successData = [];
             if (isOptimisticToAccountData) {
@@ -12864,7 +12887,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 policyTags,
             },
             transactionParams: {
-                amount: splitExpense.amount ?? 0,
+                amount: Math.abs(originalTransaction?.amount ?? 0),
+                modifiedAmount: splitExpense.amount ?? 0,
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 created: splitExpense.created,
                 merchant: draftTransaction?.merchant ?? '',
