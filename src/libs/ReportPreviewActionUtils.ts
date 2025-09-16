@@ -3,17 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {getCurrentUserAccountID} from './actions/Report';
-import {
-    arePaymentsEnabled,
-    getCorrectedAutoReportingFrequency,
-    getSubmitToAccountID,
-    getValidConnectedIntegration,
-    hasIntegrationAutoSync,
-    isInstantSubmitEnabled,
-    isPolicyAdmin,
-    isPreferredExporter,
-    isSubmitAndClose,
-} from './PolicyUtils';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -35,6 +25,7 @@ import {
     isReportApproved,
     isReportManuallyReimbursed,
     isSettled,
+    requiresManualSubmission,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -50,7 +41,6 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasBeenRetracted = hasReportBeenReopenedUtils(report) || hasReportBeenRetractedUtils(report);
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -72,9 +62,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return true;
     }
 
-    // The report needs manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
-    const needsManualSubmit = isManualSubmitEnabled || (isOpen && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
-    return baseCanSubmit && needsManualSubmit;
+    return baseCanSubmit && requiresManualSubmission(report, policy);
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
