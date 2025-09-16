@@ -201,43 +201,7 @@ class Git {
         // Calculate modified, added, and removed lines
         for (const file of files) {
             for (const hunk of file.hunks) {
-                const segments: Array<{type: 'removed' | 'added'; lines: DiffLine[]}> = [];
-                let currentSegment: {type: 'removed' | 'added'; lines: DiffLine[]} | null = null;
-
-                // Group consecutive additions and removals into segments
-                for (const line of hunk.lines) {
-                    if (line.type === 'context') {
-                        // Context lines end the current segment
-                        if (currentSegment) {
-                            segments.push(currentSegment);
-                            currentSegment = null;
-                        }
-                        continue;
-                    }
-
-                    if (line.type === 'added' || line.type === 'removed') {
-                        if (!currentSegment || currentSegment.type !== line.type) {
-                            // Start a new segment
-                            if (currentSegment) {
-                                segments.push(currentSegment);
-                            }
-                            currentSegment = {
-                                type: line.type,
-                                lines: [line],
-                            };
-                        } else {
-                            // Continue the current segment
-                            currentSegment.lines.push(line);
-                        }
-                    }
-                }
-
-                // Add the final segment
-                if (currentSegment) {
-                    segments.push(currentSegment);
-                }
-
-                // Remove lines that were added during parsing - we'll recalculate them properly
+                // Clear any lines that were added during parsing - we'll recalculate them properly
                 for (const line of hunk.lines) {
                     if (line.type === 'added') {
                         file.addedLines.delete(line.lineNumber);
@@ -246,64 +210,35 @@ class Git {
                     }
                 }
 
-                // Process segments to determine modifications vs additions/removals
-                let i = 0;
-                while (i < segments.length) {
-                    const currentSeg = segments.at(i);
-                    if (!currentSeg) {
-                        break;
+                // Collect all removed and added lines from this hunk
+                const removedLines = hunk.lines.filter((line) => line.type === 'removed');
+                const addedLines = hunk.lines.filter((line) => line.type === 'added');
+
+                const removedCount = removedLines.length;
+                const addedCount = addedLines.length;
+                const modifiedCount = Math.min(removedCount, addedCount);
+
+                // Mark modified lines (use added line numbers for the new file)
+                for (let j = 0; j < modifiedCount; j++) {
+                    const addedLine = addedLines.at(j);
+                    if (addedLine) {
+                        file.modifiedLines.add(addedLine.lineNumber);
                     }
+                }
 
-                    if (currentSeg.type === 'removed' && i + 1 < segments.length && segments.at(i + 1)?.type === 'added') {
-                        // Adjacent removed and added segments - calculate modifications
-                        const removedSeg = currentSeg;
-                        const addedSeg = segments.at(i + 1);
-                        if (!addedSeg) {
-                            break;
-                        }
+                // Handle net additions
+                for (let j = modifiedCount; j < addedCount; j++) {
+                    const addedLine = addedLines.at(j);
+                    if (addedLine) {
+                        file.addedLines.add(addedLine.lineNumber);
+                    }
+                }
 
-                        const removedCount = removedSeg.lines.length;
-                        const addedCount = addedSeg.lines.length;
-                        const modifiedCount = Math.min(removedCount, addedCount);
-
-                        // Mark lines as modified (use the added line numbers for modified lines in the new file)
-                        for (let j = 0; j < modifiedCount; j++) {
-                            const addedLine = addedSeg.lines.at(j);
-                            if (addedLine) {
-                                file.modifiedLines.add(addedLine.lineNumber);
-                            }
-                        }
-
-                        // Handle remaining lines as pure additions or removals
-                        if (addedCount > removedCount) {
-                            // Net additions
-                            for (let j = modifiedCount; j < addedCount; j++) {
-                                const addedLine = addedSeg.lines.at(j);
-                                if (addedLine) {
-                                    file.addedLines.add(addedLine.lineNumber);
-                                }
-                            }
-                        } else if (removedCount > addedCount) {
-                            // Net removals
-                            for (let j = modifiedCount; j < removedCount; j++) {
-                                const removedLine = removedSeg.lines.at(j);
-                                if (removedLine) {
-                                    file.removedLines.add(removedLine.lineNumber);
-                                }
-                            }
-                        }
-
-                        i += 2; // Skip both segments
-                    } else {
-                        // Pure addition or removal
-                        for (const line of currentSeg.lines) {
-                            if (currentSeg.type === 'added') {
-                                file.addedLines.add(line.lineNumber);
-                            } else {
-                                file.removedLines.add(line.lineNumber);
-                            }
-                        }
-                        i += 1;
+                // Handle net removals
+                for (let j = modifiedCount; j < removedCount; j++) {
+                    const removedLine = removedLines.at(j);
+                    if (removedLine) {
+                        file.removedLines.add(removedLine.lineNumber);
                     }
                 }
             }
