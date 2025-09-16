@@ -5,7 +5,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -235,20 +235,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
-            // const lastAction = useMemo(() => {
-            //     if (!itemReportActions || !fullReport) {
-            //         return undefined;
-            //     }
-
-            //     const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived);
-            //     const actionsArray = getSortedReportActions(Object.values(itemReportActions));
-
-            //     const reportActionsForDisplay = actionsArray.filter(
-            //         (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-            //     );
-
-            //     return reportActionsForDisplay.at(-1);
-            // }, [reportActions, fullReport, isReportArchived]);
             let lastAction: ReportAction | undefined;
             if (!itemReportActions || !item) {
                 lastAction = undefined;
@@ -264,7 +250,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             let lastActionReport: OnyxEntry<Report> | undefined;
             if (isInviteOrRemovedAction(lastAction)) {
                 const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-                lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID ?? CONST.DEFAULT_NUMBER_ID}`];
+                lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
             }
 
             return (
