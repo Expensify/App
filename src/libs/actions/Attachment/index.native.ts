@@ -73,6 +73,9 @@ function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
                     attachmentID,
                     source: savedPath,
                 });
+            })
+            .catch(() => {
+                Log.warn('Failed to cache attachment');
             });
     });
 }
