@@ -9,6 +9,7 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
@@ -16,6 +17,7 @@ import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +29,7 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {canAddTransaction, getAddExpenseDropdownOptions, getMoneyRequestSpendBreakdown, isExpenseReport} from '@libs/ReportUtils';
+import {canAddTransaction, getAddExpenseDropdownOptions, getMoneyRequestSpendBreakdown, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
@@ -129,7 +131,8 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const session = useSession();
-
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(report?.reportID, policy), [report?.reportID, policy]);
 
     const hasPendingAction = useMemo(() => {
@@ -340,22 +343,24 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                 })}
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween, styles.gap2, listHorizontalPadding, styles.mb2, styles.alignItemsStart]}>
-                {canAddTransaction(report) && (
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        shouldAlwaysShowDropdownMenu
-                        customText={translate('iou.addExpense')}
-                        options={addExpenseDropdownOptions}
-                        isSplitButton={false}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                        success={false}
-                        anchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                        }}
-                    />
+                {shouldShowAddExpenseButton && (
+                    <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText={translate('iou.addExpense')}
+                            options={addExpenseDropdownOptions}
+                            isSplitButton={false}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            success={false}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                        />
+                    </OfflineWithFeedback>
                 )}
-                <View>
+                <View style={styles.flex1}>
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2]}>
                             {[
