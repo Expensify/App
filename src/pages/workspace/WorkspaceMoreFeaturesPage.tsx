@@ -333,7 +333,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.receiptPartners.title',
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
             isActive: policy?.receiptPartners?.enabled ?? false,
-            pendingAction: policy?.pendingFields?.areReceiptPartnersEnabled,
+            pendingAction: policy?.receiptPartners?.pendingFields?.enabled,
             disabledAction: () => {
                 if (!isUberConnected) {
                     return;

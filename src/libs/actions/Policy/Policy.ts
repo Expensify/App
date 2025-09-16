@@ -3709,9 +3709,9 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 value: {
                     receiptPartners: {
                         enabled,
-                    },
-                    pendingFields: {
-                        areReceiptPartnersEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -3721,8 +3721,10 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                    receiptPartners: {
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },
@@ -3734,9 +3736,9 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 value: {
                     receiptPartners: {
                         enabled: !enabled,
-                    },
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },
