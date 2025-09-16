@@ -415,7 +415,7 @@ describe('CustomFormula', () => {
                 created: testDate,
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             } as unknown as ReportActions[string];
-            mockReportActionsUtils.getAllReportActions.mockReturnValue({'action1': mockReportAction});
+            mockReportActionsUtils.getAllReportActions.mockReturnValue({action1: mockReportAction});
         });
 
         describe('Year Formats', () => {

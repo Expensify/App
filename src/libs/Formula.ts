@@ -357,7 +357,7 @@ function getSubstring(value: string, args: string[]): string {
 function getLeftPadded(value: string, args: string[]): string {
     const padChar = args.at(0) ?? ' ';
     const targetLength = parseInt(args.at(1) ?? '', 10) || value.length;
-    
+
     return value.padStart(targetLength, padChar);
 }
 
@@ -402,78 +402,87 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
 
         // Use a two-phase placeholder system to prevent token conflicts
         let result = format;
-        
+
         // Get time values for time formatting
         const hours = date.getHours();
         const minutes = date.getMinutes();
         const seconds = date.getSeconds();
-        const hours12 = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
+        let hours12 = hours;
+        if (hours === 0) {
+            hours12 = 12;
+        } else if (hours > 12) {
+            hours12 = hours - 12;
+        }
         const meridiem = hours >= 12 ? 'pm' : 'am';
         const meridiemUpperCase = hours >= 12 ? 'PM' : 'AM';
-        
+
         // Phase 1: Replace tokens with unique placeholders
         const tokens = [
             // Special combinations first
-            { token: 'jS', value: `${day}${getOrdinalSuffix(day)}` },
-            
+            {token: 'jS', value: `${day}${getOrdinalSuffix(day)}`},
+
             // Year formats (longest to shortest)
-            { token: 'yyyy', value: year.toString() },
-            { token: 'YYYY', value: year.toString() },
-            { token: 'yy', value: year.toString().slice(-2) },
-            { token: 'Y', value: year.toString() },
-            { token: 'y', value: year.toString().slice(-2) },
-            
+            {token: 'yyyy', value: year.toString()},
+            {token: 'YYYY', value: year.toString()},
+            {token: 'yy', value: year.toString().slice(-2)},
+            {token: 'Y', value: year.toString()},
+            {token: 'y', value: year.toString().slice(-2)},
+
             // Month formats (longest to shortest)
-            { token: 'MMMM', value: monthNames.at(month - 1) ?? '' },
-            { token: 'MMM', value: shortMonthNames.at(month - 1) ?? '' },
-            { token: 'MM', value: month.toString().padStart(2, '0') },
-            { token: 'M', value: month.toString() },
-            { token: 'F', value: monthNames.at(month - 1) ?? '' },
-            { token: 'n', value: month.toString() },
-            
-            // Day formats (longest to shortest) 
-            { token: 'dd', value: day.toString().padStart(2, '0') },
-            { token: 'd', value: day.toString().padStart(2, '0') },
-            { token: 'j', value: day.toString() },
-            { token: 'S', value: getOrdinalSuffix(day) },
-            
+            {token: 'MMMM', value: monthNames.at(month - 1) ?? ''},
+            {token: 'MMM', value: shortMonthNames.at(month - 1) ?? ''},
+            {token: 'MM', value: month.toString().padStart(2, '0')},
+            {token: 'M', value: month.toString()},
+            {token: 'F', value: monthNames.at(month - 1) ?? ''},
+            {token: 'n', value: month.toString()},
+
+            // Day formats (longest to shortest)
+            {token: 'dd', value: day.toString().padStart(2, '0')},
+            {token: 'd', value: day.toString().padStart(2, '0')},
+            {token: 'j', value: day.toString()},
+            {token: 'S', value: getOrdinalSuffix(day)},
+
             // Time formats (longest to shortest)
-            { token: 'tt', value: meridiemUpperCase },
-            { token: 'hh', value: hours12.toString().padStart(2, '0') },
-            { token: 'HH', value: hours.toString().padStart(2, '0') },
-            { token: 'mm', value: minutes.toString().padStart(2, '0') },
-            { token: 'ss', value: seconds.toString().padStart(2, '0') },
-            { token: 'H', value: hours.toString() },
-            { token: 'h', value: hours12.toString() },
-            { token: 'G', value: hours.toString() },
-            { token: 'g', value: hours12.toString() },
-            { token: 'i', value: minutes.toString().padStart(2, '0') },
-            { token: 's', value: seconds.toString().padStart(2, '0') },
-            { token: 'A', value: meridiemUpperCase },
-            { token: 'a', value: meridiem },
+            {token: 'tt', value: meridiemUpperCase},
+            {token: 'hh', value: hours12.toString().padStart(2, '0')},
+            {token: 'HH', value: hours.toString().padStart(2, '0')},
+            {token: 'mm', value: minutes.toString().padStart(2, '0')},
+            {token: 'ss', value: seconds.toString().padStart(2, '0')},
+            {token: 'H', value: hours.toString()},
+            {token: 'h', value: hours12.toString()},
+            {token: 'G', value: hours.toString()},
+            {token: 'g', value: hours12.toString()},
+            {token: 'i', value: minutes.toString().padStart(2, '0')},
+            {token: 's', value: seconds.toString().padStart(2, '0')},
+            {token: 'A', value: meridiemUpperCase},
+            {token: 'a', value: meridiem},
         ];
-        
+
         // Sort tokens by length (longest first)
         tokens.sort((a, b) => b.token.length - a.token.length);
-        
+
         // Phase 1: Replace tokens with unique placeholders (using only digits and special chars)
         const placeholderMap: Record<string, string> = {};
         for (let i = 0; i < tokens.length; i++) {
-            const { token, value } = tokens.at(i)!;
+            const tokenData = tokens.at(i);
+            if (!tokenData) {
+                continue;
+            }
+            const {token, value} = tokenData;
             const placeholder = `###${i.toString().padStart(3, '0')}###`;
             const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-            
+
             if (result.includes(token)) {
                 result = result.replace(regex, placeholder);
                 placeholderMap[placeholder] = value;
             }
         }
-        
+
         // Phase 2: Replace placeholders with actual values
         for (const [placeholder, value] of Object.entries(placeholderMap)) {
             result = result.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
         }
-        
+
         return result;
     } catch {
         return '';
