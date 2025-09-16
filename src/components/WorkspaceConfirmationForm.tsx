@@ -155,7 +155,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         })
                     }
                     enabledWhenOffline
-                    addBottomSafeAreaPadding
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     <View style={styles.mb4}>
                         {!isLoadingOnyxValue(metadata) && (
