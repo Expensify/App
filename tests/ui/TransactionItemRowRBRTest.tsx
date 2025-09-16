@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -15,6 +15,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/Icon/Expensicons');
 jest.mock('@libs/Navigation/Navigation');
@@ -102,7 +103,10 @@ describe('TransactionItemRowRBR', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        return Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
+        return act(async () => {
+            await Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]);
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     it('should display RBR message for transaction with single violation', async () => {
@@ -114,12 +118,17 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockTransaction = createBaseTransaction({violations: mockViolations});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+        });
 
         // When rendering the transaction item row
         renderTransactionItemRow(mockTransaction);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the RBR message should be displayed
         expect(screen.getByText('Missing category.')).toBeOnTheScreen();
@@ -138,12 +147,17 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockTransaction = createBaseTransaction({violations: mockViolations});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+        });
 
         // When rendering the transaction item row
         renderTransactionItemRow(mockTransaction);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the RBR message should be displayed with both violations
         expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
@@ -167,13 +181,21 @@ describe('TransactionItemRowRBR', () => {
             modifiedMerchant: '',
             merchant: '',
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+        });
 
         // When rendering the transaction item row
         renderTransactionItemRow(mockTransaction);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the RBR message should be displayed with missing merchant error and violations
         expect(screen.getByText('Missing merchant. Missing category.')).toBeOnTheScreen();
@@ -190,12 +212,17 @@ describe('TransactionItemRowRBR', () => {
             modifiedMerchant: '',
             merchant: '',
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
+        });
 
         // When rendering the transaction item row
         renderTransactionItemRow(mockTransaction);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the RBR message should be displayed with missing merchant error
         expect(screen.getByText('Missing merchant.')).toBeOnTheScreen();
@@ -204,12 +231,14 @@ describe('TransactionItemRowRBR', () => {
     it('should not display RBR message for transaction with no violations or errors', async () => {
         // Given a transaction with no violations or errors
         const mockTransaction = createBaseTransaction({violations: []});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
 
         // When rendering the transaction item row
         renderTransactionItemRow(mockTransaction);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the RBR message should not be displayed
         expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();

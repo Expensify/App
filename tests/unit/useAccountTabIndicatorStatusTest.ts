@@ -6,7 +6,6 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const getMockForStatus = (status: string) =>
@@ -157,29 +156,31 @@ describe('useAccountTabIndicatorStatus', () => {
     });
 
     describe.each(TEST_CASES)('$name', (testCase) => {
-        beforeAll(() => {
-            return act(async () => {
+        beforeAll(async () => {
+            await act(async () => {
                 await Onyx.multiSet(getMockForStatus(testCase.status));
                 await waitForBatchedUpdatesWithAct();
             });
         });
 
-        it('returns correct indicatorColor', () => {
+        it('returns correct indicatorColor', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(testCase.indicatorColor);
         });
 
-        it('returns correct status', () => {
+        it('returns correct status', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBe(testCase.status);
         });
     });
 
     describe('no errors or info', () => {
-        beforeAll(() => {
-            return act(async () => {
+        beforeAll(async () => {
+            await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.USER_WALLET]: {},
@@ -196,22 +197,24 @@ describe('useAccountTabIndicatorStatus', () => {
             });
         });
 
-        it('returns undefined status when no errors or info exist', () => {
+        it('returns undefined status when no errors or info exist', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBeUndefined();
         });
 
-        it('returns success color when no errors or info exist', () => {
+        it('returns success color when no errors or info exist', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(defaultTheme.success);
         });
     });
 
     describe('wallet terms with chatReportID', () => {
-        beforeAll(() => {
-            return act(async () => {
+        beforeAll(async () => {
+            await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.USER_WALLET]: {},
@@ -233,16 +236,17 @@ describe('useAccountTabIndicatorStatus', () => {
             });
         });
 
-        it('does not show wallet terms error when chatReportID exists', () => {
+        it('does not show wallet terms error when chatReportID exists', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBeUndefined();
         });
     });
 
     describe('multiple errors', () => {
-        beforeAll(() => {
-            return act(async () => {
+        beforeAll(async () => {
+            await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -272,23 +276,25 @@ describe('useAccountTabIndicatorStatus', () => {
             });
         });
 
-        it('returns the first error status found', () => {
+        it('returns the first error status found', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             // Should return the first error in the errorChecking object
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS);
         });
 
-        it('returns danger color for multiple errors', () => {
+        it('returns danger color for multiple errors', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 
     describe('error takes priority over info', () => {
-        beforeAll(() => {
-            return act(async () => {
+        beforeAll(async () => {
+            await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
                     [ONYXKEYS.USER_WALLET]: {
@@ -317,22 +323,24 @@ describe('useAccountTabIndicatorStatus', () => {
             });
         });
 
-        it('returns error status when both error and info exist', () => {
+        it('returns error status when both error and info exist', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS);
         });
 
-        it('returns danger color when error takes priority', () => {
+        it('returns danger color when error takes priority', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 
     describe('missing data', () => {
-        beforeAll(() => {
-            return act(async () => {
+        beforeAll(async () => {
+            await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
                     [ONYXKEYS.USER_WALLET]: null,
@@ -347,8 +355,9 @@ describe('useAccountTabIndicatorStatus', () => {
             });
         });
 
-        it('handles missing data gracefully', () => {
+        it('handles missing data gracefully', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status, indicatorColor} = result.current;
             expect(status).toBeUndefined();
             expect(indicatorColor).toBe(defaultTheme.success);
