@@ -23,7 +23,7 @@ import type {Report, ReportAction, Transaction, TransactionViolations} from '@sr
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 
 function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
-    const {backTo = '', reportID} = route.params;
+    const {backTo = '', reportID} = route.params ?? {};
 
     const {translate} = useLocalize();
     const context = useSearchContext();
