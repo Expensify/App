@@ -1,7 +1,8 @@
+import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import {cleanFileName, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
+import {cleanFileName, isHeicOrHeifImage, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 
 type ValidatedFile = {
     fileType: 'file' | 'uri';
@@ -26,17 +27,40 @@ function isSingleAttachmentValidationResult(result: unknown): result is SingleAt
     return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFile' in result || 'error' in result);
 }
 
-function validateAttachmentFile(file: FileObject): Promise<SingleAttachmentValidationResult> {
+function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipt?: boolean): Promise<SingleAttachmentValidationResult> {
     if (!file) {
         return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED});
+    }
+
+    const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE});
+    }
+
+    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL});
+    }
+
+    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE});
     }
 
     let fileObject = file;
     if ('getAsFile' in file && typeof file.getAsFile === 'function') {
         fileObject = file.getAsFile() as FileObject;
     }
+
     if (!fileObject) {
         return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID});
+    }
+
+    if (item && item.kind === 'file' && 'webkitGetAsEntry' in item) {
+        const entry = item.webkitGetAsEntry();
+
+        if (entry?.isDirectory) {
+            return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FOLDER_NOT_ALLOWED});
+        }
     }
 
     return isFileCorrupted(fileObject).then((corruptionResult) => {

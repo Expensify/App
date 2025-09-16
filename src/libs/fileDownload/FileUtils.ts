@@ -551,23 +551,6 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
         });
 };
 
-const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
-    const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-
-    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
-        return isCheckingMultipleFiles ? CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.FILE_TOO_LARGE : CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE;
-    }
-
-    if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        return CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL;
-    }
-
-    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return isCheckingMultipleFiles ? CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE : CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE;
-    }
-    return '';
-};
-
 type TranslationAdditionalData = {
     maxUploadSizeInMB?: number;
     fileLimit?: number;
@@ -681,7 +664,6 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
-    validateAttachment,
     normalizeFileObject,
     isValidReceiptExtension,
     getFileValidationErrorText,
