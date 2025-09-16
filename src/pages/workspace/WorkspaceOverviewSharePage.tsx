@@ -55,14 +55,14 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
     const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
-    const adminRoom = useMemo(() => {
+    const adminRoomReportID = useMemo(() => {
         if (!policy?.id) {
             return undefined;
         }
-        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
-    }, [policy?.id]);
+        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id)?.reportID ?? String(policy?.chatReportIDAdmins);
+    }, [policy?.chatReportIDAdmins, policy?.id]);
 
-    const adminsRoomLink = adminRoom ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID)}` : '';
+    const adminsRoomLink = adminRoomReportID ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoomReportID)}` : '';
 
     return (
         <AccessOrNotFoundWrapper
