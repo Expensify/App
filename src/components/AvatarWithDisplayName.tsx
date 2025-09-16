@@ -177,7 +177,7 @@ function AvatarWithDisplayName({
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
