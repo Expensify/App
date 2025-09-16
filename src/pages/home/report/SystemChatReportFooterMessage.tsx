@@ -1,14 +1,15 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import Banner from '@components/Banner';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Lightbulb} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import * as ReportInstance from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -16,24 +17,22 @@ import ROUTES from '@src/ROUTES';
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
             ? // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
               // eslint-disable-next-line deprecation/deprecation
-              PolicyUtils.getPolicy(activePolicyID)
-            : Object.values(policies ?? {}).find(
-                  (policy) => PolicyUtils.shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
-              );
+              getPolicy(activePolicyID)
+            : Object.values(policies ?? {}).find((policy) => shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
 
         return String(adminPolicy?.chatReportIDAdmins ?? -1);
     }, [activePolicyID, policies, currentUserLogin]);
 
-    const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`);
+    const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`, {canBeMissing: true});
 
     const content = useMemo(() => {
         switch (choice) {
@@ -41,7 +40,7 @@ function SystemChatReportFooterMessage() {
                 return (
                     <>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? '-1'))}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID))}>
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}
@@ -51,7 +50,7 @@ function SystemChatReportFooterMessage() {
                 return (
                     <>
                         {translate('systemChatFooterMessage.default.phrase1')}
-                        <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
+                        <TextLink onPress={() => navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
                         {translate('systemChatFooterMessage.default.phrase2')}
                     </>
                 );
@@ -62,7 +61,7 @@ function SystemChatReportFooterMessage() {
         <Banner
             containerStyles={[styles.chatFooterBanner]}
             shouldShowIcon
-            icon={Expensicons.Lightbulb}
+            icon={Lightbulb}
             content={
                 <Text
                     suppressHighlighting

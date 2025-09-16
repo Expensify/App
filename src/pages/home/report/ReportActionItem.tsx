@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
@@ -93,7 +94,7 @@ function ReportActionItem({
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
     const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
