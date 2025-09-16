@@ -1,11 +1,18 @@
 # Pagination Philosophy
 ## What is pagination?
-Pagination is the art of loading a large amount of ordered data page-by-page, rather than all at once.
+Pagination is the art of loading a large amount of ordered data page-by-page, rather than all at once. It is a specialized form of lazy-loading that's suitable for ordered data that displays in a list.
 
-## Why paginate?
-The goal of pagination is to decouple the volume of data a user has access to from the app's performance when they use it. This makes it important to ensure that our largest, high-value customers share the same great app experience as a smaller customer.
+## Why lazy-load data?
+The goal of lazy-loading is to decouple the volume of data a user has access to from the app's performance when they use it. This makes it important to ensure that our largest, high-value customers share the same great app experience as a smaller customer.
 
-It makes sense to paginate the loading of a resource when the volume of that is unbounded, or the upper bound of the resource is too costly to load all at once.
+It makes sense to lazy-load a resource when the volume of that resource is unbounded, or the upper bound of the resource is too costly to load all at once.
+
+## Pagination v.s. lazy-loading
+As stated above, pagination is a specialized subset of lazy-loading for ordered lists of data. The advantage of structured pagination over a more naïve lazy-loading strategy is that it divides data into discrete chunks such that they can be loaded in batches (and that the order of those batches lends itself to a better product experience).
+
+One example of data that's appropriate for pagination is reportActions (chat messages). We can load the 50 most recent messages, then scroll back and send one network request to get the next batch of 50.
+
+One example of data that's appropriate to lazy-load but necessarily ideal for pagination is avatar images. It's too costly to load all avatar images for all users when the app loads, so we only fetch avatar images that a user wants to see on-demand. Another example might be `personalDetails`.
 
 ## How to implement pagination
 1. Clearly define a deterministic sorting order of the data in question.
