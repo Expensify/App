@@ -194,9 +194,9 @@ function NumberWithSymbolForm({
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
                     willSelectionBeUpdatedManually.current = false;
                 }
-                onInputChange?.(strippedNumber);
                 return strippedNumber;
             });
+            onInputChange?.(strippedNumber);
         },
         [decimals, maxLength, onInputChange],
     );
@@ -400,6 +400,7 @@ function NumberWithSymbolForm({
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            onFocus={props.onFocus}
         />
     );
 

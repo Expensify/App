@@ -182,7 +182,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
-> If your changes to .env aren't having an effect, try `rm -rf .rnef`, then re-run `npm run ios` or `npm run android`
+> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
 
 ----
 
@@ -418,32 +418,6 @@ validateAndSubmitForm() {
     signIn();
 }
 ```
-
-## Directory structure
-Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
-created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
-
-- components: React native components that are re-used in several places.
-- libs: Library classes/functions, these are not React native components (ie: they are not UI)
-- pages: These are components that define pages in the app. The component that defines the page itself should be named
-`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`
-- styles: These files define styles used among components/pages
-- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo
-
-**Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
-
-## File naming/structure
-Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
-
-- If you export a constant named `CONST`, its file/directory should be named the `CONST`.
-- If you export a component named `Text`, the file/directory should be named `Text`.
-- If you export a function named `guid`, the file/directory should be named `guid`.
-- For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withOnyx`.
-- All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
-
-## Platform-Specific File Extensions
-This section has moved [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always

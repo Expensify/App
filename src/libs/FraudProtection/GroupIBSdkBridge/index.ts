@@ -1,6 +1,8 @@
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import cidMap from './cidMap';
+import getScriptURL from './getScriptURL';
 
 type GibSdk = {
     init: (opts: {cid: string; backUrl: string; gafUrl: string}) => void;
@@ -14,18 +16,6 @@ type GibSdk = {
 
 type WindowWithGib = typeof window & {gib?: GibSdk};
 
-function getScriptURL(): string {
-    if (typeof window === 'undefined' || typeof window.location === 'undefined') {
-        return 'gib.js';
-    }
-    // On web, ensure we load from the origin root so deep links like /r/123 don't request /r/123/gib.js
-    if (window.location.protocol !== 'file:') {
-        return `${window.location.origin}/gib.js`;
-    }
-    // In desktop (file://) keep it relative to index.html
-    return 'gib.js';
-}
-
 function loadGroupIBScript(): Promise<void> {
     return new Promise((resolve, reject) => {
         if (typeof document === 'undefined') {
@@ -36,7 +26,10 @@ function loadGroupIBScript(): Promise<void> {
         script.async = true;
         script.src = getScriptURL();
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load the gib.js script.'));
+        script.onerror = () => {
+            Log.warn('[Fraud Protection] Failed to load the gib.js script.');
+            reject(new Error('Failed to load the gib.js script.'));
+        };
         document.head.appendChild(script);
     });
 }
@@ -62,6 +55,7 @@ function init(): Promise<void> {
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
         const status = identity !== '' ? fp?.IS_AUTHORIZED : fp?.IS_GUEST;
+        // The order of these calls is important. Do not change it unless you check in the GroupIB SDK documentation.
         fp?.setAuthStatus?.(status ?? 0);
         fp?.setIdentity?.(identity);
         fp?.setSessionID?.(sessionID);

@@ -3,8 +3,9 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSdkBridge';
 
-let sessionID: string = Str.guid();
+let sessionID: string;
 let identity: string | undefined;
+// We use `connectWithoutView` here since this connection only sends the new session data to the Fraud Protection backend, and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
@@ -18,6 +19,7 @@ Onyx.connectWithoutView({
     },
 });
 
+// We use `connectWithoutView` here since this connection only sends the new email and mfa data to the Fraud Protection backend, and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (account) => {
