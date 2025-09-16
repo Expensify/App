@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -63,9 +63,9 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
 
 export default function (
     shouldRequireReportID = true,
-): <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>) => React.ComponentType<TProps & React.RefAttributes<TRef>> {
-    return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
-        function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: React.ComponentType<TProps>) => React.ComponentType<TProps> {
+    return function <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
+        function WithReportOrNotFound(props: TProps) {
             const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -126,14 +126,13 @@ export default function (
                     policy={policy}
                     reportMetadata={reportMetadata}
                     isLoadingReportData={isLoadingReportData}
-                    ref={ref}
                 />
             );
         }
 
         WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        return React.forwardRef(WithReportOrNotFound);
+        return WithReportOrNotFound;
     };
 }
 
