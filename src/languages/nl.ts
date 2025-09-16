@@ -328,7 +328,7 @@ const translations = {
         dismiss: 'Verwijderen',
         proceed: 'Proceed',
         yes: 'Ja',
-        no: 'No',
+        no: 'Nee',
         ok: 'OK',
         notNow: 'Niet nu',
         learnMore: 'Meer informatie',
@@ -362,7 +362,7 @@ const translations = {
         rotate: 'Draaien',
         zoom: 'Zoom',
         password: 'Wachtwoord',
-        magicCode: 'Magic code',
+        magicCode: 'Verificatiecode',
         twoFactorCode: 'Twee-factor code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
@@ -605,7 +605,7 @@ const translations = {
         chooseFiles: 'Bestanden kiezen',
         dropTitle: 'Laat het gaan',
         dropMessage: 'Sleep hier je bestand in.',
-        ignore: 'Ignore',
+        ignore: 'Negeren',
         enabled: 'Ingeschakeld',
         disabled: 'Uitgeschakeld',
         import: 'Importeren',
@@ -1354,7 +1354,7 @@ const translations = {
         changeWorkspace: 'Werkruimte wijzigen',
         set: 'set',
         changed: 'veranderd',
-        removed: 'removed',
+        removed: 'verwijderd',
         transactionPending: 'Transactie in behandeling.',
         chooseARate: 'Selecteer een vergoedingstarief per mijl of kilometer voor de werkruimte',
         unapprove: 'Afkeuren',
@@ -1562,7 +1562,7 @@ const translations = {
         eEyEmEir: 'E / Ey / Em / Eir',
         faeFaer: 'Fae / Faer',
         heHimHis: 'Hij / Hem / Zijn',
-        heHimHisTheyThemTheirs: 'He / Him / His / They / Them / Theirs',
+        heHimHisTheyThemTheirs: 'Hij / Hem / Zijn / Zij / Hen / Hun',
         sheHerHers: 'Zij / Haar / Hare',
         sheHerHersTheyThemTheirs: 'Zij / Haar / Haar / Zij / Hen / Hun',
         merMers: 'Mer / Mers',
@@ -1662,7 +1662,7 @@ const translations = {
             execute: 'Uitvoeren',
             noLogsAvailable: 'Geen logs beschikbaar',
             logSizeTooLarge: ({size}: LogSizeParams) => `Loggrootte overschrijdt de limiet van ${size} MB. Gebruik "Log opslaan" om het logbestand te downloaden.`,
-            logs: 'Logs',
+            logs: 'Logboeken',
             viewConsole: 'Console bekijken',
         },
         security: 'Beveiliging',
@@ -2011,7 +2011,7 @@ const translations = {
                 '4': 'Vierde',
                 '5': 'Vijfde',
                 '6': 'Zesde',
-                '7': 'Seventh',
+                '7': 'Zevende',
                 '8': 'Achtste',
                 '9': 'Negende',
                 '10': 'Tiende',
@@ -2502,9 +2502,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Zo bekijkt en werkt u uw werkruimte-instellingen bij:\n' +
-                    '1. Klik op het instellingentabblad.\n' +
-                    '2. Klik op *Werkruimtes* > [Uw werkruimte].\n' +
-                    `[Ga naar uw werkruimte](${workspaceSettingsLink}). We volgen ze in de #admins-kamer.`,
+                    '1. Klik op Werkruimtes.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Bekijk en werk uw instellingen bij.\n' +
+                    `[Ga naar uw werkruimte.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Maak uw eerste rapport',
@@ -2703,7 +2704,7 @@ const translations = {
         save: 'Opslaan',
         message: 'Bericht',
         timePeriods: {
-            never: 'Never',
+            never: 'Nooit',
             thirtyMinutes: '30 minuten',
             oneHour: '1 uur',
             afterToday: 'Vandaag',
@@ -3361,10 +3362,10 @@ const translations = {
             class: 'Cabineklasse',
             recordLocator: 'Record locator',
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Onbekend',
                 economy: 'Economie',
                 premiumEconomy: 'Premium Economy',
-                business: 'Business',
+                business: 'Zakelijk',
                 first: 'Eerste',
             },
         },
@@ -3378,7 +3379,7 @@ const translations = {
             cancellationUntil: 'Gratis annulering tot',
             confirmation: 'Bevestigingsnummer',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Onbekend',
                 nonRefundable: 'Niet-restitueerbaar',
                 freeCancellationUntil: 'Gratis annulering tot',
                 partiallyRefundable: 'Gedeeltelijk restitueerbaar',
@@ -3480,7 +3481,7 @@ const translations = {
             card: 'Kaarten',
             expensifyCard: 'Expensify Card',
             companyCards: 'Bedrijfskaarten',
-            workflows: 'Workflows',
+            workflows: 'Werkstromen',
             workspace: 'Werkruimte',
             findWorkspace: 'Werkruimte vinden',
             edit: 'Werkruimte bewerken',
@@ -3491,7 +3492,7 @@ const translations = {
             settings: 'Instellingen',
             reimburse: 'Vergoedingen',
             categories: 'Categorieën',
-            tags: 'Tags',
+            tags: 'Labels',
             customField1: 'Aangepast veld 1',
             customField2: 'Aangepast veld 2',
             customFieldHint: 'Voeg aangepaste codering toe die van toepassing is op alle uitgaven van dit lid.',
@@ -4733,7 +4734,7 @@ const translations = {
                 statementCloseDateDescription: 'Laat ons weten wanneer je rekeningafschrift wordt gesloten, dan maken we een bijpassend rekeningafschrift in Expensify.',
             },
             workflows: {
-                title: 'Workflows',
+                title: 'Werkstromen',
                 subtitle: 'Configureer hoe uitgaven worden goedgekeurd en betaald.',
                 disableApprovalPrompt:
                     'Expensify-kaarten van deze werkruimte zijn momenteel afhankelijk van goedkeuring om hun Smart Limits te definiëren. Pas de limiettypen van eventuele Expensify-kaarten met Smart Limits aan voordat u goedkeuringen uitschakelt.',
@@ -4747,7 +4748,7 @@ const translations = {
                 subtitle: 'Volg en organiseer uitgaven.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Labels',
                 subtitle: 'Classificeer kosten en volg factureerbare uitgaven.',
             },
             taxes: {
@@ -5351,7 +5352,7 @@ const translations = {
             user: 'gebruiker',
             users: 'gebruikers',
             invited: 'uitgenodigd',
-            removed: 'removed',
+            removed: 'verwijderd',
             to: 'naar',
             from: 'van',
         },
@@ -5443,6 +5444,7 @@ const translations = {
             updateWorkspaceCurrency: 'Werkruimte valuta bijwerken',
             workspaceCurrencyNotSupported: 'Werkruimtevaluta niet ondersteund',
             yourWorkspace: `Uw werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,
+            chooseAnExisting: 'Kies een bestaande bankrekening om uitgaven te betalen of voeg een nieuwe toe.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',
@@ -7101,8 +7103,8 @@ const translations = {
         visibleInLHN: 'Zichtbaar in LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'waar',
+        false: 'onwaar',
         viewReport: 'Bekijk rapport',
         viewTransaction: 'Transactie bekijken',
         createTransactionViolation: 'Transactieovertreding maken',

@@ -362,7 +362,7 @@ const translations = {
         rotate: 'Ruota',
         zoom: 'Zoom',
         password: 'Password',
-        magicCode: 'Magic code',
+        magicCode: 'Codice di verifica',
         twoFactorCode: 'Codice a due fattori',
         workspaces: 'Spazi di lavoro',
         inbox: 'Posta in arrivo',
@@ -375,7 +375,7 @@ const translations = {
         wallet: 'Portafoglio',
         preferences: 'Preferenze',
         view: 'Visualizza',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Rivisore${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Non',
         signIn: 'Accedi',
         signInWithGoogle: 'Accedi con Google',
@@ -605,7 +605,7 @@ const translations = {
         chooseFiles: 'Scegli file',
         dropTitle: 'Lascia andare',
         dropMessage: 'Trascina qui il tuo file',
-        ignore: 'Ignore',
+        ignore: 'Ignora',
         enabled: 'Abilitato',
         disabled: 'Disabilitato',
         import: 'Importa',
@@ -2496,9 +2496,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Rivedi le [impostazioni dello spazio di lavoro](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Ecco come rivedere e aggiornare le impostazioni dello spazio di lavoro:\n' +
-                    '1. Clicca sulla scheda delle impostazioni.\n' +
-                    '2. Clicca su *Spazi di lavoro* > [Il tuo spazio di lavoro].\n' +
-                    `[Vai al tuo spazio di lavoro](${workspaceSettingsLink}). Le tracceremo nella stanza #admins.`,
+                    '1. Clicca su Spazi di lavoro.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Rivedi e aggiorna le tue impostazioni.\n' +
+                    `[Vai al tuo spazio di lavoro.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Crea il tuo primo report',
@@ -3356,7 +3357,7 @@ const translations = {
             class: 'Classe Cabina',
             recordLocator: 'Localizzatore di registrazione',
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Sconosciuto',
                 economy: 'Economia',
                 premiumEconomy: 'Premium Economy',
                 business: 'Business',
@@ -3373,7 +3374,7 @@ const translations = {
             cancellationUntil: 'Cancellazione gratuita fino al',
             confirmation: 'Numero di conferma',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Sconosciuto',
                 nonRefundable: 'Non rimborsabile',
                 freeCancellationUntil: 'Cancellazione gratuita fino al',
                 partiallyRefundable: 'Parzialmente rimborsabile',
@@ -5445,6 +5446,7 @@ const translations = {
             updateWorkspaceCurrency: 'Aggiorna la valuta dello spazio di lavoro',
             workspaceCurrencyNotSupported: "Valuta dell'area di lavoro non supportata",
             yourWorkspace: `Il tuo spazio di lavoro è impostato su una valuta non supportata. Visualizza <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">l'elenco delle valute supportate</a>.`,
+            chooseAnExisting: 'Scegli un conto bancario esistente per pagare le spese o aggiungine uno nuovo.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Trasferisci proprietario',
@@ -5637,7 +5639,7 @@ const translations = {
             genericFailureMessage: 'Si è verificato un errore durante il pagamento della tua fattura. Per favore riprova.',
         },
         restrictedAction: {
-            restricted: 'Restricted',
+            restricted: 'Limitato',
             actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Le azioni nello spazio di lavoro ${workspaceName} sono attualmente limitate`,
             workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
                 `Il proprietario dello spazio di lavoro, ${workspaceOwnerName}, dovrà aggiungere o aggiornare la carta di pagamento registrata per sbloccare la nuova attività dello spazio di lavoro.`,
@@ -7113,8 +7115,8 @@ const translations = {
         visibleInLHN: 'Visibile nel LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'vero',
+        false: 'falso',
         viewReport: 'Visualizza rapporto',
         viewTransaction: 'Visualizza transazione',
         createTransactionViolation: 'Crea violazione di transazione',

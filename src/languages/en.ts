@@ -2485,9 +2485,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     "Here's how to review and update your workspace settings:\n" +
-                    '1. Click the settings tab.\n' +
-                    '2. Click *Workspaces* > [Your workspace].\n' +
-                    `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
+                    '1. Click Workspaces.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Review and update your settings.\n' +
+                    `[Go to your workspace.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Create your first report',
@@ -5410,6 +5411,7 @@ const translations = {
             updateWorkspaceCurrency: 'Update workspace currency',
             workspaceCurrencyNotSupported: 'Workspace currency not supported',
             yourWorkspace: `Your workspace is set to an unsupported currency. View the <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">list of supported currencies</a>.`,
+            chooseAnExisting: 'Choose an existing bank account to pay expenses or add a new one.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transfer owner',
