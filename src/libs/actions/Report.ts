@@ -4033,8 +4033,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string, isOriginalReportArchived = false) {
-    const originalReportID = getOriginalReportID(reportID, reportAction);
+function flagComment(reportID: string | undefined, originalReportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string, isOriginalReportArchived = false) {
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
     if (!message || !reportAction) {

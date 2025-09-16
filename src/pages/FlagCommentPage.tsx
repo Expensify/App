@@ -113,7 +113,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
 
     const flagComment = (severity: Severity) => {
         if (reportAction && canFlagReportAction(reportAction, reportID)) {
-            flagCommentUtil(reportID, reportAction, severity, isOriginalReportArchived);
+            flagCommentUtil(reportID, originalReportID, reportAction, severity, isOriginalReportArchived);
         }
 
         Navigation.dismissModal();
