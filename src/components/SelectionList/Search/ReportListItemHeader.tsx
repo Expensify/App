@@ -158,7 +158,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         <PressableWithFeedback
                             onPress={onDownArrowClick}
                             disabled={!!isDisabled}
-                            style={[styles.justifyContentCenter, styles.alignItemsCenter]}
+                            style={[styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
                         >
