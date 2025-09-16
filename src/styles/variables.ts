@@ -100,6 +100,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    receiptPaneRHPMaxWidth: 465,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     sideBarWithLHBWidth: 320,
@@ -221,8 +222,6 @@ export default {
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
-    oldDotWireframeIconWidth: 263.38,
-    oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
@@ -320,6 +319,7 @@ export default {
     h112: 112,
     h172: 172,
     w12: 12,
+    w16: 16,
     w20: 20,
     w28: 28,
     w36: 36,
@@ -333,7 +333,6 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
-
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
