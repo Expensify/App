@@ -70,7 +70,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getOriginalMessage,
     getReportActionHtml,
@@ -348,7 +348,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                 from: [`${accountID}`],
             }),
             get searchQueryJSON() {
@@ -433,6 +433,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
             get searchQueryJSON() {
@@ -453,6 +454,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
             get searchQueryJSON() {
@@ -473,6 +475,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get searchQueryJSON() {
@@ -494,6 +497,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
                 withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -753,6 +757,31 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
     const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
     const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
     return isAmountTooLong(taxAmount);
+}
+
+/**
+ * Determines if a report can be submitted in search.
+ * Similar to `ReportUtils.canSubmitReport` but only allows submission for single-transaction reports.
+ *
+ * @param currentUserAccountID - Current user's account ID
+ * @param report - Report to whether it is eligible can be submitted for submission
+ * @param reportActions - Reports actions associated with the report
+ * @param policy - Policy associated with the report
+ * @param transactions - Transactions within the report
+ * @param transactionViolations - Transaction violations associated with the report's transactions
+ * @param isReportArchived - Whether the report is archived
+ *
+ */
+function canSubmitReportInSearch(
+    currentUserAccountID: number | undefined,
+    report: OnyxTypes.Report,
+    reportActions: OnyxTypes.ReportAction[],
+    policy: OnyxTypes.Policy,
+    transactions: SearchTransaction[],
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    isReportArchived = false,
+) {
+    return canSubmitReport(currentUserAccountID, report, reportActions, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
 }
 
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
@@ -1199,7 +1228,10 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
+    if (
+        canSubmitReportInSearch(currentAccountID, report, reportActions, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) &&
+        isAllowedToApproveExpenseReport
+    ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -1795,7 +1827,11 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
 function isSearchResultsEmpty(searchResults: SearchResults) {
-    return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+    return !Object.keys(searchResults?.data).some(
+        (key) =>
+            key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
+            (searchResults?.data[key as keyof typeof searchResults.data] as SearchTransaction)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
 }
 
 /**
@@ -1863,6 +1899,7 @@ function createTypeMenuSections(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
 ): SearchTypeMenuSection[] {
@@ -1894,7 +1931,7 @@ function createTypeMenuSections(
                                       buttonText: 'report.newReport.createReport',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
-                                              const activePolicy = getActivePolicy();
+                                              const activePolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
                                               const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
 
                                               let workspaceIDForReportCreation: string | undefined;
@@ -2284,6 +2321,7 @@ function getColumnsToShow(
 }
 
 export {
+    canSubmitReportInSearch,
     getSuggestedSearches,
     getListItem,
     getSections,
@@ -2324,4 +2362,5 @@ export {
     getColumnsToShow,
     getHasOptions,
 };
+
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
