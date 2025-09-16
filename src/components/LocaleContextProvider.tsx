@@ -1,4 +1,5 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
+import {format as formatDate} from 'date-fns';
 import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -176,11 +177,13 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const formatTravelDate = useMemo<LocaleContextProps['formatTravelDate']>(
         () => (datetime) => {
-            // Use same logic as Trip Summary - treat as destination local time, no timezone conversion
+            // Use same logic as Trip Summary but without day of week - treat as destination local time, no timezone conversion
             const date = new Date(datetime);
-            const formattedDateTime = DateUtils.getFormattedTransportDateAndHour(date);
+            // Always show year for travel dates to maintain consistency
+            const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT); // "Oct 1, 2025"
+            const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT); // "h:mm a"
             const at = translateLocalize(currentLocale, 'common.conjunctionAt');
-            return `${formattedDateTime.date} ${at} ${formattedDateTime.hour}`;
+            return `${formattedDate} ${at} ${formattedHour}`;
         },
         [currentLocale],
     );
