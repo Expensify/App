@@ -1,4 +1,4 @@
-import React, {forwardRef, useImperativeHandle} from 'react';
+import React, {useImperativeHandle} from 'react';
 import type {ForwardedRef} from 'react';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -12,9 +12,12 @@ import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListProps;
+type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListProps & {
+    /** Reference to the outer element */
+    ref?: ForwardedRef<Partial<ReactionListRef>>;
+};
 
-function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails}: PopoverReactionListProps, ref: ForwardedRef<Partial<ReactionListRef>>) {
+function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails, ref}: PopoverReactionListProps) {
     const {preferredLocale} = useLocalize();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -56,4 +59,4 @@ function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonal
     );
 }
 
-export default withCurrentUserPersonalDetails(forwardRef(BasePopoverReactionList));
+export default withCurrentUserPersonalDetails(BasePopoverReactionList);
