@@ -363,7 +363,7 @@ const translations = {
         rotate: 'Girar',
         zoom: 'Zoom',
         password: 'Senha',
-        magicCode: 'Magic code',
+        magicCode: 'Código mágico',
         twoFactorCode: 'Código de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
@@ -376,7 +376,7 @@ const translations = {
         wallet: 'Carteira',
         preferences: 'Preferências',
         view: 'Visualizar',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Revisão${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Não',
         signIn: 'Entrar',
         signInWithGoogle: 'Entrar com Google',
@@ -397,7 +397,7 @@ const translations = {
         details: 'Detalhes',
         privacy: 'Privacidade',
         privacyPolicy: 'Política de Privacidade',
-        hidden: 'Hidden',
+        hidden: 'Oculto',
         visible: 'Visível',
         delete: 'Excluir',
         archived: 'arquivado',
@@ -480,7 +480,7 @@ const translations = {
             login: 'Ocorreu um erro ao fazer login. Por favor, tente novamente.',
         },
         comma: 'vírgula',
-        semicolon: 'semicolon',
+        semicolon: 'ponto e vírgula',
         please: 'Por favor',
         contactUs: 'entre em contato conosco',
         pleaseEnterEmailOrPhoneNumber: 'Por favor, insira um e-mail ou número de telefone',
@@ -607,7 +607,7 @@ const translations = {
         chooseFiles: 'Escolher arquivos',
         dropTitle: 'Deixe ir',
         dropMessage: 'Solte seu arquivo aqui',
-        ignore: 'Ignore',
+        ignore: 'Ignorar',
         enabled: 'Ativado',
         disabled: 'Desativado',
         import: 'Importar',
@@ -1466,7 +1466,7 @@ const translations = {
             always: 'Imediatamente',
             daily: 'Diário',
             mute: 'Silenciar',
-            hidden: 'Hidden',
+            hidden: 'Oculto',
         },
     },
     loginField: {
@@ -2502,9 +2502,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Revise suas [configurações de espaço de trabalho](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Veja como revisar e atualizar as configurações do seu espaço de trabalho:\n' +
-                    '1. Clique na aba de configurações.\n' +
-                    '2. Clique em *Espaços de trabalho* > [Seu espaço de trabalho].\n' +
-                    `[Vá para o seu espaço de trabalho](${workspaceSettingsLink}). Vamos rastreá-los na sala #admins.`,
+                    '1. Clique em Espaços de trabalho.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Revise e atualize suas configurações.\n' +
+                    `[Vá para o seu espaço de trabalho.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Crie seu primeiro relatório',
@@ -3353,7 +3354,7 @@ const translations = {
             class: 'Classe da Cabine',
             recordLocator: 'Localizador de registro',
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Desconhecido',
                 economy: 'Economia',
                 premiumEconomy: 'Premium Economy',
                 business: 'Negócio',
@@ -3370,7 +3371,7 @@ const translations = {
             cancellationUntil: 'Cancelamento gratuito até',
             confirmation: 'Número de confirmação',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Desconhecido',
                 nonRefundable: 'Não reembolsável',
                 freeCancellationUntil: 'Cancelamento gratuito até',
                 partiallyRefundable: 'Parcialmente reembolsável',
@@ -4734,7 +4735,7 @@ const translations = {
                 subtitle: 'Acompanhe e organize os gastos.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Marcadores',
                 subtitle: 'Classifique custos e acompanhe despesas faturáveis.',
             },
             taxes: {
@@ -5434,6 +5435,7 @@ const translations = {
             updateWorkspaceCurrency: 'Atualizar moeda do espaço de trabalho',
             workspaceCurrencyNotSupported: 'Moeda do espaço de trabalho não suportada',
             yourWorkspace: `Seu espaço de trabalho está configurado para uma moeda não suportada. Veja a <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lista de moedas suportadas</a>.`,
+            chooseAnExisting: 'Escolha uma conta bancária existente para pagar despesas ou adicione uma nova.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir proprietário',
@@ -6353,7 +6355,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pago ${currency}${amount} em outro lugar`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagou ${currency}${amount} via integração`,
                 outdatedBankAccount: `não foi possível processar o pagamento devido a um problema com a conta bancária do pagador`,
-                reimbursementACHBounce: `não foi possível processar o pagamento, pois o pagador não tem fundos suficientes`,
+                reimbursementACHBounce: `não foi possível processar o pagamento devido a um problema na conta bancária`,
                 reimbursementACHCancelled: `cancelou o pagamento`,
                 reimbursementAccountChanged: `não foi possível processar o pagamento, pois o pagador mudou de conta bancária`,
                 reimbursementDelayed: `processou o pagamento, mas ele está atrasado em mais 1-2 dias úteis`,
@@ -6702,7 +6704,7 @@ const translations = {
         descriptionToKeep: 'Escolha qual descrição manter',
         categoryToKeep: 'Escolha qual categoria manter',
         isTransactionBillable: 'Escolha se a transação é faturável',
-        keepThisOne: 'Keep this one',
+        keepThisOne: 'Manter este',
         confirmDetails: `Confirme os detalhes que você está mantendo`,
         confirmDuplicatesInfo: `Os duplicados que você não mantiver serão retidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
@@ -7093,8 +7095,8 @@ const translations = {
         visibleInLHN: 'Visível no LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'verdadeiro',
+        false: 'falso',
         viewReport: 'Visualizar Relatório',
         viewTransaction: 'Ver transação',
         createTransactionViolation: 'Criar violação de transação',

@@ -329,7 +329,7 @@ const translations = {
         dismiss: 'Ignorer',
         proceed: 'Procéder',
         yes: 'Oui',
-        no: 'No',
+        no: 'Non',
         ok: "D'accord",
         notNow: 'Pas maintenant',
         learnMore: 'En savoir plus',
@@ -363,7 +363,7 @@ const translations = {
         rotate: 'Pivoter',
         zoom: 'Zoom',
         password: 'Mot de passe',
-        magicCode: 'Magic code',
+        magicCode: 'Code de vérification',
         twoFactorCode: 'Code à deux facteurs',
         workspaces: 'Espaces de travail',
         success: 'Succ\u00E8s',
@@ -376,7 +376,7 @@ const translations = {
         wallet: 'Portefeuille',
         preferences: 'Préférences',
         view: 'Voir',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Réviser${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Pas',
         signIn: 'Se connecter',
         signInWithGoogle: 'Se connecter avec Google',
@@ -606,7 +606,7 @@ const translations = {
         chooseFiles: 'Choisir des fichiers',
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
-        ignore: 'Ignore',
+        ignore: 'Ignorer',
         enabled: 'Activé',
         disabled: 'Désactivé',
         import: 'Importation',
@@ -2486,9 +2486,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Vérifiez les [paramètres de l’espace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Voici comment vérifier et mettre à jour vos paramètres :\n' +
-                    '1. Cliquez sur l’onglet paramètres.\n' +
-                    '2. Cliquez sur *Espaces de travail* > [Votre espace].\n' +
-                    `[Accéder à votre espace](${workspaceSettingsLink}). Nous suivrons les changements dans la salle #admins.`,
+                    '1. Cliquez sur Espaces de travail.\n' +
+                    '2. Sélectionnez votre espace de travail.\n' +
+                    '3. Vérifiez et mettez à jour vos paramètres.\n' +
+                    `[Accéder à votre espace de travail.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Créer votre premier rapport',
@@ -3342,7 +3343,7 @@ const translations = {
             class: 'Classe Cabine',
             recordLocator: "Localisateur d'enregistrement",
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Inconnu',
                 economy: 'Économie',
                 premiumEconomy: 'Premium Economy',
                 business: 'Entreprise',
@@ -3359,7 +3360,7 @@ const translations = {
             cancellationUntil: "Annulation gratuite jusqu'à",
             confirmation: 'Numéro de confirmation',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Inconnu',
                 nonRefundable: 'Non remboursable',
                 freeCancellationUntil: "Annulation gratuite jusqu'à",
                 partiallyRefundable: 'Partiellement remboursable',
@@ -3461,7 +3462,7 @@ const translations = {
             card: 'Cartes',
             expensifyCard: 'Expensify Card',
             companyCards: "Cartes d'entreprise",
-            workflows: 'Workflows',
+            workflows: 'Flux de travail',
             workspace: 'Espace de travail',
             findWorkspace: "Trouver l'espace de travail",
             edit: "Modifier l'espace de travail",
@@ -3472,7 +3473,7 @@ const translations = {
             settings: 'Paramètres',
             reimburse: 'Remboursements',
             categories: 'Catégories',
-            tags: 'Tags',
+            tags: 'Étiquettes',
             customField1: 'Champ personnalisé 1',
             customField2: 'Champ personnalisé 2',
             customFieldHint: "Ajoutez un codage personnalisé qui s'applique à toutes les dépenses de ce membre.",
@@ -3480,7 +3481,7 @@ const translations = {
             reportFields: 'Champs de rapport',
             reportTitle: 'Titre du rapport',
             reportField: 'Champ de rapport',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             bills: 'Bills',
             invoices: 'Factures',
             perDiem: 'Per diem',
@@ -4726,7 +4727,7 @@ const translations = {
                 statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify.',
             },
             workflows: {
-                title: 'Workflows',
+                title: 'Flux de travail',
                 subtitle: 'Configurez comment les dépenses sont approuvées et payées.',
                 disableApprovalPrompt:
                     "Les cartes Expensify de cet espace de travail dépendent actuellement de l'approbation pour définir leurs limites intelligentes. Veuillez modifier les types de limites de toute carte Expensify avec des limites intelligentes avant de désactiver les approbations.",
@@ -4740,11 +4741,11 @@ const translations = {
                 subtitle: 'Suivre et organiser les dépenses.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Étiquettes',
                 subtitle: 'Classifiez les coûts et suivez les dépenses facturables.',
             },
             taxes: {
-                title: 'Taxes',
+                title: 'Impôts',
                 subtitle: 'Documentez et récupérez les taxes éligibles.',
             },
             reportFields: {
@@ -5132,7 +5133,7 @@ const translations = {
                 }
             },
             accounts: 'Plan comptable',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             imported: 'Importé',
             notImported: 'Non importé',
             importAsCategory: 'Importé en tant que catégories',
@@ -5440,6 +5441,7 @@ const translations = {
             updateWorkspaceCurrency: "Mettre à jour la devise de l'espace de travail",
             workspaceCurrencyNotSupported: "Devise de l'espace de travail non prise en charge",
             yourWorkspace: `Votre espace de travail est configuré avec une devise non prise en charge. Consultez la <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">liste des devises prises en charge</a>.`,
+            chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le propriétaire',
@@ -6360,7 +6362,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `payé ${currency}${amount} ailleurs`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `payé ${currency}${amount} via intégration`,
                 outdatedBankAccount: `n’a pas pu traiter le paiement en raison d’un problème avec le compte bancaire du payeur`,
-                reimbursementACHBounce: `impossible de traiter le paiement, car le payeur n'a pas suffisamment de fonds`,
+                reimbursementACHBounce: `n'a pas pu traiter le paiement en raison d'un problème de compte bancaire`,
                 reimbursementACHCancelled: `annulé le paiement`,
                 reimbursementAccountChanged: `impossible de traiter le paiement, car le payeur a changé de compte bancaire`,
                 reimbursementDelayed: `a traité le paiement mais il est retardé de 1 à 2 jours ouvrables supplémentaires`,
@@ -7104,8 +7106,8 @@ const translations = {
         visibleInLHN: 'Visible dans le LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'vrai',
+        false: 'faux',
         viewReport: 'Voir le rapport',
         viewTransaction: 'Voir la transaction',
         createTransactionViolation: 'Créer une violation de transaction',
