@@ -469,14 +469,14 @@ function formatType(type: string | undefined): string {
 
 function getAllReportTransactionsWithContext(reportID: string, context?: FormulaContext): Transaction[] {
     const transactions = [...getReportTransactions(reportID)];
-    const ctxTxn = context?.transaction;
+    const contextTransaction = context?.transaction;
 
-    if (ctxTxn?.transactionID && ctxTxn.reportID === reportID) {
-        const idx = transactions.findIndex((t) => t?.transactionID === ctxTxn.transactionID);
-        if (idx >= 0) {
-            transactions[idx] = ctxTxn;
+    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
+        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
+        if (transactionIndex >= 0) {
+            transactions[transactionIndex] = contextTransaction;
         } else {
-            transactions.push(ctxTxn);
+            transactions.push(contextTransaction);
         }
     }
 
