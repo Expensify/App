@@ -1,4 +1,5 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -61,7 +62,7 @@ function OnboardingModalNavigator() {
     }
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        selector: accountIDSelector,
         canBeMissing: false,
     });
 
