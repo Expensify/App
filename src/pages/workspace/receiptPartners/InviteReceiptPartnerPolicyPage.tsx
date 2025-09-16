@@ -43,15 +43,22 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const policy = usePolicy(policyID);
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-
     const workspaceMembers = useMemo(() => {
         let membersList: MemberForList[] = [];
         if (!policy?.employeeList) {
             return membersList;
         }
 
+        // Get the list of employees already in Uber receipt partners
+        const uberEmployeeEmails = policy?.receiptPartners?.uber?.employees ? Object.keys(policy.receiptPartners.uber.employees) : [];
+
         Object.entries(policy.employeeList).forEach(([email, policyEmployee]) => {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+                return;
+            }
+
+            // Skip employees who are already in Uber receipt partners
+            if (uberEmployeeEmails.includes(email)) {
                 return;
             }
 
@@ -82,7 +89,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, localeCompare]);
+    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare]);
 
     const sections = useMemo(() => {
         if (workspaceMembers.length === 0) {
