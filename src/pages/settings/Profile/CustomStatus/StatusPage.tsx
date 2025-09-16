@@ -248,7 +248,6 @@ function StatusPage() {
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
                             iconFill={theme.danger}
-                            wrapperStyle={[styles.pl2]}
                         />
                     )}
                 </View>
