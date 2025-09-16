@@ -105,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -275,7 +276,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -328,7 +328,7 @@ const translations = {
         dismiss: 'Ignorer',
         proceed: 'Procéder',
         yes: 'Oui',
-        no: 'No',
+        no: 'Non',
         ok: "D'accord",
         notNow: 'Pas maintenant',
         learnMore: 'En savoir plus',
@@ -358,10 +358,11 @@ const translations = {
         selectMultiple: 'Sélectionner plusieurs',
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
+        submitted: 'Soumis',
         rotate: 'Pivoter',
         zoom: 'Zoom',
         password: 'Mot de passe',
-        magicCode: 'Magic code',
+        magicCode: 'Code de vérification',
         twoFactorCode: 'Code à deux facteurs',
         workspaces: 'Espaces de travail',
         success: 'Succ\u00E8s',
@@ -374,7 +375,7 @@ const translations = {
         wallet: 'Portefeuille',
         preferences: 'Préférences',
         view: 'Voir',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Réviser${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Pas',
         signIn: 'Se connecter',
         signInWithGoogle: 'Se connecter avec Google',
@@ -402,6 +403,7 @@ const translations = {
         contacts: 'Contacts',
         recents: 'Récents',
         close: 'Fermer',
+        comment: 'Commentaire',
         download: 'Télécharger',
         downloading: 'Téléchargement en cours',
         uploading: 'Téléchargement en cours',
@@ -494,6 +496,7 @@ const translations = {
         join: 'Rejoindre',
         leave: 'Quitter',
         decline: 'Refuser',
+        reject: 'Rejeter',
         transferBalance: 'Transférer le solde',
         cantFindAddress: 'Impossible de trouver votre adresse ?',
         enterManually: 'Entrez-le manuellement',
@@ -602,7 +605,7 @@ const translations = {
         chooseFiles: 'Choisir des fichiers',
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
-        ignore: 'Ignore',
+        ignore: 'Ignorer',
         enabled: 'Activé',
         disabled: 'Désactivé',
         import: 'Importation',
@@ -1399,6 +1402,24 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+        reject: {
+            educationalTitle: 'Faut-il mettre en attente ou rejeter ?',
+            educationalText: "Si vous n'êtes pas prêt à approuver ou à payer une dépense, vous pouvez la mettre en attente ou la rejeter.",
+            holdExpenseTitle: 'Mettez une dépense en attente pour demander plus de détails avant de l’approuver ou de la payer.',
+            heldExpenseLeftBehindTitle: 'Les dépenses mises en attente sont laissées de côté lorsque vous approuvez un rapport complet.',
+            rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
+            reasonPageTitle: 'Rejeter la dépense',
+            reasonPageDescription1:
+                'Rejetez une dépense si vous ne prévoyez jamais de l’approuver ou de la payer. Sinon, utilisez "Mettre en attente" pour la suspendre et demander plus de contexte.',
+            reasonPageDescription2: 'Si vous allez rejeter la dépense, veuillez ajouter un commentaire pour expliquer la raison :',
+            rejectReason: 'Raison du rejet',
+            markAsResolved: 'Marquer comme résolu',
+            rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
+            reportActions: {
+                rejectedExpense: 'a rejeté cette dépense',
+                markedAsResolved: 'a marqué la raison du rejet comme résolue',
+            },
+        },
         changeApprover: {
             title: "Modifier l'approbateur",
             subtitle: "Choisissez une option pour modifier l'approbateur de ce rapport.",
@@ -2464,9 +2485,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Vérifiez les [paramètres de l’espace](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Voici comment vérifier et mettre à jour vos paramètres :\n' +
-                    '1. Cliquez sur l’onglet paramètres.\n' +
-                    '2. Cliquez sur *Espaces de travail* > [Votre espace].\n' +
-                    `[Accéder à votre espace](${workspaceSettingsLink}). Nous suivrons les changements dans la salle #admins.`,
+                    '1. Cliquez sur Espaces de travail.\n' +
+                    '2. Sélectionnez votre espace de travail.\n' +
+                    '3. Vérifiez et mettez à jour vos paramètres.\n' +
+                    `[Accéder à votre espace de travail.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Créer votre premier rapport',
@@ -3329,7 +3351,7 @@ const translations = {
             class: 'Classe Cabine',
             recordLocator: "Localisateur d'enregistrement",
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Inconnu',
                 economy: 'Économie',
                 premiumEconomy: 'Premium Economy',
                 business: 'Entreprise',
@@ -3346,7 +3368,7 @@ const translations = {
             cancellationUntil: "Annulation gratuite jusqu'à",
             confirmation: 'Numéro de confirmation',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Inconnu',
                 nonRefundable: 'Non remboursable',
                 freeCancellationUntil: "Annulation gratuite jusqu'à",
                 partiallyRefundable: 'Partiellement remboursable',
@@ -3448,7 +3470,7 @@ const translations = {
             card: 'Cartes',
             expensifyCard: 'Expensify Card',
             companyCards: "Cartes d'entreprise",
-            workflows: 'Workflows',
+            workflows: 'Flux de travail',
             workspace: 'Espace de travail',
             findWorkspace: "Trouver l'espace de travail",
             edit: "Modifier l'espace de travail",
@@ -3459,7 +3481,7 @@ const translations = {
             settings: 'Paramètres',
             reimburse: 'Remboursements',
             categories: 'Catégories',
-            tags: 'Tags',
+            tags: 'Étiquettes',
             customField1: 'Champ personnalisé 1',
             customField2: 'Champ personnalisé 2',
             customFieldHint: "Ajoutez un codage personnalisé qui s'applique à toutes les dépenses de ce membre.",
@@ -3467,7 +3489,7 @@ const translations = {
             reportFields: 'Champs de rapport',
             reportTitle: 'Titre du rapport',
             reportField: 'Champ de rapport',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             bills: 'Bills',
             invoices: 'Factures',
             perDiem: 'Per diem',
@@ -4660,10 +4682,9 @@ const translations = {
                 cardName: 'Nom de la carte',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `${integration} ${type.toLowerCase()} exportation` : `exportation ${integration}`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
-                integrationExportTitlePart: 'Sélectionner un autre',
-                integrationExportTitleLinkPart: "option d'exportation",
-                integrationExportTitleSecondPart: 'pour changer les comptes disponibles.',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées. Sélectionnez une autre <a href="${exportPageLink}">option d'exportation</a> pour modifier les comptes disponibles.`,
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
@@ -4714,7 +4735,7 @@ const translations = {
                 statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify.',
             },
             workflows: {
-                title: 'Workflows',
+                title: 'Flux de travail',
                 subtitle: 'Configurez comment les dépenses sont approuvées et payées.',
                 disableApprovalPrompt:
                     "Les cartes Expensify de cet espace de travail dépendent actuellement de l'approbation pour définir leurs limites intelligentes. Veuillez modifier les types de limites de toute carte Expensify avec des limites intelligentes avant de désactiver les approbations.",
@@ -4728,11 +4749,11 @@ const translations = {
                 subtitle: 'Suivre et organiser les dépenses.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Étiquettes',
                 subtitle: 'Classifiez les coûts et suivez les dépenses facturables.',
             },
             taxes: {
-                title: 'Taxes',
+                title: 'Impôts',
                 subtitle: 'Documentez et récupérez les taxes éligibles.',
             },
             reportFields: {
@@ -5120,7 +5141,7 @@ const translations = {
                 }
             },
             accounts: 'Plan comptable',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             imported: 'Importé',
             notImported: 'Non importé',
             importAsCategory: 'Importé en tant que catégories',
@@ -5293,7 +5314,8 @@ const translations = {
             continuousReconciliation: 'Réconciliation Continue',
             saveHoursOnReconciliation:
                 'Gagnez des heures sur la réconciliation à chaque période comptable en laissant Expensify réconcilier en continu les relevés et les règlements de la carte Expensify pour vous.',
-            enableContinuousReconciliation: 'Pour activer la Réconciliation Continue, veuillez activer',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Pour activer la réconciliation continue, veuillez activer la <a href="${accountingAdvancedSettingsLink}">synchronisation automatique</a> pour ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de votre carte Expensify seront rapprochés.',
                 accountMatches: 'Assurez-vous que ce compte correspond à votre',
@@ -5427,6 +5449,7 @@ const translations = {
             updateWorkspaceCurrency: "Mettre à jour la devise de l'espace de travail",
             workspaceCurrencyNotSupported: "Devise de l'espace de travail non prise en charge",
             yourWorkspace: `Votre espace de travail est configuré avec une devise non prise en charge. Consultez la <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">liste des devises prises en charge</a>.`,
+            chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le propriétaire',
@@ -6347,7 +6370,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `payé ${currency}${amount} ailleurs`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `payé ${currency}${amount} via intégration`,
                 outdatedBankAccount: `n’a pas pu traiter le paiement en raison d’un problème avec le compte bancaire du payeur`,
-                reimbursementACHBounce: `impossible de traiter le paiement, car le payeur n'a pas suffisamment de fonds`,
+                reimbursementACHBounce: `n'a pas pu traiter le paiement en raison d'un problème de compte bancaire`,
                 reimbursementACHCancelled: `annulé le paiement`,
                 reimbursementAccountChanged: `impossible de traiter le paiement, car le payeur a changé de compte bancaire`,
                 reimbursementDelayed: `a traité le paiement mais il est retardé de 1 à 2 jours ouvrables supplémentaires`,
@@ -6594,8 +6617,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tous les tags requis',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} a rejeté cette dépense avec le commentaire "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Cette dépense a été refusée.',
         billableExpense: "Facturable n'est plus valide",
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Catégorie non valide',
@@ -7092,8 +7114,8 @@ const translations = {
         visibleInLHN: 'Visible dans le LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'vrai',
+        false: 'faux',
         viewReport: 'Voir le rapport',
         viewTransaction: 'Voir la transaction',
         createTransactionViolation: 'Créer une violation de transaction',

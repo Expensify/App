@@ -55,6 +55,7 @@ function AttachmentCarouselView({
     cancelAutoHideArrow,
     setShouldShowArrows,
     onAttachmentError,
+    onAttachmentLoaded,
     onNavigate,
     onClose,
     setPage,
@@ -159,8 +160,9 @@ function AttachmentCarouselView({
             onScaleChanged: handleScaleChange,
             onSwipeDown: onClose,
             onAttachmentError,
+            onAttachmentLoaded,
         }),
-        [onAttachmentError, source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
+        [onAttachmentError, onAttachmentLoaded, source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
     );
 
     /** Defines how a single attachment should be rendered */
