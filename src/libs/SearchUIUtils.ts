@@ -969,8 +969,6 @@ function getTransactionsSections(
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
-                // Manually copying all the properties from transactionItem
-                ...(transactionItem.pendingAction ? {pendingAction: transactionItem.pendingAction} : {}),
             };
 
             transactionsSections.push(transactionSection);
