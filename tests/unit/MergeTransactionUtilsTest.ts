@@ -431,7 +431,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false,
                 billable: true,
                 filename: 'merged.jpg',
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
