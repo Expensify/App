@@ -759,7 +759,7 @@ class TranslationGenerator {
                     throw new Error('Found a dangling property without an initializer in a translation object. This should never happen.');
                 }
 
-                // extract the value (property initializer) as code string
+                // Extract the value (property initializer) as code string
                 const codeString = tsPrinter.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
                 translatedCodeMap.set(currentPath, codeString);
 
