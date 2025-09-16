@@ -658,6 +658,8 @@ const translations = {
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
         link: 'Link',
+        pinned: 'Pinned',
+        read: 'Read',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -6122,9 +6124,6 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             currency: 'Currency',
-            pinned: 'Pinned',
-            unread: 'Unread',
-            read: 'Read',
             completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,

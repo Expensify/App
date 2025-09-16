@@ -416,6 +416,11 @@ function getFilterDisplayTitle(
         return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
     }
 
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+        const filterValue = filters[key];
+        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.IS_VALUES>}`)).join(', ') : undefined;
+    }
+
     const filterValue = filters[key];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }

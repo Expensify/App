@@ -667,6 +667,8 @@ const translations = {
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
         link: 'Link',
+        pinned: 'Aggiunto ai preferiti',
+        read: 'Letto',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6164,9 +6166,6 @@ const translations = {
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
             currency: 'Valuta',
-            pinned: 'Aggiunto ai preferiti',
-            read: 'Letto',
-            unread: 'Non letto',
             completed: 'Completato',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Meno di ${amount ?? ''}`,

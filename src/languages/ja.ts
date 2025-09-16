@@ -667,6 +667,8 @@ const translations = {
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
         purchaseAmount: '購入金額',
         link: 'リンク',
+        pinned: '固定済み',
+        read: '既読',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6120,9 +6122,6 @@ const translations = {
             keyword: 'キーワード',
             keywords: 'キーワード',
             currency: '通貨',
-            pinned: '固定済み',
-            read: '既読',
-            unread: '未読',
             completed: '完了しました',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''}未満`,

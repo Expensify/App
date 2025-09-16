@@ -666,6 +666,8 @@ const translations = {
         enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
         purchaseAmount: 'Aankoopbedrag',
         link: 'Link',
+        pinned: 'Vastgezet',
+        read: 'Gelezen',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -6155,9 +6157,6 @@ const translations = {
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             currency: 'Valuta',
-            pinned: 'Vastgezet',
-            read: 'Gelezen',
-            unread: 'Ongelezen',
             completed: 'Voltooid',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Minder dan ${amount ?? ''}`,

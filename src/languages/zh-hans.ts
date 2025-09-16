@@ -666,6 +666,8 @@ const translations = {
         enableGlobalReimbursements: '启用全球报销',
         purchaseAmount: '购买金额',
         link: '链接',
+        pinned: '固定',
+        read: '已读',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -6035,9 +6037,6 @@ const translations = {
             keyword: '关键词',
             keywords: '关键词',
             currency: '货币',
-            read: '已读',
-            pinned: '固定',
-            unread: '未读',
             completed: '已完成',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `少于${amount ?? ''}`,

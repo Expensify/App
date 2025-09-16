@@ -189,7 +189,7 @@ function getChatStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
         {text: translateLocal('common.sent'), value: CONST.SEARCH.STATUS.CHAT.SENT},
         {text: translateLocal('common.attachments'), value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
         {text: translateLocal('common.links'), value: CONST.SEARCH.STATUS.CHAT.LINKS},
-        {text: translateLocal('search.filters.pinned'), value: CONST.SEARCH.STATUS.CHAT.PINNED},
+        {text: translateLocal('common.pinned'), value: CONST.SEARCH.STATUS.CHAT.PINNED},
     ];
 }
 

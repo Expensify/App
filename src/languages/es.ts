@@ -648,6 +648,8 @@ const translations = {
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
         purchaseAmount: 'Importe de compra',
         link: 'Enlace',
+        pinned: 'Fijado',
+        read: 'Leído',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -6145,9 +6147,6 @@ const translations = {
             keyword: 'Palabra clave',
             keywords: 'Palabras clave',
             currency: 'Divisa',
-            pinned: 'Fijado',
-            read: 'Leído',
-            unread: 'No leído',
             completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
