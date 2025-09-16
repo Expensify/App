@@ -2154,11 +2154,13 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
+
     if (reimbursableUrls.length === 1) {
         const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        const reimbursableUrl = reimbursableUrls.at(0) ?? '';
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
-            url: reimbursableUrls.at(0) ?? '',
+            url: reimbursableUrl.startsWith('https://') ? reimbursableUrl : '',
         });
     }
     if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
@@ -2172,7 +2174,8 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = nonReimbursableUrls.at(0) ?? '';
+            const nonReimbursableUrl = nonReimbursableUrls.at(0) ?? '';
+            url = nonReimbursableUrl.startsWith('https://') ? nonReimbursableUrl : '';
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
