@@ -870,7 +870,7 @@ class TranslationGenerator {
                         });
 
                         // Add new properties (if this is the main translations node)
-                        if (node === mainTranslationsNode && currentPath === '') {
+                        if (node === mainTranslationsNode) {
                             // Start with current properties
                             let updatedProperties = [...properties];
 
