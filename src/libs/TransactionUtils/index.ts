@@ -18,6 +18,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -64,12 +65,22 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {
+    Comment,
+    Receipt,
+    TransactionChanges,
+    TransactionCustomUnit,
+    TransactionPendingFieldsKey,
+    UnreportedTransaction,
+    Waypoint,
+    WaypointCollection,
+} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getDistanceInMeters from './getDistanceInMeters';
 
 type TransactionParams = {
     amount: number;
+    modifiedAmount?: number;
     currency: string;
     reportID: string | undefined;
     comment?: string;
@@ -281,6 +292,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
     const {
         amount,
+        modifiedAmount,
         currency,
         reportID,
         distance,
@@ -351,6 +363,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag,
         taxCode,
         taxAmount,
+        modifiedAmount,
         billable,
         reimbursable,
         inserted: DateUtils.getDBTime(),
@@ -589,6 +602,28 @@ function getUpdatedTransaction({
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
+    if (Object.hasOwn(transactionChanges, 'distance') && typeof transactionChanges.distance === 'number') {
+        const distance = roundToTwoDecimalPlaces(transactionChanges.distance ?? 0);
+
+        lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        shouldStopSmartscan = true;
+
+        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+        const {unit, rate} = updatedMileageRate;
+
+        const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
+        let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+        amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
+        const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
+        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
+            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        );
+
+        updatedTransaction.modifiedAmount = amount;
+        updatedTransaction.modifiedMerchant = updatedMerchant;
+        updatedTransaction.modifiedCurrency = updatedCurrency;
+    }
+
     updatedTransaction.pendingFields = {
         ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -604,6 +639,11 @@ function getUpdatedTransaction({
         ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'distance') && {
+            quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        }),
     };
 
     return updatedTransaction;
@@ -1056,7 +1096,7 @@ function shouldShowViolation(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Pol
     const isReportOpen = isOpenExpenseReport(iouReport);
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
-        return isSubmitter;
+        return isSubmitter || isPolicyAdmin(policy);
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
@@ -1910,6 +1950,15 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
+// Temporarily only for use in the Unreported Expense project
+function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
+    // TODO: added for development purposes, should be removed once the feature are fully implemented
+    if (!Permissions.canUseUnreportedExpense()) {
+        return false;
+    }
+    return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2019,6 +2068,7 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
+    isExpenseUnreported,
 };
 
 export type {TransactionChanges};

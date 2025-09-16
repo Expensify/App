@@ -12,7 +12,7 @@ Take a look at this resource to learn how to update your Expensify workspace sub
 
 To update your subscription plan:
 
-1. Use the **left-hand menu** to go to **Account > Subscription**.
+1. Use the **navigation tabs** (on the left on web, and at the bottom on mobile) to go to **Account > Subscription**.
 2. Click **Explore all plans** and choose the one that best fits your needs.
 
 ---
@@ -21,7 +21,7 @@ To update your subscription plan:
 
 If you're on an Annual Subscription (a 12-month commitment), you may be eligible to request early cancellation and switch to a free account:
 
-1. Use the **left-hand navigation bar** to go to **Account > Subscription**.
+1. Use the **navigation tabs** (on the left on web, and at the bottom on mobile) to go to **Account > Subscription**.
 2. Click **Request early cancellation**.
 
 **Note:** Early cancellations are subject to eligibility review.

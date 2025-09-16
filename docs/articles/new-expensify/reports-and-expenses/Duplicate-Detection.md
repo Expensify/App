@@ -4,7 +4,7 @@ description: Learn how to identify and resolve potential duplicate expenses in N
 keywords: [New Expensify, duplicate expense, review duplicate, expense on hold, resolve duplicates, flagged request, Collect plan, Control plan]
 ---
 
-Duplicate Detection helps prevent accidental double-submission of expenses by flagging entries within a member's account that have the same **date** and **amount**. When a potential duplicate is found, a red dot appears in the left-hand menu or next to the chat where the expense lives, and the expense is placed on **hold**.
+Duplicate Detection helps prevent accidental double-submission of expenses by flagging entries within a member's account that have the same **date** and **amount**. When a potential duplicate is found, a red dot appears in the navigation tabs (on the left on web, and at the bottom on mobile) or next to the chat where the expense lives, and the expense is placed on **hold**.
 
 🔒 **Note:** Duplicate Detection is available on Collect and Control plans only.
 
@@ -12,7 +12,7 @@ Duplicate Detection helps prevent accidental double-submission of expenses by fl
 
 # Manage and Resolve Duplicate Expenses
 
-1. From the left-hand menu, click the red dot or open the chat containing the flagged expense.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), click the red dot or open the chat containing the flagged expense.
 2. Click the green **Review duplicates** button at the top of the expense.
 3. Review the list of matched expenses flagged as duplicates.
 4. Choose how to proceed:
@@ -27,7 +27,7 @@ The hold is removed, and the expenses are either merged or kept separately, depe
 
 # FAQ
 
-## Can I review a discarded duplicate later? 
+## Can I review a discarded duplicate later?
 Yes, approvers can review previously discarded duplicates to ensure accuracy and detect potential fraud.
 
 ## Can I edit a duplicate expense after resolving it?

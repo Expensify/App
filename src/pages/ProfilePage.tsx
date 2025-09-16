@@ -70,7 +70,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);

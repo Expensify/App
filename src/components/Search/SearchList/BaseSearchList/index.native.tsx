@@ -20,8 +20,8 @@ function BaseSearchList({
     contentContainerStyle,
 }: BaseSearchListProps) {
     const renderItemWithoutKeyboardFocus = useCallback(
-        ({item}: {item: SearchListItem; index: number}) => {
-            return renderItem(item, false, undefined);
+        ({item, index}: {item: SearchListItem; index: number}) => {
+            return renderItem(item, index, false, undefined);
         },
         [renderItem],
     );

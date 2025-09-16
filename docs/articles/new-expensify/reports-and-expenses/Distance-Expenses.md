@@ -13,7 +13,7 @@ Expensify makes it easy to submit mileage expenses using a built-in map, whether
 
 To submit a mileage-based expense:
 
-1. From the left-hand menu, click the green **+** button and select **Create expense**.
+1. From the navigation tabs, click the green **+** button and select **Create expense**.
 2. Select **Distance** from the top row.
 3. Enter your **Start** and **Finish** locations.
    - To include additional stops, click **Add stop**.

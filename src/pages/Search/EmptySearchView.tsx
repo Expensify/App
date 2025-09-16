@@ -14,7 +14,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
-import SearchScopeProvider from '@components/Search/SearchScopeProvider';
+import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
@@ -109,7 +109,7 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
     });
 
     return (
-        <SearchScopeProvider isOnSearch>
+        <SearchScopeProvider>
             <EmptySearchViewContent
                 similarSearchHash={similarSearchHash}
                 type={type}

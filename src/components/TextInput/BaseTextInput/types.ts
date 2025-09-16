@@ -3,10 +3,11 @@ import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type InputType = 'markdown' | 'mask' | 'default';
-type CustomBaseTextInputProps = {
+type CustomBaseTextInputProps = ForwardedFSClassProps & {
     /** Input label */
     label?: string;
 

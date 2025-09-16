@@ -6,7 +6,6 @@ import type {ListItem, TransactionCardGroupListItemType} from '@components/Selec
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,15 +13,11 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
-import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -35,14 +30,27 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({
+    card: cardItem,
+    onCheckboxPress,
+    isDisabled,
+    isFocused,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isLargeScreenWidth} = useResponsiveLayout();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const formattedDisplayName = useMemo(
         () => formatPhoneNumber(getDisplayNameOrDefault(cardItem, undefined, undefined, undefined, areTranslationsLoading)),
@@ -50,7 +58,6 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
     );
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
-    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
@@ -59,7 +66,8 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
-                            isChecked={cardItem.isSelected}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                         />
@@ -89,15 +97,6 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
                         currency={cardItem.currency}
                     />
                 </View>
-                {shouldShowAction && (
-                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                        <ActionCell
-                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
-                            goToItem={() => onSelectRow(cardItem as unknown as TItem)}
-                            isSelected={cardItem.isSelected}
-                        />
-                    </View>
-                )}
             </View>
         </View>
     );

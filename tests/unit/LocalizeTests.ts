@@ -13,6 +13,8 @@ type EnvironmentConfig = {
 
 type SessionEmail = string | null;
 
+jest.mock('@src/libs/Log');
+
 function mockEnvironmentConfig(config: EnvironmentConfig): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const CONFIG = require('@src/CONFIG');

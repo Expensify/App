@@ -150,6 +150,7 @@ type GetValidReportsConfig = {
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
+    shouldShowGBR?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {

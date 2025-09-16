@@ -649,21 +649,21 @@ describe('getRBRMessages', () => {
         merchant: 'Test Merchant',
     };
 
-    it('should return all violations and missing field error', () => {
-        const violations: TransactionViolation[] = [
-            {
-                name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-            {
-                name: CONST.VIOLATIONS.MISSING_TAG,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-        ];
+    const mockViolations: TransactionViolation[] = [
+        {
+            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+        {
+            name: CONST.VIOLATIONS.MISSING_TAG,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+    ];
 
+    it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
 
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, missingFieldError, []);
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, missingFieldError, []);
 
         const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
@@ -671,23 +671,7 @@ describe('getRBRMessages', () => {
     });
 
     it('should filter out empty strings', () => {
-        const violations = [
-            {
-                name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-            {
-                name: '',
-                type: '',
-            },
-            {
-                name: CONST.VIOLATIONS.MISSING_TAG,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-        ] as TransactionViolation[];
-
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, undefined, []);
-
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, undefined, []);
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);

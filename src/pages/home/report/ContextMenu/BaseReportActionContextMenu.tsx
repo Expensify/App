@@ -22,6 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
@@ -147,7 +148,7 @@ function BaseReportActionContextMenu({
     });
     const transactionID = getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
@@ -159,6 +160,9 @@ function BaseReportActionContextMenu({
         }
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
+
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
 
     const sourceID = getSourceIDFromReportAction(reportAction);
 
@@ -232,7 +236,7 @@ function BaseReportActionContextMenu({
                 isProduction,
                 moneyRequestAction,
                 areHoldRequirementsMet,
-                account,
+                isDebugModeEnabled,
                 iouTransaction,
             }),
     );
@@ -355,6 +359,8 @@ function BaseReportActionContextMenu({
                             card,
                             originalReport,
                             isTryNewDotNVPDismissed,
+                            movedFromReport,
+                            movedToReport,
                         };
 
                         if ('renderContent' in contextAction) {

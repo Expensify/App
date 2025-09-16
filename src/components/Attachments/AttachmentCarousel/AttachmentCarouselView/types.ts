@@ -28,6 +28,9 @@ type AttachmentCarouselViewProps = {
     onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate?: (attachment: Attachment) => void;
+
+    /** Callback for attachment loaded */
+    onAttachmentLoaded?: (source: AttachmentSource, state?: boolean) => void;
 };
 
 export default AttachmentCarouselViewProps;

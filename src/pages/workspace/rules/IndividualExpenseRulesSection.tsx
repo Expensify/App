@@ -17,6 +17,7 @@ import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWor
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -195,7 +196,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             )}
             titleStyles={styles.accountSettingsSectionTitle}
         >
-            <View style={[styles.mt3, styles.gap3]}>
+            <View style={[styles.mt3]}>
                 {individualExpenseRulesItems.map((item) => (
                     <OfflineWithFeedback
                         pendingAction={item.pendingAction}
@@ -214,7 +215,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
-                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
                             <Switch
                                 isOn={areEReceiptsEnabled}
@@ -224,7 +225,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             />
                         </View>
                     </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
                         <TextLink
                             style={[styles.textLabel, styles.link]}
@@ -237,7 +238,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                 </View>
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
-                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
                             <Switch
                                 isOn={isAttendeeTrackingEnabled}
@@ -246,7 +247,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             />
                         </View>
                     </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
                     </Text>
                 </View>

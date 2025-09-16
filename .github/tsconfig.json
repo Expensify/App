@@ -1,7 +1,8 @@
 {
-    "extends": "../tsconfig.json",
     "compilerOptions": {
-        "incremental": false,
-        "esModuleInterop": true
+        "module": "commonjs",
+        "target": "es2020",
+        "esModuleInterop": true,
+        "types": ["node"]
     }
 }
