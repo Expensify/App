@@ -84,7 +84,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
 
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
+    const isFromGlobalCreate = isEmptyObject(report);
     const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
     const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
     const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
@@ -147,7 +147,7 @@ function IOURequestStartPage({
             initMoneyRequest({
                 reportID,
                 policy,
-                isFromGlobalCreate,
+                isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -156,7 +156,7 @@ function IOURequestStartPage({
                 lastSelectedDistanceRates,
             });
         },
-        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates],
+        [transaction?.iouRequestType, transaction?.isFromGlobalCreate, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
@@ -266,7 +266,7 @@ function IOURequestStartPage({
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
-                                {!manualDistanceTrackingEnabled && (
+                                {(!manualDistanceTrackingEnabled || iouType === CONST.IOU.TYPE.SPLIT) && (
                                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>

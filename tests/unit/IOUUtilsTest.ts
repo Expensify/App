@@ -10,7 +10,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -155,19 +155,27 @@ describe('IOUUtils', () => {
 
     describe('insertTagIntoTransactionTagsString', () => {
         test('Inserting a tag into tag string should update the tag', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2)).toBe(':NY:California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString(':NY:Texas', 'California', 2, true)).toBe(':NY:California');
         });
 
         test('Inserting a tag into an index with no tags should update the tag', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('::California', 'NY', 1)).toBe(':NY:California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('::California', 'NY', 1, true)).toBe(':NY:California');
         });
 
         test('Inserting a tag with colon in name into tag string should keep the colon in tag', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'City \\: \\:', 1)).toBe('East:City \\: \\::California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'City \\: \\:', 1, true)).toBe('East:City \\: \\::California');
         });
 
         test('Remove a tag from tagString', () => {
-            expect(IOUUtils.insertTagIntoTransactionTagsString('East:City \\: \\::California', '', 1)).toBe('East::California');
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:City \\: \\::California', '', 1, true)).toBe('East::California');
+        });
+
+        test('Return single tag directly when hasMultipleTagLists is false', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, false)).toBe('NewTag');
+        });
+
+        test('Return multiple tags when hasMultipleTagLists is true', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
         });
     });
 });
@@ -254,8 +262,18 @@ describe('hasRTERWithoutViolation', () => {
 });
 
 describe('canSubmitReport', () => {
-    test('Return true if report can be submitted', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    const archivedExpenseReportID = '9999';
+
+    beforeAll(() => {
+        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`, {
+            private_isArchived: DateUtils.getDBTime(),
+        });
+    });
+
+    afterAll(Onyx.clear);
+
+    test('Return true if report can be submitted', () => {
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -307,13 +325,10 @@ describe('canSubmitReport', () => {
             ],
         };
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReport(currentUserAccountID, expenseReport, [], fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
-    test('Return true if report can be submitted after being reopened', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    test('Return true if report can be submitted after being reopened', () => {
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -334,11 +349,11 @@ describe('canSubmitReport', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+        const expenseReportActions = {
             [expenseReport.reportID]: {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REOPENED,
             },
-        });
+        } as ReportActions;
 
         const transactionIDWithViolation = 1;
         const transactionIDWithoutViolation = 2;
@@ -371,13 +386,10 @@ describe('canSubmitReport', () => {
             ],
         };
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReport(currentUserAccountID, expenseReport, expenseReportActions, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
-    test('Return false if report can not be submitted', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    test('Return false if report can not be submitted', () => {
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -392,10 +404,10 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false)).toBe(false);
+        expect(canSubmitReport(currentUserAccountID, expenseReport, [], fakePolicy, [], undefined, false)).toBe(false);
     });
 
-    it('returns false if the report is archived', async () => {
+    it('returns false if the report is archived', () => {
         const policy: Policy = {
             ...createRandomPolicy(7),
             ownerAccountID: currentUserAccountID,
@@ -404,20 +416,16 @@ describe('canSubmitReport', () => {
         };
         const report: Report = {
             ...createRandomReport(7),
+            reportID: archivedExpenseReportID,
             type: CONST.REPORT.TYPE.EXPENSE,
             managerID: currentUserAccountID,
             ownerAccountID: currentUserAccountID,
             policyID: policy.id,
         };
 
-        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
-            private_isArchived: new Date().toString(),
-        });
-
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
+        expect(canSubmitReport(currentUserAccountID, report, [], policy, [], undefined, isReportArchived.current)).toBe(false);
     });
 });
 

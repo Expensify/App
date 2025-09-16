@@ -75,6 +75,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 lastName,
                 adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
+                shouldSkipTestDriveModal: !!onboardingPolicyID && !mergedAccountConciergeReportID,
             });
 
             setOnboardingAdminsChatReportID();
@@ -103,11 +104,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber);
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
-                return;
-            }
-
-            if (!isPrivateDomainAndHasAccessiblePolicies && onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
                 return;
             }
 
