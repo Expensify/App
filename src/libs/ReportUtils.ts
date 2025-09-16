@@ -11500,7 +11500,6 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
 
     const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const isReportBeingProcessed = isProcessingReport(report);
-    const isApproved = isReportApproved({report});
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
 
