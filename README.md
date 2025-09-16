@@ -26,7 +26,7 @@
 #### Additional Reading
 * [Application Philosophy](contributingGuides/philosophies/INDEX.md)
 * [API Details](contributingGuides/API.md)
-* [Offline First](contributingGuides/OFFLINE_UX.md)
+* [Offline First](contributingGuides/philosophies/OFFLINE.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](CLA.md)
@@ -182,7 +182,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
-> If your changes to .env aren't having an effect, try `rm -rf .rnef`, then re-run `npm run ios` or `npm run android`
+> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
 
 ----
 
@@ -622,7 +622,7 @@ This application is built with the following principles.
     6. Go to 1
     ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
 1. **Offline first**
-    - Be sure to read [OFFLINE_UX.md](contributingGuides/OFFLINE_UX.md)!
+    - Be sure to read [OFFLINE.md](contributingGuides/philosophies/OFFLINE.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**

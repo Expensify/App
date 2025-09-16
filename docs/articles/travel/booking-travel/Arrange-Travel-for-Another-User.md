@@ -4,7 +4,6 @@ description: Learn how to arrange travel in Expensify on behalf of another membe
 keywords: [arrange travel, book for others, travel arranger, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Once granted the Travel Arranger role, you can arrange travel for another member of your organization using Expensify Travel.
 
@@ -68,4 +67,3 @@ The traveler's account is responsible for the charge. Receipts will route direct
 ## Can I manage trips I’ve booked for someone else?
 Yes. If you booked the trip on behalf of someone else, you can view and manage it from the Trips > My trips page. Click the **Pencil** icon to the right of your name in the traveler selection button and search for the traveler to pull up their trips.
 
-</div>

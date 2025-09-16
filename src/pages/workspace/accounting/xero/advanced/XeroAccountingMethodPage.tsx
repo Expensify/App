@@ -79,6 +79,7 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={pendingAction}
+            shouldBeBlocked={!config?.autoSync?.enabled}
         />
     );
 }
