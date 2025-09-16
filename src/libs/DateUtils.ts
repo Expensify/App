@@ -32,11 +32,9 @@ import {
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
