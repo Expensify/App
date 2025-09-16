@@ -343,7 +343,7 @@ function MoneyRequestConfirmationListFooter({
             currency,
         );
         selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
-        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
+        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy, true);
     }
 
     // When creating an expense in an individual report, the report field becomes read-only

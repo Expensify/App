@@ -5613,7 +5613,6 @@ describe('ReportUtils', () => {
         const mockReport = {
             reportID: '123456789',
             reportName: 'Test Report',
-            parentReportActionID: '9876543210',
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: 1,
             currency: CONST.CURRENCY.USD,
