@@ -1,10 +1,11 @@
 import {useContext, useEffect} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import type Reanimated from 'react-native-reanimated';
+import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import type {AnimatedRef} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {Actions, ActionSheetAwareScrollViewContext, States} from './ActionSheetAwareScrollViewContext';
-import type {ActionSheetKeyboardSpaceProps} from './types';
 
 const KeyboardState = {
     UNKNOWN: 0,
@@ -58,12 +59,13 @@ const useAnimatedKeyboard = () => {
     return {state, height, heightWhenOpened};
 };
 
-function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
+function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanimated.ScrollView>) {
+    const position = useScrollViewOffset(scrollViewAnimatedRef);
+
     const {
         unmodifiedPaddings: {top: paddingTop = 0, bottom: paddingBottom = 0},
     } = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard();
-    const {position, isInvertedScrollView = true} = props;
 
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
@@ -94,7 +96,7 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         [],
     );
 
-    const translateY = useDerivedValue(() => {
+    const spacing = useDerivedValue(() => {
         const {current, previous} = currentActionSheetState.get();
 
         // We don't need to run any additional logic. it will always return 0 for idle state
@@ -128,7 +130,7 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 if (isClosedKeyboard || isOpeningKeyboard) {
                     return lastKeyboardHeight - keyboardHeight;
                 }
-                if (previous.state === States.KEYBOARD_CLOSED_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
+                if (previous.state === States.KEYBOARD_CLOSING_POPOVER || (previous.state === States.KEYBOARD_OPEN && elementOffset < 0)) {
                     const returnValue = Math.max(keyboard.heightWhenOpened.get() - keyboard.height.get() - paddingBottom, 0) + Math.max(elementOffset, 0);
                     return returnValue;
                 }
@@ -214,7 +216,7 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 return lastKeyboardHeight;
             }
 
-            case States.KEYBOARD_CLOSED_POPOVER: {
+            case States.KEYBOARD_CLOSING_POPOVER: {
                 if (elementOffset < 0) {
                     transition({type: Actions.END_TRANSITION});
 
@@ -241,20 +243,7 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         }
     }, []);
 
-    const animatedStyle = useAnimatedStyle(
-        () =>
-            isInvertedScrollView
-                ? {
-                      paddingTop: translateY.get(),
-                  }
-                : {
-                      // On non-inverted scroll views we use bottom to ensure that content is displayed above the context menu / keyboard
-                      bottom: translateY.get(),
-                  },
-        [isInvertedScrollView],
-    );
-
-    return {animatedStyle};
+    return spacing;
 }
 
-export default useActionSheetKeyboardSpace;
+export default useActionSheetKeyboardSpacing;

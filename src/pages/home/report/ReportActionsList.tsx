@@ -1,11 +1,12 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
-import type {RenderScrollComponentType} from '@components/ActionSheetAwareScrollView/types';
+import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
+import type {RenderActionSheetAwareScrollViewComponent} from '@components/ActionSheetAwareScrollView/types';
 import FlatList from '@components/FlatList';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -166,7 +167,7 @@ function ReportActionsList({
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {preferredLocale} = useLocalize();
+    const {getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
@@ -178,7 +179,7 @@ function ReportActionsList({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
@@ -253,7 +254,7 @@ function ReportActionsList({
     const earliestReceivedOfflineMessageIndex = useMemo(() => {
         // Create a list of (sorted) indices of message that were received while offline
         const receivedOfflineMessages = sortedReportActions.reduce<number[]>((acc, message, index) => {
-            if (wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale)) {
+            if (wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime)) {
                 acc[index] = index;
             }
 
@@ -262,7 +263,7 @@ function ReportActionsList({
 
         // The last index in the list is the earliest message that was received while offline
         return receivedOfflineMessages.at(-1);
-    }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, sortedReportActions]);
+    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, sortedReportActions]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -865,7 +866,7 @@ function ReportActionsList({
      * This is required for correct handling of inverted scroll views in transaction threads, when context menu is shown.
      */
     const getRenderScrollComponentWithAnimationProps = useCallback(
-        (render: NonNullable<RenderScrollComponentType>) => (props: ScrollViewProps) =>
+        (render: NonNullable<RenderActionSheetAwareScrollViewComponent>) => (props: ScrollViewProps) =>
             render({
                 ...props,
                 isInvertedScrollView: !shouldFocusToTopOnMount,
@@ -885,6 +886,7 @@ function ReportActionsList({
             <ListWrapper
                 // If styles.pb4 is changed, please also update the keyboardVerticalOffset prop below
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+                // eslint-disable-next-line react/forbid-component-props
                 fsClass={reportActionsListFSClass}
                 behavior="height"
                 // We need to take into account the initial height difference between the list and the keyboard
@@ -898,7 +900,7 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={visibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderScrollComponent ? getRenderScrollComponentWithAnimationProps(renderScrollComponent) : undefined}
+                    renderScrollComponent={renderActionSheetAwareScrollView ? getRenderScrollComponentWithAnimationProps(renderActionSheetAwareScrollView) : undefined}
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
