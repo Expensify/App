@@ -3,6 +3,9 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
+import {getCachedTransactionByID} from './OptimisticReportNamesCache';
+import type {WorkingUpdates} from './OptimisticReportNamesCache';
+import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction} from './TransactionUtils';
@@ -191,7 +194,7 @@ function parsePart(definition: string): FormulaPart {
 /**
  * Compute the value of a formula given a context
  */
-function compute(formula: string, context: FormulaContext): string {
+function compute(formula: string, context: FormulaContext, workingUpdates?: WorkingUpdates, baseContext?: UpdateContext): string {
     if (!formula || typeof formula !== 'string') {
         return '';
     }
@@ -204,7 +207,7 @@ function compute(formula: string, context: FormulaContext): string {
 
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
-                value = computeReportPart(part, context);
+                value = computeReportPart(part, context, workingUpdates, baseContext);
                 value = value === '' ? part.definition : value;
                 break;
             case FORMULA_PART_TYPES.FIELD:
@@ -232,7 +235,7 @@ function compute(formula: string, context: FormulaContext): string {
 /**
  * Compute the value of a report formula part
  */
-function computeReportPart(part: FormulaPart, context: FormulaContext): string {
+function computeReportPart(part: FormulaPart, context: FormulaContext, workingUpdates?: WorkingUpdates, baseContext?: UpdateContext): string {
     const {report, policy} = context;
     const [field, format] = part.fieldPath;
 
@@ -244,7 +247,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID, context), format);
+            return formatDate(getOldestTransactionDate(report.reportID, context, workingUpdates, baseContext), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
@@ -405,7 +408,11 @@ function formatAmount(amount: number | undefined, currency: string | undefined):
     }
 
     const absoluteAmount = Math.abs(amount);
-    const formattedAmount = (absoluteAmount / 100).toFixed(2);
+    const dollarAmount = absoluteAmount / 100;
+    const formattedAmount = dollarAmount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
 
     if (currency) {
         return `${currency}${formattedAmount}`;
@@ -468,7 +475,7 @@ function formatType(type: string | undefined): string {
 /**
  * Get the date of the oldest transaction for a given report
  */
-function getOldestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
+function getOldestTransactionDate(reportID: string, context?: FormulaContext, workingUpdates?: WorkingUpdates, baseContext?: UpdateContext): string | undefined {
     if (!reportID) {
         return undefined;
     }
@@ -482,7 +489,15 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 
     transactions.forEach((transaction) => {
         // Use updated transaction data if available and matches this transaction
-        const currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
+        // FormulaContext transaction is the most current, so it takes priority
+        let currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
+
+        // If not the FormulaContext transaction, check working cache for this specific transaction
+        if (!context?.transaction || transaction.transactionID !== context.transaction.transactionID) {
+            if (workingUpdates && baseContext) {
+                currentTransaction = getCachedTransactionByID(transaction.transactionID, baseContext, workingUpdates) ?? currentTransaction;
+            }
+        }
 
         const created = getCreated(currentTransaction);
         if (!created) {
@@ -500,6 +515,6 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     return oldestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, parse};
+export {compute, extract, FORMULA_PART_TYPES, parse};
 
 export type {FormulaContext, FormulaPart};
