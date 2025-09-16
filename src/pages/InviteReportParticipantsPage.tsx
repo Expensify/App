@@ -68,7 +68,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
     }, [searchTerm]);
 
     const sections = useMemo(() => {
-        const sectionsArr: Sections = [];
+        const sectionsArray: Sections = [];
 
         if (!areOptionsInitialized) {
             return [];
@@ -76,7 +76,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
 
         // Selected options section
         if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
+            sectionsArray.push({
                 title: undefined,
                 data: selectedOptionsForDisplay,
             });
@@ -84,7 +84,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
 
         // Recent reports section
         if (availableOptions.recentReports.length > 0) {
-            sectionsArr.push({
+            sectionsArray.push({
                 title: translate('common.recents'),
                 data: availableOptions.recentReports,
             });
@@ -92,7 +92,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
 
         // Contacts section
         if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
+            sectionsArray.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
             });
@@ -100,13 +100,13 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
 
         // User to invite section
         if (availableOptions.userToInvite) {
-            sectionsArr.push({
+            sectionsArray.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
             });
         }
 
-        return sectionsArr;
+        return sectionsArray;
     }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions, translate]);
 
     const handleToggleOption = useCallback(
