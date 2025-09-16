@@ -16,7 +16,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
+import {getGuideCallAvailabilitySchedule, saveBookingDraft, sendScheduleCallNudge} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,6 +67,12 @@ function ScheduleCallPage() {
             saveBookingDraft({timeSlot: null});
         }, []),
     );
+
+    useEffect(() => {
+        return () => {
+            sendScheduleCallNudge(reportID);
+        };
+    }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
         saveBookingDraft({date});
