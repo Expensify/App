@@ -11,13 +11,13 @@ import ROUTES from '@src/ROUTES';
 
 type Props = {
     policyName: string;
-    onConfirmUpgrade: () => void;
+    afterUpgradeAcknowledged: () => void;
     isCategorizing?: boolean;
     isTravelUpgrade?: boolean;
     isDistanceRateUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
+function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -57,7 +57,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
             heading={translate('workspace.upgrade.completed.headline')}
             descriptionComponent={description}
             shouldShowButton
-            onButtonPress={onConfirmUpgrade}
+            onButtonPress={afterUpgradeAcknowledged}
             buttonText={translate('workspace.upgrade.completed.gotIt')}
             containerStyle={styles.h100}
         />

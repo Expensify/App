@@ -52,7 +52,7 @@ function IOURequestStepUpgrade({
     const isDistanceRateUpgrade = featureName === CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias;
     const isCategorizing = featureName === CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories.alias;
 
-    const onConfirmUpgrade = useCallback(() => {
+    const afterUpgradeAcknowledged = useCallback(() => {
         const reportID = policyDataRef.current?.expenseChatReportID;
         const policyID = policyDataRef.current?.policyID;
         setMoneyRequestParticipants(transactionID, [
@@ -124,7 +124,7 @@ function IOURequestStepUpgrade({
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUpgraded && (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={onConfirmUpgrade}
+                        afterUpgradeAcknowledged={afterUpgradeAcknowledged}
                         policyName=""
                         isCategorizing={isCategorizing}
                         isDistanceRateUpgrade={isDistanceRateUpgrade}
