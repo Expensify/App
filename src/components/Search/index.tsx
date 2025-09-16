@@ -74,6 +74,7 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
+    onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
 };
 
@@ -215,7 +216,7 @@ const exportReportActionsSelector = (allReportActions: OnyxCollection<ReportActi
     );
 };
 
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
+function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -860,6 +861,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
+        onSortPressedCallback?.();
         navigation.setParams({q: newQuery});
     };
 
