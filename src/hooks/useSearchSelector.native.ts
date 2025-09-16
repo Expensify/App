@@ -1,11 +1,9 @@
 import {useCallback, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
-import type {PermissionStatus} from 'react-native-permissions';
 import {RESULTS} from 'react-native-permissions';
-import CONST from '@src/CONST';
 import useContactImport from './useContactImport';
-import useSearchSelectorBase from './useSearchSelector.base';
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './useSearchSelector.base';
+import useSearchSelectorBase from './useSearchSelector.base';
 
 /**
  * Hook that combines search functionality with selection logic for option lists.
@@ -20,7 +18,7 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 
     // Phone contacts logic
     const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
-    const memoizedContacts = useMemo(() => (contacts.length ? contacts : CONST.EMPTY_ARRAY), [contacts]);
+    const memoizedContacts = useMemo(() => (contacts.length ? contacts : []), [contacts]);
     const showImportContacts = enablePhoneContacts && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
 
     const initiateContactImportAndSetState = useCallback(() => {

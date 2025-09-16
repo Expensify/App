@@ -159,7 +159,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             !!availableOptions.userToInvite,
             processedLogin,
         );
-    }, [searchTerm, availableOptions, selectedOptions, excludedUsers, translate, reportName]);
+    }, [searchTerm, availableOptions, selectedOptionsForDisplay, excludedUsers, translate, reportName]);
 
     const footerContent = useMemo(
         () => (

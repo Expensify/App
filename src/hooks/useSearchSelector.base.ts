@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
+import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
@@ -48,11 +49,14 @@ type UseSearchSelectorConfig = {
 
     /** Whether to initialize the hook */
     shouldInitialize?: boolean;
+
+    /** Additional contact options to merge (used by platform-specific implementations) */
+    contactOptions?: Array<SearchOption<PersonalDetails>>;
 };
 
 type ContactState = {
     /** Current permission status */
-    permissionStatus: string;
+    permissionStatus: PermissionStatus;
 
     /** Contact options from device */
     contactOptions: Array<SearchOption<PersonalDetails>>;
@@ -67,7 +71,7 @@ type ContactState = {
     initiateContactImportAndSetState: () => void;
 
     /** Function to set permission state */
-    setContactPermissionState: (status: string) => void;
+    setContactPermissionState: (status: PermissionStatus) => void;
 };
 
 type UseSearchSelectorReturn = {
@@ -122,10 +126,7 @@ function useSearchSelectorBase({
     initialSelected,
     shouldInitialize = true,
     contactOptions,
-}: UseSearchSelectorConfig & {
-    /** Additional contact options to merge (used by platform-specific implementations) */
-    contactOptions?: Array<SearchOption<PersonalDetails>>;
-}): UseSearchSelectorReturn {
+}: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
     });
