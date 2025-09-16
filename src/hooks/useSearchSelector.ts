@@ -20,26 +20,37 @@ type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typ
 type UseSearchSelectorConfig = {
     /** Selection mode - single or multiple selection */
     selectionMode: SearchSelectorSelectionMode;
+
     /** Maximum number of results to return (for heap optimization) */
     maxResultsPerPage?: number;
+
     /** What is the context that we are using this hook for */
     searchContext?: SearchSelectorContext;
+
     /** Whether to include user to invite option */
     includeUserToInvite?: boolean;
+
     /** Logins to exclude from results */
     excludeLogins?: Record<string, boolean>;
+
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
+
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
+
     /** Additional configuration for getValidOptions function */
     getValidOptionsConfig?: Partial<GetOptionsConfig>;
+
     /** Callback when selection changes (multi-select mode) */
     onSelectionChange?: (selected: OptionData[]) => void;
+
     /** Callback when single option is selected (single-select mode) */
     onSingleSelect?: (option: OptionData) => void;
+
     /** Initial selected options */
     initialSelected?: OptionData[];
+
     /** Whether to initialize the hook */
     shouldInitialize?: boolean;
 };
@@ -47,14 +58,19 @@ type UseSearchSelectorConfig = {
 type ContactState = {
     /** Current permission status */
     permissionStatus: PermissionStatus;
+
     /** Contact options from device */
     contactOptions: Array<SearchOption<PersonalDetails>>;
+
     /** Whether to show import UI */
     showImportUI: boolean;
+
     /** Function to trigger contact import */
     importContacts: () => void;
+
     /** Function to initiate contact import and set state */
     initiateContactImportAndSetState: () => void;
+
     /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
@@ -62,24 +78,34 @@ type ContactState = {
 type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
+
     /** Function to update search term */
     setSearchTerm: (value: string) => void;
+
     /** Filtered and optimized search options with selection state */
     searchOptions: Options;
+
     /** Available (unselected) options */
     availableOptions: Options;
+
     /** Currently selected options. This returns all selected options and are not affected by search term */
     selectedOptions: OptionData[];
+
     /** Currently selected options used for list display. This prop can be used in selection list to display selected options that are filtered by search term */
     selectedOptionsForDisplay: OptionData[];
+
     /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;
+
     /** Function to toggle option selection */
     toggleOption: (option: OptionData) => void;
+
     /** Whether options are initialized */
     areOptionsInitialized: boolean;
+
     /** Contact-related state and functions (when enablePhoneContacts is true) */
     contactState?: ContactState;
+
     /** Callback to handle list end reached */
     onListEndReached: () => void;
 };
