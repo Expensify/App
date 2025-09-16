@@ -3707,7 +3707,9 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: enabled,
+                    receiptPartners: {
+                        enabled,
+                    },
                     pendingFields: {
                         areReceiptPartnersEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -3730,7 +3732,9 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: !enabled,
+                    receiptPartners: {
+                        enabled: !enabled,
+                    },
                     pendingFields: {
                         areReceiptPartnersEnabled: null,
                     },
