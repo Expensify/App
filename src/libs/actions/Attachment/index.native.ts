@@ -33,52 +33,48 @@ function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
 
     return fetch(attachmentURL, {
         method: 'HEAD',
-    })
-        .then((response) => {
-            const contentType = response.headers.get('Content-Type');
-            const contentLength = response.headers.get('Content-Length');
-            const contentSize = contentLength ? Number(contentLength) : 0;
+    }).then((response) => {
+        const contentType = response.headers.get('Content-Type');
+        const contentLength = response.headers.get('Content-Length');
+        const contentSize = contentLength ? Number(contentLength) : 0;
 
-            // Exit if the markdown attachment size is too large
-            if (isMarkdownAttachment && contentSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                return;
-            }
+        // Exit if the markdown attachment size is too large
+        if (isMarkdownAttachment && contentSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            return;
+        }
 
-            if (!fileType && contentType) {
-                fileType = getFileExtension(contentType);
-            }
+        if (!fileType && contentType) {
+            fileType = getFileExtension(contentType);
+        }
 
-            // If fileType is not set properly, then we need to exit
-            if (!fileType) {
-                return;
-            }
+        // If fileType is not set properly, then we need to exit
+        if (!fileType) {
+            return;
+        }
 
-            const fileName = `${attachmentID}.${fileType}`;
-            const filePath = `${RNFetchBlob.fs.dirs.DocumentDir}/${fileName}`;
+        const fileName = `${attachmentID}.${fileType}`;
+        const filePath = `${RNFetchBlob.fs.dirs.DocumentDir}/${fileName}`;
 
-            RNFetchBlob.config({
-                path: filePath,
-            })
-                .fetch('GET', attachmentURL)
-                .then((attachment) => {
-                    const savedPath = attachment.path();
-                    if (isMarkdownAttachment) {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                            attachmentID,
-                            source: savedPath,
-                            remoteSource: uri,
-                        });
-                        return;
-                    }
+        RNFetchBlob.config({
+            path: filePath,
+        })
+            .fetch('GET', attachmentURL)
+            .then((attachment) => {
+                const savedPath = attachment.path();
+                if (isMarkdownAttachment) {
                     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                         attachmentID,
                         source: savedPath,
+                        remoteSource: uri,
                     });
+                    return;
+                }
+                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                    attachmentID,
+                    source: savedPath,
                 });
-        })
-        .catch(() => {
-            Log.warn('Failed to cache attachment');
-        });
+            });
+    });
 }
 
 function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {
@@ -94,13 +90,13 @@ function removeCachedAttachment({attachmentID, localSource}: RemoveCachedAttachm
         return;
     }
     RNFS.exists(localSource).then((exists) => {
-        if (!exists) {
-            return;
-        }
-        RNFS.unlink(localSource).catch(() => {
-            Log.warn('Failed to remove cached attachment');
-        });
-        Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+        RNFS.unlink(localSource)
+            .then(() => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
+            })
+            .catch(() => {
+                Log.warn('Failed to remove cached attachment');
+            });
     });
 }
 
