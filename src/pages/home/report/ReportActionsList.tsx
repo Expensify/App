@@ -5,7 +5,7 @@ import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMem
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -786,7 +786,7 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderScrollComponent}
+                    renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}

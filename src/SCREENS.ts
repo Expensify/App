@@ -36,6 +36,7 @@ const SCREENS = {
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
+        VERIFY_ACCOUNT: 'Travel_VerifyAccount',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -617,6 +618,7 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
+        WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
