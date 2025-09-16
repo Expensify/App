@@ -19,6 +19,7 @@ type SingleAttachmentValidationError = ValueOf<typeof CONST.ATTACHMENT_VALIDATIO
 type SingleAttachmentInvalidResult = {
     isValid: false;
     error: SingleAttachmentValidationError;
+    file: FileObject;
 };
 
 type SingleAttachmentValidationResult = SingleAttachmentValidResult | SingleAttachmentInvalidResult;
@@ -29,7 +30,7 @@ function isSingleAttachmentValidationResult(result: unknown): result is SingleAt
 
 function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipt?: boolean): Promise<SingleAttachmentValidationResult> {
     if (!file) {
-        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED});
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED, file});
     }
 
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
@@ -45,11 +46,11 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
     }
 
     if (isValidatingReceipt && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL});
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL, file});
     }
 
     if (isValidatingReceipt && !isValidReceiptExtension(file)) {
-        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE});
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE, file});
     }
 
     let fileObject = file;
@@ -58,14 +59,14 @@ function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isVal
     }
 
     if (!fileObject) {
-        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID});
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID, file});
     }
 
     if (item && item.kind === 'file' && 'webkitGetAsEntry' in item) {
         const entry = item.webkitGetAsEntry();
 
         if (entry?.isDirectory) {
-            return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FOLDER_NOT_ALLOWED});
+            return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FOLDER_NOT_ALLOWED, file});
         }
     }
 
@@ -118,6 +119,7 @@ type MultipleAttachmentsInvalidResult = {
     isValid: false;
     error: MultipleAttachmentsValidationError;
     fileResults: SingleAttachmentValidationResult[];
+    files: FileObject[];
 };
 type MultipleAttachmentsValidationResult = MultipleAttachmentsValidResult | MultipleAttachmentsInvalidResult;
 
@@ -125,16 +127,16 @@ function isMultipleAttachmentsValidationResult(result: unknown): result is Multi
     return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFiles' in result || 'fileResults' in result);
 }
 
-function validateMultipleAttachmentFiles(files: FileObject[]): Promise<MultipleAttachmentsValidationResult> {
+function validateMultipleAttachmentFiles(files: FileObject[], items?: DataTransferItem[]): Promise<MultipleAttachmentsValidationResult> {
     if (!files?.length || files.some((f) => isDirectory(f))) {
-        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED, fileResults: []});
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED, fileResults: [], files});
     }
 
     if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED, fileResults: []});
+        return Promise.resolve({isValid: false, error: CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED, fileResults: [], files});
     }
 
-    return Promise.all(files.map((f) => validateAttachmentFile(f))).then((results) => {
+    return Promise.all(files.map((f, index) => validateAttachmentFile(f, items?.at(index)))).then((results) => {
         if (results.every((result) => result.isValid)) {
             return {
                 isValid: true,
@@ -146,6 +148,7 @@ function validateMultipleAttachmentFiles(files: FileObject[]): Promise<MultipleA
             isValid: false,
             error: CONST.ATTACHMENT_VALIDATION_ERRORS.MULTIPLE_FILES.WRONG_FILE_TYPE,
             fileResults: results,
+            files,
         };
     });
 }
