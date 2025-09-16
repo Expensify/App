@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
@@ -19,9 +20,12 @@ type EmptyCardViewProps = {
     isBankAccountVerified: boolean;
     /** ID of the current policy */
     policyID?: string;
+
+    /** Buttons to display */
+    buttons: EmptyStateButton[] | undefined;
 };
 
-function EmptyCardView({isBankAccountVerified, policyID}: EmptyCardViewProps) {
+function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
@@ -55,6 +59,7 @@ function EmptyCardView({isBankAccountVerified, policyID}: EmptyCardViewProps) {
                     subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
                     headerContentStyles={isBankAccountVerified ? null : styles.pendingStateCardIllustration}
                     minModalHeight={isBankAccountVerified ? 500 : 400}
+                    buttons={buttons}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>
