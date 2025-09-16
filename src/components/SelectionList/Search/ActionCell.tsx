@@ -132,7 +132,7 @@ function ActionCell({
         return (
             <SettlementButton
                 shouldUseShortForm
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
                 formattedAmount={convertToDisplayString(iouReport?.total, currency)}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

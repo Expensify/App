@@ -171,6 +171,7 @@ function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDrop
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
+                        xsmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -193,6 +194,7 @@ function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDrop
                             style={[styles.pl0]}
                             onPress={() => setIsMenuVisible(!isMenuVisible)}
                             shouldRemoveLeftBorderRadius
+                            xsmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                             large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                             small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
@@ -233,6 +235,7 @@ function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDrop
                     isLoading={isLoading}
                     text={selectedItem?.text}
                     onPress={handleSingleOptionPress}
+                    xsmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}

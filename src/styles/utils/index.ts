@@ -1113,6 +1113,12 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
         };
     }
 
+    if (buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL) {
+        return {
+            height: variables.componentSizeXSmall,
+        };
+    }
+
     return {
         height: variables.componentSizeNormal,
     };

@@ -62,6 +62,9 @@ type SettlementButtonProps = {
     /** The size of button size */
     buttonSize?: ButtonSizeValue;
 
+    /** Render button in extra-small size */
+    xsmall?: boolean;
+
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
 
