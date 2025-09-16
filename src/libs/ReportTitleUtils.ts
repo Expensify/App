@@ -87,7 +87,6 @@ function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
 
 /**
  * Check if a report should have its title field updated based on conditions
- * Based on the backend logic: skip if it's a chat, statement card, or if policy field is deleteable and report field is null
  */
 function shouldUpdateTitleField(report: Report): boolean {
     // todo: this should be more sophisticated function. check for iou etc
