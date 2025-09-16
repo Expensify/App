@@ -3769,8 +3769,8 @@ SPEC CHECKSUMS:
   EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
-  ExpensifyNitroUtils: fb0098627e13de07aef912c0bb70e8f307f01f60
-  Expo: a02b1eb4c08689dc866eabf48e2eefee712ded6b
+  ExpensifyNitroUtils: de897350b81393fcdf3b80db07eff8ac52b1a116
+  Expo: 63b9951a116c03a63215ae0a116e52b50107cecd
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
   ExpoImage: 04ffc79f9a0391573b77efbc549d59c655caa5a8
