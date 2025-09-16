@@ -1273,5 +1273,86 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain('gone');
             expect(itContent).not.toContain('alsoGone');
         });
+
+        it('handles adding new nested sections with --compare-ref', async () => {
+            // Create English source with a completely new nested section
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    existingSection: {
+                        keep: 'Keep this existing translation',
+                    },
+                    // New nested section that doesn't exist in target file yet
+                    manualTest: {
+                        simple: 'Save',
+                        templateSimple: (name: string) => \`Hello \${name}\`,
+                        deepTemplate: (user: {name?: string; isAdmin: boolean}, settings: {theme: 'dark' | 'light'}) =>
+                            \`\${user.isAdmin ? \`Admin \${user.name}: \${settings.theme === 'dark' ? 'Dark mode' : 'Light mode'}\` : \`User \${user.name ?? 'Unknown'}\`}\`,
+                        typed: (n: number): string => 'Typed output',
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation WITHOUT the manualTest section
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    existingSection: {
+                        keep: '[it] Keep this existing translation',
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock Git.diff to show the new nested section was added
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([6, 7, 8, 9, 10, 11, 12]), // Lines with the new manualTest section
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve existing translations
+            expect(itContent).toContain('[it] Keep this existing translation');
+
+            // BUG: Should add the new nested translations, but currently they are missing
+            expect(itContent).toContain('manualTest: {');
+            expect(itContent).toContain('[it] Save');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('[it] Hello ${name}');
+            expect(itContent).toContain('[it] Admin');
+            expect(itContent).toContain('[it] Dark mode');
+            expect(itContent).toContain('[it] Light mode');
+            expect(itContent).toContain('[it] User');
+            expect(itContent).toContain('[it] Unknown');
+            expect(itContent).toContain('[it] Typed output');
+
+            // Should translate the new strings
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Hello ${name}', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Typed output', undefined);
+        });
     });
 });
