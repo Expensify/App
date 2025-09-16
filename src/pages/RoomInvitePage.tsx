@@ -63,7 +63,7 @@ function RoomInvitePage({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const isReportArchived = useReportIsArchived(report.reportID);
-    const personalDetails = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -209,11 +209,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            inviteToRoomAction(reportID, invitedEmailsToAccountIDs, personalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            inviteToRoomAction(reportID, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
             clearUserSearchPhrase();
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID, backTo));
         }
-    }, [validate, selectedOptions, reportID, personalDetails.timezone, backTo]);
+    }, [validate, selectedOptions, reportID, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
