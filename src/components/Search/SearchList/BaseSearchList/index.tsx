@@ -29,6 +29,7 @@ function BaseSearchList({
     onLayout,
     contentContainerStyle,
     flattenedItemsLength,
+    newTransactions,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
 
@@ -71,7 +72,7 @@ function BaseSearchList({
                 }
                 setFocusedIndex(index);
             };
-            return renderItem(item, isItemFocused, onFocus);
+            return renderItem(item, index, isItemFocused, onFocus);
         },
         [focusedIndex, renderItem, setFocusedIndex],
     );
@@ -100,7 +101,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, isFocused, columns], [focusedIndex, isFocused, columns]);
+    const extraData = useMemo(() => [focusedIndex, isFocused, columns, newTransactions], [focusedIndex, isFocused, columns, newTransactions]);
 
     return (
         <AnimatedFlashListComponent

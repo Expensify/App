@@ -34,5 +34,6 @@ module.exports = {
     coverageReporters: ['json', 'lcov', 'text-summary'],
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
+        '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
     },
 };
