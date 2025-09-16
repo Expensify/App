@@ -625,16 +625,17 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
             ? selectedReports.every(
                   (report) =>
                       report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) &&
+                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       ((hasLastPaymentMethod && report.policyID) || (getReportType(report.reportID) === getReportType(firstReport?.reportID) && report.policyID === firstReport?.policyID)),
               )
             : transactionKeys.every(
                   (transactionIdKey) =>
                       selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       ((hasLastPaymentMethod && selectedTransactions[transactionIdKey].policyID) ||
                           (getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID) &&
                               selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID)),
               );
-    console.log('shouldShowBulkPayOption', shouldShowBulkPayOption);
 
     return {
         shouldEnableBulkPayOption: shouldShowBulkPayOption,
