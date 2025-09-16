@@ -92,7 +92,7 @@ function prepareRequest<TCommand extends ApiCommand>(
                 const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
                 Onyx.update(processedOptimisticData);
             } catch (error) {
-                Log.warn('[API] Failed to process optimistic report names', {error});
+                Log.hmmm('[API] Failed to process optimistic report names', {error});
                 // Fallback to original optimistic data if processing fails
                 Onyx.update(optimisticData);
             }

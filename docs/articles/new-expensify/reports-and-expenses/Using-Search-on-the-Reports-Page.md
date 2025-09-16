@@ -4,7 +4,6 @@ description: Learn how role-based search simplifies submitting, approving, or pa
 keywords: [New Expensify, search, Submit, Approve, Pay, To-do, LHN, batch processing, filters, expense report actions]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Using the search function on the reports page helps you quickly take action on reports you need to submit, approve, or pay, all tailored to your role in a workspace.
 
@@ -12,7 +11,7 @@ Using the search function on the reports page helps you quickly take action on r
 
 # Search on the Reports Page
 
-**Navigation: In the left-hand menu, select Reports > Expense Reports > To-do**.
+**Navigation: In the navigation tabs (on the left on web, and at the bottom on mobile), select Reports > Expense Reports > To-do**.
 
 The **To-do** section surfaces key report actions so you can:
 - Submit expenses waiting on you
@@ -28,7 +27,7 @@ These shortcuts are personalized based on your role and workspace configuration,
 
 # How to Use Search Shortcuts
 
-Search options appear under the **To-do** section in the left-hand menu.
+Search options appear under the **To-do** section in the navigation tabs (on the left on web, and at the bottom on mobile).
 
 Depending on your role, you’ll see shortcuts like:
 - **Submit** – Reports you’ve drafted and need to submit.
@@ -87,4 +86,3 @@ Not yet. The **Workspace filter** is currently single-select. Multi-workspace su
 - **Explore** = General browsing (e.g., Expenses, Chats)
 - **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay, Export)
 
-</div>

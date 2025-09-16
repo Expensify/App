@@ -3,7 +3,6 @@ title: Create Expense Tags
 description: Add tags to use for coding expenses.
 keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code]
 ---
-<div id="new-expensify" markdown="1">
 
 In Expensify, **tags** represent attributes like classes, projects, cost centers, locations, customers, or jobs. They help code expenses for accounting and reporting.
 
@@ -17,7 +16,7 @@ Admins can manually create one level of tags or multiple levels of tags for a wo
 
 Before you can manage tags, you need to enable the **Tags** feature for your workspace.
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features** in the left menu.
 4. In the **Organize** section, toggle on **Tags**.
@@ -151,4 +150,3 @@ It will be removed from the workspace’s tag list. However, it will still appea
 
 If you are connected to an accounting integration, you will not see this feature. You will need to add those tags in your accounting system first, then sync the connection.
 
-</div>
