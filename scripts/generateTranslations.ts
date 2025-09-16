@@ -832,7 +832,7 @@ class TranslationGenerator {
             if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
                 const translatedCodeString = translatedCodeMap.get(currentPath);
                 if (!translatedCodeString) {
-                    // this should never happen
+                    // This should never happen
                     throw new Error('An unknown error occurred');
                 }
 
