@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -75,6 +76,8 @@ type ReportFooterProps = {
     onComposerBlur?: () => void;
 };
 
+const isAnonymousUserSelector = (session: OnyxEntry<OnyxTypes.Session>) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+
 function ReportFooter({
     lastReportAction,
     pendingAction,
@@ -92,10 +95,11 @@ function ReportFooter({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const personalDetail = useCurrentUserPersonalDetails();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
+    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousUserSelector, canBeMissing: false});
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: (dateString) => {
             if (!dateString) {
@@ -179,7 +183,7 @@ function ReportFooter({
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, text, true);
+            addComment(targetReportID, report.reportID, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask, transactionThreadReportID],
