@@ -6485,6 +6485,7 @@ const CONST = {
         },
         HAS_VALUES: {
             RECEIPT: 'receipt',
+            LINK: 'link',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
@@ -6504,6 +6505,11 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
+        },
+        IS_FILTERS: {
+            READ: 'read',
+            UNREAD: 'unread',
+            PINNED: 'pinned',
         },
         SORT_ORDER: {
             ASC: 'asc',
@@ -6635,6 +6641,7 @@ const CONST = {
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
             ATTENDEE: 'attendee',
+            IS: 'is',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
