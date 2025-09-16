@@ -833,7 +833,17 @@ describe('OptionsListUtils', () => {
                     // When we call getValidOptions()
                     const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
                         {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                        {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                        {
+                            includeP2P: true,
+                            canShowManagerMcTest: true,
+                            betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                            nvpDismissedProductTraining: {
+                                // @ts-expect-error Mocked for testing
+                                [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
+                                    timestamp: DateUtils.getDBTime(new Date().valueOf()),
+                                },
+                            },
+                        },
                     );
 
                     // Then the result should include all personalDetails except the currently logged in user and Manager McTest
