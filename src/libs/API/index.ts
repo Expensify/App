@@ -184,8 +184,6 @@ function write<TCommand extends WriteCommand>(
         WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION,
         WRITE_COMMANDS.UPDATE_POLICY_ADDRESS,
         WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER,
-        WRITE_COMMANDS.POLICY_UBER_AUTO_INVITE,
-        WRITE_COMMANDS.POLICY_UBER_AUTO_REMOVE,
         WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE,
         WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS,
         WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
@@ -230,7 +228,7 @@ function write<TCommand extends WriteCommand>(
         WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
         WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
         WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
-    ];
+    ] as WriteCommand[];
 
     let onyxDataWithOnboardingData: OnyxData | undefined;
     // Check if this command is linked to setting a workspace which should complete the reviewWorkspaceSettings task.
