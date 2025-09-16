@@ -356,11 +356,11 @@ describe.skip('Unread Indicators', () => {
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts.at(0);
                 expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('C User')).toBeOnTheScreen();
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts.at(1);
                 expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User')).toBeOnTheScreen();
+                expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
@@ -373,9 +373,9 @@ describe.skip('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
-                expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
+                expect(screen.getAllByText('B User').at(0)).toBeOnTheScreen();
                 expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
+                expect(screen.getByText('C User', {includeHiddenElements: true})).toBeOnTheScreen();
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -450,7 +450,7 @@ describe.skip('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                addComment(REPORT_ID, 'Current User Comment 1');
+                addComment(REPORT_ID, 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -513,7 +513,7 @@ describe.skip('Unread Indicators', () => {
                 .then(() => navigateToSidebarOption(0))
                 .then(() => {
                     // Leave a comment as the current user
-                    addComment(REPORT_ID, 'Current User Comment 1');
+                    addComment(REPORT_ID, 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -558,7 +558,7 @@ describe.skip('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
 
-        addComment(REPORT_ID, 'Comment 1');
+        addComment(REPORT_ID, 'Comment 1', CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
@@ -569,7 +569,7 @@ describe.skip('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment(REPORT_ID, 'Comment 2');
+            addComment(REPORT_ID, 'Comment 2', CONST.DEFAULT_TIME_ZONE);
 
             await waitForBatchedUpdates();
 
