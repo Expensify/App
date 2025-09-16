@@ -12,8 +12,6 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isPolicyMember} from '@libs/PolicyUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
@@ -124,21 +122,20 @@ function KYCWall({
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
                     if (policy) {
-                        const isMember = isPolicyMember(policy, getLoginByAccountID(iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID));
-                        if (!isMember) {
-                            const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber) ?? {};
-                            if (newPolicyExpenseChatReportID) {
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
-                            }
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber);
+                        if (inviteResult?.policyExpenseChatReportID) {
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
                         } else {
-                            const {policyExpenseChatReportID, useTemporaryOptimisticExpenseChatReportID} = moveIOUReportToPolicy(iouReport, policy, true) ?? {};
+                            const moveResult = moveIOUReportToPolicy(iouReport, policy, true);
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
-                            if (policyExpenseChatReportID && !useTemporaryOptimisticExpenseChatReportID) {
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
+                            if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
                             }
                         }
 
                         if (policy?.achAccount) {
+                            const currentSource = walletTerms?.source ?? source;
+                            onSuccessfulKYC(CONST.IOU.PAYMENT_TYPE.VBBA, currentSource);
                             return;
                         }
                         // Navigate to the bank account set up flow for this specific policy
@@ -163,7 +160,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, allReports],
+        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, allReports, onSuccessfulKYC, source, walletTerms?.source],
     );
 
     /**
