@@ -1,20 +1,24 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {config} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route as RouteString} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+// eslint-disable-next-line import/no-cycle
+import addVerifyAccountRoute from './addVerifyAccountRoute';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+// eslint-disable-next-line import/no-cycle
+import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
 
@@ -45,7 +49,8 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
-        const stateForBackTo = getStateFromPath(route.params.backTo, config);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const stateForBackTo = getStateFromPath(route.params.backTo as RouteString);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
@@ -242,7 +247,12 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
+    if (path.includes('/verify-account')) {
+        const verifyAccountState = addVerifyAccountRoute(normalizedPath);
+        return verifyAccountState;
+    }
+
+    const state = getStateFromPath(normalizedPath as RouteString) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }
@@ -255,4 +265,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 };
 
 export default getAdaptedStateFromPath;
-export {getMatchingFullScreenRoute, isFullScreenName};
+export {getMatchingFullScreenRoute, isFullScreenName, getAdaptedState, getRoutesWithIndex};
