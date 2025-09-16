@@ -6078,6 +6078,7 @@ const translations = {
             has: {
                 receipt: '收据',
             },
+            is: '是',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',

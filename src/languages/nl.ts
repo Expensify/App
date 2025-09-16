@@ -6198,6 +6198,7 @@ const translations = {
             has: {
                 receipt: 'Bon',
             },
+            is: 'Is',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Indienen',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',

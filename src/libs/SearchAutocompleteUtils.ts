@@ -142,7 +142,7 @@ function filterOutRangesWithCorrectValue(
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
-    const isList = Object.values(CONST.SEARCH.IS_FILTERS) as string[];
+    const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:

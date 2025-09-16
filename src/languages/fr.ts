@@ -6206,6 +6206,7 @@ const translations = {
             has: {
                 receipt: 'Reçu',
             },
+            is: 'Est',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',

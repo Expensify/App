@@ -6507,7 +6507,7 @@ const CONST = {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
         },
-        IS_FILTERS: {
+        IS_VALUES: {
             READ: 'read',
             UNREAD: 'unread',
             PINNED: 'pinned',

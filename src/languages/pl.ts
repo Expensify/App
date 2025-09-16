@@ -6185,6 +6185,7 @@ const translations = {
             has: {
                 receipt: 'Paragon',
             },
+            is: 'Jest',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Prześlij',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Zatwierdź',

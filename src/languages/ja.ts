@@ -6163,6 +6163,7 @@ const translations = {
             has: {
                 receipt: '領収書',
             },
+            is: 'は',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
