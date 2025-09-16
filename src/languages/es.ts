@@ -1387,7 +1387,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
-            reasonPageDescription: 'Explique por qué rechaza este gasto.',
+            reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
             rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
