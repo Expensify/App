@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy, updateTitleFieldWithExactValue} from '@libs/ReportTitleUtils';
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
