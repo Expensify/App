@@ -24,6 +24,7 @@ import {
     canAddTransaction,
     canEditReportPolicy,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -668,6 +669,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
+    if (canRejectReportAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
+    }
+
     if (isSplitAction(report, reportTransactions, originalTransaction, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -748,6 +753,10 @@ function getSecondaryTransactionThreadActions(
 
     if (transactionThreadReport && isRemoveHoldActionForTransaction(transactionThreadReport, reportTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
+    if (canRejectReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     if (isSplitAction(parentReport, [reportTransaction], originalTransaction, policy)) {
