@@ -105,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -357,10 +358,11 @@ const translations = {
         selectMultiple: 'Wybierz wiele',
         saveChanges: 'Zapisz zmiany',
         submit: 'Prześlij',
+        submitted: 'Przesłano',
         rotate: 'Obróć',
         zoom: 'Zoom',
         password: 'Hasło',
-        magicCode: 'Magic code',
+        magicCode: 'Kod weryfikacyjny',
         twoFactorCode: 'Kod dwuskładnikowy',
         workspaces: 'Przestrzenie robocze',
         inbox: 'Skrzynka odbiorcza',
@@ -373,7 +375,7 @@ const translations = {
         wallet: 'Portfel',
         preferences: 'Preferencje',
         view: 'Widok',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Recenzja${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Nie',
         signIn: 'Zaloguj się',
         signInWithGoogle: 'Zaloguj się przez Google',
@@ -603,7 +605,7 @@ const translations = {
         chooseFiles: 'Wybierz pliki',
         dropTitle: 'Puść to',
         dropMessage: 'Prześlij swój plik tutaj',
-        ignore: 'Ignore',
+        ignore: 'Ignorować',
         enabled: 'Włączone',
         disabled: 'Wyłączony',
         import: 'Importuj',
@@ -2495,10 +2497,11 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Zo bekijkt en werkt u uw werkruimte-instellingen bij:\n' +
-                    '1. Klik op het instellingentabblad.\n' +
-                    '2. Klik op *Werkruimtes* > [Uw werkruimte].\n' +
-                    `[Ga naar uw werkruimte](${workspaceSettingsLink}). We volgen ze in de #admins-kamer.`,
+                    'Oto jak przejrzeć i zaktualizować ustawienia obszaru roboczego:\n' +
+                    '1. Kliknij Obszary robocze.\n' +
+                    '2. Wybierz swój obszar roboczy.\n' +
+                    '3. Przejrzyj i zaktualizuj swoje ustawienia.\n' +
+                    `[Przejdź do swojego obszaru roboczego.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Maak uw eerste rapport',
@@ -3354,7 +3357,7 @@ const translations = {
             class: 'Klasa kabiny',
             recordLocator: 'Lokalizator rezerwacji',
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Nieznany',
                 economy: 'Ekonomia',
                 premiumEconomy: 'Premium Economy',
                 business: 'Biznes',
@@ -3371,7 +3374,7 @@ const translations = {
             cancellationUntil: 'Bezpłatne anulowanie do',
             confirmation: 'Numer potwierdzenia',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Nieznany',
                 nonRefundable: 'Bezzwrotny',
                 freeCancellationUntil: 'Bezpłatne anulowanie do',
                 partiallyRefundable: 'Częściowo zwracalne',
@@ -4669,10 +4672,9 @@ const translations = {
                 cardholder: 'Posiadacz karty',
                 cardName: 'Nazwa karty',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} eksport` : `eksport ${integration}`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane.`,
-                integrationExportTitlePart: 'Wybierz inny',
-                integrationExportTitleLinkPart: 'opcja eksportu',
-                integrationExportTitleSecondPart: 'aby zmienić dostępne konta.',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane.`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data rozpoczęcia transakcji',
                 updateCard: 'Zaktualizuj kartę',
@@ -5299,7 +5301,8 @@ const translations = {
             continuousReconciliation: 'Ciągła rekonsyliacja',
             saveHoursOnReconciliation:
                 'Zaoszczędź godziny na uzgadnianiu w każdym okresie rozliczeniowym, pozwalając Expensify na ciągłe uzgadnianie wyciągów i rozliczeń z karty Expensify w Twoim imieniu.',
-            enableContinuousReconciliation: 'Aby włączyć Ciągłą Rekoncyliację, proszę włączyć',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
                 accountMatches: 'Upewnij się, że to konto pasuje do Twojego',
@@ -5429,6 +5432,7 @@ const translations = {
             updateWorkspaceCurrency: 'Zaktualizuj walutę przestrzeni roboczej',
             workspaceCurrencyNotSupported: 'Waluta przestrzeni roboczej nie jest obsługiwana',
             yourWorkspace: `Twoje miejsce pracy jest ustawione na nieobsługiwaną walutę. Zobacz <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">listę obsługiwanych walut</a>.`,
+            chooseAnExisting: 'Wybierz istniejące konto bankowe do płacenia wydatków lub dodaj nowe.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Przenieś właściciela',
@@ -6345,7 +6349,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `zapłacono ${currency}${amount} gdzie indziej`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `zapłacono ${currency}${amount} przez integrację`,
                 outdatedBankAccount: `nie można było przetworzyć płatności z powodu problemu z kontem bankowym płatnika`,
-                reimbursementACHBounce: `nie można przetworzyć płatności, ponieważ płatnik nie ma wystarczających środków`,
+                reimbursementACHBounce: `nie można było przetworzyć płatności z powodu problemu z kontem bankowym`,
                 reimbursementACHCancelled: `anulował płatność`,
                 reimbursementAccountChanged: `nie można było przetworzyć płatności, ponieważ płatnik zmienił konto bankowe`,
                 reimbursementDelayed: `przetworzono płatność, ale jest opóźniona o 1-2 dni robocze więcej`,
@@ -6957,7 +6961,7 @@ const translations = {
             title: 'Ustawienia subskrypcji',
             summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
                 `Rodzaj subskrypcji: ${subscriptionType}, Rozmiar subskrypcji: ${subscriptionSize}, Automatyczne odnawianie: ${autoRenew}, Automatyczne zwiększanie rocznych miejsc: ${autoIncrease}`,
-            none: 'none',
+            none: 'brak',
             on: 'na',
             off: 'wyłączony',
             annual: 'Roczny',
@@ -7082,12 +7086,12 @@ const translations = {
         dateTimeFields: 'Pola DateTime',
         date: 'Data',
         time: 'Czas',
-        none: 'None',
+        none: 'Brak',
         visibleInLHN: 'Widoczne w LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'prawda',
+        false: 'fałsz',
         viewReport: 'Zobacz raport',
         viewTransaction: 'Zobacz transakcję',
         createTransactionViolation: 'Utwórz naruszenie transakcji',

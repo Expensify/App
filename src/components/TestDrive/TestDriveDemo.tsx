@@ -64,7 +64,6 @@ function TestDriveDemo() {
                     type={CONST.MODAL.MODAL_TYPE.FULLSCREEN}
                     style={styles.backgroundWhite}
                     innerContainerStyle={{...styles.flex1, marginTop: paddingTop, marginBottom: paddingBottom}}
-                    useNativeDriver={false} // We need to disable native driver in order to prevent https://github.com/Expensify/App/issues/61032
                 >
                     <TestDriveBanner onPress={closeModal} />
                     <FullPageOfflineBlockingView>

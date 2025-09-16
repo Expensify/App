@@ -64,6 +64,7 @@ import {
     isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseSplit,
+    isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
@@ -89,7 +90,7 @@ type MoneyRequestViewProps = {
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** Policy that the report belongs to */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    expensePolicy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
@@ -97,7 +98,7 @@ type MoneyRequestViewProps = {
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
 
-    /** whether or not this report is from review duplicates */
+    /** whether this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
     /** Updated transaction to show in duplicate & merge transaction flow  */
@@ -110,7 +111,7 @@ type MoneyRequestViewProps = {
 function MoneyRequestView({
     allReports,
     report,
-    policy,
+    expensePolicy,
     shouldShowAnimatedBackground,
     readonly = false,
     updatedTransaction,
@@ -123,25 +124,15 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
+
     const parentReportID = report?.parentReportID;
-    const policyID = report?.policyID;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-    const allPolicyCategories = usePolicyCategories();
-    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`];
-    const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
-    const allPolicyTags = usePolicyTags();
-    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
         canBeMissing: true,
     });
-
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const isTrackExpense = isTrackExpenseReport(report);
     const isFromMergeTransaction = !!mergeTransactionID;
-    const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         if (!parentReportAction) {
             return undefined;
@@ -149,8 +140,26 @@ function MoneyRequestView({
         const originalMessage = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction) : undefined;
         return originalMessage?.IOUTransactionID;
     }, [parentReportAction]);
-
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
+    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(updatedTransaction ?? transaction);
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
+        canBeMissing: true,
+        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+    });
+    // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
+    const policy = isExpenseUnreported ? activePolicy : expensePolicy;
+    const policyID = isExpenseUnreported ? activePolicy?.id : report?.policyID;
+
+    const allPolicyCategories = usePolicyCategories();
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`];
+    const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
+    const allPolicyTags = usePolicyTags();
+    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
@@ -193,8 +202,11 @@ function MoneyRequestView({
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
     const shouldShowCard = isCardTransaction && cardProgramName;
+
+    const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
+    const isTrackExpense = isTrackExpenseReport(report);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = updatedTransaction?.taxAmount
         ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
@@ -232,6 +244,8 @@ function MoneyRequestView({
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
 
+    const shouldShowPolicySpecificFields = isPolicyExpenseChat || isExpenseUnreported;
+
     const policyTagLists = useMemo(() => getTagLists(policyTagList), [policyTagList]);
 
     const iouType = useMemo(() => {
@@ -251,11 +265,11 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}));
+    const shouldShowCategory = shouldShowPolicySpecificFields && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
-    const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+    const shouldShowTag = shouldShowPolicySpecificFields && (transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowBillable = shouldShowPolicySpecificFields && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
@@ -263,7 +277,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(shouldShowPolicySpecificFields, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -307,7 +321,7 @@ function MoneyRequestView({
             }
             updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
-        [transaction, report, policy, policyTagList, policyCategories],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories],
     );
 
     const saveReimbursable = useCallback(
@@ -434,6 +448,14 @@ function MoneyRequestView({
                         if (!transaction?.transactionID || !report?.reportID) {
                             return;
                         }
+
+                        if (isManualDistanceRequest) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                            );
+                            return;
+                        }
+
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                         );

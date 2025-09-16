@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
@@ -28,7 +29,7 @@ type IOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<typeof SCRE
 function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProps) {
     const {translate, localeCompare} = useLocalize();
     const {transactionID, backTo} = route.params;
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);

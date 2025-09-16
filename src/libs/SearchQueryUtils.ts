@@ -10,7 +10,6 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
-    SearchGroupBy,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
@@ -256,7 +255,8 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
         if (typeof filterValue === 'string') {
             return getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
@@ -359,22 +359,19 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Normalizes the groupBy value into a single string.
+ * Normalizes the value into a single string.
  * - If it's an array, returns the first element.
  * - Otherwise, returns the value as is.
- *
- * This ensures consistent usage of groupBy across the app,
- * since we only support filtering by a single valid groupBy key.
- *
- * @param groupBy - The raw groupBy value from SearchQueryJSON
- * @returns The normalized groupBy value
+
+ * @param value - The raw field value from SearchQueryJSON
+ * @returns The normalized field value
  */
-function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroupBy | undefined {
-    if (Array.isArray(groupBy)) {
-        return groupBy.at(0);
+function normalizeValue<T>(value: T | T[]): T {
+    if (Array.isArray(value)) {
+        return value.at(0) as T;
     }
 
-    return groupBy;
+    return value;
 }
 
 /**
@@ -402,7 +399,11 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         }
 
         if (result.groupBy) {
-            result.groupBy = getGroupByValue(result.groupBy);
+            result.groupBy = normalizeValue(result.groupBy);
+        }
+
+        if (result.type) {
+            result.type = normalizeValue(result.type);
         }
 
         return result;
@@ -550,7 +551,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
                     filterKey === FILTER_KEYS.HAS ||
-                    filterKey === FILTER_KEYS.EXPORTER) &&
+                    filterKey === FILTER_KEYS.EXPORTER ||
+                    filterKey === FILTER_KEYS.ATTENDEE) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -659,7 +661,8 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
             filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
@@ -786,17 +789,19 @@ function getFilterDisplayValue(
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserAccountID: number,
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return personalDetails?.[filterValue]?.displayName || filterValue;
+        return filterValue === currentUserAccountID.toString() ? CONST.SEARCH.ME : personalDetails?.[filterValue]?.displayName || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         const cardID = parseInt(filterValue, 10);
@@ -839,6 +844,7 @@ function buildUserReadableQueryString(
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserAccountID: number,
 ) {
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
@@ -913,7 +919,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies),
+                value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
@@ -1109,5 +1115,4 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
-    getGroupByValue,
 };

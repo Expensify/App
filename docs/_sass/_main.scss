@@ -1149,12 +1149,19 @@ button {
 }
 
 .edit-article-link {
-    margin: 20px 0;
+    margin: 64px 0 0 0;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: 13px;
+    color: var(--color-text-supporting);
+
+    &:hover {
+        color: var(--color-link);
+    }
 }
+
+
 
 .edit-article-link__icon {
     fill: var(--color-text-supporting);
