@@ -47,6 +47,7 @@ function IOURequestStepUpgrade({
             policyName: params.name,
             policyID: params.policyID,
             currency: params.currency,
+            file: params.avatarFile,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
         });
         policyDataRef.current = policyData;
