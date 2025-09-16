@@ -13,12 +13,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHasOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-function SearchFiltersHasPage() {
+function SearchFiltersIsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
@@ -70,7 +69,7 @@ function SearchFiltersHasPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersHasPage.displayName}
+            testID={SearchFiltersIsPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -99,6 +98,6 @@ function SearchFiltersHasPage() {
     );
 }
 
-SearchFiltersHasPage.displayName = 'SearchFiltersHasPage';
+SearchFiltersIsPage.displayName = 'SearchFiltersIsPage';
 
-export default SearchFiltersHasPage;
+export default SearchFiltersIsPage;
