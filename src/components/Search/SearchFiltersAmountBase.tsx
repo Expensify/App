@@ -33,7 +33,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
     const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
     const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
-    
+
     const equalTo = searchAdvancedFiltersForm?.[equalToKey];
     const equalToFormattedAmount = equalTo ? convertToFrontendAmountAsString(Number(equalTo)) : undefined;
     const greaterThan = searchAdvancedFiltersForm?.[greaterThanKey];
@@ -60,7 +60,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         const isEmpty = rawAmount.trim() === '';
 
         if (isEmpty) {
-            updateAdvancedFilters({ [fieldKey]: null });
+            updateAdvancedFilters({[fieldKey]: null});
             goBack();
             return;
         }
@@ -77,9 +77,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         }
 
         // When setting Greater Than or Less Than, clear Equal To to avoid conflicting filters.
-        if (
-            selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN
-        ) {
+        if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN) {
             updates[equalToKey] = null;
         }
 
