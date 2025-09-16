@@ -22,6 +22,7 @@ import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 import {updateSelectedFeed} from '@userActions/Card';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
@@ -72,6 +73,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errorFields);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
 
     const onOpenBankConnectionFlow = useCallback(() => {
@@ -117,7 +119,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline) {
+        if ((!url && !isPlaid) || isOffline || isNewFeedHasError) {
             return;
         }
 
@@ -187,7 +189,34 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
+        isNewFeedHasError,
     ]);
+
+    const getContent = () => {
+        if (isNewFeedHasError) {
+            return <WorkspaceCompanyCardsErrorConfirmation policyID={policyID} />;
+        }
+        if (!isPlaid) {
+            return (
+                <BlockingView
+                    icon={PendingBank}
+                    iconWidth={styles.pendingBankCardIllustration.width}
+                    iconHeight={styles.pendingBankCardIllustration.height}
+                    title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
+                    CustomSubtitle={CustomSubtitle}
+                    onLinkPress={onOpenBankConnectionFlow}
+                    addBottomSafeAreaPadding
+                />
+            );
+        }
+        return (
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                style={styles.flex1}
+                color={theme.spinner}
+            />
+        );
+    };
 
     return (
         <ScreenWrapper
@@ -198,25 +227,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {isPlaid ? (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.flex1}
-                        color={theme.spinner}
-                    />
-                ) : (
-                    <BlockingView
-                        icon={PendingBank}
-                        iconWidth={styles.pendingBankCardIllustration.width}
-                        iconHeight={styles.pendingBankCardIllustration.height}
-                        title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
-                        CustomSubtitle={CustomSubtitle}
-                        onLinkPress={onOpenBankConnectionFlow}
-                        addBottomSafeAreaPadding
-                    />
-                )}
-            </FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
