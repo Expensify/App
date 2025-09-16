@@ -551,6 +551,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
                     filterKey === FILTER_KEYS.HAS ||
+                    filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.ATTENDEE) &&
                 Array.isArray(filterValue) &&

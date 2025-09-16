@@ -70,6 +70,7 @@ const FILTER_KEYS = {
     BILLABLE: 'billable',
     ACTION: 'action',
     HAS: 'has',
+    IS: 'is',
     PURCHASE_AMOUNT_LESS_THAN: 'purchaseAmountLessThan',
     PURCHASE_AMOUNT_GREATER_THAN: 'purchaseAmountGreaterThan',
     PURCHASE_CURRENCY: 'purchaseCurrency',
@@ -248,6 +249,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
         FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.IS,
+        FILTER_KEYS.HAS,
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
         FILTER_KEYS.TYPE,
@@ -326,6 +329,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.PURCHASE_CURRENCY]: string[];
         [FILTER_KEYS.WITHDRAWAL_ID]: string;
         [FILTER_KEYS.ATTENDEE]: string[];
+        [FILTER_KEYS.IS]: string[];
+        [FILTER_KEYS.HAS]: string[];
     }
 >;
 
