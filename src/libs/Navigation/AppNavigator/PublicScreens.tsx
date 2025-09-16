@@ -9,7 +9,8 @@ import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthToke
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
-import SignInPage from '@pages/signin/SignInPage';
+import TestSVGPage from '@pages/TestSVGPage';
+// import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -36,7 +37,7 @@ function PublicScreens() {
                     // This was put here to prevent excessive animations when resetting the navigation state in `resetNavigationState`
                     animation: Animations.NONE,
                 }}
-                component={SignInPage}
+                component={TestSVGPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}
