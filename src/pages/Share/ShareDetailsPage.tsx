@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,6 +52,7 @@ function ShareDetailsPage({
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const personalDetail = useCurrentUserPersonalDetails();
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
@@ -103,7 +105,7 @@ function ShareDetailsPage({
         }
 
         if (isTextShared) {
-            addComment(report.reportID, message);
+            addComment(report.reportID, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -125,7 +127,7 @@ function ShareDetailsPage({
                     );
                 }
                 if (report.reportID) {
-                    addAttachment(report.reportID, file, message);
+                    addAttachment(report.reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, message);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
