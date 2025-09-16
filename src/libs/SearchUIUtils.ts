@@ -2100,6 +2100,8 @@ function getHasOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return [{text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT}];
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return [{text: translateLocal('search.filters.link'), value: CONST.SEARCH.HAS_VALUES.LINK}, {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT}];
         default:
             return [];
     }

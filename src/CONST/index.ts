@@ -6485,6 +6485,7 @@ const CONST = {
         },
         HAS_VALUES: {
             RECEIPT: 'receipt',
+            ATTACHMENT: 'attachment',
             LINK: 'link',
         },
         BULK_ACTION_TYPES: {
