@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -180,10 +181,12 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 isDisabled: true,
             });
 
-            list.push({...option, rightElement} as MemberForList & ListItem);
+            const rightElementWithOfflineFeedback = <OfflineWithFeedback pendingAction={policy?.receiptPartners?.uber?.pendingFields?.employees}>{rightElement}</OfflineWithFeedback>;
+
+            list.push({...option, rightElement: rightElementWithOfflineFeedback} as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3, inviteOrResend]);
+    }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3, inviteOrResend, policy?.receiptPartners?.uber?.pendingFields?.employees]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {
