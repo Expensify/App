@@ -773,8 +773,8 @@ function ReportActionsList({
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
             onLayout(event);
-            // We only want to apply the offset adjustment when the topOffset changes, which only happens on mobile browsers because of the virtual keyboards.
-            if (topOffset !== prevTopOffset.current) {
+            // We only want to apply the offset adjustment when the topOffset changes, on money requests, which only happens on mobile browsers because of the virtual keyboards.
+            if (shouldFocusToTopOnMount && topOffset !== prevTopOffset.current) {
                 // When the keyboard is shown, the topOffset is > 0 and we need to increase the offset to keep the same view.
                 if (topOffset > 0) {
                     // Store the previous offset before the keyboard was shown.
@@ -793,7 +793,7 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(false);
             }
         },
-        [onLayout, topOffset, isScrollToBottomEnabled, reportScrollManager, scrollToBottom],
+        [onLayout, shouldFocusToTopOnMount, topOffset, isScrollToBottomEnabled, reportScrollManager, scrollToBottom],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
