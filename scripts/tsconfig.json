@@ -26,6 +26,6 @@
     },
     "ts-node": {
         "require": ["tsconfig-paths/register", "./stubReactNative.js"],
-        "transpileOnly": true,
+        "transpileOnly": true
     }
 }

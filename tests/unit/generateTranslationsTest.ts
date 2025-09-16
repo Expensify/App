@@ -1354,5 +1354,82 @@ describe('generateTranslations', () => {
             expect(translateSpy).toHaveBeenCalledWith('it', 'Hello ${name}', undefined);
             expect(translateSpy).toHaveBeenCalledWith('it', 'Typed output', undefined);
         });
+
+        it('handles adding new properties to existing nested structures with --compare-ref', async () => {
+            // Create English source with existing nested structure and a new property added to it
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    existingSection: {
+                        keep: 'Keep this existing translation',
+                    },
+                    some: {
+                        nested: {
+                            existingProp: 'Existing nested value',
+                            newPath: 'New value added to existing nested structure',
+                        },
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with the nested structure but WITHOUT the new property
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    existingSection: {
+                        keep: '[it] Keep this existing translation',
+                    },
+                    some: {
+                        nested: {
+                            existingProp: '[it] Existing nested value',
+                        },
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock Git.diff to show only the new property was added
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([8]), // Line with the new property
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve all existing translations
+            expect(itContent).toContain('[it] Keep this existing translation');
+            expect(itContent).toContain('[it] Existing nested value');
+
+            // Should add the new property to the existing nested structure
+            expect(itContent).toContain('some: {');
+            expect(itContent).toContain('nested: {');
+            expect(itContent).toContain("existingProp: '[it] Existing nested value'");
+            expect(itContent).toContain("newPath: '[it] New value added to existing nested structure'");
+
+            // Should only translate the new string
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value added to existing nested structure', undefined);
+        });
     });
 });
