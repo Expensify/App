@@ -609,7 +609,7 @@ function clearAdvancedFilters() {
 }
 
 /**
- * Check if the current selected reports/transactions are eligible for bulk pay.
+ * Checks if the current selected reports/transactions are eligible for bulk pay.
  */
 function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
@@ -660,6 +660,9 @@ function getFormattedAmount(selectedReports: SelectedReports[], selectedTransact
     return formattedAmount ?? '';
 }
 
+/**
+ * Checks if current menu item is a valid bulk pay option
+ */
 function isValidBulkPayOption(item: PopoverMenuItem) {
     if (!item.key) {
         return false;
@@ -667,6 +670,9 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
     return Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod) || Object.values(CONST.IOU.PAYMENT_TYPE).includes(item.key as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
 }
 
+/**
+ * Handles the click event when user selects bulk pay action.
+ */
 function handleBulkPayItemSelected(
     item: PopoverMenuItem,
     triggerKYCFlow: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void,
