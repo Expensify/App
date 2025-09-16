@@ -1,7 +1,8 @@
 import {useImperativeHandle} from 'react';
 import type {ForwardedRef} from 'react';
 import type {FlatList as RNFlatList} from 'react-native';
-import type {FlatListInnerRefType} from './types';
+
+type FlatListInnerRefType<T> = RNFlatList<T> & HTMLElement;
 
 type UseFlatListHandleProps<T> = {
     forwardedRef: ForwardedRef<RNFlatList>;
