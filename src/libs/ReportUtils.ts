@@ -11518,10 +11518,6 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
         return true; // non-IOU reports can be rejected while processing
     }
 
-    if (isReportPayer && isApproved) {
-        return true; // payers can also reject approved reports
-    }
-
     return false;
 }
 
