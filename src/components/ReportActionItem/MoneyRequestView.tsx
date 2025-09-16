@@ -837,7 +837,15 @@ function MoneyRequestView({
                                 }
 
                                 if (!policy) {
-                                    Navigation.navigate(ROUTES.MONEY_REQUEST_UPGRADE.getRoute({iouType, action: CONST.IOU.ACTION.EDIT, transactionID: transaction?.transactionID, reportID: report.reportID, isReporting: true}));
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                            iouType,
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            transactionID: transaction?.transactionID,
+                                            reportID: report.reportID,
+                                            isReporting: true,
+                                        }),
+                                    );
                                     return;
                                 }
 

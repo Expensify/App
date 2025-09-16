@@ -60,10 +60,6 @@ function IOURequestEditReportCommon({
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
-    const reportOwnerAccountID = useMemo(
-        () => transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
-        [transactionsReports, currentUserPersonalDetails.accountID],
-    );
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
@@ -181,7 +177,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReport, selectedReport, transactionsReports, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
+    }, [createReport, selectedReport, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
 
     return (
         <StepScreenWrapper
