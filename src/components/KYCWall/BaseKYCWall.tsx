@@ -55,7 +55,6 @@ function KYCWall({
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -160,18 +159,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [
-            addBankAccountRoute,
-            addDebitCardRoute,
-            chatReport,
-            iouReport,
-            onSelectPaymentMethod,
-            formatPhoneNumber,
-            lastPaymentMethod,
-            onSuccessfulKYC,
-            source,
-            walletTerms?.source,
-        ],
+        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, onSuccessfulKYC, source, walletTerms?.source],
     );
 
     /**
