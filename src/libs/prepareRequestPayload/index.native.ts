@@ -1,5 +1,5 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
-import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type PrepareRequestPayload from './types';
@@ -22,54 +22,23 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
             if (key === 'receipt') {
                 const receipt = value as Receipt;
-                const {source, name, type, filename} = receipt;
-
-                console.log('[prepareRequestPayload] Processing receipt:', {
-                    source,
-                    name,
-                    type,
-                    filename,
-                    receiptProperties: Object.keys(receipt),
-                    hasSource: !!source,
-                });
+                const {source} = receipt;
 
                 if (source) {
-                    console.log('[prepareRequestPayload] Checking receipt file existence:', {source});
                     return checkFileExists(source).then((exists) => {
-                        console.log('[prepareRequestPayload] Receipt file existence check result:', {
-                            source,
-                            exists,
-                        });
-
                         if (!exists) {
-                            console.warn('[prepareRequestPayload] Receipt file does not exist:', {source});
                             return;
                         }
 
-                        // Use receipt.name, fallback to receipt.filename, or extract from source
-                        const receiptName = receipt.name || receipt.filename || getFileName(source) || 'receipt.jpg';
-                        const receiptType = receipt.type || 'image/jpeg';
-
                         const receiptFormData = {
                             uri: source,
-                            name: receiptName,
-                            type: receiptType,
+                            name: receipt.name,
+                            type: receipt.type,
                         };
-
-                        console.log('[prepareRequestPayload] Appending receipt to FormData:', {
-                            receiptFormData,
-                            originalName: receipt.name,
-                            originalType: receipt.type,
-                            fallbackName: receiptName,
-                            fallbackType: receiptType,
-                            formDataEntries: formData._parts?.length || 0,
-                        });
 
                         validateFormDataParameter(command, key, receiptFormData);
                         formData.append(key, receiptFormData as File);
                     });
-                } else {
-                    console.warn('[prepareRequestPayload] Receipt has no source:', {receipt});
                 }
             }
 

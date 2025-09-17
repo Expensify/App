@@ -208,21 +208,6 @@ function AttachmentPicker({
                                             fileName: asset.fileName ?? (asset.uri ? asset.uri.substring(asset.uri.lastIndexOf('/') + 1).split('?').at(0) : `image_${Date.now()}.jpeg`),
                                             type: asset.type ?? 'image/jpeg',
                                         };
-
-                                        console.log('[AttachmentPicker] Processing non-HEIC asset:', {
-                                            originalAsset: {
-                                                fileName: asset.fileName,
-                                                type: asset.type,
-                                                uri: asset.uri,
-                                            },
-                                            processedAsset: {
-                                                fileName: processedAsset.fileName,
-                                                type: processedAsset.type,
-                                                uri: processedAsset.uri,
-                                            },
-                                            timestamp: new Date().toISOString(),
-                                        });
-
                                         processedAssets.push(processedAsset);
                                         checkAllProcessed();
                                     }
@@ -238,21 +223,6 @@ function AttachmentPicker({
                                 fileName: asset.fileName ?? (asset.uri ? asset.uri.substring(asset.uri.lastIndexOf('/') + 1).split('?').at(0) : `image_${Date.now()}.jpeg`),
                                 type: asset.type ?? 'image/jpeg',
                             };
-
-                            console.log('[AttachmentPicker] Processing regular asset (no HEIC conversion):', {
-                                originalAsset: {
-                                    fileName: asset.fileName,
-                                    type: asset.type,
-                                    uri: asset.uri,
-                                },
-                                processedAsset: {
-                                    fileName: processedAsset.fileName,
-                                    type: processedAsset.type,
-                                    uri: processedAsset.uri,
-                                },
-                                timestamp: new Date().toISOString(),
-                            });
-
                             processedAssets.push(processedAsset);
                             checkAllProcessed();
                         }

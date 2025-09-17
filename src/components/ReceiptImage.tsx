@@ -137,24 +137,7 @@ function ReceiptImage({
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
-    console.log('[ReceiptImage] Rendering receipt image:', {
-        transactionID,
-        source,
-        isPDFThumbnail,
-        isThumbnail,
-        shouldUseThumbnailImage,
-        isEReceipt,
-        isAuthTokenRequired,
-        fileExtension,
-        isEmptyReceipt,
-        isPerDiemRequest,
-        hasSource: !!source,
-        sourceLength: source?.length,
-        timestamp: new Date().toISOString(),
-    });
-
     if (isEmptyReceipt) {
-        console.log('[ReceiptImage] Rendering empty receipt state');
         return (
             <ReceiptEmptyState
                 isThumbnail
@@ -166,7 +149,6 @@ function ReceiptImage({
     }
 
     if (isPDFThumbnail) {
-        console.log('[ReceiptImage] Rendering PDF thumbnail:', {source});
         return (
             <PDFThumbnail
                 previewSourceURL={source ?? ''}
@@ -176,7 +158,6 @@ function ReceiptImage({
     }
 
     if (isEReceipt && !isPerDiemRequest) {
-        console.log('[ReceiptImage] Rendering E-Receipt with size calculation:', {transactionID});
         return (
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}
@@ -187,12 +168,6 @@ function ReceiptImage({
 
     if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
         const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
-        console.log('[ReceiptImage] Rendering thumbnail or E-Receipt per diem:', {
-            isThumbnail,
-            isEReceipt,
-            isPerDiemRequest,
-            props,
-        });
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
@@ -206,12 +181,6 @@ function ReceiptImage({
     }
 
     if (shouldUseThumbnailImage) {
-        console.log('[ReceiptImage] Rendering ThumbnailImage component:', {
-            source,
-            isAuthTokenRequired,
-            shouldUseInitialObjectPosition,
-            fallbackIcon: !!fallbackIcon,
-        });
         return (
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
@@ -226,12 +195,6 @@ function ReceiptImage({
             />
         );
     }
-
-    console.log('[ReceiptImage] Rendering ImageWithLoading component (default path):', {
-        source,
-        isAuthTokenRequired,
-        loadingIconSize,
-    });
 
     return (
         <ImageWithLoading

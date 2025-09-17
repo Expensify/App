@@ -167,7 +167,6 @@ function SubmitDetailsPage({
             return;
         }
 
-        receipt.state = receipt && CONST.IOU.RECEIPT_STATE.SCAN_READY;
         if (locationPermissionGranted) {
             getCurrentPosition(
                 (successData) => {
