@@ -173,7 +173,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             return;
         }
 
-        validateAttachmentFile(file).then(updateState);
+        validateAttachmentFile(fileToValidate).then(updateState);
     }, []);
 
     const modalType = useReportAttachmentModalType(source, validFilesToUpload ?? file);
