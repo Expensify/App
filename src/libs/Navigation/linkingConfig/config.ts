@@ -1044,6 +1044,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
                     screens: {
+                        [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
                             path: ROUTES.SETTINGS_2FA_ROOT.route,
                             exact: true,
