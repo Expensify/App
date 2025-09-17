@@ -29,6 +29,7 @@ import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import FraudProtection, {EVENTS} from '@libs/FraudProtection';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -417,6 +418,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 
     const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod, validateCode};
 
+    FraudProtection.sendEvent(EVENTS.ADD_SECONDARY_LOGIN);
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
 }
 
