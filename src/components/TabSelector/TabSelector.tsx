@@ -1,4 +1,4 @@
-import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
+import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -30,16 +30,25 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    /** Whether tabs should have equal width */
+    equalWidth?: boolean;
 };
 
 type IconTitleAndTestID = {
-    icon: IconAsset;
+    icon?: IconAsset;
     title: string;
     testID?: string;
 };
 
 function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
+        case CONST.TAB.RECEIPT_PARTNERS.ALL:
+            return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
+        case CONST.TAB.RECEIPT_PARTNERS.LINKED:
+            return {title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked'};
+        case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
+            return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
@@ -74,6 +83,7 @@ function TabSelector({
     shouldShowLabelWhenInactive = true,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
+    equalWidth = false,
 }: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -164,6 +174,7 @@ function TabSelector({
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
                             parentWidth={selectorWidth}
                             parentX={selectorX}
+                            equalWidth={equalWidth}
                         />
                     );
                 })}

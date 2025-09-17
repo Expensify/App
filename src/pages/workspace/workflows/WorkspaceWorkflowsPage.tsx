@@ -40,7 +40,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getCorrectedAutoReportingFrequency, getDefaultApprover, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -77,11 +78,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
-                employees: policy?.employeeList ?? {},
-                defaultApprover: getDefaultApprover(policy),
+                policy,
                 personalDetails: personalDetails ?? {},
                 localeCompare,
             }),
@@ -97,6 +99,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         () => getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
         [policy?.achAccount?.reimburser],
     );
+
+    const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
+    const achData = reimbursementAccount?.achData;
+    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
+
+    const shouldShowContinueModal = useMemo(() => {
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
+    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
@@ -161,6 +171,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
+    const filteredApprovalWorkflows = useMemo(() => {
+        if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED) {
+            return approvalWorkflows;
+        }
+        return approvalWorkflows.filter((workflow) => workflow.isDefault);
+    }, [policy?.approvalMode, approvalWorkflows]);
+
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {bankAccountID} = policy?.achAccount ?? {};
         const bankAccount = bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -213,7 +230,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 },
                 subMenuItems: (
                     <>
-                        {approvalWorkflows.map((workflow, index) => (
+                        {filteredApprovalWorkflows.map((workflow, index) => (
                             <OfflineWithFeedback
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`workflow-${index}`}
@@ -287,17 +304,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         showLockedAccountModal();
                                         return;
                                     }
-                                    if (
-                                        !isCurrencySupportedForGlobalReimbursement(
-                                            (policy?.outputCurrency ?? '') as CurrencyType,
-                                            isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false,
-                                        )
-                                    ) {
+                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
 
-                                    if (hasValidExistingAccounts) {
+                                    if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
                                         Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
                                         return;
                                     }
@@ -350,7 +362,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
-        approvalWorkflows,
         addApprovalAction,
         isOffline,
         theme.spinner,
@@ -361,7 +372,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         isAccountLocked,
         isBetaEnabled,
         hasValidExistingAccounts,
+        shouldShowContinueModal,
         showLockedAccountModal,
+        filteredApprovalWorkflows,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

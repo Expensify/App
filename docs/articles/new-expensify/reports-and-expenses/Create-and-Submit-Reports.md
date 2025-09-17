@@ -3,7 +3,6 @@ title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
 keywords: [New Expensify, create report, submit report, retract report, undo submit, undo close, add expenses, fix report]
 ---
-<div id="new-expensify" markdown="1">
 
 Easily manage your business expenses in New Expensify with our streamlined report-first workflow. This guide walks you through creating, editing, submitting, and even retracting expense reports when needed.
 
@@ -111,4 +110,3 @@ New Expensify’s report-first flow supports multiple business needs. Below are 
 - Tag teammates in descriptions if useful.
 - Submit based on your internal process.
 
-</div>

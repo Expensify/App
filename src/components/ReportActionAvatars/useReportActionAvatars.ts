@@ -1,9 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import RandomAvatarUtils from '@libs/RandomAvatarUtils';
 import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
@@ -13,13 +15,14 @@ import {
     getWorkspaceIcon,
     isChatThread,
     isInvoiceReport,
+    isInvoiceRoom,
     isPolicyExpenseChat,
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
@@ -31,6 +34,8 @@ function useReportActionAvatars({
     accountIDs = [],
     policyID: passedPolicyID,
     fallbackDisplayName = '',
+    invitedEmailsToAccountIDs,
+    shouldUseCustomFallbackAvatar = false,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -39,11 +44,17 @@ function useReportActionAvatars({
     accountIDs?: number[];
     policyID?: string;
     fallbackDisplayName?: string;
+    invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
+    shouldUseCustomFallbackAvatar?: boolean;
 }) {
     /* Get avatar type */
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const allPersonalDetails = usePersonalDetails();
+    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
+    // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
+    // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
+    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
@@ -100,12 +111,16 @@ function useReportActionAvatars({
     const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;
     const accountIDsToMap = shouldUseActorAccountID && actorAccountID ? [actorAccountID] : accountIDs;
 
-    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => ({
-        id,
-        type: CONST.ICON_TYPE_AVATAR,
-        source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
-        name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? '',
-    }));
+    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => {
+        const invitedEmail = invitedEmailsToAccountIDs ? Object.keys(invitedEmailsToAccountIDs).find((email) => invitedEmailsToAccountIDs[email] === id) : undefined;
+        return {
+            id,
+            type: CONST.ICON_TYPE_AVATAR,
+            source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
+            name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
+            fallbackIcon: shouldUseCustomFallbackAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
+        };
+    });
 
     const fallbackWorkspaceAvatar: IconType = {
         id: policyID,
@@ -141,7 +156,8 @@ function useReportActionAvatars({
     const isWorkspacePolicy = !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const isATripRoom = isTripRoom(chatReport);
     const isWorkspaceWithoutChatReportProp = !chatReport && isWorkspacePolicy;
-    const isAWorkspaceChat = isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp;
+    const isAnInvoiceRoom = isInvoiceRoom(chatReport);
+    const isAWorkspaceChat = (isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp) && !isAnInvoiceRoom;
     const isATripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
     const isReportPreviewOrNoAction = !action || isAReportPreviewAction;
     const isReportPreviewInTripRoom = isAReportPreviewAction && isATripRoom;
@@ -183,12 +199,12 @@ function useReportActionAvatars({
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
-    const isNestedInInvoiceReport = !!invoiceReport;
+    const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
     const isChatReportOnlyProp = !iouReport && chatReport;
     const isWorkspaceChatWithoutChatReport = !chatReport && isAWorkspaceChat;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview;
+    const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
@@ -248,7 +264,7 @@ function useReportActionAvatars({
     }
 
     if (!primaryAvatar?.id) {
-        primaryAvatar = isNestedInInvoiceReport ? invoiceFallbackAvatar : userFallbackAvatar;
+        primaryAvatar = isNestedInInvoiceReport && !isAnInvoiceRoom ? invoiceFallbackAvatar : userFallbackAvatar;
     }
 
     let secondaryAvatar;
