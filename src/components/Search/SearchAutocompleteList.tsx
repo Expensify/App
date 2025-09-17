@@ -41,7 +41,7 @@ import {
     sanitizeSearchValue,
     shouldHighlight,
 } from '@libs/SearchQueryUtils';
-import {getDatePresets} from '@libs/SearchUIUtils';
+import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
@@ -486,7 +486,7 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
-                const filteredHasValues = Object.values(CONST.SEARCH.HAS_VALUES).filter((hasValue) => {
+                const filteredHasValues = getHasOptions().filter((hasValue) => {
                     return hasValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(hasValue.toLowerCase());
                 });
 
