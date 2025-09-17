@@ -377,9 +377,19 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
-                const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false, true, true).personalDetails.filter(
-                    (participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()),
-                );
+                const participants = getSearchOptions({
+                    options,
+                    draftComments,
+                    betas: betas ?? [],
+                    isUsedInChatFinder: true,
+                    includeReadOnly: true,
+                    searchQuery: autocompleteValue,
+                    maxResults: 10,
+                    includeUserToInvite: false,
+                    includeRecentReports: false,
+                    includeCurrentUser: true,
+                    shouldShowGBR: true,
+                }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
                     filterKey: autocompleteKey,
@@ -389,7 +399,19 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const filteredReports = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, true, false, true).recentReports;
+                const filteredReports = getSearchOptions({
+                    options,
+                    draftComments,
+                    betas: betas ?? [],
+                    isUsedInChatFinder: true,
+                    includeReadOnly: true,
+                    searchQuery: autocompleteValue,
+                    maxResults: 10,
+                    includeUserToInvite: false,
+                    includeRecentReports: true,
+                    includeCurrentUser: false,
+                    shouldShowGBR: true,
+                }).recentReports;
 
                 return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -539,7 +561,9 @@ function SearchAutocompleteList(
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
         options,
+        draftComments,
         betas,
+        currentUserLogin,
         typeAutocompleteList,
         groupByAutocompleteList,
         statusAutocompleteList,
@@ -549,7 +573,6 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
-        currentUserLogin,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
