@@ -163,7 +163,10 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         const errorFields = account?.delegatedAccess?.errorFields;
+
+                        // The targeted errors should be cleared
                         expect(errorFields?.addDelegate?.['test@test.com']).toBeUndefined();
+
                         Onyx.disconnect(connection);
                         resolve();
                     },
@@ -186,7 +189,6 @@ describe('actions/Delegate', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
             await waitForBatchedUpdates();
 
-            // Ensure we observe the optimistic state before successData applies
             pause();
 
             updateDelegateRole({email: 'test@test.com', role: CONST.DELEGATE_ROLE.SUBMITTER, validateCode: '123456', delegatedAccess});
