@@ -162,6 +162,7 @@ import type {
     GetUserToInviteConfig,
     GetValidReportsConfig,
     GetValidReportsReturnTypeCombined,
+    IsValidReportsConfig,
     MemberForList,
     Option,
     OptionList,
@@ -1489,7 +1490,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig, draftComment: string | undefined): boolean {
+function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig, draftComment: string | undefined): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1813,11 +1814,7 @@ function getValidOptions(
                     ...getValidReportsConfig,
                     includeP2P,
                     includeDomainEmail,
-                    selectedOptions,
                     loginsToExclude,
-                    shouldBoldTitleByDefault,
-                    shouldSeparateSelfDMChat,
-                    shouldSeparateWorkspaceChat,
                 },
                 draftComment,
             );
@@ -1828,7 +1825,6 @@ function getValidOptions(
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
             selectedOptions,
-            loginsToExclude,
             shouldBoldTitleByDefault,
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
@@ -1954,6 +1950,7 @@ function getSearchOptions({
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
     const optionList = getValidOptions(options, draftComments, {
         betas,
         includeRecentReports,
@@ -1981,7 +1978,7 @@ function getSearchOptions({
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, draftComments: OnyxCollection<string>, betas: Beta[] = []): Options {
+function getShareLogOptions(options: OptionList, draftComments: OnyxCollection<string>, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
     return getValidOptions(options, draftComments, {
         betas,
         includeMultipleParticipantReports: true,
@@ -1991,6 +1988,9 @@ function getShareLogOptions(options: OptionList, draftComments: OnyxCollection<s
         includeSelfDM: true,
         includeThreads: true,
         includeReadOnly: false,
+        searchString,
+        maxElements,
+        includeUserToInvite,
     });
 }
 
@@ -2085,6 +2085,9 @@ function getShareDestinationOptions(
     excludeLogins: Record<string, boolean> = {},
     includeOwnedWorkspaceChats = true,
     draftComments: OnyxCollection<string> = {},
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
 ) {
     return getValidOptions({reports, personalDetails}, draftComments, {
         betas,
@@ -2098,6 +2101,9 @@ function getShareDestinationOptions(
         excludeLogins,
         includeOwnedWorkspaceChats,
         includeSelfDM: true,
+        searchString,
+        maxElements,
+        includeUserToInvite,
     });
 }
 
@@ -2129,32 +2135,28 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 
 /**
  * Build the options for the Workspace Member Invite view
+ * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
+    draftComments: OnyxCollection<string>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
+    searchString = '',
+    maxElements?: number,
 ): Options {
-    const options = getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            includeP2P: true,
-            excludeLogins,
-            includeSelectedOptions,
-            includeRecentReports,
-        },
-    );
-
-    const orderedOptions = orderOptions(options);
-    return {
-        ...options,
-        personalDetails: orderedOptions.personalDetails,
-        recentReports: orderedOptions.recentReports,
-    };
+    return getValidOptions({reports, personalDetails}, draftComments, {
+        betas,
+        includeP2P: true,
+        excludeLogins,
+        includeSelectedOptions,
+        includeRecentReports,
+        searchString,
+        maxElements,
+    });
 }
 
 /**

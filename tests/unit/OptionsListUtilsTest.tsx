@@ -31,6 +31,7 @@ import {
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,10 +74,6 @@ const renderLocaleContextProvider = () => {
 };
 
 describe('OptionsListUtils', () => {
-    beforeAll(() => {
-        IntlStore.load(CONST.LOCALES.EN);
-        return waitForBatchedUpdates();
-    });
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
@@ -576,8 +573,17 @@ describe('OptionsListUtils', () => {
         private_isArchived: DateUtils.getDBTime(),
     };
 
+    let OPTIONS: OptionList;
+    let OPTIONS_WITH_CONCIERGE: OptionList;
+    let OPTIONS_WITH_CHRONOS: OptionList;
+    let OPTIONS_WITH_RECEIPTS: OptionList;
+    let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
+    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
+
     // Set the currently logged in user, report data, and personal details
-    beforeAll(() => {
+    beforeAll(async () => {
+        IntlStore.load(CONST.LOCALES.EN);
+        initOnyxDerivedValues();
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
@@ -592,19 +598,14 @@ describe('OptionsListUtils', () => {
                 [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
             },
         });
+
         Onyx.registerLogger(() => {});
-        return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
-    });
 
-    let OPTIONS: OptionList;
-    let OPTIONS_WITH_CONCIERGE: OptionList;
-    let OPTIONS_WITH_CHRONOS: OptionList;
-    let OPTIONS_WITH_RECEIPTS: OptionList;
-    let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
-    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
+        await waitForBatchedUpdates();
 
-    beforeEach(() => {
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
@@ -1186,7 +1187,7 @@ describe('OptionsListUtils', () => {
         it('should sort personal details alphabetically', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, []);
+            const results = getMemberInviteOptions(OPTIONS.personalDetails, {}, []);
 
             // Then personal details should be sorted alphabetically
             expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
@@ -1429,7 +1430,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
+            const options = getMemberInviteOptions(OPTIONS.personalDetails, {}, []);
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE);
 
@@ -1439,7 +1440,7 @@ describe('OptionsListUtils', () => {
 
         it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, []);
+            const options = getMemberInviteOptions(OPTIONS.personalDetails, {}, []);
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE);
 
