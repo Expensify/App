@@ -281,6 +281,7 @@ import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
+import { removeDraftTransactions } from './actions/TransactionEdit';
 
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
@@ -10155,6 +10156,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 
     const {created, amount, currency, merchant, mccGroup} = getTransactionDetails(transaction) ?? {};
     const comment = getTransactionCommentObject(transaction);
+
+    removeDraftTransactions();
 
     createDraftTransaction({
         ...transaction,
