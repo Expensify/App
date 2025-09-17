@@ -47,7 +47,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Fetch base ref
-        run: git fetch origin ${{ github.event.pull_request.base.ref }} --no-tags --depth=1 --no-recurse-submodules 
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --no-tags --depth=1 --no-recurse-submodules
+          if ! git rev-parse --verify ${{ github.event.pull_request.base.ref }}; then
+            echo "❌ wtf Base ref ${{ github.event.pull_request.base.ref }} does not exist"
+            exit 1
+          fi
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
