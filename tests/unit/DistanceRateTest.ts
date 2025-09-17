@@ -1,6 +1,7 @@
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {deletePolicyDistanceRates, enablePolicyDistanceRates} from '@libs/actions/Policy/DistanceRate';
+import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -139,6 +140,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             if (policy.customUnits) {
+                pause();
                 enablePolicyDistanceRates(policy.id, false, policy.customUnits[customUnitID]);
             }
             await waitForBatchedUpdates();
@@ -158,14 +160,30 @@ describe('DistanceRate', () => {
                 return;
             }
 
-            // Assert essential state changes without relying on timing of optimistic vs success updates
-            expect(onyxPolicy.areDistanceRatesEnabled).toBe(false);
+            expect(onyxPolicy).toEqual({
+                ...policy,
+                areDistanceRatesEnabled: false,
+                pendingFields: {
+                    areDistanceRatesEnabled: 'update',
+                },
+                customUnits: {
+                    [customUnitID]: {
+                        ...policy.customUnits[customUnitID],
+                        rates: {
+                            [customUnitRateID1]: {
+                                ...policy.customUnits[customUnitID].rates[customUnitRateID1],
+                                enabled: true,
+                            },
+                            [customUnitRateID2]: {
+                                ...policy.customUnits[customUnitID].rates[customUnitRateID2],
+                                enabled: false,
+                            },
+                        },
+                    },
+                },
+            });
 
-            // Pending field may already be cleared by successData; accept both states for robustness
-            expect(['update', undefined]).toContain(onyxPolicy.pendingFields?.areDistanceRatesEnabled);
-
-            expect(onyxPolicy.customUnits?.[customUnitID]?.rates?.[customUnitRateID1]?.enabled).toBe(true);
-            expect(onyxPolicy.customUnits?.[customUnitID]?.rates?.[customUnitRateID2]?.enabled).toBe(false);
+            resetQueue();
         });
     });
 });
