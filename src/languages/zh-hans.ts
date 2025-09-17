@@ -657,7 +657,7 @@ const translations = {
         workspacesTabTitle: '工作区',
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
-        headsUp: '\u6CE8\u610F\uFF01',
+        headsUp: '注意！',
         submitTo: '提交到',
         forwardTo: '转发到',
         merge: '合并',
@@ -1183,8 +1183,12 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `标记${formattedAmount}为已支付` : `标记为已支付`),
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用个人账户${last4Digits}支付${amount}` : `已用个人账户支付`),
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用企业账户${last4Digits}支付${amount}` : `已用企业账户支付`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `通过${policyName}支付${formattedAmount}` : `通过${policyName}支付`,
+        payWithPolicy: ({
+            formattedAmount,
+            policyName,
+        }: SettleExpensifyCardParams & {
+            policyName: string;
+        }) => (formattedAmount ? `通过${policyName}支付${formattedAmount}` : `通过${policyName}支付`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用银行账户${last4Digits}支付${amount} ` : `已用银行账户${last4Digits}支付 `),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `已使用尾号为${last4Digits}的银行账户支付${amount} 通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>`,
@@ -2280,234 +2284,234 @@ const translations = {
         },
         tasks: {
             testDriveAdminTask: {
-                title: ({testDriveURL}) => `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})`,
-                description: ({testDriveURL}) =>
-                    `[\u5feb\u901f\u4ea7\u54c1\u6f14\u793a](${testDriveURL})\u4ee5\u4e86\u89e3 Expensify \u4e3a\u4f55\u662f\u6700\u5feb\u7684\u62a5\u9500\u65b9\u5f0f\u3002`,
+                title: ({testDriveURL}) => `试驾 [test drive](${testDriveURL})`,
+                description: ({testDriveURL}) => `[快速产品导览](${testDriveURL})，了解为什么Expensify是处理费用的最快方式。`,
             },
             testDriveEmployeeTask: {
-                title: ({testDriveURL}) => `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})`,
-                description: ({testDriveURL}) =>
-                    `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})\u5373\u53ef\u83b7\u5f97\u56e2\u961f *3 \u4e2a\u6708\u7684 Expensify \u514d\u8d39\u4f7f\u7528\u6743\uff01*`,
+                title: ({testDriveURL}) => `试驾 [test drive](${testDriveURL})`,
+                description: ({testDriveURL}) => `试用我们，享受团队*3个月的免费Expensify服务!* [试驾](${testDriveURL})`,
             },
             createTestDriveAdminWorkspaceTask: {
-                title: ({workspaceConfirmationLink}) => `[\u521b\u5efa](${workspaceConfirmationLink})\u4e00\u4e2a\u5de5\u4f5c\u533a`,
-                description:
-                    '\u521b\u5efa\u4e00\u4e2a\u5de5\u4f5c\u533a\uff0c\u5e76\u5728\u60a8\u7684\u8bbe\u7f6e\u4e13\u5bb6\u7684\u5e2e\u52a9\u4e0b\u914d\u7f6e\u5404\u9879\u8bbe\u7f6e\uff01',
+                title: ({workspaceConfirmationLink}) => `[创建](${workspaceConfirmationLink})一个工作区`,
+                description: '在设置专家的帮助下创建工作区并配置设置！',
             },
             createWorkspaceTask: {
-                title: ({workspaceSettingsLink}) => `\u521b\u5efa\u4e00\u4e2a[\u5de5\u4f5c\u533a](${workspaceSettingsLink})`,
+                title: ({workspaceSettingsLink}) => `创建一个[工作区](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    `*\u521b\u5efa\u4e00\u4e2a\u5de5\u4f5c\u533a*\u4ee5\u8ddf\u8e2a\u652f\u6301\u3001\u626b\u63cf\u6536\u636e\u3001\u804a\u5929\u7b49\u3002\n\n1. \u70b9\u51fb *\u5de5\u4f5c\u533a* > *\u65b0\u5efa\u5de5\u4f5c\u533a*\u3002\n\n*\u60a8\u7684\u65b0\u5de5\u4f5c\u533a\u5df2\u51c6\u5907\u5c31\u7eea\uff01* [\u67e5\u770b](${workspaceSettingsLink})\u3002`,
+                    '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
+                    '\n' +
+                    '1. Click *Workspaces* > *New workspace*.\n' +
+                    '\n' +
+                    `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
             },
-
             setupCategoriesTask: {
-                title: ({workspaceCategoriesLink}) => `\u8bbe\u7f6e[\u5206\u7c7b](${workspaceCategoriesLink})`,
+                title: ({workspaceCategoriesLink}) => `设置[类别](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
-                    '*\u8bbe\u7f6e\u5206\u7c7b*\uff0c\u4ee5\u4fbf\u60a8\u7684\u56e2\u961f\u53ef\u4ee5\u5bf9\u652f\u51fa\u8fdb\u884c\u7f16\u7801\uff0c\u4ee5\u4fbf\u4e8e\u62a5\u544a\u3002\n' +
+                    '*Set up categories* so your team can code expenses for easy reporting.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb *\u5de5\u4f5c\u533a*\u3002\n' +
-                    '3. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n' +
-                    '4. \u70b9\u51fb *\u5206\u7c7b*\u3002\n' +
-                    '5. \u7981\u7528\u6240\u6709\u4e0d\u9700\u8981\u7684\u5206\u7c7b\u3002\n' +
-                    '6. \u5728\u53f3\u4e0a\u89d2\u6dfb\u52a0\u81ea\u5df1\u7684\u5206\u7c7b\u3002\n' +
+                    '1. Click *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *Categories*.\n' +
+                    "5. Disable any categories you don't need.\n" +
+                    '6. Add your own categories in the top right.\n' +
                     '\n' +
-                    `[\u5e26\u6211\u5230\u5de5\u4f5c\u533a\u5206\u7c7b\u8bbe\u7f6e](${workspaceCategoriesLink})\u3002\n` +
+                    `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
                     '\n' +
                     `![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
             },
             combinedTrackSubmitExpenseTask: {
-                title: '\u63d0\u4ea4\u4e00\u7b14\u652f\u51fa',
+                title: '提交报销单',
                 description:
-                    '*\u901a\u8fc7\u8f93\u5165\u91d1\u989d\u6216\u626b\u63cf\u6536\u636e*\u63d0\u4ea4\u4e00\u7b14\u652f\u51fa\u3002\n' +
+                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb\u7eff\u8272\u7684 *+* \u6309\u94ae\u3002\n' +
-                    '2. \u9009\u62e9 *\u521b\u5efa\u652f\u51fa*\u3002\n' +
-                    '3. \u8f93\u5165\u91d1\u989d\u6216\u626b\u63cf\u6536\u636e\u3002\n' +
-                    `4. \u6dfb\u52a0\u60a8\u4e0a\u53f8\u7684\u7535\u5b50\u90ae\u4ef6\u6216\u7535\u8bdd\u53f7\u7801\u3002\n` +
-                    '5. \u70b9\u51fb *\u521b\u5efa*\u3002\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    '2. Choose *Create expense*.\n' +
+                    '3. Enter an amount or scan a receipt.\n' +
+                    `4. Add your boss's email or phone number.\n` +
+                    '5. Click *Create*.\n' +
                     '\n' +
-                    '\u60a8\u5df2\u7ecf\u5b8c\u6210\uff01',
+                    'And you’re done!',
             },
             adminSubmitExpenseTask: {
-                title: '\u63d0\u4ea4\u4e00\u7b14\u652f\u51fa',
+                title: '提交报销单',
                 description:
-                    '*\u901a\u8fc7\u8f93\u5165\u91d1\u989d\u6216\u626b\u63cf\u6536\u636e*\u63d0\u4ea4\u4e00\u7b14\u652f\u51fa\u3002\n' +
+                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb\u7eff\u8272\u7684 *+* \u6309\u94ae\u3002\n' +
-                    '2. \u9009\u62e9 *\u521b\u5efa\u652f\u51fa*\u3002\n' +
-                    '3. \u8f93\u5165\u91d1\u989d\u6216\u626b\u63cf\u6536\u636e\u3002\n' +
-                    '4. \u786e\u8ba4\u8be6\u60c5\u3002\n' +
-                    '5. \u70b9\u51fb *\u521b\u5efa*\u3002\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    '2. Choose *Create expense*.\n' +
+                    '3. Enter an amount or scan a receipt.\n' +
+                    '4. Confirm details.\n' +
+                    '5. Click *Create*.\n' +
                     '\n' +
-                    `\u60a8\u5df2\u7ecf\u5b8c\u6210\uff01`,
+                    `And you're done!`,
             },
             trackExpenseTask: {
-                title: '\u8ddf\u8e2a\u4e00\u7b14\u652f\u51fa',
+                title: '跟踪费用',
                 description:
-                    '*\u8ddf\u8e2a\u4e00\u7b14\u652f\u51fa*\uff0c\u65e0\u8bba\u662f\u4ec0\u4e48\u8d27\u5e01\uff0c\u4e5f\u65e0\u8bba\u60a8\u662f\u5426\u6709\u6536\u636e\u3002\n' +
+                    '*Track an expense* in any currency, whether you have a receipt or not.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb\u7eff\u8272\u7684 *+* \u6309\u94ae\u3002\n' +
-                    '2. \u9009\u62e9 *\u521b\u5efa\u652f\u51fa*\u3002\n' +
-                    '3. \u8f93\u5165\u91d1\u989d\u6216\u626b\u63cf\u6536\u636e\u3002\n' +
-                    '4. \u9009\u62e9\u60a8\u7684 *\u4e2a\u4eba*\u7a7a\u95f4\u3002\n' +
-                    '5. \u70b9\u51fb *\u521b\u5efa*\u3002\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    '2. Choose *Create expense*.\n' +
+                    '3. Enter an amount or scan a receipt.\n' +
+                    '4. Choose your *personal* space.\n' +
+                    '5. Click *Create*.\n' +
                     '\n' +
-                    '\u60a8\u5df2\u7ecf\u5b8c\u6210\uff01\u662f\u7684\uff0c\u5c31\u8fd9\u4e48\u7b80\u5355\u3002',
+                    'And you’re done! Yep, it’s that easy.',
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
-                    `\u8FDE\u63A5${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '\u5230'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u60A8\u7684' : ''} ${integrationName}](${workspaceAccountingLink})`,
+                    `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '至'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '你的' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `\u8FDE\u63A5${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u60A8\u7684' : '\u5230'} ${integrationName}\uFF0C\u5B9E\u73B0\u81EA\u52A8\u8D39\u7528\u7F16\u7801\u548C\u540C\u6B65\uFF0C\u8BA9\u6708\u672B\u7ED3\u8D26\u53D8\u5F97\u8F7B\u800C\u6613\u4E3E\u3002\n` +
+                    `Connect ${
+                        integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '你的' : '至'
+                    } ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                     '\n' +
-                    '1. \u70B9\u51FB *\u8BBE\u7F6E*。\n' +
-                    '2. \u524D\u5F80 *\u5DE5\u4F5C\u533A*。\n' +
-                    '3. \u9009\u62E9\u60A8\u7684\u5DE5\u4F5C\u533A\u3002\n' +
-                    '4. \u70B9\u51FB *\u4F1A\u8BA1*。\n' +
-                    `5. \u627E\u5230 ${integrationName}\u3002\n` +
-                    '6. \u70B9\u51FB *\u8FDE\u63A5*。\n' +
+                    '1. Click *Settings*.\n' +
+                    '2. Go to *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *Accounting*.\n' +
+                    `5. Find ${integrationName}.\n` +
+                    '6. Click *Connect*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})\u3002\n\n![\u8FDE\u63A5\u5230 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})\u3002`
+                            ? `[带我去会计](${workspaceAccountingLink})。
+
+![连接到${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[带我去会计](${workspaceAccountingLink}).`
                     }`,
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `\u8fde\u63a5[\u60a8\u7684\u516c\u53f8\u5361](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `连接[您的企业卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
-                    `\u8fde\u63a5\u60a8\u7684\u516c\u53f8\u5361\u4ee5\u81ea\u52a8\u5bfc\u5165\u548c\u7f16\u7801\u652f\u51fa\u3002\n` +
+                    `Connect your corporate card to automatically import and code expenses.\n` +
                     '\n' +
-                    '1. \u70b9\u51fb *\u5de5\u4f5c\u533a*\u3002\n' +
-                    '2. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n' +
-                    '3. \u70b9\u51fb *\u516c\u53f8\u5361*\u3002\n' +
-                    '4. \u6309\u7167\u63d0\u793a\u8fde\u63a5\u60a8\u7684\u5361\u3002\n' +
+                    '1. Click *Workspaces*.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Corporate cards*.\n' +
+                    '4. Follow the prompts to connect your card.\n' +
                     '\n' +
-                    `[\u5e26\u6211\u53bb\u8fde\u63a5\u6211\u7684\u516c\u53f8\u5361](${corporateCardLink})\u3002`,
+                    `[Take me to connect my corporate cards](${corporateCardLink}).`,
             },
             inviteTeamTask: {
-                title: ({workspaceMembersLink}) => `\u9080\u8bf7[\u60a8\u7684\u56e2\u961f](${workspaceMembersLink})`,
+                title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*\u9080\u8bf7\u60a8\u7684\u56e2\u961f*\u5230 Expensify\uff0c\u4f7f\u4ed6\u4eec\u53ef\u4ee5\u4ece\u4eca\u5929\u5f00\u59cb\u8ddf\u8e2a\u652f\u51fa\u3002\n' +
+                    '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb *\u5de5\u4f5c\u533a*\u3002\n' +
-                    '3. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n' +
-                    '4. \u70b9\u51fb *\u6210\u5458* > *\u9080\u8bf7\u6210\u5458*\u3002\n' +
-                    '5. \u8f93\u5165\u7535\u5b50\u90ae\u4ef6\u6216\u7535\u8bdd\u53f7\u7801\u3002 \n' +
-                    '6. \u5982\u6709\u9700\u8981\uff0c\u53ef\u6dfb\u52a0\u81ea\u5b9a\u4e49\u9080\u8bf7\u4fe1\u606f\uff01\n' +
+                    '1. Click *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *Members* > *Invite member*.\n' +
+                    '5. Enter emails or phone numbers. \n' +
+                    '6. Add a custom invite message if you’d like!\n' +
                     '\n' +
-                    `[\u5e26\u6211\u5230\u5de5\u4f5c\u533a\u6210\u5458](${workspaceMembersLink})\u3002\n` +
+                    `[Take me to workspace members](${workspaceMembersLink}).\n` +
                     '\n' +
                     `![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `\u8bbe\u7f6e[\u5206\u7c7b](${workspaceCategoriesLink})\u548c[\u6807\u7b7e](${workspaceTagsLink})`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `设置[类别](${workspaceCategoriesLink})和[标签](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-                    '*\u8bbe\u7f6e\u5206\u7c7b\u548c\u6807\u7b7e*\uff0c\u4ee5\u4fbf\u60a8\u7684\u56e2\u961f\u53ef\u4ee5\u5bf9\u652f\u51fa\u8fdb\u884c\u7f16\u7801\uff0c\u4ee5\u4fbf\u4e8e\u62a5\u544a\u3002\n' +
+                    '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
                     '\n' +
-                    `\u901a\u8fc7[\u8fde\u63a5\u60a8\u7684\u4f1a\u8ba1\u8f6f\u4ef6](${workspaceAccountingLink})\u81ea\u52a8\u5bfc\u5165\u5b83\u4eec\uff0c\u6216\u5728\u60a8\u7684[\u5de5\u4f5c\u533a\u8bbe\u7f6e](${workspaceCategoriesLink})\u4e2d\u624b\u52a8\u8bbe\u7f6e\u3002`,
+                    `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
             },
             setupTagsTask: {
-                title: ({workspaceTagsLink}) => `\u8bbe\u7f6e[\u6807\u7b7e](${workspaceTagsLink})`,
+                title: ({workspaceTagsLink}) => `设置[标签](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
-                    '\u4f7f\u7528\u6807\u7b7e\u6dfb\u52a0\u989d\u5916\u7684\u652f\u51fa\u8be6\u60c5\uff0c\u4f8b\u5982\u9879\u76ee\u3001\u5ba2\u6237\u3001\u5730\u70b9\u548c\u90e8\u95e8\u3002\u5982\u679c\u60a8\u9700\u8981\u591a\u7ea7\u6807\u7b7e\uff0c\u53ef\u4ee5\u5347\u7ea7\u5230 Control \u8ba1\u5212\u3002\n' +
+                    'Use tags to add extra expense details like projects, clients, locations, and departments. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb *\u5de5\u4f5c\u533a*\u3002\n' +
-                    '3. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n' +
-                    '4. \u70b9\u51fb *\u66f4\u591a\u529f\u80fd*\u3002\n' +
-                    '5. \u542f\u7528 *\u6807\u7b7e*\u3002\n' +
-                    '6. \u5bfc\u822a\u5230\u5de5\u4f5c\u533a\u7f16\u8f91\u5668\u4e2d\u7684 *\u6807\u7b7e*\u3002\n' +
-                    '7. \u70b9\u51fb *+\u6dfb\u52a0\u6807\u7b7e*\u4ee5\u521b\u5efa\u81ea\u5df1\u7684\u6807\u7b7e\u3002\n' +
+                    '1. Click *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *More features*.\n' +
+                    '5. Enable *Tags*.\n' +
+                    '6. Navigate to *Tags* in the workspace editor.\n' +
+                    '7. Click *+ Add tag* to make your own.\n' +
                     '\n' +
-                    `[\u5e26\u6211\u5230\u66f4\u591a\u529f\u80fd](${workspaceMoreFeaturesLink})\u3002\n` +
+                    `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                     '\n' +
                     `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
             inviteAccountantTask: {
-                title: ({workspaceMembersLink}) => `\u9080\u8BF7\u60A8\u7684[\u4F1A\u8BA1](${workspaceMembersLink})`,
+                title: ({workspaceMembersLink}) => `邀请您的[会计](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*\u9080\u8BF7\u60A8\u7684\u4F1A\u8BA1* \u4E0E\u60A8\u540C\u6B65\u5408\u4F5C\uFF0C\u5E76\u7BA1\u7406\u60A8\u7684\u5546\u52A1\u652F\u51FA\u3002\n' +
+                    '*Invite your accountant* to collaborate on your workspace and manage your business expenses.\n' +
                     '\n' +
-                    '1. \u70B9\u51FB *\u5DE5\u4F5C\u533A*。\n' +
-                    '2. \u9009\u62E9\u60A8\u7684\u5DE5\u4F5C\u533A\u3002\n' +
-                    '3. \u70B9\u51FB *\u6210\u5458*。\n' +
-                    '4. \u70B9\u51FB *\u9080\u8BF7\u6210\u5458*。\n' +
-                    '5. \u8F93\u5165\u60A8\u4F1A\u8BA1\u7684\u90AE\u7BB1\u5730\u5740\u3002\n' +
+                    '1. Click *Workspaces*.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Click *Members*.\n' +
+                    '4. Click *Invite member*.\n' +
+                    "5. Enter your accountant's email address.\n" +
                     '\n' +
-                    `[\u7ACB\u5373\u9080\u8BF7\u60A8\u7684\u4F1A\u8BA1](${workspaceMembersLink})\u3002`,
+                    `[Invite your accountant now](${workspaceMembersLink}).`,
             },
             startChatTask: {
-                title: '\u5f00\u59cb\u804a\u5929',
+                title: '开始聊天',
                 description:
-                    '*\u901a\u8fc7\u4efb\u4f55\u4eba\u7684\u7535\u5b50\u90ae\u4ef6\u6216\u7535\u8bdd\u53f7\u7801*\u5f00\u59cb\u804a\u5929\u3002\n' +
+                    '*Start a chat* with anyone using their email or phone number.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb\u7eff\u8272\u7684 *+* \u6309\u94ae\u3002\n' +
-                    '2. \u9009\u62e9 *\u5f00\u59cb\u804a\u5929*\u3002\n' +
-                    '3. \u8f93\u5165\u7535\u5b50\u90ae\u4ef6\u6216\u7535\u8bdd\u53f7\u7801\u3002\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    '2. Choose *Start chat*.\n' +
+                    '3. Enter an email or phone number.\n' +
                     '\n' +
-                    '\u5982\u679c\u4ed6\u4eec\u5c1a\u672a\u4f7f\u7528 Expensify\uff0c\u4ed6\u4eec\u5c06\u81ea\u52a8\u88ab\u9080\u8bf7\u3002\n' +
+                    'If they’re not using Expensify already, they’ll be invited automatically.\n' +
                     '\n' +
-                    '\u6bcf\u6b21\u804a\u5929\u4e5f\u4f1a\u8f6c\u5316\u4e3a\u4e00\u5c01\u7535\u5b50\u90ae\u4ef6\u6216\u77ed\u4fe1\uff0c\u4ed6\u4eec\u53ef\u4ee5\u76f4\u63a5\u56de\u590d\u3002',
+                    'Every chat will also turn into an email or text that they can respond to directly.',
             },
-
             splitExpenseTask: {
-                title: '\u62c6\u5206\u652f\u51fa',
+                title: '拆分费用',
                 description:
-                    '*\u4e0e\u4e00\u4e2a\u6216\u591a\u4e2a\u4eba\u62c6\u5206\u652f\u51fa*\u3002\n' +
+                    '*Split expenses* with one or more people.\n' +
                     '\n' +
-                    '1. \u70b9\u51fb\u7eff\u8272\u7684 *+* \u6309\u94ae\u3002\n' +
-                    '2. \u9009\u62e9 *\u5f00\u59cb\u804a\u5929*\u3002\n' +
-                    '3. \u8f93\u5165\u7535\u5b50\u90ae\u4ef6\u6216\u7535\u8bdd\u53f7\u7801\u3002\n' +
-                    '4. \u70b9\u51fb\u804a\u5929\u4e2d\u7684\u7070\u8272 *+* \u6309\u94ae > *\u62c6\u5206\u652f\u51fa*\u3002\n' +
-                    '5. \u901a\u8fc7\u9009\u62e9 *\u624b\u52a8*\u3001*\u626b\u63cf*\u6216 *\u8ddd\u79bb*\u521b\u5efa\u652f\u51fa\u3002\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    '2. Choose *Start chat*.\n' +
+                    '3. Enter emails or phone numbers..\n' +
+                    '4. Click the grey *+* button in the chat > *Split expense*.\n' +
+                    '5. Create the expense by selecting *Manual*, *Scan*, or *Distance*.\n' +
                     '\n' +
-                    '\u5982\u6709\u9700\u8981\uff0c\u968f\u610f\u6dfb\u52a0\u66f4\u591a\u8be6\u60c5\uff0c\u6216\u76f4\u63a5\u53d1\u9001\u3002\u8ba9\u6211\u4eec\u8ba9\u60a8\u83b7\u5f97\u62a5\u9500\uff01',
+                    'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
             },
             reviewWorkspaceSettingsTask: {
-                title: ({workspaceSettingsLink}) => `\u67e5\u770b\u60a8\u7684[\u5de5\u4f5c\u533a\u8bbe\u7f6e](${workspaceSettingsLink})`,
+                title: ({workspaceSettingsLink}) => `查看您的[工作区设置](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '\u4ee5\u4e0b\u662f\u67e5\u770b\u548c\u66f4\u65b0\u60a8\u5de5\u4f5c\u533a\u8bbe\u7f6e\u7684\u65b9\u6cd5\uff1a\n' +
-                    '1. \u70b9\u51fb\u5de5\u4f5c\u533a\u3002\n' +
-                    '2. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n' +
-                    '3. \u67e5\u770b\u548c\u66f4\u65b0\u60a8\u7684\u8bbe\u7f6e\u3002\n' +
-                    `[\u524d\u5f80\u60a8\u7684\u5de5\u4f5c\u533a\u3002](${workspaceSettingsLink})`,
+                    "Here's how to review and update your workspace settings:\n" +
+                    '1. Click Workspaces.\n' +
+                    '2. Select your workspace.\n' +
+                    '3. Review and update your settings.\n' +
+                    `[Go to your workspace.](${workspaceSettingsLink})`,
             },
             createReportTask: {
-                title: '\u521b\u5efa\u60a8\u7684\u7b2c\u4e00\u4efd\u62a5\u544a',
+                title: '创建您的第一份报告',
                 description:
-                    '\u4ee5\u4e0b\u662f\u521b\u5efa\u62a5\u544a\u7684\u65b9\u6cd5\uff1a\n' +
+                    'Here’s how to create a report:\n' +
                     '\n' +
-                    '1. \u70b9\u51fb\u7eff\u8272\u7684 *+* \u6309\u94ae\u3002\n' +
-                    '2. \u9009\u62e9 *\u521b\u5efa\u62a5\u544a*\u3002\n' +
-                    '3. \u70b9\u51fb *\u6dfb\u52a0\u652f\u51fa*\u3002\n' +
-                    '4. \u6dfb\u52a0\u60a8\u7684\u7b2c\u4e00\u7b14\u652f\u51fa\u3002\n' +
+                    `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
+                    '2. Choose *Create report*.\n' +
+                    '3. Click *Add expense*.\n' +
+                    '4. Add your first expense.\n' +
                     '\n' +
-                    '\u60a8\u5df2\u7ecf\u5b8c\u6210\uff01',
+                    'And you’re done!',
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
-            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})` : '\u8fdb\u884c\u8bd5\u9a7e'),
-            embeddedDemoIframeTitle: '\u8bd5\u9a7e',
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `试驾 [test drive](${testDriveURL})` : '试用一下'),
+            embeddedDemoIframeTitle: '试驾',
             employeeFakeReceipt: {
-                description: '\u6211\u7684\u8bd5\u9a7e\u6536\u636e\uff01',
+                description: '我的试驾收据！',
             },
         },
         messages: {
-            onboardingEmployerOrSubmitMessage:
-                '\u62a5\u9500\u5c31\u50cf\u53d1\u9001\u6d88\u606f\u4e00\u6837\u7b80\u5355\u3002\u8ba9\u6211\u4eec\u6765\u770b\u770b\u57fa\u672c\u77e5\u8bc6\u3002',
-            onboardingPersonalSpendMessage: '\u4ee5\u4e0b\u662f\u5982\u4f55\u5728\u51e0\u6b21\u70b9\u51fb\u4e2d\u8ddf\u8e2a\u60a8\u7684\u652f\u51fa\u3002',
+            onboardingEmployerOrSubmitMessage: '收款就像发送消息一样简单。让我们来了解一下基础知识。',
+            onboardingPersonalSpendMessage: '以下是几步点击即可跟踪支出的方式。',
             onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
                 hasIntroSelected
-                    ? '\u0023 \u60a8\u7684\u514d\u8d39\u8bd5\u7528\u5df2\u7ecf\u5f00\u59cb\uff01\u8ba9\u6211\u4eec\u5e2e\u60a8\u5b8c\u6210\u8bbe\u7f6e\u3002\n\ud83d\udc4b \u60a8\u597d\uff0c\u6211\u662f\u60a8\u7684 Expensify \u8bbe\u7f6e\u4e13\u5458\u3002\u73b0\u5728\u60a8\u5df2\u7ecf\u521b\u5efa\u4e86\u4e00\u4e2a\u5de5\u4f5c\u533a\uff0c\u8bf7\u5145\u5206\u5229\u7528 30 \u5929\u514d\u8d39\u8bd5\u7528\uff0c\u5e76\u6309\u7167\u4e0b\u9762\u7684\u6b65\u9aa4\u64cd\u4f5c\uff01'
-                    : '\u0023 \u60a8\u7684\u514d\u8d39\u8bd5\u7528\u5df2\u7ecf\u5f00\u59cb\uff01\u8ba9\u6211\u4eec\u5e2e\u60a8\u5b8c\u6210\u8bbe\u7f6e\u3002\n\ud83d\udc4b \u60a8\u597d\uff0c\u6211\u662f\u60a8\u7684 Expensify \u8bbe\u7ece\u4e13\u5458\u3002\u6211\u5df2\u7ecf\u521b\u5efa\u4e86\u4e00\u4e2a\u5de5\u4f5c\u533a\uff0c\u7528\u4e8e\u5e2e\u52a9\u7ba1\u7406\u60a8\u56e2\u961f\u7684\u6536\u636e\u548c\u8d39\u7528\u3002\u4e3a\u4e86\u5145\u5206\u5229\u7528 30 \u5929\u514d\u8d39\u8bd5\u7528\uff0c\u8bf7\u6309\u7167\u4e0b\u9762\u7684\u5269\u4f59\u6b65\u9aa4\u64cd\u4f5c\uff01',
+                    ? '# 您的免费试用已开始！让我们为您设置。\n\n👋 您好，我是您的Expensify设置专家。现在您已经创建了一个工作区，请按照以下步骤充分利用您的30天免费试用！'
+                    : '# 您的免费试用已开始！让我们为您设置。\n👋 您好，我是您的Expensify设置专家。我已经创建了一个工作区来帮助管理您团队的收据和费用。要充分利用您的30天免费试用，只需按照以下剩余的设置步骤操作即可！',
             onboardingTrackWorkspaceMessage:
-                '# \u8ba9\u6211\u4eec\u6765\u8bbe\u7f6e\u60a8\u7684\u5e10\u6237\n\u00f0\u009f\u0091\u008b \u6211\u6765\u5e2e\u5fd9\u4e86\uff01\u4e3a\u4e86\u5e2e\u52a9\u60a8\u5f00\u59cb\uff0c\u6211\u5df2\u4e3a\u4e2a\u4f53\u7ecf\u8425\u8005\u548c\u7c7b\u4f3c\u4f01\u4e1a\u91cf\u8eab\u5b9a\u5236\u4e86\u60a8\u7684\u5de5\u4f5c\u533a\u8bbe\u7f6e\u3002\u60a8\u53ef\u4ee5\u901a\u8fc7\u70b9\u51fb\u4e0b\u9762\u7684\u94fe\u63a5\u6765\u8c03\u6574\u60a8\u7684\u5de5\u4f5c\u533a\uff01\n\n\u4ee5\u4e0b\u662f\u5982\u4f55\u5728\u51e0\u6b21\u70b9\u51fb\u4e2d\u8ddf\u8e2a\u60a8\u7684\u652f\u51fa\uff1a',
-            onboardingChatSplitMessage: '\u4e0e\u670b\u53cb\u5206\u644a\u8d26\u5355\u5c31\u50cf\u53d1\u9001\u6d88\u606f\u4e00\u6837\u7b80\u5355\u3002\u4ee5\u4e0b\u662f\u65b9\u6cd5\u3002',
-            onboardingAdminMessage:
-                '\u4e86\u89e3\u5982\u4f55\u4f5c\u4e3a\u7ba1\u7406\u5458\u7ba1\u7406\u56e2\u961f\u7684\u5de5\u4f5c\u533a\u5e76\u63d0\u4ea4\u81ea\u5df1\u7684\u652f\u51fa\u3002',
-            onboardingLookingAroundMessage:
-                'Expensify \u4ee5\u5176\u652f\u51fa\u3001\u5dee\u65c5\u548c\u516c\u53f8\u5361\u7ba1\u7406\u800c\u95fb\u540d\uff0c\u4f46\u6211\u4eec\u6240\u505a\u7684\u8fdc\u4e0d\u6b62\u4e8e\u6b64\u3002\u8ba9\u6211\u77e5\u9053\u60a8\u5bf9\u4ec0\u4e48\u611f\u5174\u8da3\uff0c\u6211\u4f1a\u5e2e\u52a9\u60a8\u5f00\u59cb\u3002',
-            onboardingTestDriveReceiverMessage: '*\u60a8\u5df2\u83b7\u5f97 3 \u4e2a\u6708\u514d\u8d39\u4f7f\u7528\u6743\uff01\u5728\u4e0b\u9762\u5f00\u59cb\u3002*',
+                '# 让我们为您设置\n\n👋 我来帮您！为了帮助您入门，我已为个体经营者和类似企业定制了您的工作区设置。您可以通过点击下面的链接来调整您的工作区！\n\n以下是几步点击即可跟踪支出的方式：',
+            onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',
+            onboardingAdminMessage: '了解如何作为管理员管理您团队的工作区并提交您自己的费用。',
+            onboardingLookingAroundMessage: 'Expensify以费用、旅行和公司卡管理而闻名，但我们做的远不止这些。请告诉我您感兴趣的内容，我会帮助您开始。',
+            onboardingTestDriveReceiverMessage: '*您已获得3个月免费使用！请在下方开始。*',
         },
         workspace: {
             title: '使用工作区保持井井有条',
@@ -2681,14 +2685,13 @@ const translations = {
         time: '时间',
         clearAfter: '清除后',
         whenClearStatus: '我们应该何时清除您的状态？',
-        vacationDelegate: '\u4F11\u5047\u4EE3\u7406\u4EBA',
-        setVacationDelegate: '\u8BBE\u7F6E\u4E00\u4F4D\u4F11\u5047\u4EE3\u7406\u4EBA\uFF0C\u5728\u60A8\u5916\u51FA\u65F6\u4EE3\u60A8\u6279\u51C6\u62A5\u544A\u3002',
-        vacationDelegateError: '\u66F4\u65B0\u4F11\u5047\u4EE3\u7406\u4EBA\u65F6\u51FA\u9519\u3002',
-        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `\u4F5C\u4E3A ${managerName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
-        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) =>
-            `\u53D1\u9001\u7ED9 ${submittedToName}\uFF0C\u4F5C\u4E3A ${vacationDelegateName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
+        vacationDelegate: '休假代理人',
+        setVacationDelegate: '设置一位休假代理人，在您外出时代您批准报告。',
+        vacationDelegateError: '更新休假代理人时出错。',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `作为 ${managerName} 的休假代理人`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `发送给 ${submittedToName}，作为 ${vacationDelegateName} 的休假代理人`,
         vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
-            `\u60A8\u6B63\u5728\u6307\u5B9A ${nameOrEmail} \u4F5C\u4E3A\u60A8\u7684\u4F11\u5047\u4EE3\u7406\u4EBA\u3002\u4ED6/\u5979\u8FD8\u672A\u52A0\u5165\u60A8\u7684\u6240\u6709\u5DE5\u4F5C\u7A7A\u95F4\u3002\u5982\u679C\u60A8\u9009\u62E9\u7EE7\u7EED\uFF0C\u5C06\u5411\u6240\u6709\u5DE5\u4F5C\u7A7A\u95F4\u7BA1\u7406\u5458\u53D1\u9001\u90AE\u4EF6\uFF0C\u901A\u77E5\u4ED6\u4EEC\u6DFB\u52A0\u8BE5\u4EBA\u3002`,
+            `您正在指定 ${nameOrEmail} 作为您的休假代理人。他/她还未加入您的所有工作空间。如果您选择继续，将向所有工作空间管理员发送邮件，通知他们添加该人。`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `步骤 ${step}`;
