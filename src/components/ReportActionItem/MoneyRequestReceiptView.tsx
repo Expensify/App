@@ -307,10 +307,14 @@ function MoneyRequestReceiptView({
                             />
                         </View>
                     )}
+                    {!!shouldShowAuditMessage && hasReceipt && (
+                        <View style={styles.mt3}>
+                            <ReceiptAuditMessages notes={receiptImageViolations} />
+                        </View>
+                    )}
                 </OfflineWithFeedback>
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-            {!!shouldShowAuditMessage && <ReceiptAuditMessages notes={receiptImageViolations} />}
             <ConfirmModal
                 isVisible={showConfirmDismissReceiptError}
                 onConfirm={() => {
