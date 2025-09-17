@@ -4777,21 +4777,18 @@ describe('ReportUtils', () => {
 
         const policyTest: Policy = {
             ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.CORPORATE,
             employeeList: {
                 [currentUserEmail]: {
                     role: CONST.POLICY.ROLE.AUDITOR,
                 },
             },
+            role: CONST.POLICY.ROLE.AUDITOR,
         };
 
-        beforeAll(() => {
-            Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [ONYXKEYS.COLLECTION.POLICY]: {
-                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyTest,
-                },
-            });
-            return waitForBatchedUpdates();
+        beforeAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policyTest);
         });
 
         afterAll(() => Onyx.clear());
@@ -4802,6 +4799,21 @@ describe('ReportUtils', () => {
 
         it('should return false for non-admin of a group policy', () => {
             expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, approvedReport, false)).toBe(false);
+        });
+
+        it('should return true for a reimburser of a group policy on a closed report', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, achAccount: {reimburser: currentUserEmail}});
+
+            const closedReport: Report = {
+                ...createRandomReport(2),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                managerID: currentUserAccountID + 1,
+                policyID: policyTest.id,
+            };
+
+            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, closedReport, false)).toBe(true);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
