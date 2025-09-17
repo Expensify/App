@@ -68,8 +68,7 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if bridge.has_value_std__optional_std__string_(self.__firstName) {
-          let __unwrapped = bridge.get_std__optional_std__string_(self.__firstName)
+        if let __unwrapped = self.__firstName.value {
           return String(__unwrapped)
         } else {
           return nil
@@ -92,8 +91,7 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if bridge.has_value_std__optional_std__string_(self.__lastName) {
-          let __unwrapped = bridge.get_std__optional_std__string_(self.__lastName)
+        if let __unwrapped = self.__lastName.value {
           return String(__unwrapped)
         } else {
           return nil
@@ -116,8 +114,7 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> [StringHolder]? in
-        if bridge.has_value_std__optional_std__vector_StringHolder__(self.__phoneNumbers) {
-          let __unwrapped = bridge.get_std__optional_std__vector_StringHolder__(self.__phoneNumbers)
+        if let __unwrapped = self.__phoneNumbers.value {
           return __unwrapped.map({ __item in __item })
         } else {
           return nil
@@ -146,8 +143,7 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> [StringHolder]? in
-        if bridge.has_value_std__optional_std__vector_StringHolder__(self.__emailAddresses) {
-          let __unwrapped = bridge.get_std__optional_std__vector_StringHolder__(self.__emailAddresses)
+        if let __unwrapped = self.__emailAddresses.value {
           return __unwrapped.map({ __item in __item })
         } else {
           return nil
@@ -176,8 +172,7 @@ public extension Contact {
     @inline(__always)
     get {
       return { () -> String? in
-        if bridge.has_value_std__optional_std__string_(self.__imageData) {
-          let __unwrapped = bridge.get_std__optional_std__string_(self.__imageData)
+        if let __unwrapped = self.__imageData.value {
           return String(__unwrapped)
         } else {
           return nil

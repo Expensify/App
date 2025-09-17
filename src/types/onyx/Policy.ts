@@ -127,36 +127,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: {
-        /**
-         * fname for uber partner
-         */
-        fname?: string;
-        /**
-         * hash for uber partner
-         */
-        hash: string;
-        /**
-         * id for uber partner
-         */
-        id: string;
-        /**
-         * lname for uber partner
-         */
-        lname?: string;
-        /**
-         * name for uber partner
-         */
-        name: string;
-        /**
-         * query for uber partner
-         */
-        query: string;
-        /**
-         * requestID for uber partner
-         */
-        requestID?: string;
-    };
+    connectFormData: string;
     /**
      * auto invite for uber connection
      */
@@ -197,7 +168,12 @@ type UberReceiptPartner = {
 };
 
 /** Policy Receipt partners */
-type ReceiptPartners = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>;
+type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether receipt partners are enabled */
+        enabled?: boolean;
+    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+>;
 
 /** Policy disabled fields */
 type DisabledFields = {
@@ -1926,9 +1902,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
-
-        /** Whether the Receipt Partners feature is enabled */
-        areReceiptPartnersEnabled?: boolean;
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
