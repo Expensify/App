@@ -865,8 +865,8 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         return;
     }
 
-    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     FraudProtection.sendEvent(EVENTS.ISSUE_ADMIN_ISSUED_VIRTUAL_CARD);
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
         {...parameters, policyID},
