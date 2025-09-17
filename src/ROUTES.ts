@@ -784,9 +784,9 @@ const ROUTES = {
             shouldSubmitExpense?: boolean;
             featureName?: string;
         }) => {
-            const {action, iouType, transactionID, reportID, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false} = params;
+            const {action, iouType, transactionID, reportID, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false, featureName} = params;
             const featureNameParam = featureName ? `/${featureName}` : '';
-            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}${featureName}` as const;
+            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}${featureNameParam}` as const;
 
             const queryParams: Record<string, string> = {};
             if (isCategorizing) {
