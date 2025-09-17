@@ -8,12 +8,11 @@ import CONST from '@src/CONST';
 
 type ActivityIndicatorProps = RNActivityIndicatorProps & {
     testID?: string;
-    timeoutMs?: number;
+    timeout?: number;
 };
 
-function ActivityIndicator({timeoutMs = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, ...rest}: ActivityIndicatorProps) {
+function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, ...rest}: ActivityIndicatorProps) {
     const theme = useTheme();
-    const timeout = timeoutMs ?? (CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT as number);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
