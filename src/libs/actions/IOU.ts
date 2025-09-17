@@ -6225,7 +6225,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 created,
                 merchant,
                 iouReportID: iouReport?.reportID,
-                chatReportID: chatReport?.reportID,
+                // If we are passing selfDMReportID then we shouldn't pass chatReportID as it masks selfDMReportID
+                // i.e. BE fallback to selfDMReportID only if no chatReportID is passed
+                chatReportID: selfDMReportID ? undefined : chatReport?.reportID,
                 transactionID: transaction?.transactionID,
                 reportActionID: iouAction?.reportActionID,
                 createdChatReportActionID,
