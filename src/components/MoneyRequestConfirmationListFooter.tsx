@@ -77,7 +77,7 @@ type MoneyRequestConfirmationListFooterProps = {
     distance: number;
 
     /** The raw numeric amount of the transaction */
-    iouAmount: number;
+    rawAmount: number;
 
     /** The formatted amount of the transaction */
     formattedAmount: string;
@@ -247,7 +247,7 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
-    iouAmount,
+    rawAmount,
     policyTagLists,
     rate,
     receiptFilename,
@@ -343,7 +343,7 @@ function MoneyRequestConfirmationListFooter({
             reportID,
             selectedPolicy?.id,
             selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
-            iouAmount ?? transaction?.amount ?? 0,
+            rawAmount ?? transaction?.amount ?? 0,
             currency,
         );
         selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
@@ -1026,7 +1026,7 @@ export default memo(
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
-        prevProps.iouAmount === nextProps.iouAmount &&
+        prevProps.rawAmount === nextProps.rawAmount &&
         prevProps.formattedAmount === nextProps.formattedAmount &&
         prevProps.formError === nextProps.formError &&
         prevProps.hasRoute === nextProps.hasRoute &&
