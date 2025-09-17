@@ -89,6 +89,7 @@ type ExpensifyProps = {
 };
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
+    const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
@@ -231,7 +232,7 @@ function Expensify() {
         });
 
         // Open chat report from a deep link (only mobile native)
-        const linkingChangeListener = Linking.addEventListener('url', (state) => {
+        linkingChangeListener.current = Linking.addEventListener('url', (state) => {
             Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
@@ -239,11 +240,13 @@ function Expensify() {
         }
 
         return () => {
-            if (!appStateChangeListener.current) {
+            if (appStateChangeListener.current) {
+                appStateChangeListener.current.remove();
+            }
+            if (!linkingChangeListener.current) {
                 return;
             }
-            appStateChangeListener.current.remove();
-            linkingChangeListener.remove();
+            linkingChangeListener.current.remove();
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [sessionMetadata?.status]);
