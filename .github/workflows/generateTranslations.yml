@@ -18,6 +18,9 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@c02a7a6fa90fbf0fec054092dc439b42b775cfb3
+
       - name: Check if English translations were modified
         id: check-en-changes
         run: |
