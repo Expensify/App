@@ -28,6 +28,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import FraudProtection, {EVENTS} from '@libs/FraudProtection';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import {translateLocal} from '@libs/Localize';
@@ -68,7 +69,6 @@ import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
-import FraudProtection, { EVENTS } from '@libs/FraudProtection';
 
 const INVALID_TOKEN = 'pizza';
 

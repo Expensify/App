@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import FraudProtection, {EVENTS} from '@libs/FraudProtection';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -165,6 +166,7 @@ function connect(email: string, isFromOldDot = false) {
                     updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    FraudProtection.sendEvent(EVENTS.START_COPILOT_SESSION);
                     confirmReadyToOpenApp();
                     return openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
@@ -260,7 +262,7 @@ function disconnect() {
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
                     NetworkStore.setAuthToken(response?.authToken ?? null);
-
+                    FraudProtection.sendEvent(EVENTS.STOP_COPILOT_SESSION);
                     confirmReadyToOpenApp();
                     openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP) {
