@@ -6946,6 +6946,14 @@ const CONST = {
                 description: 'workspace.upgrade.travel.description' as const,
                 icon: 'Luggage',
             },
+            distanceRates: {
+                id: 'distanceRates' as const,
+                alias: 'distance-rates',
+                name: 'Distance Rates',
+                title: 'workspace.upgrade.distanceRates.title' as const,
+                description: 'workspace.upgrade.distanceRates.description' as const,
+                icon: 'CarIce',
+            },
         };
     },
     REPORT_FIELD_TYPES: {

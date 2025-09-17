@@ -13,12 +13,19 @@ import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ExtendedTargetedEvent,
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +40,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolations} from '@src/types/onyx';
+import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
@@ -100,6 +107,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     areAllOptionalColumnsHidden: boolean;
 
+    newTransactions?: Transaction[];
+
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
@@ -112,6 +121,16 @@ function isTransactionGroupListItemArray(data: SearchListItem[]): data is Transa
     }
     const firstElement = data.at(0);
     return typeof firstElement === 'object' && 'transactions' in firstElement;
+}
+
+function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined) {
+    if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+        return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+        return !!transaction.transactionID;
+    }
+    return false;
 }
 
 function SearchList(
@@ -139,6 +158,7 @@ function SearchList(
         shouldAnimate,
         isMobileSelectionModeEnabled,
         areAllOptionalColumnsHidden,
+        newTransactions = [],
         violations,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
@@ -199,6 +219,7 @@ function SearchList(
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
+            const isReadonlyGroupBy = groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
             }
@@ -208,7 +229,7 @@ function SearchList(
                 return;
             }
             // disable long press for empty expense reports
-            if ('transactions' in item && item.transactions.length === 0) {
+            if ('transactions' in item && item.transactions.length === 0 && !isReadonlyGroupBy) {
                 return;
             }
             if (isMobileSelectionModeEnabled) {
@@ -218,7 +239,7 @@ function SearchList(
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -269,6 +290,8 @@ function SearchList(
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
+            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+
             return (
                 <Animated.View
                     exiting={shouldApplyAnimation && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
@@ -300,11 +323,14 @@ function SearchList(
                         isOffline={isOffline}
                         violations={violations}
                         onFocus={onFocus}
+                        newTransactionID={newTransactionID}
                     />
                 </Animated.View>
             );
         },
         [
+            groupBy,
+            newTransactions,
             shouldAnimate,
             isFocused,
             data.length,
@@ -313,14 +339,13 @@ function SearchList(
             ListItem,
             onSelectRow,
             handleLongPressRow,
-            columns,
             onCheckboxPress,
             canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
             hash,
+            columns,
             policies,
             allReports,
-            groupBy,
             userWalletTierName,
             isUserValidated,
             personalDetails,
@@ -363,7 +388,7 @@ function SearchList(
                             accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
-                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                            <Text style={[styles.textMicroSupporting, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                         </PressableWithFeedback>
                     )}
                 </View>
@@ -386,6 +411,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
+                newTransactions={newTransactions}
             />
             <Modal
                 isVisible={isModalVisible}

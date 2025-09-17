@@ -516,6 +516,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     accountID?: number;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
+    newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
