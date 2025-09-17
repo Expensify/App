@@ -158,7 +158,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        connect(email);
+                        connect({email, delegatedAccess: account?.delegatedAccess});
                     },
                 });
             });
@@ -168,7 +168,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
-        clearDelegatorErrors();
+        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
     return (

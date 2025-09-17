@@ -142,9 +142,15 @@ export default {
     mw100: {
         maxWidth: '100%',
     },
+
+    mwFitContent: {
+        maxWidth: 'fit-content',
+    },
+
     wAuto: {
         width: 'auto',
     },
+
     wFitContent: {
         width: 'fit-content',
     },
