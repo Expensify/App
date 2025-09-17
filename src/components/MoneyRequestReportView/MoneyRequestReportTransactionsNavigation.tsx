@@ -44,7 +44,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
         const currentReportIndex = reportIDsList.findIndex((id) => id === currentReportID);
 
         const prevID = currentReportIndex > 0 ? reportIDsList.at(currentReportIndex - 1) : undefined;
-        const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
+        const nextID = reportIDsList.at(currentReportIndex + 1);
 
         return {
             prevReportID: prevID,
