@@ -981,6 +981,11 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const shouldHideContentBottomSafeAreaPadding = showConfirmButton || !!footerContent;
 
+    const handleOnEndReached = useCallback(() => {
+        onEndReached?.();
+        incrementPage();
+    }, [onEndReached, incrementPage]);
+
     // TODO: test _every_ component that uses SelectionList
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
@@ -1043,7 +1048,7 @@ function BaseSelectionList<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
-                        onEndReached={onEndReached ?? incrementPage}
+                        onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
                         addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
