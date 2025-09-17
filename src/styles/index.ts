@@ -829,10 +829,6 @@ const styles = (theme: ThemeColors) =>
             borderBottomLeftRadius: 0,
         },
 
-        buttonCTA: {
-            ...spacing.mh4,
-        },
-
         buttonCTAIcon: {
             marginRight: 22,
             marginLeft: 8,
@@ -2308,6 +2304,11 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+            }) satisfies ViewStyle,
+
         emojiSkinToneTitle: {
             ...spacing.pv1,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -3708,6 +3709,11 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'flex-start',
         },
 
+        groupSearchListTableContainerStyle: {
+            minHeight: variables.h28,
+            paddingBottom: 0,
+        },
+
         narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
@@ -4030,12 +4036,10 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'middle',
         },
 
-        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
-            ({
-                position: 'absolute',
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
-                ...spacing.mh4,
-            }) satisfies ViewStyle,
+        stickyHeaderEmoji: {
+            position: 'absolute',
+            ...spacing.mh4,
+        } satisfies ViewStyle,
 
         reactionCounterText: {
             fontSize: 13,
@@ -4924,13 +4928,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
-            paddingVertical: 8,
             flex: 1,
             userSelect: 'none',
             alignItems: 'center',
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
+            paddingVertical: 6,
         },
 
         searchQueryListItemStyle: {
