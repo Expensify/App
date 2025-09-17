@@ -1431,5 +1431,84 @@ describe('generateTranslations', () => {
             expect(translateSpy).toHaveBeenCalledTimes(1);
             expect(translateSpy).toHaveBeenCalledWith('it', 'New value added to existing nested structure', undefined);
         });
+
+        it('handles modifying existing string values with --compare-ref', async () => {
+            // Create English source with a modified string value
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    testDrive: {
+                        modal: {
+                            helpText: 'Skip it if you dare',
+                        },
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with the old value
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    testDrive: {
+                        modal: {
+                            helpText: '[it] Skip',
+                        },
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock Git.diff to show the string was modified
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set(),
+                        removedLines: new Set(),
+                        modifiedLines: new Set([4]), // Line with the modified string
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version of en.ts
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    testDrive: {
+                        modal: {
+                            helpText: 'Skip',
+                        },
+                    },
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should update the modified string
+            expect(itContent).toContain('[it] Skip it if you dare');
+            // The old translation should be replaced, not preserved
+            expect(itContent).not.toContain("helpText: '[it] Skip',");
+
+            // Should translate the modified string
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Skip it if you dare', undefined);
+        });
     });
 });

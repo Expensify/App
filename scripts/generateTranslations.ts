@@ -598,15 +598,15 @@ class TranslationGenerator {
             }
 
             if (this.verbose) {
-                console.log(`🔍 Found ${changedLines.addedLines.size} added lines, ${changedLines.removedLines.size} removed lines`);
+                console.log(`🔍 Found ${changedLines.addedLines.size} added lines, ${changedLines.removedLines.size} removed lines, ${changedLines.modifiedLines.size} modified lines`);
             }
 
             // Traverse current en.ts for added and modified paths
-            this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, new Set());
+            this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), new Set());
 
             // For removed paths, we need to traverse the old version of en.ts
-            if (changedLines.removedLines.size > 0) {
-                this.extractRemovedPaths(changedLines.removedLines);
+            if (changedLines.removedLines.size > 0 || changedLines.modifiedLines.size > 0) {
+                this.extractRemovedPaths(new Set([...changedLines.removedLines, ...changedLines.modifiedLines]));
             }
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
