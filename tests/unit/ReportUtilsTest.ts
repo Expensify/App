@@ -8,6 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
@@ -66,6 +67,7 @@ import {
     isReportOutstanding,
     isRootGroupChat,
     parseReportRouteParams,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
@@ -6603,6 +6605,111 @@ describe('ReportUtils', () => {
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
+        });
+    });
+
+    describe('populateOptimisticReportFormula', () => {
+        const mockPolicy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: 'test@example.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            harvesting: {
+                enabled: true,
+            },
+            defaultBillable: false,
+            disabledFields: {},
+            fieldList: {},
+            customUnits: {},
+            areCategoriesEnabled: true,
+            areTagsEnabled: true,
+            areDistanceRatesEnabled: true,
+            areWorkflowsEnabled: true,
+            areReportFieldsEnabled: true,
+            areConnectionsEnabled: true,
+            pendingAction: undefined,
+            errors: {},
+            isLoading: false,
+            errorFields: {},
+        };
+
+        const mockReport = {
+            reportID: '123456789',
+            reportName: 'Test Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 1,
+            currency: CONST.CURRENCY.USD,
+            total: -5000,
+            lastVisibleActionCreated: '2024-01-15 10:30:00',
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            chatReportID: 'chat-123',
+            policyID: 'test-policy-id',
+            participants: {},
+            parentReportID: 'chat-123',
+        };
+
+        it('should handle NaN total gracefully', () => {
+            const reportWithNaNTotal = {
+                ...mockReport,
+                total: NaN,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithNaNTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+
+        it('should replace {report:total} with formatted amount', () => {
+            const result = populateOptimisticReportFormula('{report:total}', mockReport, mockPolicy);
+            expect(result).toBe('$50.00');
+        });
+
+        it('should replace {report:id} with base62 report ID', () => {
+            const result = populateOptimisticReportFormula('{report:id}', mockReport, mockPolicy);
+            expect(result).toBe(getBase62ReportID(Number(mockReport.reportID)));
+        });
+
+        it('should replace multiple placeholders correctly', () => {
+            const formula = 'Report {report:id} has total {report:total}';
+            const result = populateOptimisticReportFormula(formula, mockReport, mockPolicy);
+            const expectedId = getBase62ReportID(Number(mockReport.reportID));
+            expect(result).toBe(`Report ${expectedId} has total $50.00`);
+        });
+
+        it('should handle undefined total gracefully', () => {
+            const reportWithUndefinedTotal = {
+                ...mockReport,
+                total: undefined,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithUndefinedTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+
+        it('should handle complex formula with multiple placeholders and some invalid values', () => {
+            const formula = 'ID: {report:id}, Total: {report:total}, Type: {report:type}';
+            const reportWithNaNTotal = {
+                ...mockReport,
+                total: NaN,
+            };
+            const expectedId = getBase62ReportID(Number(mockReport.reportID));
+            const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
+            expect(result).toBe(`ID: ${expectedId}, Total: , Type: Expense Report`);
+        });
+
+        it('should handle missing total gracefully', () => {
+            const reportWithMissingTotal = {
+                ...mockReport,
+                total: undefined,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithMissingTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
         });
     });
     describe('canSeeDefaultRoom', () => {
