@@ -20,6 +20,7 @@ import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
+import {ModalProvider} from './components/Modal/Global';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -48,6 +49,7 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import './setup/backgroundTask';
+import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
@@ -119,6 +121,7 @@ function App() {
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
+                                        ModalProvider,
                                         SidePanelContextProvider,
                                     ]}
                                 >
