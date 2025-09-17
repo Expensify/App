@@ -132,6 +132,7 @@ import {
     getActivePolicies,
     getCleanedTagName,
     getConnectedIntegration,
+    getCorrectedAutoReportingFrequency,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -1853,6 +1854,16 @@ function isOpenReport(report: OnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
+/**
+ * Determines if a report requires manual submission based on policy settings and report state
+ */
+function requiresManualSubmission(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+
+    // The report needs manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
+    return isManualSubmitEnabled || (isOpenReport(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
+}
+
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
@@ -2585,9 +2596,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) ||
-            canApproveIOU(iouReport, policy, transactions) ||
-            canSubmitReport(currentUserAccountID, iouReport, reportActions, policy, transactions, undefined, false)
+            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
         );
     });
 }
@@ -2672,6 +2681,9 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
                 return canDeleteTransaction(report) && isCardTransactionCanBeDeleted;
+            }
+            if (isTrackExpenseAction(reportAction)) {
+                return isCardTransactionCanBeDeleted;
             }
             return true;
         }
@@ -4542,6 +4554,11 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
     if (!transactionID || !moneyRequestReportID) {
         Log.warn('Missing transactionID and moneyRequestReportID during the change of the money request hold status');
         return;
+    }
+
+    const report = getReport(moneyRequestReportID, allReports);
+    if (isInvoiceReport(report) || isIOUReport(report)) {
+        return; // Disable invoice
     }
 
     const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
@@ -11488,6 +11505,7 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
+    const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
     const userCanReject = (isReportApprover && isCurrentUserManager) || isReportPayer;
@@ -11497,7 +11515,11 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
     }
 
     if (isIOU) {
-        return true; // IOU reports can always be rejected by approver/payer
+        return false; // Disable IOU
+    }
+
+    if (isInvoice) {
+        return false; // Disable invoice
     }
 
     if (isReportBeingProcessed) {
@@ -11928,6 +11950,7 @@ export {
     isPolicyExpenseChatAdmin,
     isProcessingReport,
     isOpenReport,
+    requiresManualSubmission,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicAnnounceRoom,

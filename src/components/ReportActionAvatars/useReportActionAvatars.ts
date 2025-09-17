@@ -199,7 +199,7 @@ function useReportActionAvatars({
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
-    const isNestedInInvoiceReport = !!invoiceReport;
+    const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
     const isChatReportOnlyProp = !iouReport && chatReport;
     const isWorkspaceChatWithoutChatReport = !chatReport && isAWorkspaceChat;
