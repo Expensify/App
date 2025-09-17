@@ -20,7 +20,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useBulkOptions from '@hooks/useBulkOptions';
+import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -113,7 +113,7 @@ function SearchPage({route}: SearchPageProps) {
         [selectedTransactions],
     );
 
-    const {bulkPayButtonOptions, latestBankItems} = useBulkOptions({
+    const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
     });

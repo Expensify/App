@@ -15,19 +15,22 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
-type UseBulkOptionProps = {
+type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
     selectedReportID: string | undefined;
     lastPaymentMethod?: string | undefined;
     onPress?: (paymentType: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined, policyID?: string) => void;
 };
 
-type UseBulkOptionReturnType = {
+type UseBulkPayOptionReturnType = {
     bulkPayButtonOptions: PopoverMenuItem[] | undefined;
     latestBankItems: BankAccountMenuItem[] | undefined;
 };
 
-function useBulkOptions({selectedPolicyID, selectedReportID}: UseBulkOptionProps): UseBulkOptionReturnType {
+/**
+ * Returns the payment options for the selected reports or transactions when they are being paid for the first time.
+ */
+function useBulkPayOptions({selectedPolicyID, selectedReportID}: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -108,4 +111,4 @@ function useBulkOptions({selectedPolicyID, selectedReportID}: UseBulkOptionProps
     };
 }
 
-export default useBulkOptions;
+export default useBulkPayOptions;
