@@ -1,10 +1,12 @@
+import type {ParamListBase} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {useMemo} from 'react';
+import {useCallback, useContext} from 'react';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import variables from '@styles/variables';
+import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 function useModalStackScreenOptions() {
     const styles = useThemeStyles();
@@ -14,26 +16,36 @@ function useModalStackScreenOptions() {
     // https://github.com/Expensify/App/issues/63747
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
-    const cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+    return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
+        ({route}) => {
+            let cardStyleInterpolator;
 
-    return useMemo(
-        (): PlatformStackNavigationOptions => ({
-            ...hideKeyboardOnSwipe,
-            headerShown: false,
-            animationTypeForReplace: 'pop',
-            native: {
-                contentStyle: styles.navigationScreenCardStyle,
-            },
-            web: {
-                cardStyle: {
-                    ...styles.navigationScreenCardStyle,
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+            if (wideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
+                // We need to use interpolator styles instead of regular card styles so we can use animated value for width.
+                // It is necessary to have responsive width of the wide RHP for range 800px to 840px.
+                cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                });
+            } else {
+                cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+            }
+
+            return {
+                ...hideKeyboardOnSwipe,
+                headerShown: false,
+                animationTypeForReplace: 'pop',
+                native: {
+                    contentStyle: styles.navigationScreenCardStyle,
                 },
-                cardStyleInterpolator,
-            },
-        }),
-        [cardStyleInterpolator, isSmallScreenWidth, styles.navigationScreenCardStyle],
+                web: {
+                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyleInterpolator,
+                },
+            };
+        },
+        [isSmallScreenWidth, styles.navigationScreenCardStyle, styles.wideRHPExtendedCardInterpolatorStyles, wideRHPRouteKeys],
     );
 }
 
