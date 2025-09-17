@@ -419,32 +419,6 @@ validateAndSubmitForm() {
 }
 ```
 
-## Directory structure
-Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
-created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
-
-- components: React native components that are re-used in several places.
-- libs: Library classes/functions, these are not React native components (ie: they are not UI)
-- pages: These are components that define pages in the app. The component that defines the page itself should be named
-`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`
-- styles: These files define styles used among components/pages
-- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo
-
-**Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
-
-## File naming/structure
-Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
-
-- If you export a constant named `CONST`, its file/directory should be named the `CONST`.
-- If you export a component named `Text`, the file/directory should be named `Text`.
-- If you export a function named `guid`, the file/directory should be named `guid`.
-- For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withReportOrNotFound`.
-- All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
-
-## Platform-Specific File Extensions
-This section has moved [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
-
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
@@ -607,19 +581,8 @@ If you seek some additional information you can always refer to the [extended ve
 
 # Philosophy
 This application is built with the following principles.
-1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
-    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this step is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
-    2. Disk pushes data to the UI (Onyx -> useOnyx() -> React component).
-    3. UI pushes data to people's brains (React component -> device screen).
-    4. Brain pushes data into UI inputs (Device input -> React component).
-    5. UI inputs push data to the server (React component -> Action -> XHR to server).
-    6. Go to 1
-    ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
-1. **Offline first**
-    - Be sure to read [OFFLINE.md](contributingGuides/philosophies/OFFLINE.md)!
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
-    - All data that is displayed, comes from persistent storage.
+1. [Data Flow](contributingGuides/philosophies/DATA-FLOW.md)
+1. [Offline First](contributingGuides/philosophies/OFFLINE.md)
 1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Onyx (using `useOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
@@ -645,8 +608,7 @@ This application is built with the following principles.
         4. server responds
         5. UI updates with data from the server
 
-1. **Cross Platform 99.9999%**
-See details [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
+1. [Cross Platform](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 
