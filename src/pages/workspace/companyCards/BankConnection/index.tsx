@@ -80,6 +80,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!url) {
             return;
         }
+        // eslint-disable-next-line react-compiler/react-compiler
         customWindow = openBankConnection(url);
     }, [url]);
 
