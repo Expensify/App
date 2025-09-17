@@ -3,6 +3,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPolicy} from '@libs/PolicyUtils';
@@ -98,6 +99,14 @@ function addSchoolPrincipal(
 
     const optimisticData: OnyxUpdate[] = [
         {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+        {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
@@ -139,6 +148,13 @@ function addSchoolPrincipal(
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {pendingAction: null},
         },
@@ -173,6 +189,14 @@ function addSchoolPrincipal(
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
+            value: {
+                isLoading: false,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 [sessionEmail]: null,
@@ -199,7 +223,6 @@ function addSchoolPrincipal(
     };
 
     API.write(WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport({reportID: expenseChatReportID});
 }
 
 export default {referTeachersUniteVolunteer, addSchoolPrincipal};
