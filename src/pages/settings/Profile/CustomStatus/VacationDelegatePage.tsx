@@ -64,7 +64,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, excludeLogins]);
+    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, excludeLogins]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {

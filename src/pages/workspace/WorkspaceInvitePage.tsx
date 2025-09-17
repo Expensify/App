@@ -96,7 +96,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         const inviteOptions = getMemberInviteOptions(options.personalDetails, draftComments, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+    }, [areOptionsInitialized, betas, draftComments, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(
         () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),

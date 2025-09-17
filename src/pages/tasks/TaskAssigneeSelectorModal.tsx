@@ -74,7 +74,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, draftComments, betas, isLoading]);
 
     const optionsWithoutCurrentUser = useMemo(() => {
         if (!session?.accountID) {

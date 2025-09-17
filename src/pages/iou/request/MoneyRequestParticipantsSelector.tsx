@@ -193,16 +193,17 @@ function MoneyRequestParticipantsSelector(
             ...orderedOptions,
         };
     }, [
-        action,
-        contacts,
         areOptionsInitialized,
-        betas,
         didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
         options.reports,
+        options.personalDetails,
+        contacts,
+        draftComments,
+        betas,
         participants,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
     ]);
