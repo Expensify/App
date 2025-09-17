@@ -4,6 +4,7 @@ The UI binds to the data stored on the local device's database (Onyx).
 - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
 
 ## Rules
+### - The UI MUST use `useOnyx` to subscribe to changes in Onyx data
 ### - The UI MUST NOT call any Onyx methods directly
 ### - The UI MUST trigger an an action when something needs to happen
 For example, a person inputs data, the UI calls an action and passes the user's input.
@@ -16,3 +17,12 @@ Do not wait for one action to finish before calling another action. If you find 
 
 ### - Action methods SHOULD not return a promise
 Returning a promise is the first sign that the rule above this is being broken. Let the UI react to changes to Onyx data that is modified in the action instead.
+
+### - Library files that are not connected or associated to any UI SHOULD use `Onyx.connectWithoutView()` to subscribe to changes in Onyx data
+Library files are the files located in `/src/lib` but excluding the actions in `/src/lib/actions`.
+
+Exclusions:
+- If a library method is used by an action method (like a utility), then follow the rule below for action methods
+
+### - Action methods (`/src/lib/actions`) SHOULD be pure functions and not access global data
+Pure functions are ones that have all necessary data passed as parameters and do not create side-effects.
