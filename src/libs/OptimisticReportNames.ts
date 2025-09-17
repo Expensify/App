@@ -167,6 +167,20 @@ function isValidReportType(reportType?: string): boolean {
     );
 }
 
+function getNewReportFromUpdates(reportID: string, updates: OnyxUpdate[]): Report | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const newReportUpdate = updates.find((u) => u.key === reportKey && u.onyxMethod === Onyx.METHOD.SET);
+
+    if (!newReportUpdate || !newReportUpdate.value) {
+        return undefined;
+    }
+
+    return newReportUpdate.value as Report;
+}
+
 /**
  * Compute a new report name if needed based on an optimistic update
  */
@@ -316,6 +330,13 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     report = getReportByID(transactionUpdate.reportID, allReports);
                 } else {
                     report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
+                }
+
+                // In FAB expense creation, reports and transactions may be created in the same batch.
+                // Since formulas (e.g., {report:startdate}, {report:total}) depend on transaction data,
+                // we must find the new report from the updates to compute names correctly.
+                if (!report && transactionUpdate.reportID) {
+                    report = getNewReportFromUpdates(transactionUpdate.reportID, updates);
                 }
 
                 if (report) {
