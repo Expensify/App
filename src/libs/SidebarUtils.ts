@@ -14,7 +14,6 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {hasValidDraftComment} from './DraftCommentUtils';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
@@ -203,12 +202,7 @@ function shouldDisplayReportInLHN(
     const isSystemChat = isSystemChatUtil(report);
     const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
     const shouldOverrideHidden =
-        hasValidDraftComment(report.reportID, draftComment) ||
-        hasErrorsOtherThanFailedReceipt ||
-        isFocused ||
-        isSystemChat ||
-        !!report.isPinned ||
-        reportAttributes?.[report?.reportID]?.requiresAttention;
+        !!draftComment || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -367,7 +361,7 @@ function categorizeReportsForLHN(
         const isPinned = !!report.isPinned;
         const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
         const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-        const hasDraft = reportID ? hasValidDraftComment(reportID, draftComment) : false;
+        const hasDraft = !!draftComment;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);

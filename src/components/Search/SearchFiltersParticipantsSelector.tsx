@@ -51,6 +51,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -62,6 +63,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
+            draftComments,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,

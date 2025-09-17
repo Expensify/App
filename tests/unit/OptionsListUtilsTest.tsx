@@ -1332,7 +1332,7 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an excluded logins list', () => {
             const searchText = 'admin@expensify.com';
             // Given a set of options with excluded logins list
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},{}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
             // When we call filterAndOrderOptions with a search value and excluded logins list
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
@@ -1343,7 +1343,7 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}});
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
@@ -1354,7 +1354,7 @@ describe('OptionsListUtils', () => {
         it('should return limited amount of recent reports if the limit is set', () => {
             const searchText = '';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}});
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {maxRecentReportsToShow: 2});
 
@@ -1372,7 +1372,7 @@ describe('OptionsListUtils', () => {
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, betas: [CONST.BETAS.ALL]});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1464,7 +1464,7 @@ describe('OptionsListUtils', () => {
 
         it('should show the option from personal details when searching for personal detail with no existing report', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, , personalDetails: OPTIONS.personalDetails}, {});
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
             const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE);
 
@@ -1478,7 +1478,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE);
 
@@ -1491,7 +1491,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE);
 
@@ -1504,7 +1504,7 @@ describe('OptionsListUtils', () => {
 
         it('should return user to invite when search term has a period with options for it that do not contain the period', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE);
 
@@ -1516,7 +1516,7 @@ describe('OptionsListUtils', () => {
 
         it('should return user which has displayName with accent mark when search value without accent mark', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value without accent mark
             const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE);
 
@@ -1526,7 +1526,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE);
 
@@ -1541,7 +1541,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE);
 
@@ -1556,7 +1556,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE);
 
@@ -1571,7 +1571,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options or user to invite if contact number contains alphabet characters', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE);
 
@@ -1584,7 +1584,7 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE);
 
@@ -1594,7 +1594,7 @@ describe('OptionsListUtils', () => {
 
         it('should return one recent report and no personal details if a search value provides an email', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
@@ -1608,7 +1608,7 @@ describe('OptionsListUtils', () => {
 
         it('should return all matching reports and personal details', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            const options = getValidOptions({reports: OPTIONS.reports, draftComments: {}, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
             const filteredOptions = filterAndOrderOptions(options, '.com', COUNTRY_CODE, {maxRecentReportsToShow: 5});
 
@@ -1625,7 +1625,7 @@ describe('OptionsListUtils', () => {
 
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}});
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE);
 
@@ -1637,7 +1637,7 @@ describe('OptionsListUtils', () => {
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}});
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE);
 

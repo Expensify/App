@@ -83,7 +83,6 @@ import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, Onboar
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {hasValidDraftComment} from './DraftCommentUtils';
 import {getEnvironment, getEnvironmentURL} from './Environment/Environment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
@@ -8500,7 +8499,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Retrieve the draft comment for the report and convert it to a boolean
-    const hasDraftComment = hasValidDraftComment(report.reportID, draftComment);
+    const hasDraftComment = !!draftComment;
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

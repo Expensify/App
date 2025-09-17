@@ -176,6 +176,7 @@ function SearchAutocompleteList(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const taxRates = getAllTaxRates();
 
@@ -184,8 +185,20 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS, true, true, false, true);
-    }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
+        return getSearchOptions({
+            options,
+            draftComments,
+            betas: betas ?? [],
+            isUsedInChatFinder: true,
+            includeReadOnly: true,
+            searchQuery: autocompleteQueryValue,
+            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+            includeUserToInvite: true,
+            includeRecentReports: true,
+            includeCurrentUser: true,
+            shouldShowGBR: false,
+        });
+    }, [areOptionsInitialized, options, draftComments, betas, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
 

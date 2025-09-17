@@ -28,13 +28,6 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Mock DraftCommentUtils
-jest.mock('@libs/DraftCommentUtils', () => ({
-    hasValidDraftComment: jest.fn(),
-    isValidDraftComment: jest.fn(),
-    prepareDraftComment: jest.fn(),
-}));
-
 // Mock PolicyUtils
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -1518,10 +1511,6 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                // Given hasValidDraftComment is mocked to return true for report '2'
-                const {hasValidDraftComment} = require('@libs/DraftCommentUtils') as {hasValidDraftComment: jest.Mock};
-                hasValidDraftComment.mockImplementation((reportID: string, draftComment: string | null) => reportID === '2' && draftComment === 'test');
-
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
                 // Given reportsDrafts contains a draft comment for report '2'
