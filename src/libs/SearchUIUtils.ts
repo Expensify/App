@@ -1708,15 +1708,22 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
 
         // We don't use nullish coalescing because empty strings can be returned for the modifiedCreated and created dates
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated || a.transactions?.at(0)?.created || DateUtils.extractDate(a.created);
+        const aModifiedCreated = a.transactions?.at(0)?.modifiedCreated || a.transactions?.at(0)?.created || '';
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated || b.transactions?.at(0)?.created || DateUtils.extractDate(b.created);
+        const bModifiedCreated = b.transactions?.at(0)?.modifiedCreated || b.transactions?.at(0)?.created || '';
 
-        if (!aNewestTransaction || !bNewestTransaction) {
+        // If the date string doesnt have a time, it should be lower on the list than items with a time. This ensures that recently created
+        // reports with no transactions show up at the top of the list, in the correct order
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const aDate = DateUtils.combineDateAndTime('00:00:00', aModifiedCreated) || a.created;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const bDate = DateUtils.combineDateAndTime('00:00:00', bModifiedCreated) || b.created;
+
+        if (!aDate || !bDate) {
             return 0;
         }
 
-        return localeCompare(bNewestTransaction.toLowerCase(), aNewestTransaction.toLowerCase());
+        return localeCompare(bDate.toLowerCase(), aDate.toLowerCase());
     });
 }
 
