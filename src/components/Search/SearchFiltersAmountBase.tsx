@@ -27,7 +27,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [selectedModifier, setSelectedModifier] = useState<string | null>(null);
+    const [selectedModifier, setSelectedModifier] = useState<typeof CONST.SEARCH.AMOUNT_MODIFIERS[keyof typeof CONST.SEARCH.AMOUNT_MODIFIERS] | null>(null);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
@@ -97,7 +97,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
-    const getTitle = useMemo(() => {
+    const fieldTitle = useMemo(() => {
         switch (selectedModifier) {
             case CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO:
                 return translate('search.filters.amount.equalTo');
@@ -114,12 +114,19 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         if (!selectedModifier) {
             return undefined;
         }
-        const fieldKey = `${filterKey}${selectedModifier}` as keyof SearchAdvancedFiltersForm;
-        const value = searchAdvancedFiltersForm?.[fieldKey];
-        return value ? convertToFrontendAmountAsString(Number(value)) : undefined;
+        switch (selectedModifier) {
+            case CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO:
+                return equalToFormattedAmount;
+            case CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN:
+                return greaterThanFormattedAmount;
+            case CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN:
+                return lessThanFormattedAmount;
+            default:
+                return undefined;
+        }
     };
 
-    const handleModifierSelect = (modifier: string) => {
+    const handleModifierSelect = (modifier: typeof CONST.SEARCH.AMOUNT_MODIFIERS[keyof typeof CONST.SEARCH.AMOUNT_MODIFIERS]) => {
         setSelectedModifier(modifier);
     };
 
@@ -127,7 +134,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         return (
             <ScreenWrapper testID={testID}>
                 <HeaderWithBackButton
-                    title={getTitle}
+                    title={fieldTitle}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
                 />
                 <View style={styles.flex1}>
@@ -171,7 +178,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         <ScreenWrapper testID={testID}>
             <HeaderWithBackButton
                 onBackButtonPress={goBack}
-                title={getTitle}
+                title={fieldTitle}
             />
             <FormProvider
                 style={[styles.flex1, styles.ph4]}
@@ -186,8 +193,8 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         inputID={`${filterKey}${selectedModifier}`}
                         name={`${filterKey}${selectedModifier}`}
                         defaultValue={getCurrentValue()}
-                        label={getTitle}
-                        accessibilityLabel={getTitle}
+                        label={fieldTitle}
+                        accessibilityLabel={fieldTitle}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         inputMode={CONST.INPUT_MODE.DECIMAL}

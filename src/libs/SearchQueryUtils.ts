@@ -142,9 +142,9 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
  * Returns amount filter value for QueryString.
  */
 function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm];
-    const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm];
-    const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm];
+    const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
+    const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
+    const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
 
     const amountStrings = [];
 
