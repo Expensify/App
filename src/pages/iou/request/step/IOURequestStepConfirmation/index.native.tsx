@@ -417,17 +417,28 @@ function IOURequestStepConfirmation({
                 }
 
                 const onSuccess = (receipt: Receipt) => {
+                    let processedReceipt: Receipt;
+
                     if (item?.receipt?.isTestReceipt) {
-                        receipt.isTestReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+                        processedReceipt = {
+                            ...receipt,
+                            isTestReceipt: true,
+                            state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                        };
                     } else if (item?.receipt?.isTestDriveReceipt) {
-                        receipt.isTestDriveReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+                        processedReceipt = {
+                            ...receipt,
+                            isTestDriveReceipt: true,
+                            state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                        };
                     } else {
-                        receipt.state = receipt && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+                        processedReceipt = {
+                            ...receipt,
+                            state: receipt && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                        };
                     }
 
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
+                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: processedReceipt};
                 };
 
                 const onFailure = () => {
