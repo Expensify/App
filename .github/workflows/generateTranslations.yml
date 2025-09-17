@@ -47,6 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Fetch base ref
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
         run: git fetch --no-tags --depth=1 --no-recurse-submodules origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/heads/${{ github.event.pull_request.base.ref }}
 
       - name: Run generateTranslations for added translations
