@@ -9,6 +9,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
@@ -66,8 +67,10 @@ import {
     isReportOutstanding,
     isRootGroupChat,
     parseReportRouteParams,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
+    requiresManualSubmission,
     shouldDisableRename,
     shouldDisableThread,
     shouldReportBeInOptionList,
@@ -4122,6 +4125,52 @@ describe('ReportUtils', () => {
             expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
         });
 
+        it('should return false for unreported card expense imported with deleting disabled', async () => {
+            // Given the unreported card expense import with deleting disabled
+            const selfDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+            };
+
+            const trackExpenseAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '$1.00 expense',
+                        text: '$1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // Then it should return false since the unreported card expense is imported with deleting disabled
+            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction)).toBe(false);
+        });
+
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
             const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.PERSONAL};
 
@@ -4690,21 +4739,18 @@ describe('ReportUtils', () => {
 
         const policyTest: Policy = {
             ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.CORPORATE,
             employeeList: {
                 [currentUserEmail]: {
                     role: CONST.POLICY.ROLE.AUDITOR,
                 },
             },
+            role: CONST.POLICY.ROLE.AUDITOR,
         };
 
-        beforeAll(() => {
-            Onyx.multiSet({
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [ONYXKEYS.COLLECTION.POLICY]: {
-                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyTest,
-                },
-            });
-            return waitForBatchedUpdates();
+        beforeAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policyTest);
         });
 
         afterAll(() => Onyx.clear());
@@ -4715,6 +4761,21 @@ describe('ReportUtils', () => {
 
         it('should return false for non-admin of a group policy', () => {
             expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, approvedReport, false)).toBe(false);
+        });
+
+        it('should return true for a reimburser of a group policy on a closed report', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, achAccount: {reimburser: currentUserEmail}});
+
+            const closedReport: Report = {
+                ...createRandomReport(2),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                managerID: currentUserAccountID + 1,
+                policyID: policyTest.id,
+            };
+
+            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, closedReport, false)).toBe(true);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
@@ -6506,6 +6567,111 @@ describe('ReportUtils', () => {
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
         });
     });
+
+    describe('populateOptimisticReportFormula', () => {
+        const mockPolicy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: 'test@example.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            harvesting: {
+                enabled: true,
+            },
+            defaultBillable: false,
+            disabledFields: {},
+            fieldList: {},
+            customUnits: {},
+            areCategoriesEnabled: true,
+            areTagsEnabled: true,
+            areDistanceRatesEnabled: true,
+            areWorkflowsEnabled: true,
+            areReportFieldsEnabled: true,
+            areConnectionsEnabled: true,
+            pendingAction: undefined,
+            errors: {},
+            isLoading: false,
+            errorFields: {},
+        };
+
+        const mockReport = {
+            reportID: '123456789',
+            reportName: 'Test Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 1,
+            currency: CONST.CURRENCY.USD,
+            total: -5000,
+            lastVisibleActionCreated: '2024-01-15 10:30:00',
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            chatReportID: 'chat-123',
+            policyID: 'test-policy-id',
+            participants: {},
+            parentReportID: 'chat-123',
+        };
+
+        it('should handle NaN total gracefully', () => {
+            const reportWithNaNTotal = {
+                ...mockReport,
+                total: NaN,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithNaNTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+
+        it('should replace {report:total} with formatted amount', () => {
+            const result = populateOptimisticReportFormula('{report:total}', mockReport, mockPolicy);
+            expect(result).toBe('$50.00');
+        });
+
+        it('should replace {report:id} with base62 report ID', () => {
+            const result = populateOptimisticReportFormula('{report:id}', mockReport, mockPolicy);
+            expect(result).toBe(getBase62ReportID(Number(mockReport.reportID)));
+        });
+
+        it('should replace multiple placeholders correctly', () => {
+            const formula = 'Report {report:id} has total {report:total}';
+            const result = populateOptimisticReportFormula(formula, mockReport, mockPolicy);
+            const expectedId = getBase62ReportID(Number(mockReport.reportID));
+            expect(result).toBe(`Report ${expectedId} has total $50.00`);
+        });
+
+        it('should handle undefined total gracefully', () => {
+            const reportWithUndefinedTotal = {
+                ...mockReport,
+                total: undefined,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithUndefinedTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+
+        it('should handle complex formula with multiple placeholders and some invalid values', () => {
+            const formula = 'ID: {report:id}, Total: {report:total}, Type: {report:type}';
+            const reportWithNaNTotal = {
+                ...mockReport,
+                total: NaN,
+            };
+            const expectedId = getBase62ReportID(Number(mockReport.reportID));
+            const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
+            expect(result).toBe(`ID: ${expectedId}, Total: , Type: Expense Report`);
+        });
+
+        it('should handle missing total gracefully', () => {
+            const reportWithMissingTotal = {
+                ...mockReport,
+                total: undefined,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithMissingTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+    });
     describe('canSeeDefaultRoom', () => {
         it('should return true if report is archived room ', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -6654,6 +6820,90 @@ describe('ReportUtils', () => {
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
             expect(Object.keys(errors)).toHaveLength(0);
             expect(reportAction).toBeUndefined();
+        });
+    });
+
+    describe('requiresManualSubmission', () => {
+        it('should return true when manual submit is enabled', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const policy1 = createRandomPolicy(1);
+            policy1.harvesting = {enabled: false};
+            policy1.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+            const result = requiresManualSubmission(report, policy1);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when instant submit is enabled and report is not open', () => {
+            const report: Report = {
+                ...createRandomReport(2),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const policy2 = createRandomPolicy(2);
+            policy2.autoReporting = true;
+            policy2.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+            policy2.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            const result = requiresManualSubmission(report, policy2);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when instant submit is enabled with approvers', () => {
+            const report: Report = {
+                ...createRandomReport(3),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const policy3 = createRandomPolicy(3);
+            policy3.autoReporting = true;
+            policy3.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+            policy3.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            const result = requiresManualSubmission(report, policy3);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for open report in Submit & Close policy with instant submit', () => {
+            const report: Report = {
+                ...createRandomReport(4),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const policy4 = createRandomPolicy(4);
+            policy4.autoReporting = true;
+            policy4.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+            policy4.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL; // Submit & Close (no approvers)
+            const result = requiresManualSubmission(report, policy4);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for closed report in Submit & Close policy with instant submit', () => {
+            const report: Report = {
+                ...createRandomReport(5),
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            const policy5 = createRandomPolicy(5);
+            policy5.autoReporting = true;
+            policy5.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+            policy5.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL; // Submit & Close (no approvers)
+            const result = requiresManualSubmission(report, policy5);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has auto reporting with monthly frequency (delayed submission)', () => {
+            const report: Report = {
+                ...createRandomReport(8),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const policy6 = createRandomPolicy(8);
+            policy6.autoReporting = true;
+            policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
+            const result = requiresManualSubmission(report, policy6);
+            expect(result).toBe(false);
         });
     });
 });
