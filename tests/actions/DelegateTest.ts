@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {addDelegate, clearDelegateErrorsByField, clearDelegatorErrors, isConnectedAsDelegate, removeDelegate, updateDelegateRole} from '@libs/actions/Delegate';
+import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +108,9 @@ describe('actions/Delegate', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
             await waitForBatchedUpdates();
 
+            // Pause the sequential queue so successData won't apply before we assert optimistic state
+            pause();
+
             removeDelegate({email: 'test@test.com', delegatedAccess});
             await waitForBatchedUpdates();
 
@@ -114,25 +118,17 @@ describe('actions/Delegate', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
-                        const delegates = account?.delegatedAccess?.delegates ?? [];
-
-                        const firstDelegate = delegates.at(0);
-                        const isOptimisticDelete = firstDelegate?.email === 'test@test.com' && firstDelegate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                        const isRemoved = delegates.every((d) => d.email !== 'test@test.com');
-
-                        if (isOptimisticDelete) {
-                            expect(firstDelegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                            Onyx.disconnect(connection);
-                            resolve();
-                        } else if (isRemoved) {
-                            expect(delegates.some((d) => d.email === 'test@test.com')).toBe(false);
-                            Onyx.disconnect(connection);
-                            resolve();
-                        }
+                        const delegate = (account?.delegatedAccess?.delegates ?? []).find((d) => d.email === 'test@test.com');
+                        // Original expectation: assert optimistic pending delete for the target delegate
+                        expect(delegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                        Onyx.disconnect(connection);
+                        resolve();
                     },
                 });
             });
         });
+            // Reset the queue to avoid interference with other tests
+            resetQueue();
     });
     describe('clearDelegateErrorsByField', () => {
         it('should clear a delegate error by field', async () => {
