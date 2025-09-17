@@ -222,6 +222,8 @@ export default {
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
+    oldDotWireframeIconWidth: 263.38,
+    oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
