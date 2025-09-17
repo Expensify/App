@@ -14,9 +14,6 @@ type ImageViewProps = {
     /** Handles errors while displaying the image */
     onError?: () => void;
 
-    /** Event for when the image is fully loaded and returns the natural dimensions of the image */
-    onLoad?: () => void;
-
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 

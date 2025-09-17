@@ -6737,7 +6737,13 @@ const CONST = {
             FADE_DURATION: 200,
         },
     },
-
+    SEARCH_SELECTOR: {
+        SELECTION_MODE_SINGLE: 'single',
+        SELECTION_MODE_MULTI: 'multi',
+        SEARCH_CONTEXT_GENERAL: 'general',
+        SEARCH_CONTEXT_SEARCH: 'search',
+        SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
+    },
     EXPENSE: {
         TYPE: {
             CASH_CARD_NAME: 'Cash Expense',
@@ -6939,6 +6945,14 @@ const CONST = {
                 title: 'workspace.upgrade.travel.title' as const,
                 description: 'workspace.upgrade.travel.description' as const,
                 icon: 'Luggage',
+            },
+            distanceRates: {
+                id: 'distanceRates' as const,
+                alias: 'distance-rates',
+                name: 'Distance Rates',
+                title: 'workspace.upgrade.distanceRates.title' as const,
+                description: 'workspace.upgrade.distanceRates.description' as const,
+                icon: 'CarIce',
             },
             reports: {
                 id: 'reports' as const,
