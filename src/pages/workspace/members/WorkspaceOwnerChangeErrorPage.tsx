@@ -5,11 +5,9 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,11 +43,7 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
     }, [accountID, backTo, policyID]);
 
     const policy = usePolicy(policyID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-    const personalDetails = usePersonalDetails();
-    const isMember = policy?.employeeList?.[personalDetails?.[accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.USER;
-    const shouldShow = (!isCurrentUserOwner && isMember) || (!policy?.errorFields && policy?.isChangeOwnerFailed);
+    const shouldShow = !policy?.errorFields && policy?.isChangeOwnerFailed;
 
     return (
         <AccessOrNotFoundWrapper

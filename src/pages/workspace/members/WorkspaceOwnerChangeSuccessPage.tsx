@@ -3,9 +3,7 @@ import {InteractionManager} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,11 +39,7 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
     }, [accountID, backTo, policyID]);
 
     const policy = usePolicy(policyID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-    const personalDetails = usePersonalDetails();
-    const isMember = policy?.employeeList?.[personalDetails?.[accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.USER;
-    const shouldShow = (!isCurrentUserOwner && isMember) || (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful);
+    const shouldShow = !policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful;
 
     return (
         <AccessOrNotFoundWrapper
