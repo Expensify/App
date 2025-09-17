@@ -19,7 +19,7 @@ Do not wait for one action to finish before calling another action. If you find 
 Returning a promise is the first sign that the rule above this is being broken. Let the UI react to changes to Onyx data that is modified in the action instead.
 
 ### - Library files that are not connected or associated to any UI SHOULD use `Onyx.connectWithoutView()` to subscribe to changes in Onyx data
-Library files are the files located in `/src/lib` but excluding the actions in `/src/lib/actions`.
+Library files are located in `/src/lib` but excluding the actions in `/src/lib/actions` which have their own rule below.
 
 Exclusions:
 - If a library method is used by an action method (like a utility), then follow the rule below for action methods
