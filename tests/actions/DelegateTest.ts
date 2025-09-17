@@ -108,7 +108,6 @@ describe('actions/Delegate', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
             await waitForBatchedUpdates();
 
-            // Pause the sequential queue so successData won't apply before we assert optimistic state
             pause();
 
             removeDelegate({email: 'test@test.com', delegatedAccess});
@@ -119,7 +118,6 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         const delegate = (account?.delegatedAccess?.delegates ?? []).find((d) => d.email === 'test@test.com');
-                        // Original expectation: assert optimistic pending delete for the target delegate
                         expect(delegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                         Onyx.disconnect(connection);
                         resolve();
@@ -127,7 +125,6 @@ describe('actions/Delegate', () => {
                 });
             });
         });
-            // Reset the queue to avoid interference with other tests
             resetQueue();
     });
     describe('clearDelegateErrorsByField', () => {
@@ -195,6 +192,9 @@ describe('actions/Delegate', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
             await waitForBatchedUpdates();
 
+            // Ensure we observe the optimistic state before successData applies
+            pause();
+
             updateDelegateRole({email: 'test@test.com', role: CONST.DELEGATE_ROLE.SUBMITTER, validateCode: '123456', delegatedAccess});
             await waitForBatchedUpdates();
 
@@ -203,24 +203,15 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         const firstDelegate = account?.delegatedAccess?.delegates?.at(0);
-                        const isOptimistic =
-                            firstDelegate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE && firstDelegate?.pendingFields?.role === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-                        const isSuccess = firstDelegate?.pendingAction === null && firstDelegate?.pendingFields?.role === null && firstDelegate?.role === CONST.DELEGATE_ROLE.SUBMITTER;
-                        if (isOptimistic) {
-                            expect(firstDelegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                            expect(firstDelegate?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                            Onyx.disconnect(connection);
-                            resolve();
-                        } else if (isSuccess) {
-                            expect(firstDelegate?.pendingAction).toBeNull();
-                            expect(firstDelegate?.pendingFields?.role).toBeNull();
-                            expect(firstDelegate?.role).toBe(CONST.DELEGATE_ROLE.SUBMITTER);
-                            Onyx.disconnect(connection);
-                            resolve();
-                        }
+                        expect(firstDelegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        expect(firstDelegate?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        Onyx.disconnect(connection);
+                        resolve();
                     },
                 });
             });
+
+            resetQueue();
         });
     });
     describe('isConnectedAsDelegate', () => {
