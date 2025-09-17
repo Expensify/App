@@ -177,11 +177,9 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const formatTravelDate = useMemo<LocaleContextProps['formatTravelDate']>(
         () => (datetime) => {
-            // Use same logic as Trip Summary but without day of week - treat as destination local time, no timezone conversion
             const date = new Date(datetime);
-            // Always show year for travel dates to maintain consistency
-            const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT); // "Oct 1, 2025"
-            const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT); // "h:mm a"
+            const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+            const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
             const at = translateLocalize(currentLocale, 'common.conjunctionAt');
             return `${formattedDate} ${at} ${formattedHour}`;
         },
