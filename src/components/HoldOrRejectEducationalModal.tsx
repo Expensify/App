@@ -77,7 +77,9 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
                             src={section.icon}
                             additionalStyles={[styles.mr4]}
                         />
-                        <Text style={[styles.mb1, styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
+                        <View style={[styles.mb1, styles.flex1]}>
+                            <Text style={[styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
+                        </View>
                     </View>
                 ))}
             </>

@@ -98,6 +98,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -117,6 +118,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
@@ -170,6 +172,8 @@ type BuildPolicyDataOptions = {
     userReportedIntegration?: OnboardingAccounting;
     featuresMap?: Feature[];
     lastUsedPaymentMethod?: LastPaymentMethodType;
+    areDistanceRatesEnabled?: boolean;
+    adminParticipant?: Participant;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -180,6 +184,13 @@ type DuplicatePolicyDataOptions = {
     parts: Record<string, boolean>;
     file?: File | CustomRNImageManipulatorResult;
     policyCategories?: PolicyCategories;
+};
+
+type SetWorkspaceReimbursementActionParams = {
+    policyID: string;
+    reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+    bankAccountID?: number;
+    reimburserEmail: string;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -364,12 +375,22 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorkspacePolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod) {
+function deleteWorkspace(
+    policyID: string,
+    policyName: string,
+    lastAccessedWorkspacePolicyID: string | undefined,
+    policyCardFeeds: CardFeeds | undefined,
+    lastUsedPaymentMethods?: LastPaymentMethod,
+) {
     if (!allPolicies) {
         return;
     }
 
-    const filteredPolicies = Object.values(allPolicies).filter((policy): policy is Policy => policy?.id !== policyID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
+    const policy = getPolicy(policyID);
+    const filteredPolicies = Object.values(allPolicies).filter((p): p is Policy => p?.id !== policyID);
+    const workspaceAccountID = policy?.workspaceAccountID;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -379,6 +400,11 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: null,
         },
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
@@ -393,9 +419,6 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
             : []),
     ];
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(policyID);
     // Restore the old report stateNum and statusNum
     const failureData: OnyxUpdate[] = [
         {
@@ -412,6 +435,11 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
                 avatarURL: policy?.avatarURL,
                 pendingAction: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: policyCardFeeds,
         },
     ];
 
@@ -866,7 +894,7 @@ function clearQuickbooksOnlineAutoSyncErrorField(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {autoSync: null}}}}});
 }
 
-function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
+function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID, reimburserEmail}: SetWorkspaceReimbursementActionParams) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -879,7 +907,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
                 reimburser: reimburserEmail,
-                achAccount: {reimburser: reimburserEmail},
+                achAccount: {reimburser: reimburserEmail, bankAccountID},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
@@ -905,14 +933,14 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             value: {
                 isLoadingWorkspaceReimbursement: false,
                 reimbursementChoice: policy?.reimbursementChoice ?? null,
-                achAccount: {reimburser: policy?.achAccount?.reimburser ?? null},
+                achAccount: {reimburser: policy?.achAccount?.reimburser ?? null, bankAccountID: null},
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
         },
     ];
 
-    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice};
+    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice, bankAccountID};
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
@@ -1938,6 +1966,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         userReportedIntegration,
         featuresMap,
         lastUsedPaymentMethod,
+        areDistanceRatesEnabled,
+        adminParticipant,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -1998,7 +2028,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 areCategoriesEnabled: true,
                 areCompanyCardsEnabled: true,
                 areTagsEnabled: false,
-                areDistanceRatesEnabled: false,
+                areDistanceRatesEnabled,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
@@ -2010,6 +2040,16 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
+                    ...(adminParticipant?.login
+                        ? {
+                              [adminParticipant.login]: {
+                                  submitsTo: sessionEmail,
+                                  email: adminParticipant.login,
+                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  errors: {},
+                              },
+                          }
+                        : {}),
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
@@ -2291,6 +2331,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
+        areDistanceRatesEnabled,
     };
 
     if (
@@ -2326,6 +2367,20 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);
+    }
+
+    if (adminParticipant?.login) {
+        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, true);
+        params.memberData = JSON.stringify({
+            accountID: Number(adminParticipant.accountID),
+            email: adminParticipant.login,
+            workspaceChatReportID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportID,
+            workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportActionID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        optimisticData.push(...employeeWorkspaceChat.onyxOptimisticData);
+        successData.push(...employeeWorkspaceChat.onyxSuccessData);
+        failureData.push(...employeeWorkspaceChat.onyxFailureData);
     }
 
     return {successData, optimisticData, failureData, params};

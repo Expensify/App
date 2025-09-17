@@ -16,7 +16,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import useAttachmentLoaded from '@hooks/useAttachmentLoaded';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -276,29 +275,12 @@ function AttachmentModalBaseContent({
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
     const headerTitle = useMemo(() => headerTitleProp ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment'), [headerTitleProp, isReceiptAttachment, translate]);
     const shouldShowThreeDotsButton = useMemo(() => isReceiptAttachment && threeDotsMenuItems.length !== 0, [isReceiptAttachment, threeDotsMenuItems.length]);
-    const {setAttachmentLoaded, isAttachmentLoaded} = useAttachmentLoaded();
-
     const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
-
-        if (isValidContext && !isErrorInAttachment(sourceState)) {
-            return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource && isAttachmentLoaded(sourceState);
+        if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
+            return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         }
-
         return false;
-    }, [
-        allowDownload,
-        isDownloadButtonReadyToBeShown,
-        isErrorInAttachment,
-        isLocalSource,
-        isOffline,
-        isReceiptAttachment,
-        report,
-        shouldShowNotFoundPage,
-        sourceState,
-        type,
-        isAttachmentLoaded,
-    ]);
+    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, sourceState, type]);
 
     const isPDFLoadError = useRef(false);
     const onPdfLoadError = useCallback(() => {
@@ -326,9 +308,8 @@ function AttachmentModalBaseContent({
             onScaleChanged: () => {},
             onSwipeDown: onClose,
             onAttachmentError: setAttachmentError,
-            onAttachmentLoaded: setAttachmentLoaded,
         }),
-        [onClose, falseSV, sourceForAttachmentView, setAttachmentError, setAttachmentLoaded],
+        [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
     );
 
     return (
@@ -384,7 +365,6 @@ function AttachmentModalBaseContent({
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                                 attachmentLink={currentAttachmentLink}
                                 onAttachmentError={setAttachmentError}
-                                onAttachmentLoaded={setAttachmentLoaded}
                             />
                         ) : (
                             !!sourceForAttachmentView && (
