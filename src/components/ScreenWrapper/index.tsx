@@ -108,7 +108,7 @@ function ScreenWrapper({
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
