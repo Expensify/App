@@ -49,16 +49,21 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
             return membersList;
         }
 
-        // Get the list of employees already in Uber receipt partners
-        const uberEmployeeEmails = policy?.receiptPartners?.uber?.employees ? Object.keys(policy.receiptPartners.uber.employees) : [];
+        // Get the list of employees from the U4B organization
+        const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
 
         Object.entries(policy.employeeList).forEach(([email, policyEmployee]) => {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
 
-            // Skip employees who are already in Uber receipt partners
-            if (uberEmployeeEmails.includes(email)) {
+            // Skip employees who are in the "Linked" section
+            const employeeStatus = uberEmployees[email]?.status;
+            if (
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED ||
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL ||
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED
+            ) {
                 return;
             }
 
