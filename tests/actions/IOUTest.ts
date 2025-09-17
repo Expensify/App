@@ -75,7 +75,6 @@ import {
     buildOptimisticIOUReportAction,
     buildTransactionThread,
     createDraftTransactionAndNavigateToParticipantSelector,
-    isExpenseReport,
     isIOUReport,
 } from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
