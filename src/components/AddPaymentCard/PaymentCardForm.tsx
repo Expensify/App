@@ -269,6 +269,7 @@ function PaymentCardForm({
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             >
                 <InputWrapper
                     InputComponent={TextInput}
