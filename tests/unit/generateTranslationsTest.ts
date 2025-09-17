@@ -1511,6 +1511,70 @@ describe('generateTranslations', () => {
             expect(translateSpy).toHaveBeenCalledWith('it', 'Skip it if you dare', undefined);
         });
 
+        it('should handle string concatenation expressions', async () => {
+            const strings = {
+                onboarding: {
+                    tasks: {
+                        inviteTeamTask: {
+                            title: 'Simple title',
+                            description: 'First part & Second part',
+                        },
+                    },
+                },
+            };
+            mockEn = strings;
+
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    onboarding: {
+                        tasks: {
+                            inviteTeamTask: {
+                                title: 'Simple title',
+                                description: 'First part' + ' & ' + 'Second part',
+                            },
+                        },
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing translation file
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    onboarding: {
+                        tasks: {
+                            inviteTeamTask: {
+                                title: '[it] Simple title (old)',
+                                description: '[it] First part & Second part (old)',
+                            },
+                        },
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.inviteTeamTask'];
+
+            await generateTranslations();
+
+            const result = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Both title and description should be translated
+            expect(result).toContain('[it] Simple title');
+            // Each part of the string concatenation should be translated individually
+            expect(result).toContain('[it] First part');
+            expect(result).toContain('[it] Second part');
+        });
+
         it('should handle satisfies expressions in nested objects', async () => {
             const strings = {
                 common: {

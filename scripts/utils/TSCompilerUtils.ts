@@ -455,6 +455,38 @@ function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPat
     return ts.factory.createObjectLiteralExpression([...objectLiteral.properties, newProperty]);
 }
 
+/**
+ * Recursively check if a binary expression represents string concatenation
+ */
+function isStringConcatenationChain(node: ts.BinaryExpression): boolean {
+    // Only check + operators
+    if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return false;
+    }
+
+    // If either operand is a string literal or template, this is string concatenation
+    if (
+        ts.isStringLiteral(node.left) ||
+        ts.isTemplateExpression(node.left) ||
+        ts.isNoSubstitutionTemplateLiteral(node.left) ||
+        ts.isStringLiteral(node.right) ||
+        ts.isTemplateExpression(node.right) ||
+        ts.isNoSubstitutionTemplateLiteral(node.right)
+    ) {
+        return true;
+    }
+
+    // If either operand is another binary expression with +, check recursively
+    if (ts.isBinaryExpression(node.left) && node.left.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return isStringConcatenationChain(node.left);
+    }
+    if (ts.isBinaryExpression(node.right) && node.right.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return isStringConcatenationChain(node.right);
+    }
+
+    return false;
+}
+
 export default {
     findAncestor,
     addImport,
@@ -468,6 +500,7 @@ export default {
     createPathAwareTransformer,
     objectHas,
     injectDeepObjectValue,
+    isStringConcatenationChain,
 };
 export {TransformerAction};
 export type {ExpressionWithType, TransformerResult};

@@ -1341,4 +1341,98 @@ describe('TSCompilerUtils', () => {
             expect((existingKeyProp.initializer as ts.StringLiteral).text).toBe('new value');
         });
     });
+
+    describe('isStringConcatenationChain', () => {
+        it('should return true for simple string concatenation', () => {
+            // 'hello' + 'world'
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('hello'), ts.SyntaxKind.PlusToken, ts.factory.createStringLiteral('world'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(true);
+        });
+
+        it('should return true for string + template literal', () => {
+            // 'hello' + `world`
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('hello'), ts.SyntaxKind.PlusToken, ts.factory.createNoSubstitutionTemplateLiteral('world'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(true);
+        });
+
+        it('should return true for template literal + string', () => {
+            // `hello` + 'world'
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createNoSubstitutionTemplateLiteral('hello'), ts.SyntaxKind.PlusToken, ts.factory.createStringLiteral('world'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(true);
+        });
+
+        it('should return true for complex string concatenation chain', () => {
+            // 'a' + 'b' + 'c'
+            const innerBinary = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('a'), ts.SyntaxKind.PlusToken, ts.factory.createStringLiteral('b'));
+            const outerBinary = ts.factory.createBinaryExpression(innerBinary, ts.SyntaxKind.PlusToken, ts.factory.createStringLiteral('c'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(outerBinary)).toBe(true);
+        });
+
+        it('should return true for left-nested string concatenation', () => {
+            // ('a' + 'b') + variable
+            const leftBinary = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('a'), ts.SyntaxKind.PlusToken, ts.factory.createStringLiteral('b'));
+            const outerBinary = ts.factory.createBinaryExpression(leftBinary, ts.SyntaxKind.PlusToken, ts.factory.createIdentifier('variable'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(outerBinary)).toBe(true);
+        });
+
+        it('should return false for variable + string concatenation (ambiguous)', () => {
+            // variable + ('a' + 'b') - could be numeric or string, so should return false
+            const rightBinary = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('a'), ts.SyntaxKind.PlusToken, ts.factory.createStringLiteral('b'));
+            const outerBinary = ts.factory.createBinaryExpression(ts.factory.createIdentifier('variable'), ts.SyntaxKind.PlusToken, rightBinary);
+
+            expect(TSCompilerUtils.isStringConcatenationChain(outerBinary)).toBe(false);
+        });
+
+        it('should return true for string + variable concatenation', () => {
+            // 'hello' + variable - definitely string concatenation
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('hello'), ts.SyntaxKind.PlusToken, ts.factory.createIdentifier('variable'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(true);
+        });
+
+        it('should return false for numeric addition', () => {
+            // 1 + 2
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createNumericLiteral('1'), ts.SyntaxKind.PlusToken, ts.factory.createNumericLiteral('2'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(false);
+        });
+
+        it('should return false for variable addition', () => {
+            // a + b
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createIdentifier('a'), ts.SyntaxKind.PlusToken, ts.factory.createIdentifier('b'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(false);
+        });
+
+        it('should return false for non-plus operators', () => {
+            // 'hello' - 'world'
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('hello'), ts.SyntaxKind.MinusToken, ts.factory.createStringLiteral('world'));
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(false);
+        });
+
+        it('should return true for template expressions with substitutions', () => {
+            // 'hello' + `world ${variable}`
+            const templateExpr = ts.factory.createTemplateExpression(ts.factory.createTemplateHead('world '), [
+                ts.factory.createTemplateSpan(ts.factory.createIdentifier('variable'), ts.factory.createTemplateTail('')),
+            ]);
+            const binaryExpr = ts.factory.createBinaryExpression(ts.factory.createStringLiteral('hello'), ts.SyntaxKind.PlusToken, templateExpr);
+
+            expect(TSCompilerUtils.isStringConcatenationChain(binaryExpr)).toBe(true);
+        });
+
+        it('should return false for complex nested non-string expressions', () => {
+            // (a + b) + (c + d) where all are variables
+            const leftBinary = ts.factory.createBinaryExpression(ts.factory.createIdentifier('a'), ts.SyntaxKind.PlusToken, ts.factory.createIdentifier('b'));
+            const rightBinary = ts.factory.createBinaryExpression(ts.factory.createIdentifier('c'), ts.SyntaxKind.PlusToken, ts.factory.createIdentifier('d'));
+            const outerBinary = ts.factory.createBinaryExpression(leftBinary, ts.SyntaxKind.PlusToken, rightBinary);
+
+            expect(TSCompilerUtils.isStringConcatenationChain(outerBinary)).toBe(false);
+        });
+    });
 });

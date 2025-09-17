@@ -305,11 +305,13 @@ class TranslationGenerator {
                 ts.isExportDeclaration(node.parent) ||
                 // Switch/case clause
                 ts.isCaseClause(node.parent) ||
-                // any binary expression except coalescing operators and the operands of +=
+                // any binary expression except coalescing operators, += operators, and string concatenation
                 (ts.isBinaryExpression(node.parent) &&
                     node.parent.operatorToken.kind !== ts.SyntaxKind.QuestionQuestionToken &&
                     node.parent.operatorToken.kind !== ts.SyntaxKind.BarBarToken &&
-                    node.parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken));
+                    node.parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken &&
+                    // Allow string concatenation with +
+                    !(node.parent.operatorToken.kind === ts.SyntaxKind.PlusToken && TSCompilerUtils.isStringConcatenationChain(node.parent))));
 
         if (isPartOfControlFlow) {
             return false;
