@@ -5,7 +5,13 @@ import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 
 function isPdfFile(source: string | number, fileObject: FileObject) {
-    return !!source && (Str.isPDF(source) || (fileObject?.name ? Str.isPDF(fileObject.name) : false));
+    if (!source) {
+        return false;
+    }
+
+    const isSourcePdf = typeof source === 'string' ? Str.isPDF(source) : false;
+    const isFilePdf = fileObject?.name ? Str.isPDF(fileObject.name) : false;
+    return isSourcePdf || isFilePdf;
 }
 
 function useReportAttachmentModalType(source?: string | number, file?: FileObject | FileObject[]) {
