@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -19,6 +20,7 @@ import {canFlagReportAction, getOriginalReportID, isChatThread, shouldShowFlagCo
 import {flagComment as flagCommentUtil} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
@@ -51,6 +53,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     let reportID: string | undefined = getReportID(route);
 
     // Handle threads if needed
@@ -58,6 +61,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         reportID = parentReport?.reportID;
     }
     const originalReportID = getOriginalReportID(reportID, reportAction);
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     const severities: SeverityItemList = [
@@ -113,7 +117,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
 
     const flagComment = (severity: Severity) => {
         if (reportAction && canFlagReportAction(reportAction, reportID)) {
-            flagCommentUtil(reportID, originalReportID, reportAction, severity, isOriginalReportArchived);
+            flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived);
         }
 
         Navigation.dismissModal();

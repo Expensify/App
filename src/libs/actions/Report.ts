@@ -2061,18 +2061,18 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(
-    reportID: string | undefined,
-    originalReportID: string | undefined,
+    originalReport: OnyxEntry<Report>,
     originalReportAction: OnyxEntry<ReportAction>,
     textForNewComment: string,
     videoAttributeCache?: Record<string, string>,
     isOriginalReportArchived = false,
 ) {
+    const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
         return;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isOriginalReportArchived);
+
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(originalReport, isOriginalReportArchived);
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
@@ -2098,7 +2098,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction);
+        deleteReportComment(originalReportID, originalReportAction, isOriginalReportArchived);
         return;
     }
 
@@ -4033,7 +4033,8 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportID: string | undefined, originalReportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string, isOriginalReportArchived = false) {
+function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, originalReport: OnyxEntry<Report> | undefined, isOriginalReportArchived = false) {
+    const originalReportID = originalReport?.reportID;
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
     if (!message || !reportAction) {
@@ -4114,8 +4115,6 @@ function flagComment(reportID: string | undefined, originalReportID: string | un
             value: optimisticReport,
         });
     }
-
-    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
 
     const failureData: OnyxUpdate[] = [
         {

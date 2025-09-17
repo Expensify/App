@@ -18,7 +18,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -38,7 +38,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const isReportLastVisibleArchived = useReportIsArchived(getReportOrDraftReport(report?.parentReportID)?.reportID);
+    const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(

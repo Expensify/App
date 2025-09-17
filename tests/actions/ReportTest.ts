@@ -902,8 +902,10 @@ describe('actions/Report', () => {
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const newReportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        const originalReportID = ReportUtils.getOriginalReportID(REPORT_ID, newReportAction);
-        Report.editReportComment(REPORT_ID, originalReportID, newReportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -979,8 +981,10 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        const originalReportID = ReportUtils.getOriginalReportID(REPORT_ID, reportAction);
-        Report.editReportComment(REPORT_ID, originalReportID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1444,8 +1448,10 @@ describe('actions/Report', () => {
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        const originalReportID = ReportUtils.getOriginalReportID(REPORT_ID, reportAction);
-        Report.editReportComment(REPORT_ID, originalReportID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1486,10 +1492,12 @@ describe('actions/Report', () => {
             created: '2024-10-21 10:37:59.881',
         };
 
-        const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
-        Report.editReportComment(reportID, originalReportID, action, 'value1');
-        Report.editReportComment(reportID, originalReportID, action, 'value2');
-        Report.editReportComment(reportID, originalReportID, action, 'value3');
+        const originalReport = {
+            reportID,
+        };
+        Report.editReportComment(originalReport, action, 'value1');
+        Report.editReportComment(originalReport, action, 'value2');
+        Report.editReportComment(originalReport, action, 'value3');
 
         const requests = PersistedRequests?.getAll();
 

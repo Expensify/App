@@ -135,6 +135,8 @@ function ReportActionItemMessageEdit(
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
     const originalReportID = getOriginalReportID(reportID, action);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     useEffect(() => {
@@ -293,9 +295,9 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, originalReportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived);
+        editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID, isOriginalReportArchived, originalReportID]);
+    }, [action, deleteDraft, draft, isOriginalReportArchived, originalReport]);
 
     /**
      * @param emoji
