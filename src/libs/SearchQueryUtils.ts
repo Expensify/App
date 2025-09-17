@@ -639,6 +639,10 @@ function buildFilterFormValuesFromQuery(
             const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
             filtersForm[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
         }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+            const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
+            filtersForm[filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
             filtersForm[filterKey] = filterValues

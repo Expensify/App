@@ -6557,6 +6557,7 @@ const CONST = {
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
+            CHAT: {},
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
