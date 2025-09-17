@@ -27,7 +27,7 @@ function IntroSchoolPrincipalPage() {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM, {canBeMissing: true});
     const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
 
     const hasSubmittedRef = useRef(false);
