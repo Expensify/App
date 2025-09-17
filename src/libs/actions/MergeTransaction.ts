@@ -211,13 +211,16 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         amount: finalAmount,
         currency: mergeTransaction.currency,
         category: mergeTransaction.category,
-        comment: mergeTransaction.description,
+        comment: JSON.stringify({
+            ...targetTransaction.comment,
+            comment: mergeTransaction.description,
+            attendees: mergeTransaction.attendees,
+        }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
-        attendees: mergeTransaction.attendees ? JSON.stringify(mergeTransaction.attendees) : undefined,
     };
 
     const {optimisticTargetTransactionData, failureTargetTransactionData, successTargetTransactionData} = getOptimisticTargetTransactionData(targetTransaction, mergeTransaction);
