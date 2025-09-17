@@ -13039,9 +13039,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
             }
-        // For new split transactions, set the reportID once the transaction and associated report are created
+            // For new split transactions, set the reportID once the transaction and associated report are created
         } else if (currentSplit) {
-                currentSplit.reportID = splitExpense?.reportID;
+            currentSplit.reportID = splitExpense?.reportID;
         }
 
         if (currentSplit) {
