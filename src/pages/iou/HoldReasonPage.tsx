@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import useAncestorReportsAndReportActions from '@hooks/useAncestorReportsAndReportActions';
+import useAncestorReportsAndReportActions from '@hooks/useAncestors';
 import useLocalize from '@hooks/useLocalize';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';

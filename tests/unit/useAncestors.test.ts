@@ -3,14 +3,15 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
-import useAncestorReportsAndReportActions from '@src/hooks/useAncestorReportsAndReportActions';
+import useAncestors from '@hooks/useAncestors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const numberOfMockReports = 13;
-const mockReports: OnyxCollection<Report> = {};
-const mockReportActions: OnyxCollection<ReportActions> = {};
+const numberOfMockReports = 11;
+
+const mockReports: Record<string, Report> = {};
+const mockReportActions: Record<string, ReportActions> = {};
 
 let parentReportID: string | undefined;
 let parentReportActionID: string | undefined;
@@ -43,7 +44,7 @@ for (let reportNum = 1; reportNum <= numberOfMockReports; reportNum++) {
     parentReportActionID = reportAction.reportActionID;
 }
 
-describe('useAncestorReportsAndReportActions', () => {
+describe('useAncestors', () => {
     beforeAll(() => {
         Onyx.multiSet({
             [ONYXKEYS.COLLECTION.REPORT]: mockReports,
@@ -52,57 +53,62 @@ describe('useAncestorReportsAndReportActions', () => {
         return waitForBatchedUpdates();
     });
 
+    afterAll(Onyx.clear);
+
     test('returns correct ancestor reports and actions', () => {
         let reportNum = 8;
 
         const mockReport = mockReports[`${ONYXKEYS.COLLECTION.REPORT}${reportNum}`];
-        const {result} = renderHook(() => useAncestorReportsAndReportActions(`${reportNum}`, true));
-        const {report, ancestorReportsAndReportActions} = result.current;
+        const {result : {current : ancestors}} = renderHook(() => useAncestors(mockReport));
 
-        expect(report).toEqual(mockReport);
-        expect(ancestorReportsAndReportActions).toHaveLength(7);
+        expect(ancestors).toHaveLength(7);
 
         // Check the oldest ancestor (should be reportID 1)
-        const {report: oldestAncestorReport, reportAction: oldestAncestorReportAction} = ancestorReportsAndReportActions.at(0) ?? {};
+        const {report: oldestAncestorReport, reportAction: oldestAncestorReportAction} = ancestors.at(0) ?? {};
         expect(oldestAncestorReport).toEqual(mockReports[`${ONYXKEYS.COLLECTION.REPORT}1`]);
         expect(oldestAncestorReportAction).toEqual(mockReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]?.['1']);
 
         reportNum -= 1; // 8->7
 
         // Check the youngest ancestor (should be reportID 7)
-        const {report: youngestAncestorReport, reportAction: youngestAncestorReportAction} = ancestorReportsAndReportActions.at(-1) ?? {};
+        const {report: youngestAncestorReport, reportAction: youngestAncestorReportAction} = ancestors.at(-1) ?? {};
         expect(youngestAncestorReport).toEqual(mockReports[`${ONYXKEYS.COLLECTION.REPORT}${reportNum}`]);
         expect(youngestAncestorReportAction).toEqual(mockReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportNum}`]?.[`${reportNum}`]);
 
         // Check the rest of the ancestors
         while (reportNum > 2) {
             reportNum -= 1;
-            const {report: ancestorReport, reportAction: ancestorReportAction} = ancestorReportsAndReportActions.at(reportNum - 1) ?? {};
+            const {report: ancestorReport, reportAction: ancestorReportAction} = ancestors.at(reportNum - 1) ?? {};
             expect(ancestorReport).toEqual(mockReports[`${ONYXKEYS.COLLECTION.REPORT}${reportNum}`]);
             expect(ancestorReportAction).toEqual(mockReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportNum}`]?.[`${reportNum}`]);
         }
     });
 
     test('if no ancestor reports', () => {
-        const mockReport = Object.values(mockReports).at(0); // First report, should have no ancestors
-
-        const {result} = renderHook(() => useAncestorReportsAndReportActions('1', true));
-
-        expect(result.current.ancestorReportsAndReportActions).toHaveLength(0);
-        expect(result.current.report).toEqual(mockReport);
+        const mockReport =  mockReports[`${ONYXKEYS.COLLECTION.REPORT}_1`]; // First report, should have no ancestors
+        const {result : {current : ancestors}} = renderHook(() => useAncestors(mockReport));
+        expect(ancestors).toHaveLength(0);
     });
 
-    test('if reportID is non-existent', () => {
-        const {result} = renderHook(() => useAncestorReportsAndReportActions('non-existent-report-id', true));
+    test('if report is empty', () => {
+        const emptyReport: Report = {reportID: ''};
+        const {result : {current : ancestors}} = renderHook(() => useAncestors(emptyReport));
 
-        expect(result.current.ancestorReportsAndReportActions).toHaveLength(0);
-        expect(result.current.report).toBeUndefined();
+        expect(ancestors).toHaveLength(0);
     });
 
-    test('if reportID is an empty string', () => {
-        const {result} = renderHook(() => useAncestorReportsAndReportActions('', true));
+    test('if report is non-existent', () => {
+        const nonExistentReport: Report = {
+            reportID: 'non-existent',
+        };
+        const {result : {current : ancestors}} = renderHook(() => useAncestors(nonExistentReport));
 
-        expect(result.current.ancestorReportsAndReportActions).toHaveLength(0);
-        expect(result.current.report).toBeUndefined();
+        expect(ancestors).toHaveLength(0);
+    });
+
+    test('if report is undefined', () => {
+        const {result : {current : ancestors}} = renderHook(() => useAncestors(undefined));
+
+        expect(ancestors).toHaveLength(0);
     });
 });

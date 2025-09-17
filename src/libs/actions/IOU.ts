@@ -8,7 +8,6 @@ import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {ReportAndReportAction} from '@hooks/useAncestorReportsAndReportActions/types';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -111,7 +110,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import type {Ancestor, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticAddCommentReportAction,
@@ -11066,7 +11065,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, ancestorReportsAndReportActions: ReportAndReportAction[], initialReportID: string | undefined, searchHash?: number) {
+function putOnHold(transactionID: string, comment: string, ancestors: Ancestor[], initialReportID: string | undefined, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
@@ -11218,7 +11217,7 @@ function putOnHold(transactionID: string, comment: string, ancestorReportsAndRep
             });
         }
 
-        for (const {reportAction: ancestorReportAction} of ancestorReportsAndReportActions) {
+        for (const {reportAction: ancestorReportAction} of ancestors) {
             if (ancestorReportAction?.reportActionID && ancestorReportAction?.reportID) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -11308,6 +11307,13 @@ function putOnHold(transactionID: string, comment: string, ancestorReportsAndRep
 
     const currentReportID = getDisplayedReportID(reportID);
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
+}
+
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[]) {
+    transactionsID.forEach((transactionID) => {
+        const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
+        putOnHold(transactionID, comment, ancestors, childReportID);
+    });
 }
 
 /**
@@ -13211,6 +13217,7 @@ export {
     payInvoice,
     payMoneyRequest,
     putOnHold,
+    putTransactionsOnHold,
     replaceReceipt,
     requestMoney,
     resetSplitShares,
