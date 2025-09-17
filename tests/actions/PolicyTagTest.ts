@@ -644,10 +644,77 @@ describe('actions/Policy', () => {
     });
 
     describe('DeletePolicyTags', () => {
-        it('should return early if no policyTag is found', () => {
+        it('should not modify Onyx data when policyTags is empty', async () => {
             const fakePolicy = createRandomPolicy(0);
-            const result = deletePolicyTags(fakePolicy.id, ['tag1'], {});
-            expect(result).toBeUndefined();
+            const tagListName = 'ExistingTagList';
+            const existingPolicyTags = createRandomPolicyTags(tagListName, 3);
+
+            existingPolicyTags[tagListName] = {
+                ...existingPolicyTags[tagListName],
+                required: true,
+                orderWeight: 1,
+            };
+
+            mockFetch?.pause?.();
+
+            const emptyPolicyTags = {};
+            const tagsToDelete = ['tag1', 'tag2'];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, existingPolicyTags);
+
+            expect(() => {
+                deletePolicyTags(fakePolicy.id, tagsToDelete, emptyPolicyTags);
+            }).not.toThrow();
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            expect(updatedPolicyTags).toEqual(existingPolicyTags);
+            expect(Object.keys(updatedPolicyTags?.[tagListName]?.tags ?? {}).length).toBe(3);
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(true);
+            expect(updatedPolicyTags?.[tagListName]?.orderWeight).toBe(1);
+        });
+
+        it('should not modify Onyx data when tagsToDelete do not exist', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'ExistingTagList';
+            const existingPolicyTags = createRandomPolicyTags(tagListName, 3);
+
+            existingPolicyTags[tagListName] = {
+                ...existingPolicyTags[tagListName],
+                required: true,
+                orderWeight: 1,
+            };
+
+            const tagsToDelete = ['NonExistentTag1', 'NonExistentTag2', 'NonExistentTag3'];
+
+            mockFetch?.pause?.();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, existingPolicyTags);
+
+            expect(() => {
+                deletePolicyTags(fakePolicy.id, tagsToDelete, existingPolicyTags);
+            }).not.toThrow();
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            expect(updatedPolicyTags).toEqual(existingPolicyTags);
+            expect(Object.keys(updatedPolicyTags?.[tagListName]?.tags ?? {}).length).toBe(3);
+            expect(updatedPolicyTags?.[tagListName]?.required).toBe(true);
+            expect(updatedPolicyTags?.[tagListName]?.orderWeight).toBe(1);
         });
 
         it('delete policy tag', async () => {
@@ -677,7 +744,7 @@ describe('actions/Policy', () => {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             });
 
-            mockFetch?.resume?.();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             // Verify success data
@@ -708,7 +775,7 @@ describe('actions/Policy', () => {
             deletePolicyTags(fakePolicy.id, tagsToDelete, fakePolicyTags);
             await waitForBatchedUpdates();
 
-            mockFetch?.resume?.();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             // Verify failure data
@@ -740,7 +807,7 @@ describe('actions/Policy', () => {
 
             deletePolicyTags(fakePolicy.id, tagsToDelete, result.current[0]);
 
-            mockFetch?.resume?.();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             // Verify success data
