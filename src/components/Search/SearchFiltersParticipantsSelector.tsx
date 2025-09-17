@@ -144,10 +144,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sectionData.push(chatOptions.currentUserOption);
         }
 
-        const selectedIDsSet = new Set(initialSelectedOptions.map(o => o.accountID));
-        const unselectedFormattedSectionData = formattedResults.section.data.filter(
-            (option) => !selectedIDsSet.has(option.accountID),
-        );
+        const selectedIDsSet = new Set(initialSelectedOptions.map((o) => o.accountID));
+        const unselectedFormattedSectionData = formattedResults.section.data.filter((option) => !selectedIDsSet.has(option.accountID));
         if (unselectedFormattedSectionData.length) {
             sectionData.push(...(unselectedFormattedSectionData as SearchOptionData[]));
         }
