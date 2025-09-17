@@ -2585,9 +2585,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) ||
-            canApproveIOU(iouReport, policy, transactions) ||
-            canSubmitReport(currentUserAccountID, iouReport, reportActions, policy, transactions, undefined, false)
+            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
         );
     });
 }
@@ -2672,6 +2670,9 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
                 return canDeleteTransaction(report) && isCardTransactionCanBeDeleted;
+            }
+            if (isTrackExpenseAction(reportAction)) {
+                return isCardTransactionCanBeDeleted;
             }
             return true;
         }
