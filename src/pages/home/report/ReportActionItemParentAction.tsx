@@ -1,18 +1,16 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAncestors from '@hooks/useAncestors';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import {isTripPreview} from '@libs/ReportActionsUtils';
-import type {Ancestor} from '@libs/ReportUtils';
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getAllAncestorReportActions,
     getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
@@ -25,7 +23,6 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
-import useAncestors from '@hooks/useAncestors';
 
 type ReportActionItemParentActionProps = {
     /** All the data of the report collection */
@@ -122,13 +119,19 @@ function ReportActionItemParentAction({
     const [ancestorsReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: (allPairs) => {
-            return ancestors.reduce((ancestorReportNameValuePairs, ancestor) => {
-                const reportNameValuePairs = allPairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
-                if (reportNameValuePairs) {
+            if (!allPairs || ancestors.length === 0) {
+                return {};
+            }
+            return ancestors.reduce(
+                (ancestorReportNameValuePairs: Record<string, OnyxTypes.ReportNameValuePairs>, ancestor) => {
+                    const reportNameValuePairs = allPairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
+                    if (!reportNameValuePairs) {
+                        return ancestorReportNameValuePairs;
+                    }
                     ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`] = reportNameValuePairs;
-                }
-                return ancestorReportNameValuePairs;
-            }, {} as Record<string, OnyxTypes.ReportNameValuePairs>);
+                    return ancestorReportNameValuePairs;
+                },
+                {});
         },
     });
 
@@ -173,13 +176,12 @@ function ReportActionItemParentAction({
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {ancestors.map((ancestor) => {
                 const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
-                if (!ancestorReport){
+                if (!ancestorReport) {
                     return null;
                 }
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
-                const reportNameValuePair =
-                    ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`];
+                const reportNameValuePair = ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`];
                 const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
 
                 const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction);
@@ -200,14 +202,14 @@ function ReportActionItemParentAction({
                         {shouldDisplayThreadDivider && (
                             <ThreadDivider
                                 ancestor={ancestor}
-                                isLinkDisabled={!canCurrentUserOpenReport(ancestor.report, isAncestorReportArchived)}
+                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)}
                             />
                         )}
                         <ReportActionItem
                             allReports={allReports}
                             policies={policies}
                             onPress={
-                                canCurrentUserOpenReport(ancestor.report, isAncestorReportArchived)
+                                canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
                                     ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                     : undefined
                             }

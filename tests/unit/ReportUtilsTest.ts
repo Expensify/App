@@ -34,7 +34,6 @@ import {
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     findLastAccessedReport,
-    getAllAncestorReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getChatByParticipants,
@@ -2912,50 +2911,6 @@ describe('ReportUtils', () => {
                 // Then the thread should be disabled
                 expect(isThreadDisabled).toBeTruthy();
             });
-        });
-    });
-
-    describe('getAllAncestorReportActions', () => {
-        const reports: Report[] = [
-            {reportID: '1', lastReadTime: '2024-02-01 04:56:47.233', reportName: 'Report'},
-            {reportID: '2', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '1', parentReportID: '1', reportName: 'Report'},
-            {reportID: '3', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '2', parentReportID: '2', reportName: 'Report'},
-            {reportID: '4', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '3', parentReportID: '3', reportName: 'Report'},
-            {reportID: '5', lastReadTime: '2024-02-01 04:56:47.233', parentReportActionID: '4', parentReportID: '4', reportName: 'Report'},
-        ];
-
-        const reportActions: ReportAction[] = [
-            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
-        ];
-
-        beforeAll(() => {
-            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
-            const reportActionCollectionDataSet = toCollectionDataSet(
-                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                reportActions.map((reportAction) => ({[reportAction.reportActionID]: reportAction})),
-                (actions) => Object.values(actions).at(0)?.reportActionID,
-            );
-            Onyx.multiSet({
-                ...reportCollectionDataSet,
-                ...reportActionCollectionDataSet,
-            });
-            return waitForBatchedUpdates();
-        });
-
-        afterAll(() => Onyx.clear());
-
-        it('should return correctly all ancestors of a thread report', () => {
-            const resultAncestors = [
-                {report: reports.at(0), reportAction: reportActions.at(0), shouldDisplayNewMarker: false},
-                {report: reports.at(1), reportAction: reportActions.at(1), shouldDisplayNewMarker: false},
-                {report: reports.at(2), reportAction: reportActions.at(2), shouldDisplayNewMarker: false},
-                {report: reports.at(3), reportAction: reportActions.at(3), shouldDisplayNewMarker: false},
-            ];
-
-            expect(getAllAncestorReportActions(reports.at(4))).toEqual(resultAncestors);
         });
     });
 

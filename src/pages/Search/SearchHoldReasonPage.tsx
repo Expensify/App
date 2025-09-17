@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useAncestors from '@hooks/useAncestors';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useAncestors from '@hooks/useAncestors';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,7 +37,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, allTransactions, allReportActions],
+        [route.name, context, reportID, ancestors, allTransactions, allReportActions],
     );
 
     const validate = useCallback(

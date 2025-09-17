@@ -11765,7 +11765,6 @@ export {
     generateReportID,
     getCreationReportErrors,
     getAllAncestorReportActionIDs,
-    getAllAncestorReportActions,
     getAllHeldTransactions,
     getAllPolicyReports,
     getAllWorkspaceReports,
