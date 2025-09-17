@@ -11958,7 +11958,6 @@ const arrayDifference_1 = __importDefault(__nccwpck_require__(17532));
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const isEmptyObject_1 = __nccwpck_require__(86497);
 class GithubUtils {
-    static internalOctokit;
     /**
      * Initialize internal octokit.
      * NOTE: When using GithubUtils in CI, you don't need to call this manually.
@@ -12640,34 +12639,6 @@ const openai_1 = __importDefault(__nccwpck_require__(60047));
 const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(40136));
 const retryWithBackoff_1 = __importDefault(__nccwpck_require__(54583));
 class OpenAIUtils {
-    /**
-     * How frequently to poll a thread to wait for it to be done.
-     */
-    static POLL_RATE = 1500;
-    /**
-     * The maximum amount of time to wait for a thread to produce a response.
-     */
-    static POLL_TIMEOUT = 90000;
-    /**
-     * The role of the `user` in the OpenAI model.
-     */
-    static USER = 'user';
-    /**
-     * The role of the `assistant` in the OpenAI model.
-     */
-    static ASSISTANT = 'assistant';
-    /**
-     * The status of a completed run in the OpenAI model.
-     */
-    static OPENAI_RUN_COMPLETED = 'completed';
-    /**
-     * The maximum number of requests to make when polling for thread completion.
-     */
-    static MAX_POLL_COUNT = Math.floor(OpenAIUtils.POLL_TIMEOUT / OpenAIUtils.POLL_RATE);
-    /**
-     * OpenAI API client.
-     */
-    client;
     constructor(apiKey) {
         this.client = new openai_1.default({ apiKey });
     }
@@ -12781,6 +12752,30 @@ class OpenAIUtils {
         return parsed;
     }
 }
+/**
+ * How frequently to poll a thread to wait for it to be done.
+ */
+OpenAIUtils.POLL_RATE = 1500;
+/**
+ * The maximum amount of time to wait for a thread to produce a response.
+ */
+OpenAIUtils.POLL_TIMEOUT = 90000;
+/**
+ * The role of the `user` in the OpenAI model.
+ */
+OpenAIUtils.USER = 'user';
+/**
+ * The role of the `assistant` in the OpenAI model.
+ */
+OpenAIUtils.ASSISTANT = 'assistant';
+/**
+ * The status of a completed run in the OpenAI model.
+ */
+OpenAIUtils.OPENAI_RUN_COMPLETED = 'completed';
+/**
+ * The maximum number of requests to make when polling for thread completion.
+ */
+OpenAIUtils.MAX_POLL_COUNT = Math.floor(OpenAIUtils.POLL_TIMEOUT / OpenAIUtils.POLL_RATE);
 exports["default"] = OpenAIUtils;
 
 
