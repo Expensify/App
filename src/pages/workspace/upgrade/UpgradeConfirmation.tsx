@@ -11,15 +11,16 @@ import ROUTES from '@src/ROUTES';
 
 type Props = {
     policyName: string;
-    onConfirmUpgrade: () => void;
+    afterUpgradeAcknowledged: () => void;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     /** Whether is adding an unreported expense to a report */
     isReporting?: boolean;
     isTravelUpgrade?: boolean;
+    isDistanceRateUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isReporting, isTravelUpgrade}: Props) {
+function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -43,12 +44,16 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isRe
             return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
         }
 
+        if (isDistanceRateUpgrade) {
+            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
+        }
+
         return (
             <View style={[styles.renderHTML, styles.w100]}>
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', {policyName, subscriptionLink})} />
             </View>
         );
-    }, [isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     const heading = useMemo(() => {
         if (isCategorizing ?? isReporting) {
@@ -62,7 +67,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isRe
             heading={heading}
             descriptionComponent={description}
             shouldShowButton
-            onButtonPress={onConfirmUpgrade}
+            onButtonPress={afterUpgradeAcknowledged}
             buttonText={translate('workspace.upgrade.completed.gotIt')}
             containerStyle={styles.h100}
         />

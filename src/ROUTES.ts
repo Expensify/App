@@ -248,6 +248,7 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
+    SETTINGS_WALLET_VERIFY_ACCOUNT: `settings/wallet/${VERIFY_ACCOUNT}`,
     SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -781,10 +782,11 @@ const ROUTES = {
             isCategorizing?: boolean;
             isReporting?: boolean;
             shouldSubmitExpense?: boolean;
+            featureName?: string;
         }) => {
             const {action, iouType, transactionID, reportID, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false} = params;
-
-            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}` as const;
+            const featureNameParam = featureName ? `/${featureName}` : '';
+            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}${featureName}` as const;
 
             const queryParams: Record<string, string> = {};
             if (isCategorizing) {
@@ -2169,7 +2171,8 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/new` as const,
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
