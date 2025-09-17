@@ -168,17 +168,7 @@ function IOURequestStepConfirmation({
         transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
     const report = useMemo(() => {
         if (isUnreported) {
-            // If no selfDM report is found we use an optimistic one with reportID = 0
-            // By defaults tracking into reportID = 0 will track into the selfDM report and proactively creates it
-            // s77rt TODO: Generate random report ID and have BE use it instead + use buildOptimisticSelfDMReport
-            return (
-                selfDMReport ??
-                buildOptimisticChatReport({
-                    participantList: [currentUserPersonalDetails.accountID],
-                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                    optimisticReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                })
-            );
+            return undefined;
         }
         if (shouldUseTransactionReport) {
             return transactionReport;
@@ -613,7 +603,7 @@ function IOURequestStepConfirmation({
 
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
-            if (!report || !transactions.length) {
+            if (!transactions.length) {
                 return;
             }
             const participant = selectedParticipants.at(0);
