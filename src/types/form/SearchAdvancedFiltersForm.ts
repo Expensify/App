@@ -74,6 +74,7 @@ const FILTER_KEYS = {
     PURCHASE_AMOUNT_GREATER_THAN: 'purchaseAmountGreaterThan',
     PURCHASE_CURRENCY: 'purchaseCurrency',
     WITHDRAWAL_ID: 'withdrawalID',
+    ATTENDEE: 'attendee',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -133,6 +134,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
         FILTER_KEYS.PURCHASE_CURRENCY,
         FILTER_KEYS.WITHDRAWAL_ID,
+        FILTER_KEYS.ATTENDEE,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -320,6 +322,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: string;
         [FILTER_KEYS.PURCHASE_CURRENCY]: string[];
         [FILTER_KEYS.WITHDRAWAL_ID]: string;
+        [FILTER_KEYS.ATTENDEE]: string[];
     }
 >;
 

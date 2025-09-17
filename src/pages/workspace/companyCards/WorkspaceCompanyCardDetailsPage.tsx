@@ -82,7 +82,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank as CompanyCardFeed);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank as CompanyCardFeed, card?.lastScrapeResult);
     };
 
     const lastScrape = useMemo(() => {

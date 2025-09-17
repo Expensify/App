@@ -89,7 +89,7 @@ type SearchContextData = {
     shouldResetSearchQuery: boolean;
 };
 
-type SearchContext = SearchContextData & {
+type SearchContextProps = SearchContextData & {
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
@@ -217,7 +217,7 @@ export type {
     SearchQueryJSON,
     SearchQueryString,
     SortOrder,
-    SearchContext,
+    SearchContextProps,
     SearchContextData,
     ASTNode,
     QueryFilter,
