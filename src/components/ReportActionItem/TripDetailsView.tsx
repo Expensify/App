@@ -142,6 +142,8 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             interactive
             shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
+            copyable={!!reservation.confirmations?.at(0)?.value?.length}
+            copyValue={reservation.confirmations?.at(0)?.value ?? ''}
             iconHeight={20}
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
