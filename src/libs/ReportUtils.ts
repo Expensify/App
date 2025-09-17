@@ -202,7 +202,6 @@ import {
     isCardIssuedAction,
     isClosedAction,
     isCreatedTaskReportAction,
-    isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
     isExportIntegrationAction,
@@ -229,7 +228,6 @@ import {
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
-    isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
     shouldReportActionBeVisible,
@@ -9803,7 +9801,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
         isThreadReportParentAction
     );
 }
-
+/*
 function getAllAncestorReportActions(report: Report | null | undefined, currentUpdatedReport?: OnyxEntry<Report>): Ancestor[] {
     if (!report) {
         return [];
@@ -9820,24 +9818,13 @@ function getAllAncestorReportActions(report: Report | null | undefined, currentU
             break;
         }
 
-        // For threads, we don't want to display trip summary
-        if (isTripPreview(parentReportAction) && allAncestors.length > 0) {
-            break;
-        }
-
-        const isParentReportActionUnread = isCurrentActionUnread(parentReport, parentReportAction);
-        allAncestors.push({
-            report: parentReport,
-            reportAction: parentReportAction,
-            shouldDisplayNewMarker: isParentReportActionUnread,
-        });
-
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;
     }
 
     return allAncestors.reverse();
 }
+*/
 
 function getAllAncestorReportActionIDs(report: Report | null | undefined, includeTransactionThread = false): AncestorIDs {
     if (!report) {

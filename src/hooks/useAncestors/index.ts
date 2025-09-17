@@ -1,6 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
-import {isCurrentActionUnread, isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
+import {isCurrentActionUnread, isReportPreviewAction, isSentMoneyReportAction, isTransactionThread, isTripPreview} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Report from '@src/types/onyx/Report';
@@ -29,6 +29,8 @@ function useAncestors(report: OnyxEntry<Report>, includeTransactionThreads = fal
         if (
             !parentReport ||
             !parentReportAction ||
+            // We exclude trip preview actions as we don't want to display trip summary for threads,
+            (isTripPreview(parentReportAction) && ancestors.length > 0) ||
             // We exclude ancestor reports when their parent's ReportAction is a transaction-thread action,
             // except for sent-money and report-preview actions. ReportActionsListItemRenderer does not render
             // the ReportActionItemParentAction when the parent (first) action is a transaction-thread (unless it's a sent-money action)
@@ -38,7 +40,8 @@ function useAncestors(report: OnyxEntry<Report>, includeTransactionThreads = fal
             break;
         }
 
-        // `unshift` to maintain the order from the top-most ancestor down to the immediate parent.
+        // To maintain the order from the top-most ancestor down to the immediate parent
+        // we `unshift` (push) each ancestor to the start of the array.
         ancestors.unshift({
             report: parentReport,
             reportAction: parentReportAction,

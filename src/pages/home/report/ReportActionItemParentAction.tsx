@@ -116,22 +116,26 @@ function ReportActionItemParentAction({
     const ancestors = useAncestors(report);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [ancestorsReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (allPairs) => {
-            if (!allPairs || ancestors.length === 0) {
-                return {};
-            }
-            return ancestors.reduce((ancestorReportNameValuePairs: Record<string, OnyxTypes.ReportNameValuePairs>, ancestor) => {
-                const reportNameValuePairs = allPairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
-                if (!reportNameValuePairs) {
-                    return ancestorReportNameValuePairs;
+    const [ancestorsReportNameValuePairs] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        {
+            canBeMissing: true,
+            selector: (allPairs) => {
+                if (!allPairs) {
+                    return {};
                 }
-                ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`] = reportNameValuePairs;
+                const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
+                for (const {
+                    report: {reportID: ancestorReportID},
+                } of ancestors) {
+                    ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`] =
+                        allPairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`];
+                }
                 return ancestorReportNameValuePairs;
-            }, {});
+            },
         },
-    });
+        [ancestors],
+    );
 
     /*
     useEffect(() => {
