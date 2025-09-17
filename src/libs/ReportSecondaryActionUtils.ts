@@ -458,9 +458,9 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return true;
     }
 
-    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
+    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-        return isOwner && isCardTransactionCanBeDeleted;
+        return isOwner && canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport) {
@@ -474,7 +474,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        if (!isCardTransactionCanBeDeleted) {
+        if (!canCardTransactionBeDeleted) {
             return false;
         }
 
