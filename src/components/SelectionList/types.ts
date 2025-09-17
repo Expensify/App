@@ -18,13 +18,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -340,6 +341,9 @@ type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
 
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
+
     /** The hash of the query to get the transactions data */
     transactionsQueryJSON?: SearchQueryJSON;
 };
@@ -408,36 +412,38 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 };
 
-type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
-    item: TItem;
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-    shouldPreventEnterKeySubmit?: boolean;
-    shouldShowBlueBorderOnFocus?: boolean;
-    keyForList?: string | null;
-    errors?: Errors | ReceiptErrors | null;
-    pendingAction?: PendingAction | null;
-    FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
-    shouldSyncFocus?: boolean;
-    hoverStyle?: StyleProp<ViewStyle>;
-    /** Errors that this user may contain */
-    shouldDisplayRBR?: boolean;
-    /** Test ID of the component. Used to locate this view in end-to-end tests. */
-    testID?: string;
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
-};
+type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        item: TItem;
+        shouldPreventDefaultFocusOnSelectRow?: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
+        shouldShowBlueBorderOnFocus?: boolean;
+        keyForList?: string | null;
+        errors?: Errors | ReceiptErrors | null;
+        pendingAction?: PendingAction | null;
+        FooterComponent?: ReactElement;
+        children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+        shouldSyncFocus?: boolean;
+        hoverStyle?: StyleProp<ViewStyle>;
+        /** Errors that this user may contain */
+        shouldDisplayRBR?: boolean;
+        /** Test ID of the component. Used to locate this view in end-to-end tests. */
+        testID?: string;
+        /** Whether to show the default right hand side checkmark */
+        shouldUseDefaultRightHandSideCheckmark?: boolean;
+    };
 
-type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Errors that this user may contain */
-    errors?: Errors | ReceiptErrors | null;
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        /** Errors that this user may contain */
+        errors?: Errors | ReceiptErrors | null;
 
-    /** The type of action that's pending  */
-    pendingAction?: PendingAction | null;
+        /** The type of action that's pending  */
+        pendingAction?: PendingAction | null;
 
-    /** The React element that will be shown as a footer */
-    FooterComponent?: ReactElement;
-};
+        /** The React element that will be shown as a footer */
+        FooterComponent?: ReactElement;
+    };
 
 type SplitListItemType = ListItem &
     SplitExpense & {
@@ -490,11 +496,18 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -503,6 +516,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     accountID?: number;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
+    newTransactionID?: string;
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -586,6 +601,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
+
+    /** Whether selected items should be shown at the top within each section */
+    shouldPrioritizeSelectedItems?: boolean;
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
@@ -814,9 +832,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * within half the visible length of the list.
      */
     onEndReachedThreshold?: number;
-
-    /** Whether to skip the Show More button pagination logic */
-    shouldSkipShowMoreButton?: boolean;
 
     /**
      * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).

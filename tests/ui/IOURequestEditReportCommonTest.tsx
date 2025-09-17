@@ -14,7 +14,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const FAKE_REPORT_ID = '1';
 const FAKE_POLICY_ID = '1';
-const FAKE_TRANSACTION_ID = '1';
+const FAKE_TRANSACTION_ID = '2';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
 const FAKE_SECOND_ACCOUNT_ID = 2;
@@ -43,11 +43,12 @@ jest.mock('@components/OptionListContextProvider', () => ({
  * Helper function to render the IOURequestEditReportCommon component with required providers.
  * This encapsulates the component setup and makes tests more readable.
  */
-const renderIOURequestEditReportCommon = ({transactionsReports = []}: {transactionsReports: Report[]}) =>
+const renderIOURequestEditReportCommon = ({selectedReportID = '', selectedPolicyID}: {selectedReportID: string; selectedPolicyID?: string}) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <IOURequestEditReportCommon
-                transactionsReports={transactionsReports}
+                selectedReportID={selectedReportID}
+                selectedPolicyID={selectedPolicyID}
                 selectReport={jest.fn()}
                 backTo=""
             />
@@ -92,17 +93,18 @@ describe('IOURequestEditReportCommon', () => {
 
         it('should not show DotIndicator when the report has brickRoadIndicator', async () => {
             // Given a transaction report
-            const mockTransactionsReports: Report[] = [
-                {
-                    reportID: FAKE_TRANSACTION_ID,
-                    reportName: 'Transaction Report',
-                    ownerAccountID: FAKE_ACCOUNT_ID,
-                    policyID: FAKE_POLICY_ID,
-                } as Report,
-            ];
+            const mockTransactionReport: Report = {
+                reportID: FAKE_TRANSACTION_ID,
+                reportName: 'Transaction Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: FAKE_POLICY_ID,
+            };
+
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTransactionReport.reportID}`, mockTransactionReport);
+            await waitForBatchedUpdates();
 
             // When the component is rendered with the transaction reports
-            renderIOURequestEditReportCommon({transactionsReports: mockTransactionsReports});
+            renderIOURequestEditReportCommon({selectedReportID: mockTransactionReport.reportID, selectedPolicyID: mockTransactionReport.policyID});
             await waitForBatchedUpdatesWithAct();
 
             // Then the expense report should be displayed
@@ -153,19 +155,20 @@ describe('IOURequestEditReportCommon', () => {
 
         it('should display not found page when the report is Open and the user is not the owner or admin', async () => {
             // Given a transaction report
-            const mockTransactionsReports: Report[] = [
-                {
-                    reportID: FAKE_TRANSACTION_ID,
-                    reportName: 'Transaction Report',
-                    ownerAccountID: FAKE_ACCOUNT_ID,
-                    policyID: FAKE_POLICY_ID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                } as Report,
-            ];
+            const mockTransactionReport: Report = {
+                reportID: FAKE_TRANSACTION_ID,
+                reportName: 'Transaction Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: FAKE_POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockTransactionReport.reportID}`, mockTransactionReport);
+            await waitForBatchedUpdates();
 
             // When the component is rendered with the transaction reports
-            renderIOURequestEditReportCommon({transactionsReports: mockTransactionsReports});
+            renderIOURequestEditReportCommon({selectedReportID: mockTransactionReport.reportID, selectedPolicyID: mockTransactionReport.policyID});
             await waitForBatchedUpdatesWithAct();
 
             // Then the not found page should be displayed

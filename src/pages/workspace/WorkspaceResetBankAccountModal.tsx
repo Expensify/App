@@ -55,7 +55,7 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policyID, policy?.achAccount);
+            resetNonUSDBankAccount(policyID, policy?.achAccount, !achData?.bankAccountID);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
@@ -69,7 +69,7 @@ function WorkspaceResetBankAccountModal({
                 setNonUSDBankAccountStep(null);
             }
         } else {
-            resetUSDBankAccount(bankAccountID, session, policyID, lastPaymentMethod);
+            resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 
             if (setShouldShowContinueSetupButton) {
                 setShouldShowContinueSetupButton(false);

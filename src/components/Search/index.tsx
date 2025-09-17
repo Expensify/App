@@ -1,8 +1,9 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import type {ContentStyle} from '@shopify/flash-list';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -18,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -29,6 +30,7 @@ import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMe
 import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -52,25 +54,24 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
-import SearchScopeProvider from './SearchScopeProvider';
+import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: ContentStyle;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
@@ -187,6 +188,33 @@ function prepareTransactionsList(
     };
 }
 
+const archivedReportsSelector = (all: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
+    const ids = new Set<string>();
+    if (!all) {
+        return ids;
+    }
+
+    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+    for (const [key, value] of Object.entries(all)) {
+        if (isArchivedReport(value)) {
+            const reportID = key.slice(prefixLength);
+            ids.add(reportID);
+        }
+    }
+    return ids;
+};
+
+const exportReportActionsSelector = (allReportActions: OnyxCollection<ReportActions>) => {
+    return Object.fromEntries(
+        Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
+            const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter(
+                (action) => isExportIntegrationAction(action as ReportAction) || isIntegrationMessageAction(action as ReportAction),
+            );
+            return [reportID, filteredReportActions];
+        }),
+    );
+};
+
 function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -218,41 +246,21 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    const reportID = key.slice(prefixLength);
-                    ids.add(reportID);
-                }
-            }
-            return ids;
-        },
+        selector: archivedReportsSelector,
     });
 
-    // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: (allReportActions) => {
-            return Object.fromEntries(
-                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
-                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
-                    return [reportID, filteredReportActions];
-                }),
-            );
-        },
+        selector: exportReportActionsSelector,
     });
+
     const {defaultCardFeed} = useCardFeedsForDisplay();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
@@ -374,7 +382,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         openSearch();
     }, []);
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+    const {newSearchResultKey, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -595,6 +603,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            const isTransactionItem = isTransactionListItemType(item);
+            const backTo = Navigation.getActiveRoute();
+
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
+                createAndOpenSearchTransactionThread(item, iouReportAction, hash, backTo);
+                return;
+            }
+
             if (isTransactionMemberGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
@@ -635,7 +653,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isTransactionItem = isTransactionListItemType(item);
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -649,21 +666,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
-            const backTo = Navigation.getActiveRoute();
-
             if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-                return;
-            }
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
-                const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction);
-                if (transactionThreadReport?.reportID) {
-                    updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
-                }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
                 return;
             }
 
@@ -758,11 +762,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > data.length - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
-        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+
+        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
+    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
@@ -864,7 +870,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
 
     return (
-        <SearchScopeProvider isOnSearch>
+        <SearchScopeProvider>
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
@@ -894,7 +900,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             />
                         )
                     }
-                    contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
+                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
                     containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
@@ -911,9 +917,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     queryJSON={queryJSON}
                     columns={columnsToShow}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                    violations={violations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    newTransactions={newTransactions}
                 />
             </Animated.View>
         </SearchScopeProvider>

@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/prefer-early-return */
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -91,6 +92,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
+
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -114,13 +118,13 @@ function MoneyRequestReportActionsList({
     reportActions = [],
     transactions = [],
     newTransactions,
+    violations,
     hasNewerActions,
     hasOlderActions,
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {preferredLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
@@ -157,7 +161,7 @@ function MoneyRequestReportActionsList({
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -354,12 +358,12 @@ function MoneyRequestReportActionsList({
      */
     const earliestReceivedOfflineMessageIndex = useMemo(() => {
         const lastIndex = reportActions.findLastIndex((action) => {
-            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale);
+            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime);
         });
 
         // The last index in the list is the earliest message that was received while offline
         return lastIndex > -1 ? lastIndex : undefined;
-    }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, reportActions]);
+    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, reportActions]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -598,7 +602,6 @@ function MoneyRequestReportActionsList({
         },
         [reportScrollManager],
     );
-    const reportHasComments = visibleReportActions.length > 0;
 
     /**
      * Runs when the FlatList finishes laying out
@@ -721,9 +724,9 @@ function MoneyRequestReportActionsList({
                                     transactions={transactions}
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
-                                    hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
+                                    violations={violations}
                                     scrollToNewTransaction={scrollToNewTransaction}
+                                    policy={policy}
                                 />
                             </>
                         }

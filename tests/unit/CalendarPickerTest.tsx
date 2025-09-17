@@ -1,4 +1,4 @@
-import type ReactNavigationNative from '@react-navigation/native';
+import type * as ReactNavigationNative from '@react-navigation/native';
 import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
