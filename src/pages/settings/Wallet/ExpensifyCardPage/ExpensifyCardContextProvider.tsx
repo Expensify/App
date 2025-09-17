@@ -21,7 +21,7 @@ const ExpensifyCardContext = createContext<ExpensifyCardContextProviderPropsProp
 });
 
 /**
- * Hook to get the animated position of the Side Panel and the margin of the navigator
+ * Context to display revealed expensify card data and pass it between screens.
  */
 function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});

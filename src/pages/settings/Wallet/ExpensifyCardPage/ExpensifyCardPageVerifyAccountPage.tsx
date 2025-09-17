@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useExpensifyCardContext from '@hooks/useExpensifyCardContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
@@ -13,6 +12,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import useExpensifyCardContext from './useExpensifyCardContext';
 
 type ExpensifyCardPageVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
 
