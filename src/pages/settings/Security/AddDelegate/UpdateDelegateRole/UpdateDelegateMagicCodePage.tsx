@@ -48,7 +48,7 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
             validateError={updateDelegateErrors}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            handleSubmitForm={(validateCode) => updateDelegateRole({email: login, newRole, validateCode, delegatedAccess: account?.delegatedAccess})}
+            handleSubmitForm={(validateCode) => updateDelegateRole({email: login, role: newRole, validateCode, delegatedAccess: account?.delegatedAccess})}
             descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
     );

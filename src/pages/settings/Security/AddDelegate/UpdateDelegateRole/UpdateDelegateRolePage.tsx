@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +14,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {DelegateRole} from '@src/types/onyx/Account';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
 
@@ -31,12 +30,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
         alternateText: translate('delegate.roleDescription', {role}),
         isSelected: role === currentRole,
     }));
-
-    useEffect(() => {
-        updateDelegateRoleOptimistically(login ?? '', currentRole as DelegateRole);
-        return () => clearDelegateRolePendingAction(login);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [login]);
 
     return (
         <ScreenWrapper
