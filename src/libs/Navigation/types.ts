@@ -162,6 +162,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
+    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
@@ -505,18 +506,23 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
         policyID: string;
         accountID: number;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
         policyID: string;
         accountID: number;
         error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
+        transactionID?: string;
+        reportID?: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
@@ -917,6 +923,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
@@ -1392,6 +1399,24 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
@@ -1476,6 +1501,16 @@ type MoneyRequestNavigatorParamList = {
         /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
+    [SCREENS.MONEY_REQUEST.REJECT]: {
+        /** ID of the transaction the page was opened for */
+        transactionID: string;
+
+        /** ID of the report that user is providing hold reason to */
+        reportID: string;
+
+        /** Link to previous page */
+        backTo: ExpensifyRoute;
+    };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -1496,6 +1531,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        featureName?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
         action: IOUAction;
@@ -1552,23 +1588,6 @@ type MoneyRequestNavigatorParamList = {
         action: never;
         currency: never;
         pageIndex?: string;
-        backToReport?: string;
-        reportActionID?: string;
-    };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
-        backTo: Routes;
-        backToReport?: string;
-    };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
-        backTo: Routes;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -1857,6 +1876,9 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
         backTo?: Routes;
     };
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
+        domain: string;
+    };
 };
 
 type ReportsSplitNavigatorParamList = {
@@ -1950,6 +1972,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
@@ -2057,18 +2082,14 @@ type OnboardingModalNavigatorParamList = {
     };
 };
 
-type WelcomeVideoModalNavigatorParamList = {
-    [SCREENS.WELCOME_VIDEO.ROOT]: {
-        shouldOpenSearch?: string;
-    };
-};
-
 type ExplanationModalNavigatorParamList = {
     [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
 };
 
 type MigratedUserModalNavigatorParamList = {
-    [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
+    [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
+        shouldOpenSearch?: string;
+    };
 };
 
 type TestDriveModalNavigatorParamList = {
@@ -2192,7 +2213,6 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
-        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
@@ -2332,6 +2352,9 @@ type ReportChangeApproverParamList = {
     [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: {
         reportID: string;
     };
+    [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: {
+        reportID: string;
+    };
 };
 
 type TestToolsModalModalNavigatorParamList = {
@@ -2425,7 +2448,6 @@ export type {
     TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
-    WelcomeVideoModalNavigatorParamList,
     WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
