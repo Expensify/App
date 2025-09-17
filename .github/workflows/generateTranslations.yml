@@ -18,9 +18,6 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c02a7a6fa90fbf0fec054092dc439b42b775cfb3
-
       - name: Check if English translations were modified
         id: check-en-changes
         run: |
@@ -50,12 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Fetch base ref
-        run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }} --no-tags --depth=1 --no-recurse-submodules
-          if ! git rev-parse --verify ${{ github.event.pull_request.base.ref }}; then
-            echo "❌ wtf Base ref ${{ github.event.pull_request.base.ref }} does not exist"
-            exit 1
-          fi
+        run: git fetch --no-tags --depth=1 --no-recurse-submodules origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/heads/${{ github.event.pull_request.base.ref }}
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
