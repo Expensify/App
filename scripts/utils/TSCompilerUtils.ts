@@ -414,12 +414,27 @@ function injectDeepObjectValue(objectLiteral: ts.ObjectLiteralExpression, dotPat
         }
 
         // Recursively inject into the existing nested structure
-        if (!ts.isObjectLiteralExpression(existingProperty.initializer)) {
+        // Handle both direct ObjectLiteralExpression and SatisfiesExpression wrapping an object
+        let nestedObject: ts.ObjectLiteralExpression | undefined;
+        let satisfiesType: ts.TypeNode | undefined;
+
+        if (ts.isObjectLiteralExpression(existingProperty.initializer)) {
+            nestedObject = existingProperty.initializer;
+        } else if (ts.isSatisfiesExpression(existingProperty.initializer) && ts.isObjectLiteralExpression(existingProperty.initializer.expression)) {
+            nestedObject = existingProperty.initializer.expression;
+            satisfiesType = existingProperty.initializer.type;
+        }
+
+        if (!nestedObject) {
             throw new Error(`Cannot inject into path "${dotPath}": property "${topLevelKey}" exists but is not an object`);
         }
 
-        const updatedNestedObject = injectDeepObjectValue(existingProperty.initializer, remainingPath, value);
-        const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, updatedNestedObject);
+        const updatedNestedObject = injectDeepObjectValue(nestedObject, remainingPath, value);
+
+        // Re-wrap with satisfies if it was originally wrapped
+        const finalValue = satisfiesType ? ts.factory.createSatisfiesExpression(updatedNestedObject, satisfiesType) : updatedNestedObject;
+
+        const updatedProperty = ts.factory.createPropertyAssignment(topLevelKey, finalValue);
         const updatedProperties = objectLiteral.properties.map((prop) => (prop === existingProperty ? updatedProperty : prop));
         return ts.factory.createObjectLiteralExpression(updatedProperties);
     }

@@ -1292,5 +1292,53 @@ describe('TSCompilerUtils', () => {
             expect((nestedProp.name as ts.Identifier).text).toBe('456');
             expect((nestedProp.initializer as ts.StringLiteral).text).toBe('numeric value');
         });
+
+        it('should handle satisfies expressions in nested objects', () => {
+            // Create object: { tasks: { existing: 'value' } satisfies Record<string, string> }
+            const satisfiesExpr = ts.factory.createSatisfiesExpression(
+                ts.factory.createObjectLiteralExpression([ts.factory.createPropertyAssignment(ts.factory.createIdentifier('existing'), ts.factory.createStringLiteral('value'))]),
+                ts.factory.createTypeReferenceNode(ts.factory.createIdentifier('Record'), [
+                    ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+                    ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+                ]),
+            );
+
+            const objectLiteral = ts.factory.createObjectLiteralExpression([ts.factory.createPropertyAssignment(ts.factory.createIdentifier('tasks'), satisfiesExpr)]);
+
+            const newValue = ts.factory.createStringLiteral('new value');
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'tasks.newKey', newValue);
+
+            // Verify satisfies expression is preserved
+            const tasksProp = updatedObject.properties[0] as ts.PropertyAssignment;
+            expect(ts.isSatisfiesExpression(tasksProp.initializer)).toBe(true);
+
+            // Verify both existing and new properties exist
+            const tasksObj = (tasksProp.initializer as ts.SatisfiesExpression).expression as ts.ObjectLiteralExpression;
+            expect(tasksObj.properties).toHaveLength(2);
+        });
+
+        it('should replace existing values in satisfies expressions', () => {
+            // Create object: { nested: { existingKey: 'old value' } satisfies Record<string, string> }
+            const satisfiesExpr = ts.factory.createSatisfiesExpression(
+                ts.factory.createObjectLiteralExpression([ts.factory.createPropertyAssignment(ts.factory.createIdentifier('existingKey'), ts.factory.createStringLiteral('old value'))]),
+                ts.factory.createTypeReferenceNode(ts.factory.createIdentifier('Record'), [
+                    ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+                    ts.factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+                ]),
+            );
+
+            const objectLiteral = ts.factory.createObjectLiteralExpression([ts.factory.createPropertyAssignment(ts.factory.createIdentifier('nested'), satisfiesExpr)]);
+
+            const newValue = ts.factory.createStringLiteral('new value');
+            const updatedObject = TSCompilerUtils.injectDeepObjectValue(objectLiteral, 'nested.existingKey', newValue);
+
+            // Verify satisfies expression is preserved and value is replaced
+            const nestedProp = updatedObject.properties[0] as ts.PropertyAssignment;
+            expect(ts.isSatisfiesExpression(nestedProp.initializer)).toBe(true);
+
+            const nestedObj = (nestedProp.initializer as ts.SatisfiesExpression).expression as ts.ObjectLiteralExpression;
+            const existingKeyProp = nestedObj.properties[0] as ts.PropertyAssignment;
+            expect((existingKeyProp.initializer as ts.StringLiteral).text).toBe('new value');
+        });
     });
 });

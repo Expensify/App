@@ -1510,5 +1510,66 @@ describe('generateTranslations', () => {
             expect(translateSpy).toHaveBeenCalledTimes(1);
             expect(translateSpy).toHaveBeenCalledWith('it', 'Skip it if you dare', undefined);
         });
+
+        it('should handle satisfies expressions in nested objects', async () => {
+            const strings = {
+                common: {
+                    tasks: 'Tasks', // String value
+                },
+                onboarding: {
+                    tasks: {
+                        createWorkspaceTask: {
+                            title: 'Create a workspace',
+                            description: 'Create a workspace to get started',
+                        },
+                    },
+                },
+            };
+            mockEn = strings;
+
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing translation file with satisfies expression on nested object
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    common: {
+                        tasks: '[it] Tasks',
+                    },
+                    onboarding: {
+                        tasks: {
+                            someOtherTask: {
+                                title: '[it] Some other task',
+                                description: '[it] Some other description',
+                            },
+                        } satisfies Record<string, {title: string; description: string}>,
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Test targeting the specific nested path
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.createWorkspaceTask'];
+
+            // This currently throws an error but should succeed
+            await generateTranslations();
+
+            // Check that the new task was added within the satisfies expression
+            const result = fs.readFileSync(IT_PATH, 'utf8');
+            expect(result).toContain('createWorkspaceTask');
+            expect(result).toContain('[it] Create a workspace');
+            expect(result).toContain('satisfies Record<'); // Should preserve the satisfies expression
+        });
     });
 });
