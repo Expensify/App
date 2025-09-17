@@ -80,6 +80,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 
 type TransactionParams = {
     amount: number;
+    modifiedAmount?: number;
     currency: string;
     reportID: string | undefined;
     comment?: string;
@@ -291,6 +292,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
     const {
         amount,
+        modifiedAmount,
         currency,
         reportID,
         distance,
@@ -361,6 +363,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag,
         taxCode,
         taxAmount,
+        modifiedAmount,
         billable,
         reimbursable,
         inserted: DateUtils.getDBTime(),
@@ -599,6 +602,28 @@ function getUpdatedTransaction({
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
+    if (Object.hasOwn(transactionChanges, 'distance') && typeof transactionChanges.distance === 'number') {
+        const distance = roundToTwoDecimalPlaces(transactionChanges.distance ?? 0);
+
+        lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        shouldStopSmartscan = true;
+
+        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+        const {unit, rate} = updatedMileageRate;
+
+        const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
+        let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+        amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
+        const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
+        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
+            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        );
+
+        updatedTransaction.modifiedAmount = amount;
+        updatedTransaction.modifiedMerchant = updatedMerchant;
+        updatedTransaction.modifiedCurrency = updatedCurrency;
+    }
+
     updatedTransaction.pendingFields = {
         ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -614,6 +639,11 @@ function getUpdatedTransaction({
         ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'distance') && {
+            quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        }),
     };
 
     return updatedTransaction;
@@ -1974,6 +2004,7 @@ export {
     getValidWaypoints,
     getValidDuplicateTransactionIDs,
     isDistanceRequest,
+    isMapDistanceRequest,
     isManualDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,

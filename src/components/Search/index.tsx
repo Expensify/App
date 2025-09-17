@@ -65,7 +65,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
-import SearchScopeProvider from './SearchScopeProvider';
+import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -382,7 +382,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         openSearch();
     }, []);
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+    const {newSearchResultKey, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -870,7 +870,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
 
     return (
-        <SearchScopeProvider isOnSearch>
+        <SearchScopeProvider>
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
@@ -921,6 +921,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    newTransactions={newTransactions}
                 />
             </Animated.View>
         </SearchScopeProvider>
