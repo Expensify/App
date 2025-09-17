@@ -5,6 +5,7 @@ keywords: [Expensify Travel, travel booking, automatic expense creation, flight 
 
 ---
 
+
 Expensify Travel lets you book business trips and manage expenses in one place—automatically and without the need for manual entry or external tools.
 
 # Connect Expensify Travel with your account
