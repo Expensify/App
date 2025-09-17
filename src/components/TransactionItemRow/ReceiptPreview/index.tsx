@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasReceiptSource, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
