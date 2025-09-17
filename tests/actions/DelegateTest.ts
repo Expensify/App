@@ -203,8 +203,7 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         const firstDelegate = account?.delegatedAccess?.delegates?.at(0);
                         const isOptimistic =
-                            firstDelegate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE &&
-                            firstDelegate?.pendingFields?.role === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+                            firstDelegate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE && firstDelegate?.pendingFields?.role === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
                         const isSuccess = firstDelegate?.pendingAction === null && firstDelegate?.pendingFields?.role === null && firstDelegate?.role === CONST.DELEGATE_ROLE.SUBMITTER;
                         if (isOptimistic || isSuccess) {
                             Onyx.disconnect(connection);
