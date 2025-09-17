@@ -7090,7 +7090,7 @@ const translations = {
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
         },
         reasonRBR: {
-            hasErrors: 'Has errors in report or report actions data',
+            hasErrors: 'Has errors in report or report actions data and stuff',
             hasViolations: 'Has violations',
             hasTransactionThreadViolations: 'Has transaction thread violations',
         },
