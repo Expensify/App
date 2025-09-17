@@ -2778,7 +2778,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {lastVisibleActionCreated: optimisticReportPreview.created, ...outstandingChildRequest},
+            value: {lastVisibleActionCreated: optimisticReportPreview.created, iouReportID: reportID, ...outstandingChildRequest},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -4014,18 +4014,6 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     removeFromRoom(reportID, accountIDList);
 }
 
-function setLastOpenedPublicRoom(reportID: string) {
-    Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
-}
-
-/** Navigates to the last opened public room */
-function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
-    Navigation.isNavigationReady().then(() => {
-        setLastOpenedPublicRoom('');
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastOpenedPublicRoomID));
-    });
-}
-
 /** Flag a comment as offensive */
 function flagComment(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -4265,6 +4253,7 @@ function completeOnboarding({
     userReportedIntegration,
     wasInvited,
     selectedInterestedFeatures = [],
+    shouldSkipTestDriveModal,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4277,6 +4266,7 @@ function completeOnboarding({
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
     selectedInterestedFeatures?: string[];
+    shouldSkipTestDriveModal?: boolean;
 }) {
     const onboardingData = prepareOnboardingOnyxData(
         introSelected,
@@ -4309,7 +4299,8 @@ function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    if (shouldOnboardingRedirectToOldDot(companySize, userReportedIntegration)) {
+    const willRedirectToOldDotFromOnboarding = shouldOnboardingRedirectToOldDot(companySize, userReportedIntegration);
+    if (willRedirectToOldDotFromOnboarding) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -4326,6 +4317,28 @@ function completeOnboarding({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {isLoading: false},
+        });
+    }
+
+    // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
+    // because we don't want the modal to reappear when returning from oldDot.
+    if (!shouldSkipTestDriveModal && !(engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && willRedirectToOldDotFromOnboarding)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: null},
         });
     }
 
@@ -6117,7 +6130,6 @@ export {
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
     notifyNewAction,
-    openLastOpenedPublicRoom,
     openReport,
     openReportFromDeepLink,
     openRoomMembersPage,
@@ -6136,7 +6148,6 @@ export {
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
-    setLastOpenedPublicRoom,
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,

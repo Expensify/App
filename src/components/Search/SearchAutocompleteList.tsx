@@ -1,5 +1,6 @@
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -101,6 +102,9 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
 const defaultListOptions = {
@@ -152,25 +156,23 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
-function SearchAutocompleteList(
-    {
-        autocompleteQueryValue,
-        handleSearch,
-        searchQueryItem,
-        getAdditionalSections,
-        onListItemPress,
-        setTextQuery,
-        updateAutocompleteSubstitutions,
-        shouldSubscribeToArrowKeyEvents = true,
-        onHighlightFirstItem,
-        textInputRef,
-        personalDetails,
-        reports,
-        allFeeds,
-        allCards,
-    }: SearchAutocompleteListProps,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function SearchAutocompleteList({
+    autocompleteQueryValue,
+    handleSearch,
+    searchQueryItem,
+    getAdditionalSections,
+    onListItemPress,
+    setTextQuery,
+    updateAutocompleteSubstitutions,
+    shouldSubscribeToArrowKeyEvents = true,
+    onHighlightFirstItem,
+    textInputRef,
+    personalDetails,
+    reports,
+    allFeeds,
+    allCards,
+    ref,
+}: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -249,7 +251,8 @@ function SearchAutocompleteList(
     }, [allRecentCategories]);
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
     const workspaceList = useMemo(
         () =>
@@ -368,7 +371,7 @@ function SearchAutocompleteList(
 
                 return participants.map((participant) => ({
                     filterKey: autocompleteKey,
-                    text: participant.text ?? '',
+                    text: participant.login === currentUserLogin ? CONST.SEARCH.ME : (participant.text ?? ''),
                     autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
@@ -534,6 +537,7 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
+        currentUserLogin,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -543,7 +547,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
@@ -793,6 +797,6 @@ function SearchAutocompleteList(
     );
 }
 
-export default forwardRef(SearchAutocompleteList);
+export default SearchAutocompleteList;
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback};
