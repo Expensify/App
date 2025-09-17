@@ -9,7 +9,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
@@ -203,7 +202,6 @@ function AttachmentModal({
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const isPDFLoadError = useRef(false);
     const isReplaceReceipt = useRef(false);
-    const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
@@ -452,7 +450,6 @@ function AttachmentModal({
                         });
                     }
                 }}
-                propagateSwipe
                 initialFocus={() => {
                     if (!submitRef.current) {
                         return false;
@@ -474,7 +471,6 @@ function AttachmentModal({
                         onBackButtonPress={closeModal}
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsAnchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -494,8 +490,7 @@ function AttachmentModal({
                                 iconHeight={variables.modalTopIconHeight}
                                 title={translate('notFound.notHere')}
                                 subtitle={translate('notFound.pageNotFound')}
-                                linkKey="notFound.goBackHome"
-                                shouldShowLink
+                                linkTranslationKey="notFound.goBackHome"
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}

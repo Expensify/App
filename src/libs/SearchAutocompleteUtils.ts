@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
+import {getUserFriendlyValue} from './SearchQueryUtils';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -26,7 +27,7 @@ function parseForAutocomplete(text: string) {
  */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
-    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
     tagListsUnpacked
         .map(getTagNamesFromTagsLists)
         .flat()
@@ -109,6 +110,16 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
+const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+const userFriendlyStatusList = Object.values({
+    ...CONST.SEARCH.STATUS.EXPENSE,
+    ...CONST.SEARCH.STATUS.INVOICE,
+    ...CONST.SEARCH.STATUS.CHAT,
+    ...CONST.SEARCH.STATUS.TRIP,
+    ...CONST.SEARCH.STATUS.TASK,
+}).map((value) => getUserFriendlyValue(value));
+
 /**
  * @private
  */
@@ -123,18 +134,14 @@ function filterOutRangesWithCorrectValue(
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
-    const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
-    const statusList = Object.values({
-        ...CONST.SEARCH.STATUS.EXPENSE,
-        ...CONST.SEARCH.STATUS.INVOICE,
-        ...CONST.SEARCH.STATUS.CHAT,
-        ...CONST.SEARCH.STATUS.TRIP,
-        ...CONST.SEARCH.STATUS.TASK,
-    }) as string[];
-    const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
+    const expenseTypeList = userFriendlyExpenseTypeList;
+    const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
+    const statusList = userFriendlyStatusList;
+    const groupByList = userFriendlyGroupByList;
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
+    const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -149,14 +156,18 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
-
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
             return currencyList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
             return expenseTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
+            return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
             return statusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
@@ -170,10 +181,16 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return datePresetList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
+            return hasList.includes(range.value);
         default:
             return false;
     }
@@ -199,7 +216,7 @@ function parseForLiveMarkdown(
     return ranges
         .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
         .map((range) => {
-            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName;
+            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
 
             return {start: range.start, type, length: range.length};

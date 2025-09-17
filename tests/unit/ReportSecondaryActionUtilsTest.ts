@@ -118,6 +118,29 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
+    it('should not include SUBMIT option for the user who is not submitter/admin/manager', async () => {
+        const report: Report = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            managerID: 0,
+        };
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            role: CONST.POLICY.ROLE.AUDITOR,
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
     it('should not include SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -1011,6 +1034,48 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
 
+    it('does not include DELETE option for unreported card expense imported with deleting disabled', async () => {
+        // Given the unreported card expense imported with deleting disabled
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            managedCard: true,
+            comment: {
+                liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+            },
+        } as unknown as Transaction;
+
+        const reportActions = [
+            {
+                reportActionID: '1',
+                actorAccountID: EMPLOYEE_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: TRANSACTION_ID,
+                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+            },
+        ] as unknown as ReportAction[];
+
+        const policy = {} as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Then it should return false since the unreported card expense is imported with deleting disabled
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy, reportActions});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
+    });
+
     it('does not include DELETE option for report that has been forwarded', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -1425,7 +1490,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
-    it('does not include the SPLIT option if the current user belongs to the workspace', async () => {
+    it('does not include the SPLIT option if the current user does not belong to the workspace', async () => {
         const report = {
             reportID: REPORT_ID,
             policyID: POLICY_ID,

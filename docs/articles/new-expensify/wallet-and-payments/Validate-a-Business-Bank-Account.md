@@ -3,7 +3,6 @@ title: Validate a Business Bank Account
 description: Finish connecting your business bank account by verifying test transactions in Expensify.
 keywords: [New Expensify, bank account verification, test deposits, ACH validation, business bank account, workspace payments]
 ---
-<div id="new-expensify" markdown="1">
 
 Once your business bank account connection is approved in Expensify, you’ll receive a series of **test deposits** to confirm the connection. This step is required before you can start using the account for reimbursements or payments.
 
@@ -47,4 +46,3 @@ If the test deposits don’t appear after two business days:
 
 Still not seeing them? Contact **Expensify Support via Concierge**, and we’ll help investigate.
 
-</div>

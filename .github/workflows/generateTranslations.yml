@@ -3,6 +3,7 @@ name: Generate static translations
 on:
   pull_request:
     types: [opened, synchronize]
+    paths-ignore: ['docs/articles/**/*.md', 'docs/redirects.csv', 'docs/assets/images/**']
 
 jobs:
   generateTranslations:

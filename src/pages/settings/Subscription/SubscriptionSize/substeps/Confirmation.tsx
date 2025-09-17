@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import SubscriptionPlanDowngradeBlocked from '@components/SubscriptionPlanDowngradeBlocked';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -34,49 +35,36 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
         Navigation.goBack();
     };
 
+    if (!canChangeSubscriptionSize) {
+        return (
+            <SubscriptionPlanDowngradeBlocked
+                privateSubscription={privateSubscription}
+                formattedSubscriptionEndDate={formattedSubscriptionEndDate}
+                onClosePress={onClosePress}
+            />
+        );
+    }
+
     return (
         <View style={[styles.flexGrow1]}>
-            {canChangeSubscriptionSize ? (
-                <>
-                    <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
-                    <MenuItemWithTopDescription
-                        interactive={false}
-                        description={translate('subscription.subscriptionSize.subscriptionSize')}
-                        title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSize})}
-                    />
-                    <MenuItemWithTopDescription
-                        interactive={false}
-                        description={translate('subscription.subscriptionSize.subscriptionRenews')}
-                        title={subscriptionRenewalDate}
-                    />
-                </>
-            ) : (
-                <>
-                    <Text style={[styles.ph5, styles.pb5, styles.textNormalThemeText]}>{translate('subscription.subscriptionSize.youCantDowngrade')}</Text>
-                    <Text style={[styles.ph5, styles.textNormalThemeText]}>
-                        {translate('subscription.subscriptionSize.youAlreadyCommitted', {
-                            size: privateSubscription?.userCount ?? 0,
-                            date: formattedSubscriptionEndDate,
-                        })}
-                    </Text>
-                </>
-            )}
+            <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
+            <MenuItemWithTopDescription
+                interactive={false}
+                description={translate('subscription.subscriptionSize.subscriptionSize')}
+                title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSize})}
+            />
+            <MenuItemWithTopDescription
+                interactive={false}
+                description={translate('subscription.subscriptionSize.subscriptionRenews')}
+                title={subscriptionRenewalDate}
+            />
             <FixedFooter style={[styles.mtAuto]}>
-                {canChangeSubscriptionSize ? (
-                    <Button
-                        success
-                        large
-                        onPress={onNext}
-                        text={translate('common.save')}
-                    />
-                ) : (
-                    <Button
-                        success
-                        large
-                        onPress={onClosePress}
-                        text={translate('common.close')}
-                    />
-                )}
+                <Button
+                    success
+                    large
+                    onPress={onNext}
+                    text={translate('common.save')}
+                />
             </FixedFooter>
         </View>
     );

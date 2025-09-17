@@ -3,7 +3,6 @@ title: Require Tags and Categories for Expenses
 description: Learn how to make tags and categories mandatory for all expenses in a workspace.
 keywords: [New Expensify, require tags, require categories, expense compliance, workspace settings, default category, smartscan]
 ---
-<div id="new-expensify" markdown="1">
 
 To improve expense accuracy and compliance, Workspace Admins can require all expenses to be tagged and categorized before submission. This guide walks through how to enable this setting and manage default categories that auto-apply based on merchant history.
 
@@ -17,7 +16,7 @@ When this setting is turned on, expenses must include a **tag** or **category** 
 
 ## On Web
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Tags** or **Categories**.
 4. In the top-right corner, click **Settings**.
@@ -43,10 +42,9 @@ Expensify learns how you categorize expenses by merchant and automatically appli
 
 ## Manage Default Spend Categories
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
 4. Click **Settings** in the top-right.
 5. Click any default category to update its assigned value.
 
-</div>

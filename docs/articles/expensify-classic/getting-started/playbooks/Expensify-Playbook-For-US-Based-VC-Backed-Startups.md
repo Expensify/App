@@ -4,7 +4,6 @@ description: Best practices for deploying Expensify in Seed to Series A startups
 keywords: [Expensify, VC-backed startups, expense management, accounting integration, financial automation]
 redirect_from: articles/playbooks/Expensify-Playbook-for-US-based-VC-Backed-Startups/
 ---
-<div id="expensify-classic" markdown="1">
 
 This playbook outlines best practices for Seed to Series A startups with fewer than 100 employees, helping them leverage Expensify to scale efficiently while maintaining financial control.
 
@@ -123,4 +122,3 @@ Ensure uninterrupted service by adding a billing card:
 # You’re All Set!
 Your Expensify setup is complete! If you need help, reach out via [new.expensify.com](https://new.expensify.com) in your workspace’s #admins room. If you don’t have a Setup Specialist yet, upgrade to a **Control** workspace to be assigned one automatically.
 
-</div>

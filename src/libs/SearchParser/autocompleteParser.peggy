@@ -59,16 +59,19 @@ autocompleteKey "key"
   = @(
       in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
       / taxRate
       / from
+      / attendee
       / payer
       / exporter
       / createdBy
       / assignee
       / expenseType
+      / withdrawalType
       / type
       / status
       / cardID
@@ -78,14 +81,21 @@ autocompleteKey "key"
       / billable
       / policyID
       / action
-      / posted
-      / withdrawn
+      / date
+      / submitted
+      / approved
+      / paid
       / exported
+      / withdrawn
+      / posted
+      / has
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
   = k:autocompleteKey {
-      nameOperator = (k === "from" || k === "to");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }
 

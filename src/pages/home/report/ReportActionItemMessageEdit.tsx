@@ -1,7 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
@@ -22,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollBlocker from '@hooks/useScrollBlocker';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,6 +46,8 @@ import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeIn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+// eslint-disable-next-line no-restricted-imports
+import findNodeHandle from '@src/utils/findNodeHandle';
 import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
@@ -118,6 +121,8 @@ function ReportActionItemMessageEdit(
 
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
+
+    const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
@@ -362,20 +367,28 @@ function ReportActionItemMessageEdit(
 
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
-            measureContainer((x, y, width, height) => {
-                callback({
-                    x,
-                    y,
-                    width,
-                    height,
-                    scrollValue,
-                    cursorCoordinates: {x: xPosition, y: yPosition},
+            const performMeasurement = () => {
+                const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+                const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
+                measureContainer((x, y, width, height) => {
+                    callback({
+                        x,
+                        y,
+                        width,
+                        height,
+                        scrollValue,
+                        cursorCoordinates: {x: xPosition, y: yPosition},
+                    });
                 });
-            });
+            };
+
+            if (isScrolling) {
+                return;
+            }
+
+            performMeasurement();
         },
-        [cursorPositionValue, measureContainer, selection],
+        [cursorPositionValue, measureContainer, selection, isScrolling],
     );
 
     useEffect(() => {
@@ -470,9 +483,11 @@ function ReportActionItemMessageEdit(
                                 if (textInputRef.current) {
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
+                                startScrollBlock();
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
+                                        endScrollBlock();
                                     });
                                 });
                                 if (isMobileChrome() && reportScrollManager.ref?.current) {

@@ -1,10 +1,10 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -28,20 +28,6 @@ Onyx.connect({
         allPolicyTags = value;
     },
 });
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
-/**
- * Utility to get message based on boolean literal value.
- */
-function getBooleanLiteralMessage(value: string | undefined, truthyMessage: string, falsyMessage: string): string {
-    return value === 'true' ? truthyMessage : falsyMessage;
-}
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
@@ -137,8 +123,7 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     });
 }
 
-function getForExpenseMovedFromSelfDM(destinationReportID: string) {
-    const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
+function getForExpenseMovedFromSelfDM(destinationReport: OnyxEntry<Report>) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -159,6 +144,26 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     });
 }
 
+function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
+    if (!isModifiedExpenseAction(reportAction)) {
+        return undefined;
+    }
+    const reportActionOriginalMessage = getOriginalMessage(reportAction);
+
+    return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
+}
+
+function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {
+    if (movedToReport) {
+        return getForExpenseMovedFromSelfDM(movedToReport);
+    }
+
+    if (movedFromReport) {
+        const originReportName = getReportName(movedFromReport);
+        return translateLocal('iou.movedFromReport', {reportName: originReportName ?? ''});
+    }
+}
+
 /**
  * Get the report action message when expense has been modified.
  *
@@ -166,33 +171,26 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
  * If we change this function be sure to update the backend as well.
  */
 function getForReportAction({
-    reportOrID,
     reportAction,
-    searchReports,
+    policyID,
+    movedFromReport,
+    movedToReport,
 }: {
-    reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
-    searchReports?: SearchReport[];
+    policyID: string | undefined;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
+
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+    if (movedFromOrToReportMessage) {
+        return movedFromOrToReportMessage;
+    }
+
     const reportActionOriginalMessage = getOriginalMessage(reportAction);
-    let report: SearchReport | undefined | OnyxEntry<Report>;
-    if (typeof reportOrID === 'string') {
-        report = searchReports ? searchReports.find((r) => r.reportID === reportOrID) : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
-    } else {
-        report = reportOrID;
-    }
-
-    if (reportActionOriginalMessage?.movedToReportID) {
-        return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
-    }
-
-    if (reportActionOriginalMessage?.movedFromReport) {
-        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
-        return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
-    }
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
@@ -271,7 +269,7 @@ function getForReportAction({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
@@ -339,8 +337,8 @@ function getForReportAction({
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
         buildMessageFragmentForValue(
-            getBooleanLiteralMessage(reportActionOriginalMessage?.reimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
-            getBooleanLiteralMessage(reportActionOriginalMessage?.oldReimbursable, translateLocal('iou.reimbursable'), translateLocal('iou.nonReimbursable')),
+            reportActionOriginalMessage?.reimbursable ?? '',
+            reportActionOriginalMessage?.oldReimbursable ?? '',
             translateLocal('iou.expense'),
             true,
             setFragments,
@@ -366,6 +364,4 @@ function getForReportAction({
     return `${message.substring(1, message.length)}`;
 }
 
-export default {
-    getForReportAction,
-};
+export {getForReportAction, getMovedReportID, getMovedFromOrToReportMessage};

@@ -12,7 +12,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
@@ -25,7 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
+import useSidePanel from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +59,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+// eslint-disable-next-line no-restricted-imports
+import findNodeHandle from '@src/utils/findNodeHandle';
 
 type SyncSelection = {
     position: number;
@@ -101,11 +103,8 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** Function to display a file in a modal */
     displayFilesInModal: (file: FileObject[]) => void;
 
-    /** Whether the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
-
-    /** Whether the input is disabled */
-    disabled: boolean;
+    /** Whether the input is disabled, defaults to false */
+    disabled?: boolean;
 
     /** Function to set whether the comment is empty */
     setIsCommentEmpty: (isCommentEmpty: boolean) => void;
@@ -215,7 +214,6 @@ function ComposerWithSuggestions(
         isMenuVisible,
         inputPlaceholder,
         displayFilesInModal,
-        isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
         handleSendMessage,
@@ -241,7 +239,7 @@ function ComposerWithSuggestions(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanel();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -815,7 +813,7 @@ function ComposerWithSuggestions(
                         displayFilesInModal([file]);
                     }}
                     onClear={onClear}
-                    isDisabled={isBlockedFromConcierge || disabled}
+                    isDisabled={disabled}
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}

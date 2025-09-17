@@ -3,7 +3,6 @@ title: Change Expensify Card limit
 description: Increase or decrease the limit for an Expensify Card or for a group
 keywords: [Expensify Classic, Expensify Card limit]
 ---
-<div id="expensify-classic" markdown="1">
 
 You can set a limit for each individual **Expensify Card** or for a group within your organization. Here's how to do both:
 
@@ -40,4 +39,3 @@ Setting the limit to $0 will disable the card, meaning it cannot be used until t
 
 Yes, you can set individual card limits by enabling the **Custom Smart Limit** toggle. Without this, the employee's card will follow the group’s limit.
 
-</div>

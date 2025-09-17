@@ -79,6 +79,9 @@ type MagicCodeInputProps = {
     /** Function to call when the input is changed  */
     onChangeText?: (value: string) => void;
 
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
     /** Function to call when the input is submitted or fully complete */
     onFulfill?: (value: string) => void;
 
@@ -137,6 +140,7 @@ function MagicCodeInput(
         errorText = '',
         shouldSubmitOnComplete = true,
         onChangeText: onChangeTextProp = () => {},
+        onFocus: onFocusProps,
         maxLength = CONST.MAGIC_CODE_LENGTH,
         onFulfill = () => {},
         isDisableKeyboard = false,
@@ -257,6 +261,7 @@ function MagicCodeInput(
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
+        onFocusProps?.();
         event.preventDefault();
     };
 
@@ -444,7 +449,10 @@ function MagicCodeInput(
 
     return (
         <>
-            <View style={[styles.magicCodeInputContainer]}>
+            <View
+                style={[styles.magicCodeInputContainer]}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
@@ -480,7 +488,7 @@ function MagicCodeInput(
                             inputStyle={[styles.inputTransparent]}
                             role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
-                            textInputContainerStyles={[styles.borderNone, styles.bgTransparent]}
+                            textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
                         />
                     </View>

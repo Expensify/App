@@ -5,6 +5,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, Vie
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -161,6 +162,16 @@ type ButtonProps = Partial<ChildrenProps> & {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
+
+    /**
+     * Reference to the outer element.
+     */
+    ref?: ForwardedRef<View>;
+
+    /**
+     * Whether the button should stay visually normal even when disabled.
+     */
+    shouldStayNormalOnDisable?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -209,67 +220,66 @@ function KeyboardShortcutComponent({
 
 KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
 
-function Button(
-    {
-        allowBubble = false,
+function Button({
+    allowBubble = false,
 
-        iconRight = Expensicons.ArrowRight,
-        iconFill,
-        iconHoverFill,
-        icon = null,
-        iconStyles = [],
-        iconRightStyles = [],
-        iconWrapperStyles = [],
-        text = '',
+    iconRight = Expensicons.ArrowRight,
+    iconFill,
+    iconHoverFill,
+    icon = null,
+    iconStyles = [],
+    iconRightStyles = [],
+    iconWrapperStyles = [],
+    text = '',
 
-        small = false,
-        large = false,
-        medium = !small && !large,
+    small = false,
+    large = false,
+    medium = !small && !large,
 
-        isLoading = false,
-        isDisabled = false,
+    isLoading = false,
+    isDisabled = false,
 
-        onLayout = () => {},
-        onPress = () => {},
-        onLongPress = () => {},
-        onPressIn = () => {},
-        onPressOut = () => {},
-        onMouseDown = undefined,
+    onLayout = () => {},
+    onPress = () => {},
+    onLongPress = () => {},
+    onPressIn = () => {},
+    onPressOut = () => {},
+    onMouseDown = undefined,
 
-        pressOnEnter = false,
-        enterKeyEventListenerPriority = 0,
+    pressOnEnter = false,
+    enterKeyEventListenerPriority = 0,
 
-        style = [],
-        disabledStyle,
-        innerStyles = [],
-        textStyles = [],
-        textHoverStyles = [],
+    style = [],
+    disabledStyle,
+    innerStyles = [],
+    textStyles = [],
+    textHoverStyles = [],
 
-        shouldUseDefaultHover = true,
-        hoverStyles = undefined,
-        success = false,
-        danger = false,
+    shouldUseDefaultHover = true,
+    hoverStyles = undefined,
+    success = false,
+    danger = false,
 
-        shouldRemoveRightBorderRadius = false,
-        shouldRemoveLeftBorderRadius = false,
-        shouldEnableHapticFeedback = false,
-        isLongPressDisabled = false,
-        shouldShowRightIcon = false,
+    shouldRemoveRightBorderRadius = false,
+    shouldRemoveLeftBorderRadius = false,
+    shouldEnableHapticFeedback = false,
+    isLongPressDisabled = false,
+    shouldShowRightIcon = false,
 
-        id = '',
-        testID = undefined,
-        accessibilityLabel = '',
-        isSplitButton = false,
-        link = false,
-        isContentCentered = false,
-        isPressOnEnterActive,
-        isNested = false,
-        secondLineText = '',
-        shouldBlendOpacity = false,
-        ...rest
-    }: ButtonProps,
-    ref: ForwardedRef<View>,
-) {
+    id = '',
+    testID = undefined,
+    accessibilityLabel = '',
+    isSplitButton = false,
+    link = false,
+    isContentCentered = false,
+    isPressOnEnterActive,
+    isNested = false,
+    secondLineText = '',
+    shouldBlendOpacity = false,
+    shouldStayNormalOnDisable = false,
+    ref,
+    ...rest
+}: ButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -385,8 +395,8 @@ function Button(
             StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
-            isDisabled ? styles.buttonOpacityDisabled : undefined,
-            isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
+            isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
+            isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
             shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
             shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
             text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
@@ -409,6 +419,7 @@ function Button(
             styles,
             success,
             text,
+            shouldStayNormalOnDisable,
         ],
     );
 
@@ -447,7 +458,7 @@ function Button(
                 dataSet={{
                     listener: pressOnEnter ? CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey : undefined,
                 }}
-                ref={ref}
+                ref={ref as PressableRef}
                 onLayout={onLayout}
                 onPress={(event) => {
                     if (event?.type === 'click') {
@@ -479,7 +490,7 @@ function Button(
                 shouldBlendOpacity={shouldBlendOpacity}
                 disabled={isLoading || isDisabled}
                 wrapperStyle={[
-                    isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
+                    isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
                     shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
@@ -487,20 +498,24 @@ function Button(
                 ]}
                 style={buttonContainerStyles}
                 isNested={isNested}
-                hoverStyle={[
-                    shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
-                    success && !isDisabled ? styles.buttonSuccessHovered : undefined,
-                    danger && !isDisabled ? styles.buttonDangerHovered : undefined,
-                    hoverStyles,
-                ]}
-                disabledStyle={disabledStyle}
+                hoverStyle={
+                    !isDisabled || !shouldStayNormalOnDisable
+                        ? [
+                              shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
+                              success && !isDisabled ? styles.buttonSuccessHovered : undefined,
+                              danger && !isDisabled ? styles.buttonDangerHovered : undefined,
+                              hoverStyles,
+                          ]
+                        : []
+                }
+                disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
                 role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
-                onHoverIn={() => setIsHovered(true)}
-                onHoverOut={() => setIsHovered(false)}
+                onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
+                onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
@@ -517,6 +532,6 @@ function Button(
 
 Button.displayName = 'Button';
 
-export default withNavigationFallback(React.forwardRef(Button));
+export default withNavigationFallback(Button);
 
 export type {ButtonProps};

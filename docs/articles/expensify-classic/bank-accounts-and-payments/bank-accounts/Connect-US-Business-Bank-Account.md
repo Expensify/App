@@ -3,7 +3,6 @@ title: Connect U.S. business bank account
 description: Learn how to connect a deposit-only or verified business bank account to Expensify for payments and reimbursements.
 keywords: [Expensify Classic, business bank account, verified business bank account, send reimbursement, disconnect bank account]
 ---
-<div id="expensify-classic" markdown="1">
 
 You can connect a **business deposit-only account** (receives payments only) or a **verified business account** (sends and receives payments):
 
@@ -185,4 +184,3 @@ If you're unable to delete your bank account, update the settlement account for 
 
 If your business falls into one of these categories, you won’t be able to connect a business bank account to process reimbursements.
 
-</div>

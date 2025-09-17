@@ -26,7 +26,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
     const displayName = getDisplayNameOrDefault(personalDetail);
     const {formatPhoneNumber} = useLocalize();
     useEffect(() => {
-        if (!isValidAccountRoute(Number(accountID)) ?? !!avatarURL) {
+        if (!isValidAccountRoute(Number(accountID))) {
             return;
         }
         openPublicProfilePage(accountID);

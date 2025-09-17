@@ -1,15 +1,14 @@
-import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
-import {FSPage} from '@libs/Fullstory';
+import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
@@ -81,14 +80,13 @@ function parseAndLogRoute(state: NavigationState) {
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
     if (focusedRouteName) {
-        new FSPage(focusedRouteName, {path: currentPath}).start();
+        new FS.Page(focusedRouteName, {path: currentPath}).start();
     }
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
     const themePreference = useThemePreference();
-    const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
@@ -173,10 +171,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             ...defaultNavigationTheme,
             colors: {
                 ...defaultNavigationTheme.colors,
-                background: theme.appBG,
+                /**
+                 * We want to have a stack with variable size of screens in RHP.
+                 * The stack is the size of the biggest screen in RHP. Screens that should be smaller will reduce it's size with margin.
+                 * The stack have to be this size because it have a container with overflow: hidden.
+                 * background: transparent is used to make bottom of the card stack transparent.
+                 * To make sure that everything is correct, we will use theme.appBG in the screen wrapper.
+                 */
+                background: 'transparent',
             },
         };
-    }, [theme.appBG, themePreference]);
+    }, [themePreference]);
 
     useEffect(() => {
         if (firstRenderRef.current) {

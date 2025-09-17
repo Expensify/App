@@ -106,9 +106,13 @@ function ReportFieldsListValuesPage({
                 return;
             }
 
-            setReportFieldsListValueEnabled([valueIndex], value);
+            setReportFieldsListValueEnabled({
+                valueIndexes: [valueIndex],
+                enabled: value,
+                disabledListValues,
+            });
         },
-        [policyID, reportFieldID],
+        [disabledListValues, policyID, reportFieldID],
     );
 
     useSearchBackPress({
@@ -126,10 +130,10 @@ function ReportFieldsListValuesPage({
                 text: value,
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
-                enabled: !disabledListValues.at(index) ?? true,
+                enabled: !disabledListValues.at(index),
                 rightElement: (
                     <Switch
-                        isOn={!disabledListValues.at(index) ?? true}
+                        isOn={!disabledListValues.at(index)}
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                         onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
                     />
@@ -177,7 +181,11 @@ function ReportFieldsListValuesPage({
         if (reportFieldID) {
             removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
         } else {
-            deleteReportFieldsListValue(valuesToDelete);
+            deleteReportFieldsListValue({
+                valueIndexes: valuesToDelete,
+                listValues,
+                disabledListValues,
+            });
         }
 
         setDeleteValuesConfirmModalVisible(false);
@@ -246,7 +254,11 @@ function ReportFieldsListValuesPage({
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToDisable,
+                            enabled: false,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -278,7 +290,11 @@ function ReportFieldsListValuesPage({
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToEnable,
+                            enabled: true,
+                            disabledListValues,
+                        });
                     },
                 });
             }

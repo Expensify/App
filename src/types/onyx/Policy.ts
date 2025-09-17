@@ -120,6 +120,61 @@ type CompanyAddress = {
     country: Country | '';
 };
 
+/**
+ * Uber Receipt Partner
+ */
+type UberReceiptPartner = {
+    /**
+     * form data for uber partner
+     */
+    connectFormData: string;
+    /**
+     * auto invite for uber connection
+     */
+    autoInvite?: boolean;
+    /**
+     * auto remove for uber connection
+     */
+    autoRemove?: boolean;
+    /**
+     * Whether uber is enabled for user
+     */
+    enabled?: boolean;
+    /**
+     * organization id for connected uber
+     */
+    organizationID?: string;
+
+    /**
+     * Mapping of workspace member email to Uber employee status
+     */
+    employees?: Record<
+        string,
+        {
+            /**
+             * status of the employee
+             */
+            status?: string;
+        }
+    >;
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
+    /**
+     * Collection of form field errors
+     */
+    errorFields?: OnyxCommon.ErrorFields;
+};
+
+/** Policy Receipt partners */
+type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether receipt partners are enabled */
+        enabled?: boolean;
+    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+>;
+
 /** Policy disabled fields */
 type DisabledFields = {
     /** Whether the default billable field is disabled */
@@ -1200,6 +1255,9 @@ type SageIntacctExportConfig = {
 
     /** Default vendor of reimbursable bill */
     reimbursableExpenseReportDefaultVendor: string;
+
+    /** Accounting method for Sage Intacct */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1752,6 +1810,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
 
+        /** Whether transactions should be reimbursable by default */
+        defaultReimbursable?: boolean;
+
         /** The workspace description */
         description?: string;
 
@@ -1763,6 +1824,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
+
+        /**
+         * Policy Receipt Partners
+         */
+        receiptPartners?: ReceiptPartners;
 
         /** Whether the workspace has multiple levels of tags enabled */
         hasMultipleTagLists?: boolean;
@@ -1840,9 +1906,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
-        /** Whether the Receipt Partners feature is enabled */
-        areReceiptPartnersEnabled?: boolean;
-
         /** Whether the Invoices feature is enabled */
         areInvoicesEnabled?: boolean;
 
@@ -1909,6 +1972,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
 
+        /** Policy level user created in-app export templates */
+        exportLayouts?: Record<string, OnyxTypes.ExportTemplate>;
+
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
@@ -1956,6 +2022,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    UberReceiptPartner,
     AllConnectionName,
     Tenant,
     Account,

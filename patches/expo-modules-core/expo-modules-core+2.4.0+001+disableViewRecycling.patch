@@ -1,0 +1,16 @@
+diff --git a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
+index 5274667..ccc874a 100644
+--- a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
++++ b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
+@@ -140,6 +140,11 @@ - (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask
+   }
+ }
+ 
+++ (BOOL)shouldBeRecycled
++{
++    return NO;
++}
++
+ #pragma mark - Events
+ 
+ - (void)dispatchEvent:(nonnull NSString *)eventName payload:(nullable id)payload

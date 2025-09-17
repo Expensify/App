@@ -45,7 +45,6 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

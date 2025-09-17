@@ -3,7 +3,6 @@ title: Expensify Card Statements
 description: Learn how to access and manage your Expensify Card statements and settlements.
 keywords: [Expensify Classic, Expensify Card statements]
 ---
-<div id="expensify-classic" markdown="1">
 
 The Expensify Card provides detailed statements that help you track transactions and settlements with ease. This guide explains how to access, export, and manage your statements while understanding key details like settlement frequency and outstanding balances.
 
@@ -110,4 +109,3 @@ It includes all pending and posted transactions since the last settlement. Only 
 
 For additional support, contact Concierge via Expensify.
 
-</div>

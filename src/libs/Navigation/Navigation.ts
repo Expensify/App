@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -43,7 +43,8 @@ const SET_UP_2FA_ROUTES: Route[] = [
 ];
 
 let account: OnyxEntry<Account>;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
@@ -59,7 +60,7 @@ const navigationIsReadyPromise = new Promise<void>((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let pendingRoute: Route | null = null;
+let pendingNavigationCall: {route: Route; options?: LinkToOptions} | null = null;
 
 let shouldPopToSidebar = false;
 
@@ -184,7 +185,7 @@ function navigate(route: Route, options?: LinkToOptions) {
             // Store intended route if the navigator is not yet available,
             // we will try again after the NavigationContainer is ready
             Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
-            pendingRoute = route;
+            pendingNavigationCall = {route, options};
         }
         return;
     }
@@ -454,12 +455,12 @@ function getRouteNameFromStateEvent(event: EventArg<'state', false, NavigationCo
  * but the NavigationContainer was not ready when navigate() was called
  */
 function goToPendingRoute() {
-    if (pendingRoute === null) {
+    if (pendingNavigationCall === null) {
         return;
     }
-    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
-    navigate(pendingRoute);
-    pendingRoute = null;
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingNavigationCall.route}`);
+    navigate(pendingNavigationCall.route, pendingNavigationCall.options);
+    pendingNavigationCall = null;
 }
 
 function isNavigationReady(): Promise<void> {
@@ -555,10 +556,7 @@ const dismissModal = (ref = navigationRef) => {
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModalWithReport = (
-    {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
-    ref = navigationRef,
-) => {
+const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
     isNavigationReady().then(() => {
         const topmostReportID = getTopmostReportId();
         const areReportsIDsDefined = !!topmostReportID && !!reportID;
@@ -567,7 +565,7 @@ const dismissModalWithReport = (
             dismissModal();
             return;
         }
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo);
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         if (getIsNarrowLayout()) {
             navigate(reportRoute, {forceReplace: true});
             return;
@@ -638,6 +636,11 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
+function clearPreloadedRoutes() {
+    const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
+    navigationRef.reset(rootStateWithoutPreloadedRoutes);
+}
+
 const modalDismissedListeners: Array<() => void> = [];
 
 function onModalDismissedOnce(callback: () => void) {
@@ -684,6 +687,7 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
+    clearPreloadedRoutes,
     onModalDismissedOnce,
     fireModalDismissed,
 };
