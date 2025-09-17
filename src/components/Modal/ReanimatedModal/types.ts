@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {FocusTrapOptions} from '@components/Modal/types';
@@ -26,8 +27,10 @@ type GestureHandlerProps = {
     swipeDirection?: SwipeDirection | SwipeDirection[];
 };
 
-type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight';
-type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+type AnimationInType = 'fadeIn' | 'slideInUp' | 'slideInRight';
+type AnimationOutType = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+
+type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
 
 type ReanimatedModalProps = ViewProps &
     GestureProps &
@@ -57,14 +60,18 @@ type ReanimatedModalProps = ViewProps &
         /** The presentation style of the modal */
         presentationStyle?: 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
 
+        /** Default ModalProps Provided */
+        /** Whether to use the native driver for the backdrop animation */
+        useNativeDriverForBackdrop?: boolean;
+
         /** Enum for animation type when modal appears */
-        animationIn?: AnimationIn;
+        animationIn?: ValueOf<Pick<ReactNativeModalProps, 'animationIn'>> | AnimationInType;
 
         /** Duration of the animation when modal appears */
         animationInTiming?: number;
 
         /** Enum for animation type when modal disappears */
-        animationOut?: AnimationOut;
+        animationOut?: AnimationOut | AnimationOutType;
 
         /** Duration of the animation when modal disappears */
         animationOutTiming?: number;
@@ -178,11 +185,11 @@ type ContainerProps = {
     panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>};
 
     /** Animation played when modal shows */
-    animationIn: AnimationIn;
+    animationIn: AnimationInType;
 
     /** Animation played when modal disappears */
-    animationOut: AnimationOut;
+    animationOut: AnimationOutType;
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationIn, AnimationOut, SwipeDirection};
+export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationOut, AnimationInType, AnimationOutType, SwipeDirection};

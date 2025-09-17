@@ -1,10 +1,10 @@
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {ViewStyle} from 'react-native';
+import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
+import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
 import type ReanimatedModalProps from './ReanimatedModal/types';
-import type {SwipeDirection} from './ReanimatedModal/types';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
@@ -19,10 +19,14 @@ type WindowState = {
     shouldGoBack: boolean;
 };
 
-type BaseModalProps = Partial<ReanimatedModalProps> &
+type BaseModalProps = Partial<ReactNativeModalProps> &
+    Partial<ReanimatedModalProps> &
     ForwardedFSClassProps & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
+
+        /** Should we close modal on outside click */
+        shouldCloseOnOutsideClick?: boolean;
 
         /** Should we announce the Modal visibility changes? */
         shouldSetModalVisibility?: boolean;
@@ -48,7 +52,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** The anchor position of a popover modal. Has no effect on other modal types. */
         popoverAnchorPosition?: PopoverAnchorPosition;
 
-        /** Styles for the outer most view wrapper */
         outerStyle?: ViewStyle;
 
         /** Whether the modal should go under the system statusbar */
@@ -63,13 +66,21 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Modal container styles  */
         innerContainerStyle?: ViewStyle;
 
+        /**
+         * Whether the modal should hide its content while animating. On iOS, set to true
+         * if `useNativeDriver` is also true, to avoid flashes in the UI.
+         *
+         * See: https://github.com/react-native-modal/react-native-modal/pull/116
+         * */
+        hideModalContentWhileAnimating?: boolean;
+
         /** Whether handle navigation back when modal show. */
         shouldHandleNavigationBack?: boolean;
 
         /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         shouldUseCustomBackdrop?: boolean;
 
-        /** Unique id for the modal */
+        /** unique id for the modal */
         modalId?: number;
 
         /**
@@ -84,17 +95,23 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
         shouldUseModalPaddingStyle?: boolean;
 
+        /** Whether swipe gestures should propagate to parent components */
+        propagateSwipe?: boolean | ((event?: GestureResponderEvent, gestureState?: PanResponderGestureState) => boolean);
+
         /** After swipe more than threshold modal will close */
         swipeThreshold?: number;
 
         /** In which direction modal will swipe */
-        swipeDirection?: SwipeDirection;
+        swipeDirection?: Direction;
 
         /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to disable the animation in */
+        disableAnimationIn?: boolean;
 
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
@@ -113,6 +130,11 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * Disables the bottom safe area padding in the modal. Used in for scrollable FeatureTrainingModal.
          */
         shouldDisableBottomSafeAreaPadding?: boolean;
+
+        /**
+         * Whether the modal should use ReanimatedModal implementation.
+         */
+        shouldUseReanimatedModal?: boolean;
     };
 
 export default BaseModalProps;

@@ -11,6 +11,7 @@ function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
             isVisible={!shouldHideSidePanel}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
+            propagateSwipe
             swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
         >
             <HelpContent closeSidePanel={closeSidePanel} />

@@ -11,6 +11,7 @@ function Modal({children, ...rest}: BaseModalProps) {
 
     return (
         <BaseModal
+            useNativeDriver
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             animationInTiming={animationInTiming}

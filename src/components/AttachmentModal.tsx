@@ -450,6 +450,7 @@ function AttachmentModal({
                         });
                     }
                 }}
+                propagateSwipe
                 initialFocus={() => {
                     if (!submitRef.current) {
                         return false;

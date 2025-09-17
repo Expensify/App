@@ -27,6 +27,7 @@ type PreloadWebpackPluginClass = Class<WebpackPluginInstance, [Options]>;
 const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin') as PreloadWebpackPluginClass;
 
 const includeModules = [
+    'react-native-animatable',
     'react-native-reanimated',
     'react-native-picker-select',
     'react-native-web',
@@ -36,6 +37,7 @@ const includeModules = [
     '@react-navigation/native',
     '@react-navigation/native-stack',
     '@react-navigation/stack',
+    'react-native-modal',
     'react-native-gesture-handler',
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
