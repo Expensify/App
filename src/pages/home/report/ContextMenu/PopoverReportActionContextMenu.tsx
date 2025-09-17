@@ -16,6 +16,7 @@ import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
@@ -45,7 +46,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
-    const isOriginalReportArchived = useReportIsArchived(originalReportIDRef.current);
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -310,7 +311,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, originalReportIDRef.current]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
