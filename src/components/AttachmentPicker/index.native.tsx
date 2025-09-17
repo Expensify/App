@@ -205,7 +205,14 @@ function AttachmentPicker({
                                         // Ensure the asset has proper fileName and type for non-HEIC images
                                         const processedAsset = {
                                             ...asset,
-                                            fileName: asset.fileName ?? (asset.uri ? asset.uri.substring(asset.uri.lastIndexOf('/') + 1).split('?').at(0) : `image_${Date.now()}.jpeg`),
+                                            fileName:
+                                                asset.fileName ??
+                                                (asset.uri
+                                                    ? asset.uri
+                                                          .substring(asset.uri.lastIndexOf('/') + 1)
+                                                          .split('?')
+                                                          .at(0)
+                                                    : `image_${Date.now()}.jpeg`),
                                             type: asset.type ?? 'image/jpeg',
                                         };
                                         processedAssets.push(processedAsset);
@@ -220,7 +227,14 @@ function AttachmentPicker({
                             // Ensure the asset has proper fileName and type
                             const processedAsset = {
                                 ...asset,
-                                fileName: asset.fileName ?? (asset.uri ? asset.uri.substring(asset.uri.lastIndexOf('/') + 1).split('?').at(0) : `image_${Date.now()}.jpeg`),
+                                fileName:
+                                    asset.fileName ??
+                                    (asset.uri
+                                        ? asset.uri
+                                              .substring(asset.uri.lastIndexOf('/') + 1)
+                                              .split('?')
+                                              .at(0)
+                                        : `image_${Date.now()}.jpeg`),
                                 type: asset.type ?? 'image/jpeg',
                             };
                             processedAssets.push(processedAsset);
