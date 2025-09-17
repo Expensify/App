@@ -134,8 +134,6 @@ function KYCWall({
                         }
 
                         if (adminPolicy?.achAccount) {
-                            const currentSource = walletTerms?.source ?? source;
-                            onSuccessfulKYC(CONST.IOU.PAYMENT_TYPE.VBBA, currentSource);
                             return;
                         }
                         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));

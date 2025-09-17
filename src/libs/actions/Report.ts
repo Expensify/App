@@ -5285,7 +5285,7 @@ function moveIOUReportToPolicy(
     });
 
     // We need to move the report preview action from the DM to the expense chat.
-    const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
+    const parentReportActions = iouReport?.parentReportID ? allReportActions?.[iouReport.parentReportID] : undefined;
     const parentReportActionID = iouReport.parentReportActionID;
     const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
     const oldChatReportID = iouReport.chatReportID;
