@@ -307,7 +307,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     }}
                 >
                     <HeaderWithBackButton
-                        title={translate('iou.split')}
+                        title={splitExpenseTransactionID ? translate('iou.editSplits') : translate('iou.split')}
                         subtitle={translate('iou.splitExpenseSubtitle', {
                             amount: convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency),
                             merchant: draftTransaction?.merchant ?? '',

@@ -12998,11 +12998,11 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
+        const currentSplit = splits.at(index);
 
         // For existing split transactions, update the field change messages
         // For new transactions, skip this step
         if (splitTransaction) {
-            const currentSplit = splits.at(index);
             const existing = getTransactionDetails(splitTransaction);
             const transactionChanges = {
                 ...currentSplit,
@@ -13039,13 +13039,15 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
             }
+        // For new split transactions, set the reportID once the transaction and associated report are created
+        } else if (currentSplit) {
+                currentSplit.reportID = splitExpense?.reportID;
         }
 
-        const split = splits.at(index);
-        if (split) {
-            split.transactionThreadReportID = transactionThreadReportID;
-            split.createdReportActionIDForThread = createdReportActionIDForThread;
-            split.splitReportActionID = iouAction.reportActionID;
+        if (currentSplit) {
+            currentSplit.transactionThreadReportID = transactionThreadReportID;
+            currentSplit.createdReportActionIDForThread = createdReportActionIDForThread;
+            currentSplit.splitReportActionID = iouAction.reportActionID;
         }
 
         optimisticData.push(...(onyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []));
