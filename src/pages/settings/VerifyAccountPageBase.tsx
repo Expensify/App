@@ -13,12 +13,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route};
+type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route; handleSubmitForm?: (validateCode: string) => void};
 
 /**
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
-function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccountPageBaseProps) {
+function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleSubmitForm}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -30,7 +30,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
 
     useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
 
-    const handleSubmitForm = useCallback(
+    const defaultHandleSubmitForm = useCallback(
         (validateCode: string) => {
             validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true);
         },
@@ -78,7 +78,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
             sendValidateCode={requestValidateCodeAction}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-            handleSubmitForm={handleSubmitForm}
+            handleSubmitForm={handleSubmitForm ?? defaultHandleSubmitForm}
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
             onClose={handleClose}
