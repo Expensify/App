@@ -1,7 +1,7 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -111,6 +111,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SearchListHandle>;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -133,36 +136,34 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     return false;
 }
 
-function SearchList(
-    {
-        data,
-        ListItem,
-        SearchTableHeader,
-        onSelectRow,
-        onCheckboxPress,
-        canSelectMultiple,
-        onScroll = () => {},
-        onAllCheckboxPress,
-        contentContainerStyle,
-        onEndReachedThreshold,
-        onEndReached,
-        containerStyle,
-        ListFooterComponent,
-        shouldPreventDefaultFocusOnSelectRow,
-        shouldPreventLongPressRow,
-        queryJSON,
-        columns,
-        isFocused,
-        onViewableItemsChanged,
-        onLayout,
-        shouldAnimate,
-        isMobileSelectionModeEnabled,
-        areAllOptionalColumnsHidden,
-        newTransactions = [],
-        violations,
-    }: SearchListProps,
-    ref: ForwardedRef<SearchListHandle>,
-) {
+function SearchList({
+    data,
+    ListItem,
+    SearchTableHeader,
+    onSelectRow,
+    onCheckboxPress,
+    canSelectMultiple,
+    onScroll = () => {},
+    onAllCheckboxPress,
+    contentContainerStyle,
+    onEndReachedThreshold,
+    onEndReached,
+    containerStyle,
+    ListFooterComponent,
+    shouldPreventDefaultFocusOnSelectRow,
+    shouldPreventLongPressRow,
+    queryJSON,
+    columns,
+    isFocused,
+    onViewableItemsChanged,
+    onLayout,
+    shouldAnimate,
+    isMobileSelectionModeEnabled,
+    areAllOptionalColumnsHidden,
+    newTransactions = [],
+    violations,
+    ref,
+}: SearchListProps) {
     const styles = useThemeStyles();
 
     const {hash, groupBy} = queryJSON;
@@ -429,4 +430,4 @@ function SearchList(
     );
 }
 
-export default forwardRef(SearchList);
+export default SearchList;

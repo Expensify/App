@@ -1403,8 +1403,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
             rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
-            reasonPageDescription1: '経費を承認または支払う予定がない場合は却下してください。そうでない場合は「保留」を使って一時停止し、追加の文脈を求めてください。',
-            reasonPageDescription2: '経費を却下する場合は、その理由を説明するコメントを追加してください：',
+            reasonPageDescription: 'この経費を拒否する理由を説明してください。',
             rejectReason: '却下の理由',
             markAsResolved: '解決済みにする',
             rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
@@ -6158,9 +6157,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
-            },
-            has: {
-                receipt: '領収書',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',

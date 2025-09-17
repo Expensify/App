@@ -1401,9 +1401,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
             rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
-            reasonPageDescription1:
-                'Odrzuć wydatek, jeśli nigdy nie planujesz go zatwierdzić ani opłacić. W przeciwnym razie użyj „Wstrzymaj”, aby zatrzymać wydatek i poprosić o dodatkowy kontekst.',
-            reasonPageDescription2: 'Jeśli zamierzasz odrzucić wydatek, dodaj komentarz wyjaśniający powód:',
+            reasonPageDescription: 'Wyjaśnij, dlaczego odrzucasz ten wydatek.',
             rejectReason: 'Powód odrzucenia',
             markAsResolved: 'Oznacz jako rozwiązane',
             rejectedStatus: 'Ten wydatek został odrzucony. Oczekiwanie, aż rozwiążesz problem(y) i oznaczysz jako rozwiązane, aby umożliwić przesłanie.',
@@ -6180,9 +6178,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
-            },
-            has: {
-                receipt: 'Paragon',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Prześlij',

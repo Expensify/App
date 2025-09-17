@@ -1404,8 +1404,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Vasthouden uitgaven blijven achter wanneer je een volledig rapport goedkeurt.',
             rejectExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
-            reasonPageDescription1: 'Wijs een uitgave af als je deze nooit wilt goedkeuren of betalen. Gebruik anders "Vasthouden" om de uitgave te pauzeren en om meer context te vragen.',
-            reasonPageDescription2: 'Als je de uitgave gaat afwijzen, voeg dan een opmerking toe om uit te leggen waarom:',
+            reasonPageDescription: 'Leg uit waarom u deze uitgave afwijst.',
             rejectReason: 'Reden van afwijzing',
             markAsResolved: 'Markeren als opgelost',
             rejectedStatus: 'Deze uitgave is afgewezen. Er wordt gewacht tot jij het/de probleem(en) oplost en het markeert als opgelost om indienen mogelijk te maken.',
@@ -6193,9 +6192,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
-            },
-            has: {
-                receipt: 'Bon',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Indienen',
