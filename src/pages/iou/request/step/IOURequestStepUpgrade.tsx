@@ -60,16 +60,18 @@ function IOURequestStepUpgrade({
     const afterUpgradeAcknowledged = useCallback(() => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
-        setMoneyRequestParticipants(transactionID, [
-            {
-                selected: true,
-                accountID: 0,
-                isPolicyExpenseChat: true,
-                reportID: expenseReportID,
-                policyID: policyDataRef.current?.policyID,
-                searchText: policyDataRef.current?.policyName,
-            },
-        ]);
+        if (shouldSubmitExpense) {
+            setMoneyRequestParticipants(transactionID, [
+                {
+                    selected: true,
+                    accountID: 0,
+                    isPolicyExpenseChat: true,
+                    reportID: expenseReportID,
+                    policyID: policyDataRef.current?.policyID,
+                    searchText: policyDataRef.current?.policyName,
+                },
+            ]);
+        }
         Navigation.goBack();
 
         switch (upgradePath) {
@@ -85,11 +87,11 @@ function IOURequestStepUpgrade({
                 break;
             }
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, expenseReportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, ROUTES.REPORT_WITH_ID.getRoute(reportID)));
                 break;
             default:
         }
-    }, [action, reportID, transactionID, upgradePath]);
+    }, [action, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
         const participant = transaction?.participants?.[0];
@@ -135,29 +137,6 @@ function IOURequestStepUpgrade({
         setShowConfirmationForm(false);
         setIsUpgraded(true);
     };
-
-    // TODO: remove this after all the changes are applied
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    // const onConfirmUpgrade = () => {
-    //     if (upgradePath === CONST.UPGRADE_PATHS.CATEGORIES) {
-    //         if (shouldSubmitExpense) {
-    //             setMoneyRequestParticipants(transactionID, [
-    //                 {
-    //                     selected: true,
-    //                     accountID: 0,
-    //                     isPolicyExpenseChat: true,
-    //                     reportID: policyDataRef.current?.expenseChatReportID,
-    //                     policyID: policyDataRef.current?.policyID,
-    //                     searchText: policyDataRef.current?.policyName,
-    //                 },
-    //             ]);
-    //             Navigation.goBack();
-    //             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
-    //         } else {
-    //             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, ROUTES.REPORT_WITH_ID.getRoute(reportID)));
-    //         }
-    //     }
-    // };
 
     return (
         <ScreenWrapper

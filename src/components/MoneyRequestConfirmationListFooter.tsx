@@ -514,6 +514,7 @@ function MoneyRequestConfirmationListFooter({
                                     reportID,
                                     upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
                                     backTo: Navigation.getActiveRoute(),
+                                    shouldSubmitExpense: true,
                                 }),
                             );
                             return;
