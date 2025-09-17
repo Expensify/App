@@ -6552,12 +6552,12 @@ const CONST = {
                 CURRENT: 'current',
                 PAST: 'past',
             },
+            CHAT: {},
             TASK: {
                 ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
-            CHAT: {},
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
