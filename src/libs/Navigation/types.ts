@@ -1531,12 +1531,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
-        featureName?: string;
-        /** Whether is categorizing the expense */
-        isCategorizing?: boolean;
-        /** Whether is adding an unreported expense to a report */
-        isReporting?: boolean;
-        /** Whether the user starts to categorize expense using Categorize it whisper action */
+        upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
         shouldSubmitExpense?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {

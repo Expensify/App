@@ -512,7 +512,7 @@ function MoneyRequestConfirmationListFooter({
                                     iouType,
                                     transactionID,
                                     reportID,
-                                    featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias,
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
                                     backTo: Navigation.getActiveRoute(),
                                 }),
                             );
