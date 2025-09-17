@@ -233,11 +233,18 @@ function SearchAutocompleteList({
     })();
 
     const hasAutocompleteList = getHasOptions(currentType);
+    const isAutocompleteList = (() => {
+        switch (currentType) {
+            case CONST.SEARCH.DATA_TYPES.CHAT:
+                return Object.values(CONST.SEARCH.IS_VALUES);
+            default:
+                return [];
+        }
+    })();
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-    const isFilterList = Object.values(CONST.SEARCH.IS_VALUES);
 
     const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
     const feedAutoCompleteList = useMemo(() => {
@@ -506,7 +513,7 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS: {
-                const filteredIsValues = Object.values(CONST.SEARCH.IS_VALUES).filter((isValue) => {
+                const filteredIsValues = isAutocompleteList.filter((isValue) => {
                     return isValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(isValue.toLowerCase());
                 });
 
@@ -551,7 +558,7 @@ function SearchAutocompleteList({
         booleanTypes,
         workspaceList,
         currentUserLogin,
-        isFilterList,
+        isAutocompleteList,
         hasAutocompleteList,
     ]);
 
