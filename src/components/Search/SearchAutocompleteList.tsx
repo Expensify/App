@@ -48,6 +48,7 @@ import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
 
@@ -192,12 +193,11 @@ function SearchAutocompleteList({
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-    const currentType = typeFilter?.value;
+    const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
 
     const groupByAutocompleteList = (() => {
         switch (currentType) {
-            case undefined:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 return Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
@@ -231,6 +231,8 @@ function SearchAutocompleteList({
         }
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
     })();
+
+    const hasAutocompleteList = getHasOptions(currentType);
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
@@ -494,13 +496,13 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
-                const filteredHasValues = getHasOptions().filter((hasValue) => {
-                    return hasValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(hasValue.toLowerCase());
+                const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
+                    return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(hasValue.value.toLowerCase());
                 });
 
                 return filteredHasValues.map((hasValue) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.HAS,
-                    text: hasValue,
+                    text: hasValue.value,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS: {
@@ -550,6 +552,7 @@ function SearchAutocompleteList({
         workspaceList,
         currentUserLogin,
         isFilterList,
+        hasAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
