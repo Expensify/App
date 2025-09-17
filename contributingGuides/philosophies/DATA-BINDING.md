@@ -22,7 +22,7 @@ Returning a promise is the first sign that the rule above this is being broken. 
 Library files are located in `/src/lib` but excluding the actions in `/src/lib/actions` which have their own rule below.
 
 Exclusions:
-- If a library method is used by an action method (like a utility), then follow the rule below for action methods
+- If a library method is used by an action method (like a utility), then follow the rule below for action methods.
 
 ### - Action methods (`/src/lib/actions`) SHOULD be pure functions and not access global data
 Pure functions are ones that have all necessary data passed as parameters and do not create side-effects.
