@@ -342,9 +342,23 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                     );
                 })}
             </View>
-            <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween, styles.gap2, listHorizontalPadding, styles.mb2, styles.alignItemsStart, styles.minHeight7]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    styles.gap2,
+                    listHorizontalPadding,
+                    styles.mb2,
+                    shouldShowAddExpenseButton ? styles.alignItemsStart : styles.alignItemsEnd,
+                    styles.minHeight7,
+                ]}
+            >
                 {shouldShowAddExpenseButton && (
-                    <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
+                    <OfflineWithFeedback
+                        pendingAction={report?.pendingFields?.preview}
+                        style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasis0, styles.mwFitContent]}
+                    >
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
@@ -360,9 +374,9 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                         />
                     </OfflineWithFeedback>
                 )}
-                <View style={styles.flex1}>
+                <View>
                     {shouldShowBreakdown && (
-                        <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2]}>
+                        <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
                                 {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
                                 {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
