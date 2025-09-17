@@ -856,7 +856,7 @@ function MoneyRequestView({
                                             action: CONST.IOU.ACTION.EDIT,
                                             transactionID: transaction?.transactionID,
                                             reportID: report.reportID,
-                                            isReporting: true,
+                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
                                         }),
                                     );
                                     return;

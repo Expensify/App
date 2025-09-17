@@ -171,6 +171,7 @@ function IOURequestStepUpgrade({
                             buttonDisabled={isOffline}
                             loading={false}
                             isCategorizing={isCategorizing}
+                            isReporting={isReporting}
                             isDistanceRateUpgrade={isDistanceRateUpgrade}
                         />
                     )}
