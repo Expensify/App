@@ -11,10 +11,6 @@
         "ContactsModule": {
             "swift": "HybridContactsModule",
             "kotlin": "HybridContactsModule"
-        },
-        "NavBarManagerModule": {
-            "swift": "HybridNavBarManagerModule",
-            "kotlin": "HybridNavBarManagerModule"
         }
     },
     "ignorePaths": ["node_modules"]

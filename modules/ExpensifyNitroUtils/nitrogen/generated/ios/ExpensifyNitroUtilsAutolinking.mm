@@ -11,7 +11,6 @@
 #import <type_traits>
 
 #include "HybridContactsModuleSpecSwift.hpp"
-#include "HybridNavBarManagerModuleSpecSwift.hpp"
 
 @interface ExpensifyNitroUtilsAutolinking : NSObject
 @end
@@ -26,13 +25,6 @@
     "ContactsModule",
     []() -> std::shared_ptr<HybridObject> {
       std::shared_ptr<HybridContactsModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createContactsModule();
-      return hybridObject;
-    }
-  );
-  HybridObjectRegistry::registerHybridObjectConstructor(
-    "NavBarManagerModule",
-    []() -> std::shared_ptr<HybridObject> {
-      std::shared_ptr<HybridNavBarManagerModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createNavBarManagerModule();
       return hybridObject;
     }
   );

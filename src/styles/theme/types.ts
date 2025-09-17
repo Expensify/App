@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
-
+import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
 import type CONST from '@src/CONST';
-import type {NavBarButtonStyle} from '@expensify/nitro-utils';
 import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
