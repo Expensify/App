@@ -7091,7 +7091,7 @@ const translations = {
         },
         reasonRBR: {
             hasErrors: 'Has errors in report or report actions data',
-            hasViolations: 'Has many violations',
+            hasViolations: 'Has too many violations',
             hasTransactionThreadViolations: 'Has transaction thread violations',
         },
         indicatorStatus: {

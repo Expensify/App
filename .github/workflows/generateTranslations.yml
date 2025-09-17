@@ -18,9 +18,6 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c02a7a6fa90fbf0fec054092dc439b42b775cfb3
-
       - name: Check if English translations were modified
         id: check-en-changes
         run: |
@@ -99,9 +96,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@c02a7a6fa90fbf0fec054092dc439b42b775cfb3
+
       - name: Post diff in PR as a comment
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
         run: |
+          # Re-authenticate gh CLI with the OS_BOTIFY token for gist creation
+          gh auth switch --user OSBotify
+
           # Create temp files and set up cleanup
           TEMP_COMMENT_FILE=$(mktemp)
           TEMP_PATCH_FILE=$(mktemp --suffix=.patch)
