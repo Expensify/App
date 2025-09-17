@@ -1,6 +1,8 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
+// eslint-disable-next-line you-dont-need-lodash-underscore/union-by
+import lodashUnionBy from 'lodash/unionBy';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -885,6 +887,13 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
+});
+
+// Use connectWithoutView because this is created for non-UI task only
+let recentAttendees: OnyxEntry<Attendee[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECENT_ATTENDEES,
+    callback: (value) => (recentAttendees = value),
 });
 
 /**
@@ -4393,17 +4402,28 @@ function getUpdateMoneyRequestParams(
         }
     }
 
-    const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
-    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multiply limit by attendee count
-    if ('attendees' in transactionChanges && !!overLimitViolation) {
-        const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
-        if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: violations?.filter((violation) => violation.name !== 'overLimit') ?? [],
-            });
+    if ('attendees' in transactionChanges) {
+        // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multiply limit by attendee count
+        const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
+        if (overLimitViolation) {
+            const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
+            if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: violations?.filter((violation) => violation.name !== 'overLimit') ?? [],
+                });
+            }
         }
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_RECENT_ATTENDEES,
+            value: lodashUnionBy(
+                transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, email})),
+                recentAttendees,
+                'email',
+            ).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW),
+        });
     }
 
     if (Array.isArray(params?.attendees)) {
