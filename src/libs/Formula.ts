@@ -245,6 +245,8 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             return formatType(report.type);
         case 'startdate':
             return formatDate(getOldestTransactionDate(report.reportID, context), format);
+        case 'enddate':
+            return formatDate(getNewestTransactionDate(report.reportID, context), format);
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
@@ -465,6 +467,22 @@ function formatType(type: string | undefined): string {
     return typeMapping[type.toLowerCase()] || type;
 }
 
+function getAllReportTransactionsWithContext(reportID: string, context?: FormulaContext): Transaction[] {
+    const transactions = [...getReportTransactions(reportID)];
+    const contextTransaction = context?.transaction;
+
+    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
+        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
+        if (transactionIndex >= 0) {
+            transactions[transactionIndex] = contextTransaction;
+        } else {
+            transactions.push(contextTransaction);
+        }
+    }
+
+    return transactions;
+}
+
 /**
  * Get the date of the oldest transaction for a given report
  */
@@ -473,7 +491,7 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
         return undefined;
     }
 
-    const transactions = getReportTransactions(reportID);
+    const transactions = getAllReportTransactionsWithContext(reportID, context);
     if (!transactions || transactions.length === 0) {
         return new Date().toISOString();
     }
@@ -481,23 +499,52 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     let oldestDate: string | undefined;
 
     transactions.forEach((transaction) => {
-        // Use updated transaction data if available and matches this transaction
-        const currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
-
-        const created = getCreated(currentTransaction);
+        const created = getCreated(transaction);
         if (!created) {
             return;
         }
         if (oldestDate && created >= oldestDate) {
             return;
         }
-        if (isPartialTransaction(currentTransaction)) {
+        if (isPartialTransaction(transaction)) {
             return;
         }
         oldestDate = created;
     });
 
     return oldestDate;
+}
+
+/**
+ * Get the date of the newest transaction for a given report
+ */
+function getNewestTransactionDate(reportID: string, context?: FormulaContext): string | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const transactions = getAllReportTransactionsWithContext(reportID, context);
+    if (!transactions || transactions.length === 0) {
+        return new Date().toISOString();
+    }
+
+    let newestDate: string | undefined;
+
+    transactions.forEach((transaction) => {
+        const created = getCreated(transaction);
+        if (!created) {
+            return;
+        }
+        if (newestDate && created <= newestDate) {
+            return;
+        }
+        if (isPartialTransaction(transaction)) {
+            return;
+        }
+        newestDate = created;
+    });
+
+    return newestDate;
 }
 
 export {FORMULA_PART_TYPES, compute, extract, parse};
