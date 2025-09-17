@@ -5,7 +5,7 @@ import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
+import {validateAttachmentFile} from '@libs/AttachmentValidation';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -134,15 +134,15 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
                     setIsAttachmentInvalid?.(true);
                     switch (error) {
-                        case 'tooLarge':
+                        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE:
                             setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooLarge');
                             setAttachmentInvalidReason?.('attachmentPicker.sizeExceeded');
                             break;
-                        case 'tooSmall':
+                        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL:
                             setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooSmall');
                             setAttachmentInvalidReason?.('attachmentPicker.sizeNotMet');
                             break;
-                        case 'fileDoesNotExist':
+                        case CONST.ATTACHMENT_VALIDATION_ERRORS.SINGLE_FILE.FOLDER_NOT_ALLOWED:
                             setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
                             setAttachmentInvalidReason?.('attachmentPicker.folderNotAllowedMessage');
                             break;
@@ -155,10 +155,9 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
                     return;
                 }
 
-                const {source: fileSource} = result;
-                const inputModalType = getModalType(fileSource, file);
+                const inputModalType = getModalType(result.validatedFile.source, file);
                 setModalType(inputModalType);
-                setSource(fileSource);
+                setSource(result.validatedFile.source);
                 setFile(file);
             });
         },
