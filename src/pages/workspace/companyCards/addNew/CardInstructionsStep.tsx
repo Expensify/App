@@ -90,6 +90,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
