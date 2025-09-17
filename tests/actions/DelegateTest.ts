@@ -117,15 +117,14 @@ describe('actions/Delegate', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
-                        const delegate = (account?.delegatedAccess?.delegates ?? []).find((d) => d.email === 'test@test.com');
-                        expect(delegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                        expect(account?.delegatedAccess?.delegates?.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                         Onyx.disconnect(connection);
                         resolve();
                     },
                 });
             });
         });
-            resetQueue();
+        resetQueue();
     });
     describe('clearDelegateErrorsByField', () => {
         it('should clear a delegate error by field', async () => {
@@ -164,14 +163,9 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         const errorFields = account?.delegatedAccess?.errorFields;
-
-                        // The targeted errors should be cleared (may be undefined or object without the key)
-                        const isCleared = errorFields?.addDelegate?.['test@test.com'] === undefined;
-                        if (isCleared) {
-                            expect(errorFields?.addDelegate?.['test@test.com']).toBeUndefined();
-                            Onyx.disconnect(connection);
-                            resolve();
-                        }
+                        expect(errorFields?.addDelegate?.['test@test.com']).toBeUndefined();
+                        Onyx.disconnect(connection);
+                        resolve();
                     },
                 });
             });
