@@ -15,6 +15,8 @@ type TrackExpenseParams = {
     createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
+    selfDMReportID?: string;
+    selfDMCreatedReportActionID?: string;
     receipt?: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;

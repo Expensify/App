@@ -315,6 +315,8 @@ type TrackExpenseInformation = {
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
     actionableWhisperReportActionIDParam?: string;
+    selfDMReportID: string | undefined;
+    selfDMCreatedReportActionID: string | undefined;
     onyxData: OnyxData;
 };
 
@@ -3884,17 +3886,22 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     // If no chat report is passed, defaults to the self-DM report
     if (!chatReport) {
-        const selfDMReportID = findSelfDMReportID();
-        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? null;
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`] ?? null;
     }
 
     // If we are still missing the chat report then optimistically create the self-DM report
+    let selfDMReportID: string | undefined;
+    let selfDMCreatedReportActionID: string | undefined;
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
         const selfDMReport = buildOptimisticSelfDMReport(currentTime);
         const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-        chatReport = selfDMReport;
+
         // s77rt TODO: handle onyx data
+
+        selfDMReportID = selfDMReport.reportID;
+        selfDMCreatedReportActionID = selfDMCreatedReportAction.reportActionID;
+        chatReport = selfDMReport;
     }
 
     // Check if the report is a draft
@@ -4067,6 +4074,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
         actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID,
+        selfDMReportID,
+        selfDMCreatedReportActionID,
         onyxData: {
             optimisticData: optimisticData.concat(trackExpenseOnyxData[0]),
             successData: successData.concat(trackExpenseOnyxData[1]),
@@ -6056,6 +6065,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         transactionThreadReportID,
         createdReportActionIDForThread,
         actionableWhisperReportActionIDParam,
+        selfDMReportID,
+        selfDMCreatedReportActionID,
         onyxData,
     } =
         getTrackExpenseInformation({
@@ -6220,6 +6231,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
+                selfDMReportID,
+                selfDMCreatedReportActionID,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 category,
