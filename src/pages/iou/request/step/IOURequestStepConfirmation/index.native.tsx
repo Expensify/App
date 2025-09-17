@@ -44,7 +44,17 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
+import {
+    getAttendees,
+    getDefaultTaxCode,
+    getRateID,
+    getRequestType,
+    getValidWaypoints,
+    hasReceipt,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isScanRequest,
+} from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
@@ -174,9 +184,8 @@ function IOURequestStepConfirmation({
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
-    const isDistanceRequest =
-        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-    const isManualDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
 
@@ -397,7 +406,8 @@ function IOURequestStepConfirmation({
 
         Promise.all(
             transactions.map((item) => {
-                const isLocalFile = isLocalFileFileUtils(item.receipt?.source);
+                const itemReceiptPath = item.receipt?.source;
+                const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
                     if (item.receipt) {
@@ -407,16 +417,17 @@ function IOURequestStepConfirmation({
                 }
 
                 const onSuccess = (receipt: Receipt) => {
-                    let updatedReceipt: Receipt;
                     if (item?.receipt?.isTestReceipt) {
-                        updatedReceipt = {...receipt, isTestReceipt: true, state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE};
+                        receipt.isTestReceipt = true;
+                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
                     } else if (item?.receipt?.isTestDriveReceipt) {
-                        updatedReceipt = {...receipt, isTestDriveReceipt: true, state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE};
+                        receipt.isTestDriveReceipt = true;
+                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
                     } else {
-                        updatedReceipt = {...receipt, state: receipt && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY};
+                        receipt.state = receipt && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     }
 
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: updatedReceipt};
+                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
                 };
 
                 const onFailure = () => {
@@ -433,13 +444,12 @@ function IOURequestStepConfirmation({
                         return;
                     }
 
-                    // Ensure receipt has both source and uri for compatibility
-                    const enhancedReceipt = {
+                    const receipt = {
                         ...item.receipt,
                         uri: item.receipt.source, // Add uri property for isFileUploadable compatibility
                     };
 
-                    onSuccess(enhancedReceipt);
+                    onSuccess(receipt);
                 });
             }),
         ).then(() => {

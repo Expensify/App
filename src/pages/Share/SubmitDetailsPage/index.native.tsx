@@ -167,18 +167,18 @@ function SubmitDetailsPage({
             return;
         }
 
-        const receiptWithState = {...receipt, state: receipt && CONST.IOU.RECEIPT_STATE.SCAN_READY};
+        receipt.state = receipt && CONST.IOU.RECEIPT_STATE.SCAN_READY;
         if (locationPermissionGranted) {
             getCurrentPosition(
                 (successData) => {
-                    finishRequestAndNavigate(participant, receiptWithState, {
+                    finishRequestAndNavigate(participant, receipt, {
                         lat: successData.coords.latitude,
                         long: successData.coords.longitude,
                     });
                 },
                 (errorData) => {
                     Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
-                    finishRequestAndNavigate(participant, receiptWithState);
+                    finishRequestAndNavigate(participant, receipt);
                 },
                 {
                     maximumAge: CONST.GPS.MAX_AGE,
@@ -187,7 +187,7 @@ function SubmitDetailsPage({
             );
             return;
         }
-        finishRequestAndNavigate(participant, receiptWithState);
+        finishRequestAndNavigate(participant, receipt);
     };
 
     const onConfirm = (gpsRequired?: boolean) => {

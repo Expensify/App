@@ -14,7 +14,6 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data) => {
             return;
         }
 
-        // All values including receipts and files use the same validation
         validateFormDataParameter(command, key, value);
         formData.append(key, value as string | Blob);
     });

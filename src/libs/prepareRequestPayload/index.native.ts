@@ -1,6 +1,7 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import type PrepareRequestPayload from './types';
 
 /**
@@ -19,12 +20,10 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
-            // Handle receipt key separately (memory-efficient path-based approach)
             if (key === 'receipt') {
-                const receiptValue = value as File;
-                const {source} = receiptValue;
+                const receipt = value as Receipt;
+                const {source} = receipt;
 
-                // Note: isFileUploadable check already done in IOU.ts before calling API
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {
@@ -33,8 +32,8 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
 
                         const receiptFormData = {
                             uri: source,
-                            name: receiptValue.name ?? getFileName(source),
-                            type: receiptValue.type && receiptValue.type !== '' ? receiptValue.type : 'image/jpeg',
+                            name: receipt.name,
+                            type: receipt.type,
                         };
 
                         validateFormDataParameter(command, key, receiptFormData);
@@ -43,7 +42,6 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 }
             }
 
-            // Handle file key separately (original readFileAsync logic)
             if (key === 'file' && initiatedOffline) {
                 const fileValue = value as File;
                 const {uri: path = '', source} = fileValue;

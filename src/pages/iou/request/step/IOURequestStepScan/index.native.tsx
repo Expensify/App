@@ -561,10 +561,8 @@ function IOURequestStepScan({
             if (!file) {
                 return;
             }
-            // Generate a filename if it's missing to ensure proper receipt rendering
-            const filename = file.name ?? `receipt_${Date.now()}.jpeg`;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(initialTransactionID, file.uri || '', filename, !isEditing);
+            setMoneyRequestReceipt(initialTransactionID, file.uri || '', file.name || '', !isEditing, file.type);
             updateScanAndNavigate(file, file.uri ?? '');
             return;
         }
@@ -582,10 +580,8 @@ function IOURequestStepScan({
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
 
-            // Generate a filename if it's missing to ensure proper receipt rendering
-            const filename = file.name ?? `receipt_${Date.now()}_${index}.jpeg`;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(transactionID, file.uri ?? '', filename, true);
+            setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name || '', true, file.type);
         });
 
         if (shouldSkipConfirmation) {
