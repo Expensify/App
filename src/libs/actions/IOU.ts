@@ -8,7 +8,7 @@ import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type ReportsAndReportAction from '@hooks/useAncestorReportsAndReportActions/types';
+import type {ReportAndReportAction} from '@hooks/useAncestorReportsAndReportActions/types';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -3379,6 +3379,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {
         attendees,
         amount,
+        distance,
         modifiedAmount,
         comment = '',
         currency,
@@ -3474,6 +3475,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policy,
         transactionParams: {
             amount: isExpenseReportUtils(iouReport) ? -amount : amount,
+            distance,
             ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReportUtils(iouReport) ? -modifiedAmount : modifiedAmount}),
             currency,
             reportID: iouReport.reportID,
@@ -11064,7 +11066,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, ancestorReportsAndReportActions: ReportsAndReportAction[], initialReportID: string | undefined, searchHash?: number) {
+function putOnHold(transactionID: string, comment: string, ancestorReportsAndReportActions: ReportAndReportAction[], initialReportID: string | undefined, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
@@ -11216,11 +11218,11 @@ function putOnHold(transactionID: string, comment: string, ancestorReportsAndRep
             });
         }
 
-        for (const {report: ancestorReport, reportAction: ancestorReportAction} of ancestorReportsAndReportActions) {
-            if (ancestorReportAction?.reportActionID) {
+        for (const {reportAction: ancestorReportAction} of ancestorReportsAndReportActions) {
+            if (ancestorReportAction?.reportActionID && ancestorReportAction?.reportID) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportAction.reportID}`,
                     value: {
                         [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
                     },

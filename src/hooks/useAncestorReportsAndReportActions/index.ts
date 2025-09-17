@@ -3,7 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Report from '@src/types/onyx/Report';
-import type ReportsAndReportAction from './types';
+import type {ReportAndReportAction} from './types';
 
 /**
  * Custom hook to retrieve all ancestor reports and their associated report actions for a given reportID.
@@ -16,7 +16,7 @@ import type ReportsAndReportAction from './types';
 function useAncestorReportsAndReportActions(
     reportID: string,
     includeTransactionThreadReportActions = false,
-): {report: OnyxEntry<Report>; ancestorReportsAndReportActions: ReportsAndReportAction[]} {
+): {report: OnyxEntry<Report>; ancestorReportsAndReportActions: ReportAndReportAction[]} {
     const [ancestorReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
@@ -39,7 +39,7 @@ function useAncestorReportsAndReportActions(
         {
             canBeMissing: false,
             selector: (allReportActions) => {
-                const reportsAndReportActions: ReportsAndReportAction[] = [];
+                const reportsAndReportActions: ReportAndReportAction[] = [];
 
                 let {parentReportID, parentReportActionID} = ancestorReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {parentReportID: undefined, parentReportActionID: undefined};
 
