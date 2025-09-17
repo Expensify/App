@@ -59,6 +59,7 @@ function AttachmentModalBaseContent({
     AttachmentContent,
     ExtraModals,
     onCarouselAttachmentChange = () => {},
+    onValidateFile,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -87,7 +88,7 @@ function AttachmentModalBaseContent({
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
-    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
+    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>();
     const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(files));
     const fileToDisplay = useMemo(() => {
         if (isMultipleFiles) {
@@ -107,8 +108,16 @@ function AttachmentModalBaseContent({
     }, []);
 
     useEffect(() => {
-        setFile(filesProp ?? fallbackFile);
-    }, [filesProp, fallbackFile, setFile]);
+        if (!filesProp) {
+            return;
+        }
+
+        if (onValidateFile) {
+            onValidateFile?.(filesProp, setFile);
+        } else {
+            setFile(filesProp ?? fallbackFile);
+        }
+    }, [filesProp, fallbackFile, onValidateFile, setFile]);
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.

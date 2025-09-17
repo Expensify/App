@@ -1,33 +1,32 @@
 import {Str} from 'expensify-common';
 import {useEffect, useState} from 'react';
-import {translateLocal} from '@libs/Localize';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 
-function isPdfFile(sourceURL: string, fileObject: FileObject) {
-    return !!sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translateLocal('attachmentView.unknownFilename'))));
+function isPdfFile(source: string | number, fileObject: FileObject) {
+    return !!source && (Str.isPDF(source) || (fileObject?.name ? Str.isPDF(fileObject.name) : false));
 }
 
-function useReportAttachmentModalType(file?: FileObject | FileObject[]) {
+function useReportAttachmentModalType(source?: string | number, file?: FileObject | FileObject[]) {
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     useEffect(() => {
-        if (!file) {
-            setModalType(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
+        if (!file && !source) {
+            setModalType(CONST.MODAL.MODAL_TYPE.CENTERED);
             return;
         }
 
         let isPdf = false;
 
         if (Array.isArray(file)) {
-            isPdf = file.some((f) => isPdfFile(f.uri ?? '', f));
+            isPdf = file.some((f) => isPdfFile(source ?? f.uri ?? '', f));
         } else {
-            isPdf = isPdfFile(file?.uri ?? '', file ?? {});
+            isPdf = isPdfFile(source ?? file?.uri ?? '', file ?? {});
         }
 
         // If our attachment is a PDF, return the unswipeable Modal type.
         setModalType(isPdf ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.CENTERED);
-    }, [file]);
+    }, [file, source]);
 
     return modalType;
 }
