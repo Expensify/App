@@ -706,7 +706,7 @@ function MoneyRequestView({
                                             transactionID: transaction.transactionID,
                                             reportID: report.reportID,
                                             backTo: getReportRHPActiveRoute(),
-                                            isCategorizing: true,
+                                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                                         }),
                                     );
                                 } else {

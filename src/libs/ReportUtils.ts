@@ -10232,8 +10232,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
                     transactionID,
                     reportID,
                     backTo: '',
-                    isCategorizing: actionName === CONST.IOU.ACTION.CATEGORIZE,
-                    isReporting: false,
+                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
                     shouldSubmitExpense: true,
                 }),
             );

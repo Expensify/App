@@ -772,44 +772,17 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_UPGRADE: {
-        route: ':action/:iouType/upgrade/:transactionID/:reportID',
-        getRoute: (params: {
-            action: IOUAction;
-            iouType: IOUType;
-            transactionID: string;
-            reportID: string;
-            backTo?: string;
-            isCategorizing?: boolean;
-            isReporting?: boolean;
-            shouldSubmitExpense?: boolean;
-            featureName?: string;
-        }) => {
-            const {action, iouType, transactionID, reportID, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false, featureName} = params;
-            const featureNameParam = featureName ? `/${featureName}` : '';
-            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}${featureNameParam}` as const;
+        route: ':action/:iouType/upgrade/:transactionID/:reportID/:upgradePath?',
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; backTo?: string; shouldSubmitExpense?: boolean; upgradePath?: string}) => {
+            const {action, iouType, transactionID, reportID, backTo = '', shouldSubmitExpense = false, upgradePath} = params;
+            const upgradePathParam = upgradePath ? `/${upgradePath}` : '';
+            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}${upgradePathParam}` as const;
 
-            const queryParams: Record<string, string> = {};
-            if (isCategorizing) {
-                queryParams.isCategorizing = 'true';
-            }
-            if (isReporting) {
-                queryParams.isReporting = 'true';
-            }
             if (shouldSubmitExpense) {
-                queryParams.shouldSubmitExpense = 'true';
-            }
-
-            const queryString =
-                Object.keys(queryParams).length > 0
-                    ? Object.entries(queryParams)
-                          .map(([key, value]) => `${key}=${value}`)
-                          .join('&')
-                    : '';
-
-            if (queryString) {
                 // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`${baseURL}?${queryString}` as const, backTo);
+                return getUrlWithBackToParam(`${baseURL}?shouldSubmitExpense=${shouldSubmitExpense}` as const, backTo);
             }
+
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(baseURL, backTo);
         },
