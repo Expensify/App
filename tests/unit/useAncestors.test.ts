@@ -63,7 +63,7 @@ describe('useAncestors', () => {
                     acc.push({
                         report,
                         reportAction: Object.values(mockReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`])?.at(0) as ReportAction,
-                        shouldDisplayNewMarker: false,
+                        shouldDisplayNewMarker: true,
                     });
                     return acc;
                 }, []);
