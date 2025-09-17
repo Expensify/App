@@ -1,4 +1,5 @@
 import type {StyleProp, TextStyle} from 'react-native';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNameWithTooltip = {
@@ -15,7 +16,7 @@ type DisplayNameWithTooltip = {
     avatar?: AvatarSource;
 };
 
-type DisplayNamesProps = {
+type DisplayNamesProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: string;
 
@@ -45,6 +46,9 @@ type DisplayNamesProps = {
 
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
+
+    /** TestID indicating order */
+    testID?: number;
 };
 
 export default DisplayNamesProps;

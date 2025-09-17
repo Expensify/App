@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,10 +14,12 @@ function UserInfoAndActionButtonRow({
     item,
     handleActionButtonPress,
     shouldShowUserInfo,
+    containerStyles,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
+    containerStyles?: StyleProp<ViewStyle>;
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -27,7 +30,17 @@ function UserInfoAndActionButtonRow({
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, styles.ph3]}>
+        <View
+            style={[
+                styles.pt0,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd,
+                styles.gap2,
+                styles.ph3,
+                containerStyles,
+            ]}
+        >
             {shouldShowUserInfo && (
                 <UserInfoCellsWithArrow
                     shouldShowToRecipient={shouldShowToRecipient}
@@ -48,6 +61,10 @@ function UserInfoAndActionButtonRow({
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={item.isActionLoading}
+                    policyID={item.policyID}
+                    reportID={item.reportID}
+                    hash={item.hash}
+                    amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
                 />
             </View>
         </View>

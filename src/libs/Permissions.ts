@@ -1,21 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
+import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
 
 // eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
-}
-
-// eslint-disable-next-line rulesdir/no-beta-handler
-function canUseCustomReportNames(betas: OnyxEntry<Beta[]>): boolean {
-    return isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas);
-}
-
-// eslint-disable-next-line rulesdir/no-beta-handler
-function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    // Don't check for all betas or nobody can use test travel on dev
-    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 }
 
 /**
@@ -25,18 +15,28 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
-    // Remove this check once the manual distance tracking feature is fully rolled out
-    if (beta === CONST.BETAS.MANUAL_DISTANCE) {
+/**
+ * Temporary check for Unreported Expense Project - change to true for testing
+ */
+function canUseUnreportedExpense(): boolean {
+    return false;
+}
+
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
+    const hasAllBetasEnabled = canUseAllBetas(betas);
+    const isFeatureEnabled = !!betas?.includes(beta);
+
+    // Explicit only betas and exclusion betas are not enabled only by the 'all' beta. Explicit only betas must be set explicitly to enable the feature.
+    // Exclusion betas are designed to disable features, so being on the 'all' beta should not disable these features as that contradicts its purpose.
+    if (((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false)) && hasAllBetasEnabled && !isFeatureEnabled) {
         return false;
     }
 
-    return !!betas?.includes(beta) || canUseAllBetas(betas);
+    return isFeatureEnabled || hasAllBetasEnabled;
 }
 
 export default {
-    canUseCustomReportNames,
     canUseLinkPreviews,
-    isBlockedFromSpotnanaTravel,
     isBetaEnabled,
+    canUseUnreportedExpense,
 };
