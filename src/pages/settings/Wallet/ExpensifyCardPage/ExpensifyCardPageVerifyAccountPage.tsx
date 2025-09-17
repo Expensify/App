@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useExpensifyCardContext from '@hooks/useExpensityCardContext';
+import useExpensifyCardContext from '@hooks/useExpensifyCardContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
