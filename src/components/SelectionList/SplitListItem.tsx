@@ -5,6 +5,7 @@ import {Folder, Tag} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
@@ -29,6 +30,7 @@ function SplitListItem<TItem extends ListItem>({
 }: SplitListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const splitItem = item as unknown as SplitListItemType;
 
@@ -59,7 +61,7 @@ function SplitListItem<TItem extends ListItem>({
             item={item}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p3, styles.br3]}
             isFocused={isFocused}
-            containerStyle={[styles.mh4, styles.mv1, styles.reportPreviewBoxHoverBorder, styles.br2]}
+            containerStyle={[styles.mh4, styles.mv1, styles.reportPreviewBoxHoverBorder, styles.br2, splitItem.isSelected && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG)]}
             hoverStyle={[styles.br2]}
             pressableStyle={[styles.br2]}
             isDisabled={isDisabled}
