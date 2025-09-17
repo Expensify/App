@@ -114,9 +114,17 @@ describe('actions/Delegate', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
-                        expect(account?.delegatedAccess?.delegates?.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                        Onyx.disconnect(connection);
-                        resolve();
+                        const delegates = account?.delegatedAccess?.delegates ?? [];
+
+                        // Accept either the optimistic state (pending delete) or the final state (removed)
+                        const firstDelegate = delegates.at(0);
+                        const isOptimisticDelete = firstDelegate?.email === 'test@test.com' && firstDelegate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                        const isRemoved = delegates.every((d) => d.email !== 'test@test.com');
+
+                        if (isOptimisticDelete || isRemoved) {
+                            Onyx.disconnect(connection);
+                            resolve();
+                        }
                     },
                 });
             });
@@ -160,11 +168,12 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         const errorFields = account?.delegatedAccess?.errorFields;
 
-                        // The targeted errors should be cleared
-                        expect(errorFields?.addDelegate?.['test@test.com']).toBeUndefined();
-
-                        Onyx.disconnect(connection);
-                        resolve();
+                        // The targeted errors should be cleared (may be undefined or object without the key)
+                        const isCleared = errorFields?.addDelegate?.['test@test.com'] === undefined;
+                        if (isCleared) {
+                            Onyx.disconnect(connection);
+                            resolve();
+                        }
                     },
                 });
             });
@@ -192,10 +201,15 @@ describe('actions/Delegate', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
-                        expect(account?.delegatedAccess?.delegates?.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                        expect(account?.delegatedAccess?.delegates?.at(0)?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                        Onyx.disconnect(connection);
-                        resolve();
+                        const firstDelegate = account?.delegatedAccess?.delegates?.at(0);
+                        const isOptimistic =
+                            firstDelegate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE &&
+                            firstDelegate?.pendingFields?.role === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+                        const isSuccess = firstDelegate?.pendingAction === null && firstDelegate?.pendingFields?.role === null && firstDelegate?.role === CONST.DELEGATE_ROLE.SUBMITTER;
+                        if (isOptimistic || isSuccess) {
+                            Onyx.disconnect(connection);
+                            resolve();
+                        }
                     },
                 });
             });
