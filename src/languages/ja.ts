@@ -1403,8 +1403,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
             rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
-            reasonPageDescription1: '経費を承認または支払う予定がない場合は却下してください。そうでない場合は「保留」を使って一時停止し、追加の文脈を求めてください。',
-            reasonPageDescription2: '経費を却下する場合は、その理由を説明するコメントを追加してください：',
+            reasonPageDescription: 'この経費を拒否する理由を説明してください。',
             rejectReason: '却下の理由',
             markAsResolved: '解決済みにする',
             rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
@@ -5534,6 +5533,11 @@ const translations = {
                     'マルチレベルタグは、経費をより正確に追跡するのに役立ちます。各項目に部門、クライアント、コストセンターなどの複数のタグを割り当てることで、すべての経費の完全なコンテキストを把握できます。これにより、より詳細なレポート作成、承認ワークフロー、および会計エクスポートが可能になります。',
                 onlyAvailableOnPlan: 'マルチレベルタグは、Controlプランでのみ利用可能です。開始価格は',
             },
+            distanceRates: {
+                title: '距離料金',
+                description: '独自の料金を作成および管理し、マイルまたはキロメートルで追跡し、距離経費のデフォルトカテゴリを設定します。',
+                onlyAvailableOnPlan: '距離料金は、Collectプランで利用可能で、料金は',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '複数の承認レベル',
                 description: '複数の承認レベルは、払い戻しが行われる前に複数の人がレポートを承認する必要がある企業向けのワークフローツールです。',
@@ -5544,14 +5548,15 @@ const translations = {
                 perMember: 'メンバーごとに月額。',
             },
             note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>この機能を利用するには、ワークスペースをアップグレードするか、当社のプランと価格<a href="${subscriptionLink}">について詳しくご確認</a>ください。</muted-text>`,
+                `<muted-text>この機能を利用するには、アップグレードするか、当社のプランと価格<a href="${subscriptionLink}">について詳しくご確認</a>ください。</muted-text>`,
             upgradeToUnlock: 'この機能をアンロックする',
             completed: {
                 headline: `ワークスペースをアップグレードしました！`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>${policyName}をコントロールプランにアップグレードしました！詳細については、<a href="${subscriptionLink}">サブスクリプションをご確認</a>ください。</centered-text>`,
-                categorizeMessage: `Collectプランのワークスペースに正常にアップグレードされました。これで経費を分類できます！`,
-                travelMessage: `Collectプランのワークスペースに正常にアップグレードされました。これで、旅行の予約と管理を開始できます！`,
+                categorizeMessage: `Collectプランへのアップグレードに成功しました。これで経費を分類することができます！`,
+                travelMessage: `Collectプランへのアップグレードが成功しました。これで旅行の予約と管理を開始できます！`,
+                distanceRateMessage: `Collectプランへのアップグレードが成功しました。これで距離レートを変更できます！`,
                 gotIt: '了解しました、ありがとうございます。',
             },
             commonFeatures: {
@@ -6152,9 +6157,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
-            },
-            has: {
-                receipt: '領収書',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
