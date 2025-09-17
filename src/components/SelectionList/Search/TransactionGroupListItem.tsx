@@ -171,7 +171,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
+                const iouAction = getReportAction(transactionItem.report?.reportID, transactionItem.moneyRequestReportActionID);
                 createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
