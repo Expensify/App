@@ -586,19 +586,8 @@ If you seek some additional information you can always refer to the [extended ve
 
 # Philosophy
 This application is built with the following principles.
-1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
-    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this step is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
-    2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
-    3. UI pushes data to people's brains (React component -> device screen).
-    4. Brain pushes data into UI inputs (Device input -> React component).
-    5. UI inputs push data to the server (React component -> Action -> XHR to server).
-    6. Go to 1
-    ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
-1. **Offline first**
-    - Be sure to read [OFFLINE.md](contributingGuides/philosophies/OFFLINE.md)!
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
-    - All data that is displayed, comes from persistent storage.
+1. [Data Flow](contributingGuides/philosophies/DATA-FLOW.md)
+1. [Offline First](contributingGuides/philosophies/OFFLINE.md)
 1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
     - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
@@ -624,8 +613,7 @@ This application is built with the following principles.
         4. server responds
         5. UI updates with data from the server
 
-1. **Cross Platform 99.9999%**
-See details [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
+1. [Cross Platform](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 
