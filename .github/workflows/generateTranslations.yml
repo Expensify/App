@@ -96,10 +96,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Set up git for OSBotify
+        id: setupGitForOSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@c02a7a6fa90fbf0fec054092dc439b42b775cfb3
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Post diff in PR as a comment
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
@@ -157,4 +166,4 @@ jobs:
           gh pr comment ${{ github.event.pull_request.number }} --body-file "$TEMP_COMMENT_FILE"
         env:
           # Use OS_BOTIFY_TOKEN so that we can create a gist
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
