@@ -640,6 +640,7 @@ describe('OptionsListUtils', () => {
                 maxResults: undefined,
                 includeUserToInvite: false,
                 includeRecentReports: true,
+                includeCurrentUser: true,
             });
 
             // Then the current user should be included in personalDetails

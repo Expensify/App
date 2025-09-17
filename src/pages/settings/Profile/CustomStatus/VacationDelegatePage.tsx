@@ -32,6 +32,7 @@ function useOptions() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const excludeLogins = useMemo(
         () => ({
@@ -47,6 +48,7 @@ function useOptions() {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
             },
+            draftComments,
             {
                 betas,
                 excludeLogins,

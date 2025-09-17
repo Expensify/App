@@ -119,6 +119,7 @@ function MoneyRequestParticipantsSelector(
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
@@ -159,6 +160,7 @@ function MoneyRequestParticipantsSelector(
                 reports: options.reports,
                 personalDetails: options.personalDetails.concat(contacts),
             },
+            draftComments,
             {
                 betas,
                 selectedOptions: participants as Participant[],
