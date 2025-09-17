@@ -74,4 +74,6 @@ function ExpensifyCardPageVerifyAccountPage({
     );
 }
 
+ExpensifyCardPageVerifyAccountPage.displayName = 'ExpensifyCardPageVerifyAccountPage';
+
 export default ExpensifyCardPageVerifyAccountPage;
