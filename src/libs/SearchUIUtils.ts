@@ -759,31 +759,6 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
     return isAmountTooLong(taxAmount);
 }
 
-/**
- * Determines if a report can be submitted in search.
- * Similar to `ReportUtils.canSubmitReport` but only allows submission for single-transaction reports.
- *
- * @param currentUserAccountID - Current user's account ID
- * @param report - Report to whether it is eligible can be submitted for submission
- * @param reportActions - Reports actions associated with the report
- * @param policy - Policy associated with the report
- * @param transactions - Transactions within the report
- * @param transactionViolations - Transaction violations associated with the report's transactions
- * @param isReportArchived - Whether the report is archived
- *
- */
-function canSubmitReportInSearch(
-    currentUserAccountID: number | undefined,
-    report: OnyxTypes.Report,
-    reportActions: OnyxTypes.ReportAction[],
-    policy: OnyxTypes.Policy,
-    transactions: SearchTransaction[],
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    isReportArchived = false,
-) {
-    return canSubmitReport(currentUserAccountID, report, reportActions, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
-}
-
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
@@ -1186,10 +1161,7 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (
-        canSubmitReportInSearch(currentAccountID, report, reportActions, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) &&
-        isAllowedToApproveExpenseReport
-    ) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -2099,7 +2071,12 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 function getHasOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return [{text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT}];
+            return [
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+            ];
         default:
             return [];
     }
@@ -2279,7 +2256,6 @@ function getColumnsToShow(
 }
 
 export {
-    canSubmitReportInSearch,
     getSuggestedSearches,
     getListItem,
     getSections,
@@ -2320,5 +2296,4 @@ export {
     getColumnsToShow,
     getHasOptions,
 };
-
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

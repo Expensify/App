@@ -1389,8 +1389,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
             rejectExpenseTitle: "Reject an expense that you don't intend to approve or pay.",
             reasonPageTitle: 'Reject expense',
-            reasonPageDescription1: 'Reject an expense if you don\'t ever plan on approving or paying it. Otherwise, use "hold" to pause the expense and ask for more context.',
-            reasonPageDescription2: "If you're going to reject the expense, please add a comment to explain why:",
+            reasonPageDescription: "Explain why you're rejecting this expense.",
             rejectReason: 'Rejection reason',
             markAsResolved: 'Mark as resolved',
             rejectedStatus: 'This expense was rejected. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
@@ -6160,9 +6159,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
-            },
-            has: {
-                receipt: 'Receipt',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
