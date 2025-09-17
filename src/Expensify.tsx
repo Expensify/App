@@ -231,7 +231,7 @@ function Expensify() {
         });
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => {
+        const linkingChangeListener = Linking.addEventListener('url', (state) => {
             Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
@@ -243,6 +243,7 @@ function Expensify() {
                 return;
             }
             appStateChangeListener.current.remove();
+            linkingChangeListener.remove();
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [sessionMetadata?.status]);
