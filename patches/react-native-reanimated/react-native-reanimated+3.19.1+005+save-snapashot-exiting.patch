@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js b/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js
+index ad53a74..8730480 100644
+--- a/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js
++++ b/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js
+@@ -239,6 +239,7 @@ export function handleExitingAnimation(element, animationConfig) {
+   dummy.reanimatedDummy = true;
+   element.style.animationName = '';
+   dummy.style.animationName = '';
++  saveSnapshot(element);
+ 
+   // Moving elements in DOM resets their scroll positions
+   // so we memorize them here and restore after

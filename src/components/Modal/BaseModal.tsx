@@ -39,7 +39,6 @@ function BaseModal(
         onModalShow = () => {},
         onModalWillShow,
         onModalWillHide,
-        fullscreen = true,
         animationIn,
         animationOut,
         hideModalContentWhileAnimating = false,
@@ -63,7 +62,6 @@ function BaseModal(
         shouldPreventScrollOnFocus = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-        hasBackdrop,
         backdropOpacity,
         shouldDisableBottomSafeAreaPadding = false,
         shouldIgnoreBackHandlerDuringTransition = false,
@@ -158,6 +156,11 @@ function BaseModal(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
+
+    const onModalWillShowCallback = useCallback(() => {
+        saveFocusState();
+        onModalWillShow?.();
+    }, [saveFocusState, onModalWillShow]);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
@@ -316,10 +319,7 @@ function BaseModal(
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
                         onModalHide={hideModal}
-                        onModalWillShow={() => {
-                            saveFocusState();
-                            onModalWillShow?.();
-                        }}
+                        onModalWillShow={onModalWillShowCallback}
                         onModalWillHide={onModalWillHide}
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
@@ -331,8 +331,6 @@ function BaseModal(
                         backdropColor={theme.overlay}
                         backdropOpacity={backdropOpacityAdjusted}
                         backdropTransitionOutTiming={0}
-                        hasBackdrop={hasBackdrop ?? fullscreen}
-                        coverScreen={fullscreen}
                         style={modalStyle}
                         deviceHeight={windowHeight}
                         deviceWidth={windowWidth}

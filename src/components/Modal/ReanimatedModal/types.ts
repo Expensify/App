@@ -75,12 +75,6 @@ type ReanimatedModalProps = ViewProps &
         /** Whether to avoid keyboard overlap during modal display */
         avoidKeyboard?: boolean;
 
-        /** Whether the modal should cover the entire screen */
-        coverScreen?: boolean;
-
-        /** Whether the modal should have a backdrop */
-        hasBackdrop?: boolean;
-
         /** Color of the backdrop */
         backdropColor?: string;
 
@@ -162,9 +156,6 @@ type BackdropProps = {
 
     /** Opacity of the backdrop */
     backdropOpacity?: number;
-
-    /** Shows backdrop content */
-    isBackdropVisible: boolean;
 };
 
 type ContainerProps = {
