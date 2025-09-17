@@ -280,7 +280,7 @@ function Expensify() {
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
 
     // Display a blank page until the onyx migration completes
-    if (!isOnyxMigrated || isLoadingOnyxValue(sessionMetadata)) {
+    if (!isOnyxMigrated) {
         return null;
     }
 
