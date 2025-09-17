@@ -1784,7 +1784,7 @@ function saveReportDraft(reportID: string, report: Report) {
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - if comment was empty string ?? wont work
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment || null).then(callback);
 }
 
