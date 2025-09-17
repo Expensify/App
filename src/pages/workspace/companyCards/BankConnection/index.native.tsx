@@ -194,7 +194,12 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                         color={theme.spinner}
                     />
                 )}
-                {isNewFeedHasError && <WorkspaceCompanyCardsErrorConfirmation policyID={policyID} />}
+                {isNewFeedHasError && (
+                    <WorkspaceCompanyCardsErrorConfirmation
+                        policyID={policyID}
+                        newFeed={newFeed}
+                    />
+                )}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

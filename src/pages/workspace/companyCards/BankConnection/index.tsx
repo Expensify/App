@@ -194,7 +194,12 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     const getContent = () => {
         if (isNewFeedHasError) {
-            return <WorkspaceCompanyCardsErrorConfirmation policyID={policyID} />;
+            return (
+                <WorkspaceCompanyCardsErrorConfirmation
+                    policyID={policyID}
+                    newFeed={newFeed}
+                />
+            );
         }
         if (!isPlaid) {
             return (
