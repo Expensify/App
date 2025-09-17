@@ -1243,7 +1243,7 @@ function getTaskSections(
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
     // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
     if (!iouReportAction) {
-        openReport(item?.report?.reportID ?? item?.reportID);
+        openReport(item.report?.reportID ?? item.reportID);
     }
     const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
     if (transactionThreadReport?.reportID) {
