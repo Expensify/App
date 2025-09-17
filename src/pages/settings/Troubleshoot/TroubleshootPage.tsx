@@ -113,7 +113,7 @@ function TroubleshootPage() {
             baseMenuItems.push(debugConsoleItem);
         }
 
-        const finalMenuItems = [...(classicRedirectMenuItem ? [classicRedirectMenuItem] : []), ...baseMenuItems];
+        const finalMenuItems = classicRedirectMenuItem ? [classicRedirectMenuItem, ...baseMenuItems] : baseMenuItems;
 
         return finalMenuItems
             .map((item) => ({
