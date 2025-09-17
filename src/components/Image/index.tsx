@@ -10,6 +10,7 @@ import type {ImageOnLoadEvent, ImageProps} from './types';
 
 function Image({
     source: propsSource,
+    shouldCalculateAspectRatioForWideImage = false,
     isAuthTokenRequired = false,
     onLoad,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
@@ -30,14 +31,14 @@ function Image({
                 return;
             }
 
-            if (width > height) {
+            if (width > height && !shouldCalculateAspectRatioForWideImage) {
                 setAspectRatio(1);
                 return;
             }
 
             setAspectRatio(height ? width / height : 'auto');
         },
-        [isObjectPositionTop],
+        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage],
     );
 
     const handleLoad = useCallback(
@@ -146,6 +147,7 @@ function Image({
             />
         );
     }
+
     return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
