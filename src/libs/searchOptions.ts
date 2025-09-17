@@ -14,11 +14,12 @@ type Option = {
  * @returns An array of options with selected items at the top
  */
 function moveSelectedOptionsToTop<T extends {isSelected?: boolean; value?: string}>(options: T[], initialSelectedValues: string[] = []): T[] {
-    const first: T[] = [];
+    const initialSelectedValuesSet = new Set(initialSelectedValues);
 
+    const first: T[] = [];
     const last: T[] = [];
     for (const option of options) {
-        if (option.value && initialSelectedValues.includes(option.value)) {
+        if (option.value && initialSelectedValuesSet.has(option.value)) {
             first.push(option);
         } else {
             last.push(option);

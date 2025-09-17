@@ -43,9 +43,9 @@ function useWorkspaceList({
         if (!policies || isEmptyObject(policies)) {
             return [];
         }
-
-        const first: Policy[] = [];
-        const last: Policy[] = [];
+        const initialSelectedPolicyIDsSet = new Set(initialSelectedPolicyIDs);
+        const selectedPolicies: Policy[] = [];
+        const unselectedPolicies: Policy[] = [];
 
         const sortedItems = Object.values(policies)
             .filter(
@@ -61,16 +61,18 @@ function useWorkspaceList({
                 continue;
             }
 
-            if (initialSelectedPolicyIDs.includes(option.id)) {
-                first.push(option);
+            if (initialSelectedPolicyIDsSet.has(option.id)) {
+                selectedPolicies.push(option);
             } else {
-                last.push(option);
+                unselectedPolicies.push(option);
             }
         }
-        return [...first, ...last];
+        return [...selectedPolicies, ...unselectedPolicies];
     }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, localeCompare, initialSelectedPolicyIDs]);
 
     const usersWorkspaces = useMemo(() => {
+        const selectedPolicyIDsSet = selectedPolicyIDs ? new Set(selectedPolicyIDs) : undefined;
+
         return orderedPolicies.map((policy) => ({
             text: policy?.name ?? '',
             policyID: policy?.id,
@@ -85,7 +87,7 @@ function useWorkspaceList({
             ],
             keyForList: policy?.id,
             isPolicyAdmin: isPolicyAdmin(policy),
-            isSelected: policy?.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
+            isSelected: policy?.id && selectedPolicyIDsSet ? selectedPolicyIDsSet.has(policy.id) : false,
         }));
     }, [orderedPolicies, selectedPolicyIDs]);
 

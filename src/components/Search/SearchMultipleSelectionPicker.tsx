@@ -37,10 +37,10 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
         const last: SearchMultipleSelectionPickerItem[] = [];
 
-        const initiallySelectedValues = initiallySelectedItems?.map((item) => item.value) ?? [];
+        const initiallySelectedValuesSet = new Set(initiallySelectedItems?.map((item) => item.value) ?? []);
         const sortedItems = items.sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare));
         for (const option of sortedItems) {
-            if (option.value && initiallySelectedValues.includes(option.value)) {
+            if (option.value && initiallySelectedValuesSet.has(option.value)) {
                 first.push(option);
             } else {
                 last.push(option);

@@ -50,8 +50,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
     }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
 
-    const initialCountry = getCountry();
-
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
@@ -107,7 +105,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, [initialCountry]), [countries, debouncedSearchValue, initialCountry]);
+    const searchResults = useMemo(() => {
+        const country = getCountry();
+        return searchOptions(debouncedSearchValue, countries, [country]);
+    }, [countries, debouncedSearchValue, getCountry]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (

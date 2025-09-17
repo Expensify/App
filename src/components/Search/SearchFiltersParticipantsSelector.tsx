@@ -75,18 +75,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return [];
         }
 
-        const preSelectedOptions = initialAccountIDs
-            .map((accountID) => {
-                const participant = personalDetails[accountID];
-                if (!participant) {
-                    return;
-                }
+        const preSelectedOptions = initialAccountIDs.reduce<OptionData[]>((acc, accountID) => {
+            const participant = personalDetails[accountID];
+            if (participant) {
+                acc.push(getSelectedOptionData(participant));
+            }
+            return acc;
+        }, []);
 
-                return getSelectedOptionData(participant);
-            })
-            .filter((option): option is NonNullable<OptionData> => {
-                return !!option;
-            });
         return preSelectedOptions;
     }, [initialAccountIDs, personalDetails]);
 
@@ -148,8 +144,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sectionData.push(chatOptions.currentUserOption);
         }
 
+        const selectedIDsSet = new Set(initialSelectedOptions.map(o => o.accountID));
         const unselectedFormattedSectionData = formattedResults.section.data.filter(
-            (option) => !initialSelectedOptions.some((selectedOption) => selectedOption.accountID === option.accountID),
+            (option) => !selectedIDsSet.has(option.accountID),
         );
         if (unselectedFormattedSectionData.length) {
             sectionData.push(...(unselectedFormattedSectionData as SearchOptionData[]));
