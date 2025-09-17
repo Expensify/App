@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import Modal from '@components/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
@@ -12,7 +11,6 @@ import type AttachmentModalContainerProps from './types';
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {
     const [isVisible, setIsVisible] = useState(true);
     const attachmentsContext = useContext(AttachmentModalContext);
-    const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);
 
     /**
      * Closes the modal.
@@ -36,25 +34,14 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
         [attachmentsContext, onClose],
     );
 
-    // After the modal has initially been mounted and animated in,
-    // we don't want to show another animation when the modal type changes or
-    // when the browser switches to narrow layout.
-    useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            setShouldDisableAnimationAfterInitialMount(true);
-        });
-    }, []);
-
     useEffect(() => {
         onShow?.();
     }, [onShow]);
 
     return (
         <Modal
-            disableAnimationIn={shouldDisableAnimationAfterInitialMount}
             isVisible={isVisible}
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            propagateSwipe
             initialFocus={() => {
                 if (!contentProps.submitRef?.current) {
                     return false;

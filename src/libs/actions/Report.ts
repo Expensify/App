@@ -3876,6 +3876,13 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
 }
 
+/** Invites people to a room via concierge whisper */
+function inviteToRoomAction(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
+    const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
+
+    addComment(reportID, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
+}
+
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
     const reportMetadata = getReportMetadata(reportID);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -4012,18 +4019,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
 function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     removeFromRoom(reportID, accountIDList);
-}
-
-function setLastOpenedPublicRoom(reportID: string) {
-    Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
-}
-
-/** Navigates to the last opened public room */
-function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
-    Navigation.isNavigationReady().then(() => {
-        setLastOpenedPublicRoom('');
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastOpenedPublicRoomID));
-    });
 }
 
 /** Flag a comment as offensive */
@@ -4265,6 +4260,7 @@ function completeOnboarding({
     userReportedIntegration,
     wasInvited,
     selectedInterestedFeatures = [],
+    shouldSkipTestDriveModal,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4277,6 +4273,7 @@ function completeOnboarding({
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
     selectedInterestedFeatures?: string[];
+    shouldSkipTestDriveModal?: boolean;
 }) {
     const onboardingData = prepareOnboardingOnyxData(
         introSelected,
@@ -4309,7 +4306,8 @@ function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    if (shouldOnboardingRedirectToOldDot(companySize, userReportedIntegration)) {
+    const willRedirectToOldDotFromOnboarding = shouldOnboardingRedirectToOldDot(companySize, userReportedIntegration);
+    if (willRedirectToOldDotFromOnboarding) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -4326,6 +4324,28 @@ function completeOnboarding({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {isLoading: false},
+        });
+    }
+
+    // Only add the dismissed state of the test drive modal when the user is not redirected to oldDot,
+    // because we don't want the modal to reappear when returning from oldDot.
+    if (!shouldSkipTestDriveModal && !(engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && willRedirectToOldDotFromOnboarding)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: null},
         });
     }
 
@@ -6116,6 +6136,7 @@ export {
     inviteToGroupChat,
     buildInviteToRoomOnyxData,
     inviteToRoom,
+    inviteToRoomAction,
     joinRoom,
     leaveGroupChat,
     leaveRoom,
@@ -6128,7 +6149,6 @@ export {
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
     notifyNewAction,
-    openLastOpenedPublicRoom,
     openReport,
     openReportFromDeepLink,
     openRoomMembersPage,
@@ -6147,7 +6167,6 @@ export {
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
-    setLastOpenedPublicRoom,
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,
