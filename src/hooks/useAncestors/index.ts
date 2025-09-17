@@ -1,29 +1,9 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {isCurrentActionUnread, isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
+import type {Ancestor} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Report from '@src/types/onyx/Report';
-import { Ancestor } from '@libs/ReportUtils';
-import { S } from 'node_modules/@storybook/react/dist/public-types-f2c70f25';
-
-
-function getReportOrDraftReport(
-    reportID: string,
-    reportCollection: OnyxCollection<Report>,
-    reportDraftCollection: OnyxCollection<Report>,
-): OnyxEntry<Report> {
-    const report = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const draft = reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
-
-    // Only return the draft if it is not a string (i.e., is a Report object)
-    if (report) {
-        return report;
-    }
-    if (draft) {
-        return draft;
-    }
-    return undefined;
-}
 
 /**
  * It traverses up the report hierarchy using `parentReportID` from a given reportID to return the ancestor reports
@@ -33,27 +13,17 @@ function getReportOrDraftReport(
  * @param includeTransactionThreads - Whether to include transaction thread.
  */
 
-function useAncestors(report: OnyxEntry<Report>, includeTransactionThreads = true): Ancestor[] {
-    
-    let {parentReportID = undefined, parentReportActionID = undefined} = report ?? {};
-
-    const [reportsCollection] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            canBeMissing: false,
-        },
-        [report?.reportID, report?.parentReportID],
-    );
-
-    const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true}, [report?.reportID, includeTransactionThreads]);
-
-    const [reportActionCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false}, [report?.reportID, reportsCollection, includeTransactionThreads]);
-
+function useAncestors(report: OnyxEntry<Report>, includeTransactionThreads = false): Ancestor[] {
     const ancestors: Ancestor[] = [];
+    const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
+    const [reportActionCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+
+    let {parentReportID = undefined, parentReportActionID = undefined} = report ?? {};
 
     // Traverse up the report hierarchy to collect ancestor reports and their associated report actions.
     while (parentReportID) {
-        const parentReport = getReportOrDraftReport(parentReportID, reportsCollection, reportDraftCollection);
+        const parentReport = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${parentReportID}`];
         const parentReportAction = reportActionCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[`${parentReportActionID}`];
 
         if (
@@ -70,9 +40,9 @@ function useAncestors(report: OnyxEntry<Report>, includeTransactionThreads = tru
 
         // `unshift` to maintain the order from the top-most ancestor down to the immediate parent.
         ancestors.unshift({
-            report: parentReport, 
+            report: parentReport,
             reportAction: parentReportAction,
-            shouldDisplayNewMarker: isCurrentActionUnread(parentReport, parentReportAction)
+            shouldDisplayNewMarker: isCurrentActionUnread(parentReport, parentReportAction),
         });
 
         /*

@@ -1,7 +1,8 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import useAncestorReportsAndReportActions from '@hooks/useAncestors';
+import useAncestors from '@hooks/useAncestors';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,13 +25,13 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
 
     const {transactionID, reportID, backTo, searchHash} = route.params;
-
-    const {report, ancestorReportsAndReportActions} = useAncestorReportsAndReportActions(reportID, true);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false}, [reportID]);
+    const ancestors = useAncestors(report);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = isReportInGroupPolicyUtils(report);
-    const parentReportAction = ancestorReportsAndReportActions.at(-1)?.reportAction;
+    const parentReportAction = ancestors.at(-1)?.reportAction;
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
@@ -40,7 +41,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, ancestorReportsAndReportActions, reportID, searchHash);
+        putOnHold(transactionID, values.comment, ancestors, reportID, searchHash);
         Navigation.goBack(backTo);
     };
 
