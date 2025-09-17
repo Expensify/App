@@ -45,6 +45,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
+    const isOriginalReportArchived = useReportIsArchived(originalReportIDRef.current);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -303,13 +304,13 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             }
         } else if (reportAction) {
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, isReportArchived);
+                deleteReportComment(reportIDRef.current, reportAction, isReportArchived, isOriginalReportArchived);
             });
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, originalReportIDRef.current]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
