@@ -93,5 +93,21 @@ One example of data that's appropriate to lazy-load but necessarily ideal for pa
 
     More details can be found in [the Pagination middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts). Efforts were made to generalize this code, but so far it has only been used for reportActions.
 
-6. TODO: Describe (aspirational) two-layer pagination (RAM -> Disk -> Server)
-7. TODO: Describe (aspirational) data pre-loading
+## Future improvements
+The following ideals have not (yet) been implemented in Expensify, but we'll hold them out here as aspirational goals for future pagination systems, inspired by WhatsApp.
+
+### Layered Pagination
+The pagination systems we've described so far paginate data from the client to the server. i.e: client loads one page, then when they reach the edge of the page they ask the server for the next page. This goes a long way to decouple the total volume of data a user has access to from their app's performance.
+
+However, the systems we've build and/or described have no data eviction. Once data has been downloaded from the server, it's saved to disk, and because of the design of Onyx all that data is typically kept in RAM in the Onyx cache. If this starts to become a problem ([it has been discussed before](https://expensify.slack.com/archives/C05LX9D6E07/p1755077335799619)), throwing away data on disk is not the best approach. Instead, we should build a two-layer pagination system:
+
+1. Data is loaded into RAM one page at a time.
+2. If we reach the edge of the page, we first check the disk for more.
+3. Only if the page we requested is not on disk, we request it from the server.
+4. If data must be evicted due to slow performance, it is first evicted from RAM.
+5. Data should be evicted from disk only if reading data from disk becomes a bottleneck, or we reach device storage limits.
+
+That way, we can preserve our [Offline Philosophy](https://github.com/Expensify/App/blob/main/contributingGuides/philosophies/OFFLINE.md) and provide a first-class offline UX without compromising performance.
+
+### Data pre-loading
+If we had a layered pagination system in place, and we could performantly handle very high volumes of data on-device, then another future improvement could be to pre-load many pages of data when the app loads, before the client even requests them, and store them directly on disk. That provides a premium offline-first experience, with most pages of data a user is likely to need loading immediately from disk.
