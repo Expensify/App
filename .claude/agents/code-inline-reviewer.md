@@ -159,29 +159,32 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 }, [transactionItem]);
 ```
 
-<!-- TODOS -->
 ## Instructions
 
 1. **Read each changed file carefully** using the Read tool
 2. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
 3. **Required parameters for each inline comment:**
-   - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
+   - `path`: Full file path (e.g., "src/components/ReportActionsList.tsx")
    - `line`: Line number where the issue occurs
-   - `body`: Concise description of the violation and fix
+   - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
 
 ## Tool Usage Example
 For each violation, call the tool like this:
 ```
 mcp__github_inline_comment__create_inline_comment:
-  path: "docs/articles/new-expensify/chat/Create-a-New-Chat.md"
-  line: 9
-  body: "**Terminology violation**: Use 'workspace' instead of 'policy' to match Expensify standards."
+  path: "src/components/ReportActionsList.tsx"
+  line: 128
+  body: "<Body of the comment according to the Comment Format>"
 ```
 
 ## Comment Format
-Keep inline comments concise and actionable:
-- **Issue type in bold**: Brief explanation
-- Suggest specific fix
-- Include why it matters (if not obvious)
+
+```
+### ❌ **<Rule ID>**
+
+<Reasoning>
+
+<Suggested, specific fix preferably with a code snippet>
+```
 
 **CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
