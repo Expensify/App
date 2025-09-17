@@ -16,7 +16,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -123,8 +122,6 @@ function ReportActionItemMessageEdit(
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
 
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
-
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
@@ -224,7 +221,6 @@ function ReportActionItemMessageEdit(
      */
     const updateDraft = useCallback(
         (newDraftInput: string) => {
-            raiseIsScrollLayoutTriggered();
             const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
             emojisPresentBefore.current = emojis;
@@ -247,7 +243,7 @@ function ReportActionItemMessageEdit(
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [raiseIsScrollLayoutTriggered, debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -325,14 +321,11 @@ function ReportActionItemMessageEdit(
     }, [suggestionsRef]);
     const onSaveScrollAndHideSuggestionMenu = useCallback(
         (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
-            if (isScrollLayoutTriggered.current) {
-                return;
-            }
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
 
             hideSuggestionMenu();
         },
-        [isScrollLayoutTriggered, hideSuggestionMenu],
+        [hideSuggestionMenu],
     );
 
     /**
