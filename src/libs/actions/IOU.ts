@@ -1168,11 +1168,36 @@ function setSplitPayer(transactionID: string, payerAccountID: number) {
 }
 
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
+    console.log('[setMoneyRequestReceipt] Setting receipt for transaction:', {
+        transactionID,
+        source,
         filename,
+        isDraft,
+        type,
+        isTestReceipt,
+        isTestDriveReceipt,
+        timestamp: new Date().toISOString(),
     });
+
+    const receiptData = {
+        source,
+        type: type ?? '',
+        isTestReceipt: isTestReceipt ? true : null,
+        isTestDriveReceipt: isTestDriveReceipt ? true : null,
+    };
+
+    const transactionData = {
+        receipt: receiptData,
+        filename,
+    };
+
+    console.log('[setMoneyRequestReceipt] Merging transaction data:', {
+        onyxKey: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        transactionData,
+        receiptData,
+    });
+
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionData);
 }
 
 /**

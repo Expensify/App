@@ -26,12 +26,38 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     let source = transactionItem?.receipt?.source ?? '';
     let previewSource = transactionItem?.receipt?.source ?? '';
 
+    console.log('[ReceiptCell] Processing transaction receipt:', {
+        transactionID: transactionItem.transactionID,
+        originalSource: source,
+        isEReceipt,
+        hasReceiptSource: hasReceiptSource(transactionItem),
+        receiptType: transactionItem?.receipt?.type,
+        receiptFilename: transactionItem?.filename,
+        timestamp: new Date().toISOString(),
+    });
+
     if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
+
+        console.log('[ReceiptCell] Transforming receipt URLs:', {
+            originalSource: source,
+            filename,
+            receiptURIs,
+            thumbnailURI: receiptURIs.thumbnail,
+            imageURI: receiptURIs.image,
+        });
+
         source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
         const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
         previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
+
+        console.log('[ReceiptCell] Final URLs after resolution:', {
+            finalSource: source,
+            finalPreviewSource: previewSource,
+            isImage: Str.isImage(filename),
+            previewImageURI,
+        });
     }
 
     return (
