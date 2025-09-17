@@ -6816,7 +6816,7 @@ describe('ReportUtils', () => {
                     {accountID: '3', pendingAction: 'add'},
                     {accountID: '3', pendingAction: 'delete'},
                 ],
-            };
+            } as OnyxEntry<ReportMetadata>;
             const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, metadataWithMultipleActions, {
                 shouldExcludeDeleted: true,
             });
