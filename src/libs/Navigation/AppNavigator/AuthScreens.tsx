@@ -14,6 +14,7 @@ import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useOnyx from '@hooks/useOnyx';
@@ -78,7 +79,6 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
-import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
@@ -235,7 +235,6 @@ function AuthScreens() {
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, {canBeMissing: true});
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
 
     // On HybridApp we need to prevent flickering during transition to OldDot
@@ -303,7 +302,7 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect(delegatorEmail, true)
+                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, isFromOldDot: true})
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -328,10 +327,6 @@ function AuthScreens() {
 
         App.redirectThirdPartyDesktopSignIn();
 
-        if (lastOpenedPublicRoomID) {
-            // Re-open the last opened public room if the user logged in from a public room link
-            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
-        }
         Download.clearDownloads();
 
         const unsubscribeOnyxModal = onyxSubscribe({
@@ -541,7 +536,16 @@ function AuthScreens() {
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
+        <ComposeProviders
+            components={[
+                OptionsListContextProvider,
+                SidebarOrderedReportsContextProvider,
+                SearchContextProvider,
+                LockedAccountModalProvider,
+                DelegateNoAccessModalProvider,
+                WideRHPContextProvider,
+            ]}
+        >
             <RootStack.Navigator
                 persistentScreens={[
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -703,11 +707,6 @@ function AuthScreens() {
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.basicModalNavigator}
-                    component={WelcomeVideoModalNavigator}
                 />
                 {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp || shouldRenderOnboardingExclusively) && (
                     <RootStack.Screen
