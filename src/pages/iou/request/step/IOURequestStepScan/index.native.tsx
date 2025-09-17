@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
+import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -74,6 +74,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import ActivityIndicator from '@components/ActivityIndicator';
 import CameraPermission from './CameraPermission';
 import {cropImageToAspectRatio} from './cropImageToAspectRatio';
 import type {ImageObject} from './cropImageToAspectRatio';

@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator} from 'react-native';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -12,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
@@ -28,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 
 type BankConnectionProps = {
     /** ID of the policy */
@@ -43,7 +42,6 @@ type BankConnectionProps = {
 function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const theme = useTheme();
     const webViewRef = useRef<WebView>(null);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
@@ -169,7 +167,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        color={theme.spinner}
                     />
                 )}
             </FullPageOfflineBlockingView>

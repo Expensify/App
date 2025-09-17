@@ -1,14 +1,14 @@
 import React, {useEffect} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import ActivityIndicator from '@components/ActivityIndicator';
 
 type ListBoundaryLoaderProps = {
     /** type of rendered loader. Can be 'header' or 'footer' */
@@ -42,7 +42,6 @@ function ListBoundaryLoader({
     hasError = false,
     onRetry,
 }: ListBoundaryLoaderProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -102,7 +101,6 @@ function ListBoundaryLoader({
         return (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.listBoundaryLoader]}>
                 <ActivityIndicator
-                    color={theme.spinner}
                     size="small"
                 />
             </View>

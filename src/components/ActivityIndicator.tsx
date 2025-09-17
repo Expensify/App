@@ -16,7 +16,12 @@ function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, .
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            Log.warn('ActivityIndicator has been shown for longer than expected', {timeoutMs: timeout, context: {/** TODO: Add context */}});
+            Log.warn('ActivityIndicator has been shown for longer than expected', {
+                timeoutMs: timeout,
+                context: {
+                    /** TODO: Add context */
+                },
+            });
         }, timeout);
 
         return () => {

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -15,7 +15,6 @@ import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,12 +25,12 @@ import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ActivityIndicator from '@components/ActivityIndicator';
 
 type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
 
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const policyID: string = route.params.policyID;
@@ -116,7 +115,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                             {!hasResultOfFetchingSetupLink ? (
                                 <ActivityIndicator
-                                    color={theme.spinner}
                                     size="small"
                                 />
                             ) : (

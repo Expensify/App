@@ -1,14 +1,13 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import type {LayoutChangeEvent} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
@@ -16,6 +15,7 @@ import variables from '@styles/variables';
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
@@ -34,7 +34,6 @@ type ReceiptPreviewProps = {
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
     const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
@@ -110,7 +109,6 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     {isLoading && (
                         <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <ActivityIndicator
-                                color={theme.spinner}
                                 size="large"
                             />
                         </View>
