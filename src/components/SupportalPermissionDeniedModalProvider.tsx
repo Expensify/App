@@ -11,7 +11,9 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
     const [isVisible, setIsVisible] = useState(false);
 
     const title = translate('supportalNoAccess.title');
-    const prompt = translate('supportalNoAccess.description');
+    const prompt = payload?.command
+        ? translate('supportalNoAccess.descriptionWithCommand', {command: payload.command})
+        : translate('supportalNoAccess.description');
 
     React.useEffect(() => {
         setIsVisible(!!payload);
