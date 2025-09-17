@@ -346,11 +346,11 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                 style={[
                     styles.dFlex,
                     styles.flexRow,
-                    styles.justifyContentBetween,
+                    shouldShowAddExpenseButton ? styles.justifyContentBetween : styles.justifyContentEnd,
                     styles.gap2,
                     listHorizontalPadding,
                     styles.mb2,
-                    shouldShowAddExpenseButton ? styles.alignItemsStart : styles.alignItemsEnd,
+                    styles.alignItemsStart,
                     styles.minHeight7,
                 ]}
             >
