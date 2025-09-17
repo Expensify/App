@@ -342,7 +342,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                     );
                 })}
             </View>
-            <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween, styles.gap2, listHorizontalPadding, styles.mb2, styles.alignItemsStart]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween, styles.gap2, listHorizontalPadding, styles.mb2, styles.alignItemsStart, styles.minHeight7]}>
                 {shouldShowAddExpenseButton && (
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
                         <ButtonWithDropdownMenu
