@@ -2,7 +2,7 @@ import React from 'react';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 import ROUTES from '@src/ROUTES';
 
-function VerifyAccountPage() {
+function NewBankAccountVerifyAccountPage() {
     return (
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.SETTINGS_WALLET}
@@ -11,6 +11,6 @@ function VerifyAccountPage() {
     );
 }
 
-VerifyAccountPage.displayName = 'VerifyAccountPage';
+NewBankAccountVerifyAccountPage.displayName = 'NewBankAccountVerifyAccountPage';
 
-export default VerifyAccountPage;
+export default NewBankAccountVerifyAccountPage;
