@@ -136,6 +136,7 @@ import {
     buildOptimisticReportPreview,
     buildOptimisticResolvedDuplicatesReportAction,
     buildOptimisticRetractedReportAction,
+    buildOptimisticSelfDMReport,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticUnHoldReportAction,
@@ -3880,15 +3881,20 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     // STEP 1: Get existing chat report
     let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
-    // The chatReport always exists, and we can get it from Onyx if chatReport is null.
+
+    // If no chat report is passed, defaults to the self-DM report
     if (!chatReport) {
-        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? null;
+        const selfDMReportID = findSelfDMReportID();
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? null;
     }
 
-    // If we still don't have a report, it likely doesn't exist, and we will early return here as it should not happen
-    // Maybe later, we can build an optimistic selfDM chat.
+    // If we are still missing the chat report then optimistically create the self-DM report
     if (!chatReport) {
-        return null;
+        const currentTime = DateUtils.getDBTime();
+        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        chatReport = selfDMReport;
+        // s77rt TODO: handle onyx data
     }
 
     // Check if the report is a draft

@@ -42,7 +42,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {buildOptimisticChatReport, findSelfDMReportID, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -154,13 +154,10 @@ function IOURequestStepConfirmation({
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
      * Also if the report was submitted and delayed submission is on, then we should use an initial report
-     * If this is an unreported expense then use the self DM as home of unreported expenses
      */
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
@@ -174,7 +171,7 @@ function IOURequestStepConfirmation({
             return transactionReport;
         }
         return reportReal ?? reportDraft;
-    }, [isUnreported, selfDMReport, shouldUseTransactionReport, transactionReport, reportReal, reportDraft, currentUserPersonalDetails.accountID]);
+    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportReal, reportDraft]);
     const policy = policyReal ?? policyDraft;
     const policyID = isUnreported ? policy?.id : getIOURequestPolicyID(transaction, report);
     const isDraftPolicy = policy === policyDraft;
