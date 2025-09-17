@@ -76,6 +76,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The distance of the transaction */
     distance: number;
 
+    /** The raw numeric amount of the transaction */
+    rawAmount: number;
+
     /** The formatted amount of the transaction */
     formattedAmount: string;
 
@@ -244,6 +247,7 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
+    rawAmount,
     policyTagLists,
     rate,
     receiptFilename,
@@ -335,9 +339,15 @@ function MoneyRequestConfirmationListFooter({
     let reportName = getReportName(selectedReport, selectedPolicy);
 
     if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, selectedPolicy?.id, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        const optimisticReport = buildOptimisticExpenseReport(
+            reportID,
+            selectedPolicy?.id,
+            selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            rawAmount ?? transaction?.amount ?? 0,
+            currency,
+        );
         selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
-        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
+        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy, true);
     }
 
     // When creating an expense in an individual report, the report field becomes read-only
@@ -1016,6 +1026,7 @@ export default memo(
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
+        prevProps.rawAmount === nextProps.rawAmount &&
         prevProps.formattedAmount === nextProps.formattedAmount &&
         prevProps.formError === nextProps.formError &&
         prevProps.hasRoute === nextProps.hasRoute &&
