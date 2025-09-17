@@ -29,6 +29,10 @@ on:
         type: string
         required: true
 
+concurrency:
+  group: "cherrypick"
+  cancel-in-progress: false
+
 jobs:
   createNewVersion:
     uses: ./.github/workflows/createNewVersion.yml

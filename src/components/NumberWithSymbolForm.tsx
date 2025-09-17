@@ -194,9 +194,9 @@ function NumberWithSymbolForm({
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
                     willSelectionBeUpdatedManually.current = false;
                 }
-                onInputChange?.(strippedNumber);
                 return strippedNumber;
             });
+            onInputChange?.(strippedNumber);
         },
         [decimals, maxLength, onInputChange],
     );

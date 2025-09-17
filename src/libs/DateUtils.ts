@@ -37,7 +37,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
@@ -51,37 +50,6 @@ import memoize from './memoize';
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
-
-let currentUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserAccountID = val.accountID;
-    },
-});
-
-let timezone: Required<Timezone> = CONST.DEFAULT_TIME_ZONE;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        if (!currentUserAccountID) {
-            return;
-        }
-
-        const personalDetailsTimezone = value?.[currentUserAccountID]?.timezone;
-
-        timezone = {
-            selected: personalDetailsTimezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
-            automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
-        };
-    },
-});
-
 let networkTimeSkew = 0;
 let isOffline: boolean | undefined;
 
@@ -90,12 +58,12 @@ Onyx.connect({
     callback: (val) => {
         networkTimeSkew = val?.timeSkew ?? 0;
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+            setNetworkLastOffline(new Date().toISOString());
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+            setNetworkLastOffline(new Date().toISOString());
         }
         isOffline = newIsOffline;
     },
@@ -133,7 +101,7 @@ function getWeekEndsOn(locale: Locale | undefined): Day {
  * Date object for the given ISO-formatted datetime string
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-function getLocalDateFromDatetime(locale: Locale | undefined, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
+function getLocalDateFromDatetime(locale: Locale | undefined, currentSelectedTimezone: string | SelectedTimezone, datetime?: string): Date {
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
         if (Number.isNaN(res.getTime())) {
@@ -223,16 +191,10 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(
-    locale: Locale | undefined,
-    datetime: string,
-    includeTimeZone = false,
-    currentSelectedTimezone: SelectedTimezone = timezone.selected,
-    isLowercase = false,
-): string {
+function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
     const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
     const dateFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', year: 'numeric'});
-    const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
+    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(locale, 'common.todayAt');
     let tomorrowAt = translate(locale, 'common.tomorrowAt');
@@ -277,9 +239,9 @@ function datetimeToCalendarTime(
  * Jan 20               within the past year
  * Jan 20, 2019         anything over 1 year
  */
-function datetimeToRelative(locale: Locale | undefined, datetime: string): string {
-    const date = getLocalDateFromDatetime(locale, datetime);
-    const now = getLocalDateFromDatetime(locale);
+function datetimeToRelative(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone): string {
+    const date = getLocalDateFromDatetime(locale, currentSelectedTimezone, datetime);
+    const now = getLocalDateFromDatetime(locale, currentSelectedTimezone);
     return formatDistance(date, now, {addSuffix: true});
 }
 
@@ -350,12 +312,12 @@ function startCurrentDateUpdater() {
     });
 }
 
-function getCurrentTimezone(): Required<Timezone> {
+function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timezone.automatic && timezone.selected !== currentTimezone) {
-        return {...timezone, selected: currentTimezone as SelectedTimezone};
+        return {...timezone, selected: currentTimezone as SelectedTimezone, automatic: timezone.automatic ?? false};
     }
-    return timezone;
+    return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
 }
 
 /**
