@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
 import Container from './Container';
 import type ReanimatedModalProps from './types';
+import type {AnimationInType, AnimationOutType} from './types';
 
 function ReanimatedModal({
     testID,
@@ -161,8 +162,8 @@ function ReanimatedModal({
             animationInDelay={animationInDelay}
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
-            animationIn={animationIn}
-            animationOut={animationOut}
+            animationIn={animationIn as AnimationInType}
+            animationOut={animationOut as AnimationOutType}
             style={style}
             type={type}
             onSwipeComplete={onSwipeComplete}
