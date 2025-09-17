@@ -172,6 +172,7 @@ function useSearchSelectorBase({
                     includeRecentReports,
                     maxElements: maxResults,
                     searchString: computedSearchTerm,
+                    includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, {
