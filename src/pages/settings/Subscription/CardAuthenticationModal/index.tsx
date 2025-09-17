@@ -5,9 +5,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -17,8 +19,14 @@ type CardAuthenticationModalProps = {
 
     policyID?: string;
 };
+
+const SECURE_ORIGIN = new URL(CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL).origin;
+
 function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +46,9 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
 
     const handleSCAAuthentication = useCallback(
         (event: MessageEvent<string>) => {
+            if (event.origin !== SECURE_ORIGIN) {
+                return;
+            }
             const message = event.data;
             if (message === CONST.SCA_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
@@ -63,8 +74,6 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             isVisible={isVisible}
             onClose={onModalClose}
-            onModalHide={onModalClose}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}
@@ -75,9 +84,10 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                 <HeaderWithBackButton
                     title={headerTitle}
                     shouldShowBorderBottom
-                    shouldShowCloseButton
+                    shouldShowCloseButton={!isSmallScreenWidth}
                     onCloseButtonPress={onModalClose}
-                    shouldShowBackButton={false}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    onBackButtonPress={onModalClose}
                     shouldDisplayHelpButton={false}
                 />
                 {isLoading && <FullScreenLoadingIndicator />}

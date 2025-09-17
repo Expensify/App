@@ -16,6 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,6 +64,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
+    const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const {isBetaEnabled} = usePermissions();
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
 
@@ -123,6 +125,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (feed) {
             if (!isFeedExpired) {
                 customWindow?.close();
+                if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
+                    Navigation.closeRHPFlow();
+                    return;
+                }
                 setAssignCardStepAndData({
                     currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
@@ -145,8 +152,16 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
-            Navigation.closeRHPFlow();
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+
+            // Direct feeds (except those added via Plaid) are created with default statement period end date.
+            // Redirect the user to set a custom date.
+            if (policyID && !isPlaid) {
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+            } else {
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+            }
             return;
         }
         if (!shouldBlockWindowOpen) {
@@ -158,7 +173,21 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 customWindow = openBankConnection(url);
             }
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard?.data?.dateOption, isPlaid, onImportPlaidAccounts]);
+    }, [
+        isNewFeedConnected,
+        shouldBlockWindowOpen,
+        newFeed,
+        policyID,
+        url,
+        feed,
+        isFeedExpired,
+        isOffline,
+        assignCard?.data?.dateOption,
+        isPlaid,
+        onImportPlaidAccounts,
+        isFeedConnectionBroken,
+        updateBrokenConnection,
+    ]);
 
     return (
         <ScreenWrapper

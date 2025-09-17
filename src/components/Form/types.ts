@@ -1,4 +1,4 @@
-import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
+import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
@@ -12,6 +12,7 @@ import type CountrySelector from '@components/CountrySelector';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
 import type PushRowWithModal from '@components/PushRowWithModal';
@@ -25,6 +26,7 @@ import type TextPicker from '@components/TextPicker';
 import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type OnboardingCurrencyPicker from '@pages/OnboardingWorkspaceConfirmation/OnboardingCurrencyPicker';
@@ -52,6 +54,7 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof CurrencySelector
     | typeof AmountForm
+    | typeof NumberWithSymbolForm
     | typeof PercentageForm
     | typeof BusinessTypePicker
     | typeof DimensionTypeSelector
@@ -126,7 +129,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
 type FormOnyxKeys<TFormID extends OnyxFormKey = OnyxFormKey> = keyof FormOnyxValues<TFormID>;
 
-type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
+type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProps & {
     /** A unique Onyx key identifying the form */
     formID: TFormID;
 
@@ -166,8 +169,12 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
+
     /** Render extra button above submit button */
     shouldRenderFooterAboveSubmit?: boolean;
+
     /**
      * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
      * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
@@ -182,7 +189,7 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     submit: () => void;
 };
 
-type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
+type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 

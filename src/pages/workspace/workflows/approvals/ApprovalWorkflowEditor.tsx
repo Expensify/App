@@ -38,7 +38,7 @@ type ApprovalWorkflowEditorProps = {
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const approverCount = approvalWorkflow.approvers.length;
 
     const approverDescription = useCallback(
@@ -67,10 +67,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             return translate('workspace.common.everyone');
         }
 
-        return sortAlphabetically(approvalWorkflow.members, 'displayName')
+        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
             .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {

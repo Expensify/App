@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type {AppStateStatus, TargetedEvent} from 'react-native';
+import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
 import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
@@ -8,14 +8,11 @@ import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
 
 type AppStateTrackerModule = {
-    getApplicationState: () => Promise<{
-        currentState: AppStateStatus;
-        prevState: AppStateStatus;
-    }>;
+    getWasAppRelaunchedFromIcon: () => Promise<boolean>;
 };
 
 type RNTextInputResetModule = {
-    resetKeyboardInput: (nodeHandle: number | null) => void;
+    resetKeyboardInput: (nativeId: string) => void;
 };
 
 type RNNavBarManagerModule = {

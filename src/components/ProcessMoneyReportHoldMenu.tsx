@@ -77,7 +77,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, undefined, full);
         }
         onClose();
     };

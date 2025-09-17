@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {Context as SearchContext} from '@components/Search/SearchContext';
+import {SearchContext} from '@components/Search/SearchContext';
 import ReportListItemHeader from '@components/SelectionList/Search/ReportListItemHeader';
 import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
@@ -29,11 +29,11 @@ const mockSearchContext = {
     setSelectedReports: jest.fn(),
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
-    setCurrentSearchHash: jest.fn(),
+    setCurrentSearchHashAndKey: jest.fn(),
     setSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    setShouldShowExportModeOption: jest.fn(),
-    setExportMode: jest.fn(),
+    shouldShowSelectAllMatchingItems: jest.fn(),
+    selectAllMatchingItems: jest.fn(),
 };
 
 const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
@@ -99,7 +99,6 @@ const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemTy
             <SearchContext.Provider value={mockSearchContext}>
                 <ReportListItemHeader
                     report={reportItem}
-                    policy={mockPolicy}
                     onSelectRow={jest.fn()}
                     onCheckboxPress={jest.fn()}
                     isDisabled={false}

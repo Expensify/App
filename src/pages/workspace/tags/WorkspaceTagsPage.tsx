@@ -9,7 +9,9 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -20,10 +22,8 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
-import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -121,9 +121,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         return policyTagLists?.at(0)?.tags;
     }, [isMultiLevelTags, policyTagLists]);
 
-    const filterTags = useCallback((tag?: PolicyTag | PolicyTagList) => !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
-
-    const [selectedTags, setSelectedTags] = useFilteredSelection(tagsList, filterTags);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
     const isTagSelected = useCallback((tag: TagListItem) => selectedTags.includes(tag.value), [selectedTags]);
 
@@ -135,7 +133,55 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedTags([]), [setSelectedTags]);
+    useEffect(() => {
+        if (selectedTags.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTags((prevSelectedTags) => {
+            const newSelectedTags = [];
+
+            for (const tagName of prevSelectedTags) {
+                if (isMultiLevelTags) {
+                    const tagListExists = tagsList?.[tagName];
+                    if (!tagListExists) {
+                        const renamedTagList = Object.entries(tagsList ?? {}).find(([, tagList]) => {
+                            const typedTagList = tagList as {previousTagName?: string};
+                            return typedTagList.previousTagName === tagName;
+                        });
+                        if (renamedTagList) {
+                            newSelectedTags.push(renamedTagList[0]);
+                            continue;
+                        }
+                    }
+
+                    if (tagListExists && tagListExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        newSelectedTags.push(tagName);
+                    }
+                } else {
+                    const tagExists = tagsList?.[tagName];
+                    if (!tagExists) {
+                        const renamedTag = Object.entries(tagsList ?? {}).find(([, tag]) => {
+                            const typedTag = tag as {previousTagName?: string};
+                            return typedTag.previousTagName === tagName;
+                        });
+                        if (renamedTag) {
+                            newSelectedTags.push(renamedTag[0]);
+                            continue;
+                        }
+                    }
+
+                    if (tagExists && tagExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        newSelectedTags.push(tagName);
+                    }
+                }
+            }
+
+            return newSelectedTags;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [tagsList]);
+    const cleanupSelectedOption = useCallback(() => setSelectedTags([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
 
     useSearchBackPress({
@@ -330,6 +376,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
+            if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
+                turnOffMobileSelectionMode();
+            }
         });
     };
 
@@ -555,45 +604,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
-                {!hasSyncError && isConnectionVerified ? (
-                    <Text>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                        <TextLink
-                            style={[styles.textNormal, styles.link]}
-                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                        >
-                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                        </TextLink>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                    </Text>
+                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                    <ImportedFromAccountingSoftware
+                        policyID={policyID}
+                        currentConnectionName={currentConnectionName}
+                        connectedIntegration={connectedIntegration}
+                        translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                    />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
                         {translate('workspace.tags.subtitle')}
                         {hasDependentTags && (
-                            <>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase1')}</Text>
-                                <TextLink
-                                    style={[styles.textNormal, styles.link]}
-                                    // TODO: Add a actual link to the help article https://github.com/Expensify/App/issues/63612
-                                    href={CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}
-                                >
-                                    {translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase2')}
-                                </TextLink>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase3')}</Text>
-                                <TextLink
-                                    style={[styles.textNormal, styles.link]}
-                                    onPress={() => {
-                                        Navigation.navigate(
-                                            isQuickSettingsFlow
-                                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
-                                        );
-                                    }}
-                                >
-                                    {translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase4')}
-                                </TextLink>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase5')}</Text>
-                            </>
+                            <View style={[styles.renderHTML]}>
+                                <RenderHTML
+                                    html={translate('workspace.tags.dependentMultiLevelTagsSubtitle', {
+                                        importSpreadsheetLink: isQuickSettingsFlow
+                                            ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
+                                            : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
+                                    })}
+                                />
+                            </View>
                         )}
                     </Text>
                 )}
@@ -609,31 +639,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 
-    const emptyTagsCopy = hasAccountingConnections ? 'emptyTagsWithAccounting' : 'emptyTags';
-    const subtitleText = useMemo(
-        () => (
-            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
-                {translate(`workspace.tags.${emptyTagsCopy}.subtitle1`)}
-                {hasAccountingConnections ? (
-                    <TextLink
-                        style={[styles.textAlignCenter]}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
-                    >
-                        {translate(`workspace.tags.${emptyTagsCopy}.subtitle2`)}
-                    </TextLink>
-                ) : (
-                    <TextLink
-                        style={[styles.textAlignCenter]}
-                        href={CONST.IMPORT_TAGS_EXPENSIFY_URL}
-                    >
-                        {translate(`workspace.tags.${emptyTagsCopy}.subtitle2`)}
-                    </TextLink>
-                )}
-                {translate(`workspace.tags.${emptyTagsCopy}.subtitle3`)}
-            </Text>
-        ),
-        [styles.textAlignCenter, styles.textNormal, styles.textSupporting, translate, emptyTagsCopy, hasAccountingConnections, policyID],
-    );
+    const subtitleText = useMemo(() => {
+        const emptyTagsSubtitle = hasAccountingConnections
+            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', {
+                  accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`,
+              })
+            : translate('workspace.tags.emptyTags.subtitleHTML');
+        return (
+            <View style={[styles.renderHTML]}>
+                <RenderHTML html={emptyTagsSubtitle} />
+            </View>
+        );
+    }, [hasAccountingConnections, translate, environmentURL, policyID, styles.renderHTML]);
 
     return (
         <>

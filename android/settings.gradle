@@ -2,7 +2,7 @@ pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
 apply from: "${rootDir}/../gradleUtils/PatchedArtifactsSettings.gradle"
 
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand(['npx', 'rnef', 'config', '-p', 'android']) }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand(['npx', 'rock', 'config', '-p', 'android']) }
 rootProject.name = 'NewExpensify'
 include ':react-native-webview'
 project(':react-native-webview').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-webview/android')
@@ -14,6 +14,11 @@ include ':react-native-plaid-link-sdk'
 project(':react-native-plaid-link-sdk').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-plaid-link-sdk/android')
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
+
+include ':gibsdk'
+project(':gibsdk').projectDir = new File(rootProject.projectDir, '../node_modules/group-ib-fp/android/gibsdk')
+include ':package'
+project(':package').projectDir = new File(rootProject.projectDir, '../node_modules/group-ib-fp/android/package')
 
 if(settings.extensions.patchedArtifacts.buildFromSource) {
     includeBuild('../node_modules/react-native') {

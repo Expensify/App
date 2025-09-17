@@ -35,10 +35,9 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
-    policy,
     policyAvatar,
-    singleAvatarDetails,
     shouldShowReportAvatarWithDisplay = false,
+    shouldDisplayStatus,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
@@ -53,10 +52,6 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
-    threeDotsAnchorPosition = {
-        vertical: 0,
-        horizontal: 0,
-    },
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -103,8 +98,7 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
-                    policy={policy}
-                    singleAvatarDetails={singleAvatarDetails}
+                    shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
@@ -124,7 +118,6 @@ function HeaderWithBackButton({
         StyleUtils,
         subTitleLink,
         shouldUseHeadlineHeader,
-        policy,
         progressBarPercentage,
         report,
         shouldEnableDetailPageNavigation,
@@ -140,7 +133,7 @@ function HeaderWithBackButton({
         titleColor,
         translate,
         openParentReportInCurrentTab,
-        singleAvatarDetails,
+        shouldDisplayStatus,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {
@@ -160,12 +153,12 @@ function HeaderWithBackButton({
                 </Tooltip>
             ) : (
                 <ThreeDotsMenu
+                    shouldSelfPosition
                     icon={threeDotsMenuIcon}
                     iconFill={threeDotsMenuIconFill}
                     disabled={shouldDisableThreeDotsButton}
                     menuItems={threeDotsMenuItems}
                     onIconPress={onThreeDotsButtonPress}
-                    anchorPosition={threeDotsAnchorPosition}
                     shouldOverlay={shouldOverlayDots}
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
@@ -174,19 +167,18 @@ function HeaderWithBackButton({
         }
         return null;
     }, [
-        onThreeDotsButtonPress,
-        shouldDisableThreeDotsButton,
-        shouldOverlayDots,
-        shouldSetModalVisibility,
         shouldShowThreeDotsButton,
-        styles.touchableButtonImage,
-        theme.icon,
-        threeDotsAnchorAlignment,
-        threeDotsAnchorPosition,
-        threeDotsMenuIcon,
-        threeDotsMenuIconFill,
         threeDotsMenuItems,
         shouldMinimizeMenuButton,
+        styles.touchableButtonImage,
+        theme.icon,
+        threeDotsMenuIcon,
+        threeDotsMenuIconFill,
+        shouldDisableThreeDotsButton,
+        onThreeDotsButtonPress,
+        shouldOverlayDots,
+        threeDotsAnchorAlignment,
+        shouldSetModalVisibility,
     ]);
 
     return (

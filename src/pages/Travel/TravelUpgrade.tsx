@@ -32,7 +32,15 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
         createDraftWorkspace('', false, params.name, params.policyID, params.currency, params.avatarFile as File);
         setShouldShowConfirmation(false);
         setIsUpgraded(true);
-        createWorkspace('', false, params.name, params.policyID, undefined, params.currency, params.avatarFile as File);
+        createWorkspace({
+            policyOwnerEmail: '',
+            makeMeAdmin: false,
+            policyName: params.name,
+            policyID: params.policyID,
+            engagementChoice: undefined,
+            currency: params.currency,
+            file: params.avatarFile as File,
+        });
     };
 
     const onClose = () => {
@@ -59,7 +67,6 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
                     Navigation.dismissModal();
                 }}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
@@ -77,7 +84,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {isUpgraded ? (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={() => Navigation.goBack()}
+                        afterUpgradeAcknowledged={() => Navigation.goBack()}
                         policyName=""
                         isTravelUpgrade
                     />

@@ -39,15 +39,13 @@ function PaymentCurrencyPage() {
                         recentlyUsedCurrencies={[]}
                         searchInputLabel={translate('common.search')}
                         onSelect={(option: CurrencyListItem) => {
-                            if (!didScreenTransitionEnd) {
-                                return;
-                            }
                             if (option.currencyCode !== paymentCurrency) {
                                 updateGeneralSettings(personalPolicyID, personalPolicy?.name ?? '', option.currencyCode);
                             }
                             Navigation.goBack();
                         }}
                         initiallySelectedCurrencyCode={paymentCurrency}
+                        didScreenTransitionEnd={didScreenTransitionEnd}
                     />
                 </>
             )}
