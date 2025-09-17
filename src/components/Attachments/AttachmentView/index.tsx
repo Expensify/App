@@ -4,10 +4,11 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import {View} from 'react-native';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {Gallery} from '@components/Icon/Expensicons';
+import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -244,7 +245,7 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !hasReceiptSource(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
@@ -271,6 +272,16 @@ function AttachmentView({
                     <View>
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
                     </View>
+                    <Button
+                        text={translate('attachmentView.retry')}
+                        icon={ArrowCircleClockwise}
+                        onPress={() => {
+                            if (isOffline) {
+                                return;
+                            }
+                            setImageError(false);
+                        }}
+                    />
                 </View>
             );
         }

@@ -1,6 +1,11 @@
-import React, {useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import type {NavigatorScreenParams} from '@react-navigation/native';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
+// eslint-disable-next-line no-restricted-imports
+import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import {expandedRHPProgress, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -25,16 +30,17 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
-
     const screenOptions = useRHPScreenOptions();
-    const screenListeners = React.useMemo(
+    const {shouldRenderSecondaryOverlay, secondOverlayProgress, dismissToWideReport} = useContext(WideRHPContext);
+
+    const screenListeners = useMemo(
         () => ({
             blur: () => {
-                if (
-                    // @ts-expect-error There is something wrong with a types here and it's don't see the params list
-                    navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
-                    route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
-                ) {
+                const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+                    | NavigatorScreenParams<RightModalNavigatorParamList>
+                    | undefined;
+
+                if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
                     return;
                 }
                 // Delay clearing review duplicate data till the RHP is completely closed
@@ -47,24 +53,24 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         [navigation, route],
     );
 
+    const handleOverlayPress = useCallback(() => {
+        if (isExecutingRef.current) {
+            return;
+        }
+        isExecutingRef.current = true;
+        navigation.goBack();
+        setTimeout(() => {
+            isExecutingRef.current = false;
+        }, CONST.ANIMATED_TRANSITION);
+    }, [navigation]);
+
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
-                {!shouldUseNarrowLayout && (
-                    <Overlay
-                        onPress={() => {
-                            if (isExecutingRef.current) {
-                                return;
-                            }
-                            isExecutingRef.current = true;
-                            navigation.goBack();
-                            setTimeout(() => {
-                                isExecutingRef.current = false;
-                            }, CONST.ANIMATED_TRANSITION);
-                        }}
-                    />
-                )}
-                <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
+                {!shouldUseNarrowLayout && <Overlay onPress={handleOverlayPress} />}
+                {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
+                {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
+                <Animated.View style={styles.animatedRHPNavigatorContainer(shouldUseNarrowLayout, expandedRHPProgress)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         screenListeners={screenListeners}
@@ -245,7 +251,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                     </Stack.Navigator>
-                </View>
+                </Animated.View>
+                {/* The second overlay is here to cover the wide rhp screen underneath */}
+                {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
+                {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && (
+                    <Overlay
+                        hasMarginRight
+                        progress={secondOverlayProgress}
+                        onPress={dismissToWideReport}
+                    />
+                )}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );
