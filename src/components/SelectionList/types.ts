@@ -235,7 +235,7 @@ type ListItem<K extends string | number = string> = {
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** Report to which the transaction belongs */
-        report: Report;
+        report: Report | undefined;
 
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;

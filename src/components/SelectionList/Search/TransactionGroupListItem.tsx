@@ -170,7 +170,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
+                const iouAction = getReportAction(transactionItem.report?.reportID, transactionItem.moneyRequestReportActionID);
                 createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
