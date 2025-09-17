@@ -12415,11 +12415,9 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
             [optimisticRejectReportAction.reportActionID]: {
-                ...optimisticRejectReportAction,
                 pendingAction: null,
             },
             [optimisticRejectReportActionComment.reportActionID]: {
-                ...optimisticRejectReportActionComment,
                 pendingAction: null,
             },
         },
@@ -12567,7 +12565,6 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: {
-                    ...optimisticMarkedAsResolvedReportAction,
                     pendingAction: null,
                 },
             },
