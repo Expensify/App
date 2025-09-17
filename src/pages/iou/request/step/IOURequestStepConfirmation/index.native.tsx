@@ -447,7 +447,17 @@ function IOURequestStepConfirmation({
                     const receipt = {
                         ...item.receipt,
                         uri: item.receipt.source, // Add uri property for isFileUploadable compatibility
+                        filename: item.filename, // Include transaction filename for upload
+                        name: item.receipt.name || item.filename, // Ensure receipt has a name for upload
                     };
+
+                    console.log('[IOURequestStepConfirmation] Creating receipt for upload:', {
+                        transactionID: item.transactionID,
+                        originalReceipt: item.receipt,
+                        transactionFilename: item.filename,
+                        finalReceipt: receipt,
+                        timestamp: new Date().toISOString(),
+                    });
 
                     onSuccess(receipt);
                 });
