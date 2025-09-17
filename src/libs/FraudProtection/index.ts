@@ -36,15 +36,12 @@ const EVENTS = {
     ISSUE_EXPENSIFY_CARD: 'IssueExpensifyCard',
     EDIT_EXPENSIFY_CARD_LIMIT: 'EditExpensifyCardLimit',
     ISSUE_ADMIN_ISSUED_VIRTUAL_CARD: 'IssueAdminIssuedVirtualCard',
-    ISSUE_TRAVEL_CARD: 'IssueTravelCard',
     EDIT_LIMIT_ADMIN_ISSUE_VIRTUAL_CARD: 'EditLimitAdminIssueVirtualCard',
     REQUEST_NEW_PHYSICAL_EXPENSIFY_CARD: 'RequestNewPhysicalExpensifyCard',
     REQUEST_NEW_VIRTUAL_EXPENSIFY_CARD: 'RequestNewVirtualExpensifyCard',
     MERGE_ACCOUNT: 'MergeAccount',
-    MERGE_ACCOUNT_SAML: 'MergeAccountSAML',
     TOGGLE_TWO_FACTOR_AUTH: 'ToggleTwoFactorAuth',
     ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
-    SET_PAYPAL_ME_ADDRESS: 'SetPaypalMeAddress',
 };
 
 export default {init, sendEvent};

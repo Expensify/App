@@ -413,7 +413,15 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
-function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number, isVirtualCard?: boolean) {
+function updateExpensifyCardLimit(
+    workspaceAccountID: number,
+    cardID: number,
+    newLimit: number,
+    newAvailableSpend: number,
+    oldLimit?: number,
+    oldAvailableSpend?: number,
+    isVirtualCard?: boolean,
+) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
@@ -484,13 +492,12 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
-    
+
     if (isVirtualCard) {
         FraudProtection.sendEvent(EVENTS.EDIT_LIMIT_ADMIN_ISSUE_VIRTUAL_CARD);
         return;
     }
     FraudProtection.sendEvent(EVENTS.EDIT_EXPENSIFY_CARD_LIMIT);
-
 }
 
 function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, newCardTitle: string, oldCardTitle?: string) {
