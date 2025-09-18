@@ -5185,7 +5185,11 @@ function deleteAppReport(reportID: string | undefined) {
  * @param policyID - The ID of the policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlementButton?: boolean): {policyExpenseChatReportID?: string, useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
+function moveIOUReportToPolicy(
+    reportID: string,
+    policyID: string,
+    isFromSettlementButton?: boolean,
+): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
