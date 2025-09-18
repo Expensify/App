@@ -94,4 +94,14 @@ function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boole
     return amount;
 }
 
-export {addLeadingZero, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount, validatePercentage, handleNegativeAmountFlipping};
+export {
+    addLeadingZero,
+    replaceAllDigits,
+    stripCommaFromAmount,
+    stripDecimalsFromAmount,
+    stripSpacesFromAmount,
+    replaceCommasWithPeriod,
+    validateAmount,
+    validatePercentage,
+    handleNegativeAmountFlipping,
+};

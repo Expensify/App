@@ -7112,16 +7112,16 @@ describe('ReportUtils', () => {
             it('should handle undefined policy type gracefully', () => {
                 const policyWithUndefinedType = {
                     ...createRandomPolicy(4),
-                    type: undefined as any,
-                };
+                    type: undefined,
+                } as unknown as Policy;
                 expect(shouldEnableNegative(chatReport, policyWithUndefinedType)).toBe(false);
             });
 
             it('should handle empty string policy type gracefully', () => {
                 const policyWithEmptyType = {
                     ...createRandomPolicy(5),
-                    type: '' as any,
-                };
+                    type: '',
+                } as unknown as Policy;
                 expect(shouldEnableNegative(chatReport, policyWithEmptyType)).toBe(false);
             });
         });
@@ -7144,7 +7144,7 @@ describe('ReportUtils', () => {
             it('should return false when none of the enabling conditions are met', () => {
                 // Chat report + personal policy + no iouType
                 expect(shouldEnableNegative(chatReport, personalPolicy)).toBe(false);
-                
+
                 // Chat report + personal policy + non-CREATE iouType
                 expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.REQUEST)).toBe(false);
                 expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.TRACK)).toBe(false);
@@ -7154,10 +7154,10 @@ describe('ReportUtils', () => {
             it('should prioritize exclusion over inclusion', () => {
                 // Even if expense report + group policy, SPLIT should still exclude
                 expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
-                
+
                 // Even if expense report + CREATE iouType, INVOICE should still exclude
                 expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.INVOICE)).toBe(false);
-                
+
                 // Even if group policy + CREATE iouType, SPLIT should still exclude
                 expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
             });

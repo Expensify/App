@@ -10,7 +10,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import {addLeadingZero, handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {
+    addLeadingZero,
+    handleNegativeAmountFlipping,
+    replaceAllDigits,
+    replaceCommasWithPeriod,
+    stripCommaFromAmount,
+    stripDecimalsFromAmount,
+    stripSpacesFromAmount,
+    validateAmount,
+} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
@@ -235,11 +244,7 @@ function NumberWithSymbolForm({
         // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
-        const replacedCommasNumber = handleNegativeAmountFlipping(
-            replaceCommasWithPeriod(newNumberWithoutSpaces),
-            allowFlippingAmount,
-            toggleNegative,
-        );
+        const replacedCommasNumber = handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
 
         const withLeadingZero = addLeadingZero(replacedCommasNumber);
 
