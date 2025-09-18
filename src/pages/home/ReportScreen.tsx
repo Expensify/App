@@ -19,6 +19,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -176,10 +177,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
-    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-        canBeMissing: false,
-    });
+    const isAnonymousUser = useIsAnonymousUser();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
     const prevIsAnonymousUser = useRef(false);
@@ -531,7 +529,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
             return;
         }
-
+        // Re-fetch public report data after user signs in and OpenApp API is called to
+        // avoid reportActions data being empty for public rooms.
         fetchReport();
     }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser, fetchReport]);
 
