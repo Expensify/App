@@ -3,7 +3,7 @@ name: Generate static translations
 on:
   pull_request:
     types: [opened, synchronize]
-    paths: ['src/languages/**/*.ts']
+    paths: ['src/languages/en.ts']
 
 jobs:
   generateTranslations:
