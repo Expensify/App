@@ -28,7 +28,14 @@ function SearchFiltersIsPage() {
         return searchAdvancedFiltersForm.is;
     });
 
-    const items = useMemo(() => [{text: translate('common.read'), value: CONST.SEARCH.IS_VALUES.READ}, {text: translate('common.unread'), value: CONST.SEARCH.IS_VALUES.UNREAD}, {text: translate('common.pinned'), value: CONST.SEARCH.IS_VALUES.PINNED}], [translate]);
+    const items = useMemo(
+        () => [
+            {text: translate('common.read'), value: CONST.SEARCH.IS_VALUES.READ},
+            {text: translate('common.unread'), value: CONST.SEARCH.IS_VALUES.UNREAD},
+            {text: translate('common.pinned'), value: CONST.SEARCH.IS_VALUES.PINNED},
+        ],
+        [translate],
+    );
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((isOption) => ({
