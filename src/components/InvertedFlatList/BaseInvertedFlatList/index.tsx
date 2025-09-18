@@ -25,8 +25,6 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     ref?: ForwardedRef<RNFlatList>;
 };
 
-const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
-
 function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
     const {displayedData, maintainVisibleContentPosition, handleStartReached, setCurrentDataId} = useFlatListScrollKey<T>({
