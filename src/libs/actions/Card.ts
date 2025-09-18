@@ -57,6 +57,11 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
                 errors: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: true},
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -67,6 +72,11 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -76,6 +86,11 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             value: {
                 isLoading: false,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
         },
     ];
 
