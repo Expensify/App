@@ -57,7 +57,8 @@ jobs:
 
       - name: Load Codecov token from 1Password
         id: load-codecov-token
-        if: ${{ github.event_name != 'pull_request' }}
+        # Codecov needs a token to be run on the default branch (which happens in preDeploy.yml after a PR is merged to main)
+        if: ${{ github.event_name == 'workflow_call' && github.ref == 'refs/heads/main' }}
         # v2
         uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
         with:
@@ -66,8 +67,8 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CODECOV_TOKEN: op://${{ vars.OP_VAULT }}//CodeCov-API/key
 
-      - name: Upload coverage to Codecov (non-PRs)
-        if: ${{ github.event_name != 'pull_request' }}
+      - name: Upload coverage to Codecov (token required)
+        if: ${{ github.event_name == 'workflow_call' && github.ref == 'refs/heads/main' }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
         with:
           token: ${{ steps.load-codecov-token.outputs.CODECOV_TOKEN }}
