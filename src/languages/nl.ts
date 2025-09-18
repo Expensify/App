@@ -1310,6 +1310,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Geen niet-gerapporteerde uitgaven',
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
+        newReport: 'Nieuw rapport',
         explainHold: 'Leg uit waarom je deze uitgave vasthoudt.',
         retracted: 'ingetrokken',
         retract: 'Intrekken',
@@ -6193,9 +6194,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
-            },
-            has: {
-                receipt: 'Bon',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Indienen',

@@ -251,7 +251,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -1183,7 +1183,7 @@ function setSplitPayer(transactionID: string, payerAccountID: number) {
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
+        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
         filename,
     });
 }
@@ -3259,13 +3259,6 @@ function getSendInvoiceInformation(
     );
 
     // STEP 3: Build optimistic receipt and transaction
-    const receiptObject: Receipt = {};
-    let filename;
-    if (receipt?.source) {
-        receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
-        filename = receipt.name;
-    }
     const optimisticTransaction = buildOptimisticTransaction({
         transactionParams: {
             amount: amount * -1,
@@ -3274,14 +3267,13 @@ function getSendInvoiceInformation(
             comment: trimmedComment,
             created,
             merchant,
-            receipt: receiptObject,
+            receipt,
             category,
             tag,
             taxCode,
             taxAmount,
             billable,
             reimbursable: true,
-            filename,
         },
     });
 
@@ -3962,17 +3954,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // But we'll use the `shouldUseMoneyReport && iouReport` check further instead of `shouldUseMoneyReport` to avoid TS errors.
 
     // STEP 3: Build optimistic receipt and transaction
-    const receiptObject: Receipt = {};
-    let filename;
-    if (receipt?.source) {
-        receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
-        filename = receipt.name;
-    }
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
-    if (!filename) {
-        filename = existingTransaction?.filename;
-    }
+    const filename = existingTransaction?.filename;
     const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
     const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
@@ -3987,7 +3970,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             distance,
             created,
             merchant,
-            receipt: receiptObject,
+            receipt,
             category,
             tag,
             taxCode,
@@ -8777,6 +8760,7 @@ function getSendMoneyParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
+                [optimisticCreatedActionForIOUReport.reportActionID]: {pendingAction: null},
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
@@ -8799,6 +8783,7 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: {
+                    isOptimisticAction: null,
                     pendingAction: null,
                     childLastActorAccountID: reportPreviewAction.childLastActorAccountID,
                 },
@@ -9647,21 +9632,15 @@ function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxE
 }
 
 function canSubmitReport(
-    currentUserAccountID: number | undefined,
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
-    reportActions: OnyxTypes.ReportActions | OnyxTypes.ReportAction[],
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
 ) {
-    // If we don't have a current user, they can't submit a report
-    if (currentUserAccountID === undefined) {
-        return false;
-    }
-
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
@@ -9675,7 +9654,7 @@ function canSubmitReport(
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
         transactions.length > 0;
-
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
     if (baseCanSubmit && hasBeenRetracted) {
         return true;
@@ -10830,6 +10809,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
     const receiptOptimistic = {
         source,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
+        filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic, filename: file.name};
     const retryParams = {transactionID, file: undefined, source};
@@ -12252,7 +12232,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             }
         }
     } else if (hasMultipleExpenses) {
-        if (isUserOnSearchPage) {
+        if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view.
             urlToNavigateBack = undefined;
         } else {
@@ -12390,7 +12370,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             },
         });
 
-        if (isUserOnSearchPage) {
+        if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view
             urlToNavigateBack = undefined;
         } else {
