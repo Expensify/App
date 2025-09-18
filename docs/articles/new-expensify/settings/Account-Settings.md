@@ -15,7 +15,7 @@ You can update the following profile settings:
 - **Profile Photo** – Upload or change your photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
-- **Language** – Update your account to your preferred language. 
+- **Language** – Update your account to your preferred language.
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Toggle between light mode, dark mode, or follow device settings.
 - **Notifications** – Customize how and when you receive email and app notifications.
@@ -28,7 +28,7 @@ You can update the following profile settings:
 ## Profile Photo
 
 To upload or update your photo:
-1. In the left-hand menu, click **Account > Profile**.
+1. In the navigation tabs, click **Account > Profile**.
 2. Click the pencil icon next to your profile image.
 3. Select **Upload Image** and choose a new photo.
 
@@ -57,7 +57,7 @@ Expensify supports multiple languages, making it easier for members across the g
 
 **How to change your language setting:**
 
-1. In the left-hand menu, select **Account > Preferences**.
+1. In the navigation tabs, select **Account > Preferences**.
 2. Tap or click on **Language**.
 3. Choose your preferred language from the list.
 4. The checkmark will confirm the selected language.
@@ -122,7 +122,7 @@ Your photo helps teammates identify you easily in chats, reports, and notificati
 No. It only changes the language of your user interface, not the content of your reports.
 
 ## Can I disable all Expensify notifications?
-Yes. From the left-hand menu, go to **Account > Preferences** and toggle off both update and sound notifications.
+Yes. From the navigation tabs, go to **Account > Preferences** and toggle off both update and sound notifications.
 
 ## Will theme preferences sync across devices?
 Yes! Your chosen theme applies across web, mobile, and desktop versions of Expensify.

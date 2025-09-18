@@ -1,4 +1,4 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
@@ -25,13 +26,15 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
+import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
-import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {NavigationPartialRoute, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -39,7 +42,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -51,10 +54,23 @@ type NavigationTabBarProps = {
 function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    const getIconFill = useCallback(
+        (isSelected: boolean, isHovered: boolean) => {
+            if (isSelected) {
+                return theme.iconMenu;
+            }
+            if (isHovered) {
+                return theme.success;
+            }
+            return theme.icon;
+        },
+        [theme],
+    );
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReportIDs} = useSidebarOrderedReports();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const navigationState = useNavigationState(findFocusedRoute);
     const initialNavigationRouteState = getWorkspaceNavigationRouteState();
@@ -62,6 +78,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
     const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
+    const subscriptionPlan = useSubscriptionPlan();
 
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
@@ -102,7 +119,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     }, [navigationState]);
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
-    const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
+    const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(orderedReportIDs, reportAttributes));
@@ -114,8 +131,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
 
         hideInboxTooltip();
-        // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-        navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}});
+        Navigation.navigate(ROUTES.HOME);
     }, [hideInboxTooltip, selectedTab]);
 
     const navigateToSearch = useCallback(() => {
@@ -127,21 +143,15 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
-            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-
-            if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-                const queryJSON = buildSearchQueryJSON(q);
-                if (queryJSON) {
-                    const query = buildSearchQueryString(queryJSON);
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query,
-                            ...rest,
-                        }),
-                    );
-                    return;
-                }
+            const lastSearchRoute = lastSearchNavigatorState?.routes.at(-1) as NavigationPartialRoute<keyof SearchFullscreenNavigatorParamList> | undefined;
+            if (lastSearchRoute && lastSearchRoute.params) {
+                navigationRef.dispatch(
+                    StackActions.push(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {
+                        screen: lastSearchRoute.name,
+                        params: lastSearchRoute.params,
+                    }),
+                );
+                return;
             }
 
             const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
@@ -155,10 +165,15 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
         interceptAnonymousUser(() => {
-            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-            navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
+            if (isRoutePreloaded(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)) {
+                // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
+                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
+                return;
+            }
+            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
+            navigationRef.dispatch(StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload));
         });
-    }, [selectedTab]);
+    }, [selectedTab, subscriptionPlan]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
@@ -211,89 +226,108 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 onPress={navigateToChats}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.inbox')}
-                                style={styles.leftNavigationTabBarItem}
+                                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             >
-                                <View>
-                                    <Icon
-                                        src={Expensicons.Inbox}
-                                        fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
-                                        width={variables.iconBottomBar}
-                                        height={variables.iconBottomBar}
-                                    />
-                                    {!!chatTabBrickRoad && (
-                                        <View
-                                            style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)}
-                                        />
-                                    )}
-                                </View>
-                                <Text
-                                    numberOfLines={2}
-                                    style={[
-                                        styles.textSmall,
-                                        styles.textAlignCenter,
-                                        styles.mt1Half,
-                                        selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
-                                        styles.navigationTabBarLabel,
-                                    ]}
-                                >
-                                    {translate('common.inbox')}
-                                </Text>
+                                {({hovered}) => (
+                                    <>
+                                        <View>
+                                            <Icon
+                                                src={Expensicons.Inbox}
+                                                fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
+                                                width={variables.iconBottomBar}
+                                                height={variables.iconBottomBar}
+                                            />
+                                            {!!chatTabBrickRoad && (
+                                                <View
+                                                    style={[
+                                                        styles.navigationTabBarStatusIndicator(
+                                                            chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger,
+                                                        ),
+                                                        hovered && {borderColor: theme.sidebarHover},
+                                                    ]}
+                                                />
+                                            )}
+                                        </View>
+                                        <Text
+                                            numberOfLines={2}
+                                            style={[
+                                                styles.textSmall,
+                                                styles.textAlignCenter,
+                                                styles.mt1Half,
+                                                selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                                styles.navigationTabBarLabel,
+                                            ]}
+                                        >
+                                            {translate('common.inbox')}
+                                        </Text>
+                                    </>
+                                )}
                             </PressableWithFeedback>
                         </EducationalTooltip>
                         <PressableWithFeedback
                             onPress={navigateToSearch}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.reports')}
-                            style={styles.leftNavigationTabBarItem}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                         >
-                            <View>
-                                <Icon
-                                    src={Expensicons.MoneySearch}
-                                    fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
-                                    width={variables.iconBottomBar}
-                                    height={variables.iconBottomBar}
-                                />
-                            </View>
-                            <Text
-                                numberOfLines={2}
-                                style={[
-                                    styles.textSmall,
-                                    styles.textAlignCenter,
-                                    styles.mt1Half,
-                                    selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
-                                    styles.navigationTabBarLabel,
-                                ]}
-                            >
-                                {translate('common.reports')}
-                            </Text>
+                            {({hovered}) => (
+                                <>
+                                    <View>
+                                        <Icon
+                                            src={Expensicons.MoneySearch}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
+                                            width={variables.iconBottomBar}
+                                            height={variables.iconBottomBar}
+                                        />
+                                    </View>
+                                    <Text
+                                        numberOfLines={2}
+                                        style={[
+                                            styles.textSmall,
+                                            styles.textAlignCenter,
+                                            styles.mt1Half,
+                                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                                            styles.navigationTabBarLabel,
+                                        ]}
+                                    >
+                                        {translate('common.reports')}
+                                    </Text>
+                                </>
+                            )}
                         </PressableWithFeedback>
                         <PressableWithFeedback
                             onPress={showWorkspaces}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.workspacesTabTitle')}
-                            style={styles.leftNavigationTabBarItem}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                         >
-                            <View>
-                                <Icon
-                                    src={Expensicons.Buildings}
-                                    fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
-                                    width={variables.iconBottomBar}
-                                    height={variables.iconBottomBar}
-                                />
-                                {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
-                            </View>
-                            <Text
-                                numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
-                                style={[
-                                    styles.textSmall,
-                                    styles.textAlignCenter,
-                                    styles.mt1Half,
-                                    selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
-                                    styles.navigationTabBarLabel,
-                                ]}
-                            >
-                                {translate('common.workspacesTabTitle')}
-                            </Text>
+                            {({hovered}) => (
+                                <>
+                                    <View>
+                                        <Icon
+                                            src={Expensicons.Buildings}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.WORKSPACES, hovered)}
+                                            width={variables.iconBottomBar}
+                                            height={variables.iconBottomBar}
+                                        />
+                                        {!!workspacesTabIndicatorStatus && (
+                                            <View style={[styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor), hovered && {borderColor: theme.sidebarHover}]} />
+                                        )}
+                                    </View>
+                                    <Text
+                                        numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
+                                        style={[
+                                            styles.textSmall,
+                                            styles.textAlignCenter,
+                                            styles.mt1Half,
+                                            selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                                            styles.navigationTabBarLabel,
+                                        ]}
+                                    >
+                                        {translate('common.workspacesTabTitle')}
+                                    </Text>
+                                </>
+                            )}
                         </PressableWithFeedback>
                         <NavigationTabBarAvatar
                             style={styles.leftNavigationTabBarItem}
@@ -311,7 +345,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
 
     return (
         <>
-            {!!account?.isDebugModeEnabled && (
+            {!!isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}

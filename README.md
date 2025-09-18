@@ -182,7 +182,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
-> If your changes to .env aren't having an effect, try `rm -rf .rnef`, then re-run `npm run ios` or `npm run android`
+> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
 
 ----
 
@@ -419,32 +419,6 @@ validateAndSubmitForm() {
 }
 ```
 
-## Directory structure
-Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
-created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
-
-- components: React native components that are re-used in several places.
-- libs: Library classes/functions, these are not React native components (ie: they are not UI)
-- pages: These are components that define pages in the app. The component that defines the page itself should be named
-`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`
-- styles: These files define styles used among components/pages
-- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo
-
-**Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
-
-## File naming/structure
-Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
-
-- If you export a constant named `CONST`, its file/directory should be named the `CONST`.
-- If you export a component named `Text`, the file/directory should be named `Text`.
-- If you export a function named `guid`, the file/directory should be named `guid`.
-- For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withOnyx`.
-- All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
-
-## Platform-Specific File Extensions
-This section has moved [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
-
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
@@ -612,30 +586,9 @@ If you seek some additional information you can always refer to the [extended ve
 
 # Philosophy
 This application is built with the following principles.
-1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
-    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this step is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
-    2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
-    3. UI pushes data to people's brains (React component -> device screen).
-    4. Brain pushes data into UI inputs (Device input -> React component).
-    5. UI inputs push data to the server (React component -> Action -> XHR to server).
-    6. Go to 1
-    ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
-1. **Offline first**
-    - Be sure to read [OFFLINE.md](contributingGuides/philosophies/OFFLINE.md)!
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
-    - All data that is displayed, comes from persistent storage.
-1. **UI Binds to data on disk**
-    - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
-    - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
-    - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
-    - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `openReport(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
-        - The order that actions are done in. All actions should be done in parallel instead of sequence.
-            - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
-            - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
+1. [Data Flow](contributingGuides/philosophies/DATA-FLOW.md)
+1. [Offline First](contributingGuides/philosophies/OFFLINE.md)
+1. [Data Binding](contributingGuides/philosophies/DATA_BINDING.md)
 1. **Actions manage Onyx Data**
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Action methods should only have return values (data or a promise) if they are called by other actions. This is done to encourage that action methods can be called in parallel with no dependency on other methods (see discussion above).
@@ -650,8 +603,7 @@ This application is built with the following principles.
         4. server responds
         5. UI updates with data from the server
 
-1. **Cross Platform 99.9999%**
-See details [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
+1. [Cross Platform](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 

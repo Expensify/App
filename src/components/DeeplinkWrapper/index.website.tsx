@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
@@ -50,7 +51,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
         canBeMissing: true,
     });
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.accountID,
+        selector: accountIDSelector,
         canBeMissing: true,
     });
     const isActingAsDelegateRef = useRef(isActingAsDelegate);

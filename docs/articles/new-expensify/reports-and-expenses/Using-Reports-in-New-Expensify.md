@@ -45,7 +45,7 @@ Expensify’s report filters help users narrow down results to find specific dat
 
 # Search Formats
 
-Using search formats allows you to define complex report parameters using simple text commands. 
+Using search formats allows you to define complex report parameters using simple text commands.
 
 ## Popular Searches for Employees
 
@@ -61,7 +61,7 @@ Using search formats allows you to define complex report parameters using simple
 - **All card spend from December 2024:** `type:expense expense-type:card posted<=2024-12-31 posted>=2024-12-01`
 
 ## Access Search Commands:
-- **Option 1:** Click Reports at the bottom of the left-hand navigation bar.
+- **Option 1:** Click Reports in the navigation tab (on the left on web, and at the bottom on mobile).
 - **Option 2:** Click the magnifying glass in the upper-right corner.
 
 ---
@@ -89,7 +89,7 @@ Your communication history is always accessible in one place, helping you stay o
 ---
 
 ## Invoices – View and Manage Invoices Effortlessly
-The Invoices section of Reports provides a streamlined way to handle billing. 
+The Invoices section of Reports provides a streamlined way to handle billing.
 
 **Key Functionalities:**
 - View invoices by status, such as **Outstanding** or **Paid**.
