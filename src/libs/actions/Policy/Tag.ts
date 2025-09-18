@@ -48,13 +48,6 @@ Onyx.connect({
     },
 });
 
-let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
-    waitForCollectionCallback: true,
-    callback: (val) => (allRecentlyUsedTags = val),
-});
-
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyTagsPage invalid params', {policyID});
@@ -1188,14 +1181,6 @@ function getPolicyTagsData(policyID: string | undefined) {
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyRecentlyUsedTagsData(policyID: string | undefined) {
-    return allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
-}
-
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -1216,8 +1201,6 @@ export {
     importPolicyTags,
     downloadTagsCSV,
     getPolicyTagsData,
-    // eslint-disable-next-line deprecation/deprecation
-    getPolicyRecentlyUsedTagsData,
     downloadMultiLevelIndependentTagsCSV,
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,
