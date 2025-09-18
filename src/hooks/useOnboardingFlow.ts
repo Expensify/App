@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
@@ -32,7 +33,7 @@ function useOnboardingFlowRouter() {
     const isOnboardingInitialPathLoading = isLoadingOnyxValue(onboardingInitialPathResult);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (session) => session?.email});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     const startedOnboardingFlowRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -86,7 +87,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues) && onboardingValues?.testDriveModalDismissed !== false;
 
             if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding

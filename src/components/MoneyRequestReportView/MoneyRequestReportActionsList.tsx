@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/prefer-early-return */
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -160,7 +161,7 @@ function MoneyRequestReportActionsList({
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -169,6 +170,8 @@ function MoneyRequestReportActionsList({
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
+    const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
@@ -487,9 +490,15 @@ function MoneyRequestReportActionsList({
 
                 // We want to scroll to the end of the list where the newest message is
                 // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
-                setTimeout(() => {
-                    reportScrollManager.scrollToEnd();
-                }, DELAY_FOR_SCROLLING_TO_END);
+                const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
+                if (index !== -1) {
+                    setTimeout(() => {
+                        reportScrollManager.scrollToEnd();
+                    }, DELAY_FOR_SCROLLING_TO_END);
+                } else {
+                    setEnableScrollToEnd(true);
+                    setLastActionEventId(reportAction?.reportActionID);
+                }
             });
         },
         [reportScrollManager, setIsFloatingMessageCounterVisible],
@@ -510,6 +519,16 @@ function MoneyRequestReportActionsList({
         // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
+
+    useEffect(() => {
+        const index = visibleReportActions.findIndex((item) => item.reportActionID === lastActionEventId);
+        if (enableScrollToEnd && index !== -1) {
+            setTimeout(() => {
+                reportScrollManager.scrollToEnd();
+            }, DELAY_FOR_SCROLLING_TO_END);
+            setEnableScrollToEnd(false);
+        }
+    }, [visibleReportActions, lastActionEventId, enableScrollToEnd, reportScrollManager]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -589,6 +608,8 @@ function MoneyRequestReportActionsList({
         readNewestAction(report.reportID);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
 
+    const reportHasComments = visibleReportActions.length > 0;
+
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
             wrapperViewRef.current?.measureInWindow((x, y, w, height) => {
@@ -601,7 +622,6 @@ function MoneyRequestReportActionsList({
         },
         [reportScrollManager],
     );
-    const reportHasComments = visibleReportActions.length > 0;
 
     /**
      * Runs when the FlatList finishes laying out
