@@ -160,6 +160,14 @@ function isValidSecurityCode(string: string): boolean {
 }
 
 /**
+ * Validates that this is a valid pin code for the physical card.
+ * It has to be 4 digits.
+ */
+function isValidPinCode(string: string): boolean {
+    return CONST.REGEX.CARD_PIN_CODE.test(string);
+}
+
+/**
  * Validates a debit card number (15 or 16 digits).
  */
 function isValidDebitCard(string: string): boolean {
@@ -765,6 +773,7 @@ export {
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
+    isValidPinCode,
     isValidExpirationDate,
     isValidDebitCard,
     isValidIndustryCode,

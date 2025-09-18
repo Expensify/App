@@ -1652,6 +1652,18 @@ const translations = {
             recordTroubleshootData: 'トラブルシューティングデータの記録',
             softKillTheApp: 'アプリをソフトキル',
             kill: '殺す',
+            biometrics: {
+                biometricsRegistered: '生体認証（登録済み）',
+                biometricsNotRegistered: '生体認証（未登録）',
+                test: 'テスト',
+                softPromptTitle: '顔または指紋で取引を認証',
+                softPromptContent: '顔または指紋を使った迅速で安全な認証を有効にします。パスワードやコードは不要です。',
+                notificationTitle: '認証に成功しました',
+                notificationContent: 'Face ID による認証に成功しました。',
+                biometricsTest: '生体認証テスト',
+                errorPageTitle: 'エラーが発生しました',
+                errorPageContent: 'お使いのデバイスを登録できませんでした。',
+            },
         },
         debugConsole: {
             saveLog: 'ログを保存',
