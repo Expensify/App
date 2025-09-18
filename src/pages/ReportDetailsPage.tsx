@@ -149,8 +149,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
 
+    const getParentReportActionSelector = useCallback(
+        (actions: OnyxEntry<OnyxTypes.ReportActions>): OnyxEntry<OnyxTypes.ReportAction> => {
+            return report?.parentReportActionID ? actions?.[report.parentReportActionID ?? ''] : undefined;
+        },
+        [report?.parentReportActionID],
+    );
+
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
-        selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
+        selector: getParentReportActionSelector,
         canBeMissing: true,
     });
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});

@@ -141,10 +141,18 @@ function MoneyRequestReportActionsList({
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+
+    const getParentReportActionSelector = useCallback(
+        (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxEntry<OnyxTypes.ReportAction> => {
+            return getParentReportAction(parentReportActions, report?.parentReportActionID);
+        },
+        [report?.parentReportActionID],
+    );
+
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
+        selector: getParentReportActionSelector,
     });
 
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
