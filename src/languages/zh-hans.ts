@@ -1294,6 +1294,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: '没有未报告的费用',
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
         addUnreportedExpenseConfirm: '添加到报告',
+        newReport: '新报告',
         explainHold: '请解释您为何保留此费用。',
         retracted: '撤回',
         retract: '撤回',

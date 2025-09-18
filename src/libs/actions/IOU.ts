@@ -12248,7 +12248,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             }
         }
     } else if (hasMultipleExpenses) {
-        if (isUserOnSearchPage) {
+        if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view.
             urlToNavigateBack = undefined;
         } else {
@@ -12386,7 +12386,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             },
         });
 
-        if (isUserOnSearchPage) {
+        if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view
             urlToNavigateBack = undefined;
         } else {
