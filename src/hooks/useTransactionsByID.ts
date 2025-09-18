@@ -12,6 +12,7 @@ function useTransactionsByID(transactionIDs: string[]) {
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: transactionsSelector,
+        canBeMissing: true,
     });
 
     return [transactions];

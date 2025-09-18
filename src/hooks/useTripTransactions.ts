@@ -21,6 +21,7 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
             Object.values(reports ?? {})
                 .filter((report) => report && report.chatReportID === reportID)
                 .map((report) => report?.reportID),
+        canBeMissing: true,
     });
 
     const tripTransactionsSelector = useCallback(
@@ -38,6 +39,7 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: tripTransactionsSelector,
+            canBeMissing: true,
         },
         [tripTransactionReportIDs],
     );
