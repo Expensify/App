@@ -194,6 +194,7 @@ function ReportActionItemImage({
                         <ReceiptImage
                             {...propsObj}
                             onLoad={onLoad}
+                            shouldUseFullHeight={shouldUseFullHeight}
                         />
                     </PressableWithoutFocus>
                 )}

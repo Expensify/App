@@ -217,6 +217,7 @@ function ReceiptImage({
             shouldShowOfflineIndicator={false}
             objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             onLoad={onLoad}
+            shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
         />
     );
 }
