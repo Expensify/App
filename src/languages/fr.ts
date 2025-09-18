@@ -855,9 +855,24 @@ const translations = {
         markAsUnread: 'Marquer comme non lu',
         markAsRead: 'Marquer comme lu',
         editAction: ({action}: EditActionParams) => `Editer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Supprimer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Êtes-vous sûr de vouloir supprimer ce ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'} ?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Supprimer ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Êtes-vous sûr de vouloir supprimer ce ${type} ?`;
+        },
         onlyVisible: 'Visible uniquement pour',
         replyInThread: 'Répondre dans le fil de discussion',
         joinThread: 'Rejoindre le fil de discussion',
