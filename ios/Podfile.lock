@@ -422,32 +422,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - NWWebSocket (0.5.4)
-  - Onfido (29.7.2)
-  - onfido-react-native-sdk (10.6.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - Onfido (~> 29.7.0)
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
+  - Onfido (32.6.0)
+  - onfido-react-native-sdk (15.1.0):
+    - Onfido (~> 32.6.0)
+    - React
   - Plaid (5.6.0)
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
@@ -2167,7 +2145,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pdf (6.7.7):
+  - react-native-pdf (6.7.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2847,6 +2825,30 @@ PODS:
     - Firebase/Performance (= 11.13.0)
     - React-Core
     - RNFBApp
+  - RNFlashList (1.8.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.28.0):
@@ -3211,7 +3213,7 @@ PODS:
     - RNSound/Core (= 0.11.2)
   - RNSound/Core (0.11.2):
     - React-Core
-  - RNSVG (15.9.0):
+  - RNSVG (15.12.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3234,9 +3236,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.9.0)
+    - RNSVG/common (= 15.12.1)
     - Yoga
-  - RNSVG/common (15.9.0):
+  - RNSVG/common (15.12.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3408,6 +3410,7 @@ DEPENDENCIES:
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
+  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
@@ -3720,6 +3723,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/crashlytics"
   RNFBPerf:
     :path: "../node_modules/@react-native-firebase/perf"
+  RNFlashList:
+    :path: "../node_modules/@shopify/flash-list"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -3818,8 +3823,8 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroModules: 058e64fb28102fadd1105e5530fdfa1ff93db7ac
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
-  Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
-  onfido-react-native-sdk: 0245dba46f3e3a10bbaf3969fc7c947a22fb46fa
+  Onfido: 25d7d29890ca96e7faf79c84e2d3a33cd8fb8631
+  onfido-react-native-sdk: 1cdc60cfc65e996d7544e1db1201a52cd0af4047
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
@@ -3872,7 +3877,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
   react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
-  react-native-pdf: 627c954988c313c3b72a642611ae9160669e2f32
+  react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: e83dc18fa6752fcfb1a9bbe995f78a8a7c659fe1
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
@@ -3920,6 +3925,7 @@ SPEC CHECKSUMS:
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
   RNFBCrashlytics: c9dbfcf63b06cf8e8c4d960719e81160b6bc2e76
   RNFBPerf: c32ec64522c2e4d81d1562747809314e9050b75f
+  RNFlashList: 2e3ff9db752b552fdb1cdb00b8fb2a408af4c516
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 61d3e94abb866ee955563ddf073e405e3f541359
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
@@ -3933,7 +3939,7 @@ SPEC CHECKSUMS:
   RNScreens: 0dcbe4c37daf0ec9b98bc5a655b1303e58e676ff
   RNShare: 1e3e15a3d2608acde2808bc35448e2344e38e15b
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 2aeb75970331da3a64cb89309f7fd7bd3769260a
+  RNSVG: 9346c68a0d5c5e4e74d82d664b745f28e6cfc1cb
   SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
