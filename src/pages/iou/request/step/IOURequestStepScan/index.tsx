@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import type {LayoutRectangle} from 'react-native';
 import {ActivityIndicator, InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -75,6 +76,8 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {cropImageToAspectRatio} from './cropImageToAspectRatio';
+import type {ImageObject} from './cropImageToAspectRatio';
 import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from './ReceiptPreviews';
@@ -441,13 +444,11 @@ function IOURequestStepScan({
                 return;
             }
 
-            // If a reportID exists in the report object, it's because either:
-            // - The user started this flow from using the + button in the composer inside a report.
-            // - The user started this flow from using the global create menu by selecting the Track expense option.
-            // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-            // to the confirm step.
+            // If the user started this flow from using the + button in the composer inside a report
+            // the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+            // to the confirmation step.
             // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-            if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            if (!initialTransaction?.isFromGlobalCreate && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -547,10 +548,14 @@ function IOURequestStepScan({
         },
         [
             backTo,
-            report,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.currency,
+            initialTransaction?.participants,
+            initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
             activePolicy,
+            report,
             initialTransactionID,
             navigateToConfirmationPage,
             shouldSkipConfirmation,
@@ -560,9 +565,6 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
-            initialTransaction?.currency,
-            initialTransaction?.participants,
-            initialTransaction?.reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
@@ -683,6 +685,8 @@ function IOURequestStepScan({
         [initialTransaction, iouType, shouldStartLocationPermissionFlow, navigateToConfirmationStep, shouldSkipConfirmation],
     );
 
+    const viewfinderLayout = useRef<LayoutRectangle>(null);
+
     const getScreenshot = useCallback(() => {
         if (!cameraRef.current) {
             requestCameraPermission();
@@ -699,33 +703,41 @@ function IOURequestStepScan({
             showBlink();
         }
 
-        const filename = `receipt_${Date.now()}.png`;
-        const file = base64ToFile(imageBase64 ?? '', filename);
-        const source = URL.createObjectURL(file);
-        const transaction =
-            isMultiScanEnabled && initialTransaction?.receipt?.source
-                ? buildOptimisticTransactionAndCreateDraft({
-                      initialTransaction,
-                      currentUserPersonalDetails,
-                      reportID,
-                  })
-                : initialTransaction;
-        const transactionID = transaction?.transactionID ?? initialTransactionID;
-        const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+        const originalFileName = `receipt_${Date.now()}.png`;
+        const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
+        const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
+        // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
+        // while other browsers let the video element overflow and the container crops it from the top.
+        // We crop and algin the result image the same way.
+        const videoHeight = cameraRef.current.video?.getBoundingClientRect?.()?.height ?? NaN;
+        const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
+        const shouldAlignTop = videoHeight > viewFinderHeight;
+        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop).then(({file, filename, source}) => {
+            const transaction =
+                isMultiScanEnabled && initialTransaction?.receipt?.source
+                    ? buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction,
+                          currentUserPersonalDetails,
+                          reportID,
+                      })
+                    : initialTransaction;
+            const transactionID = transaction?.transactionID ?? initialTransactionID;
+            const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
-        setMoneyRequestReceipt(transactionID, source, file.name, !isEditing);
-        setReceiptFiles(newReceiptFiles);
+            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
+            setReceiptFiles(newReceiptFiles);
 
-        if (isMultiScanEnabled) {
-            return;
-        }
+            if (isMultiScanEnabled) {
+                return;
+            }
 
-        if (isEditing) {
-            updateScanAndNavigate(file, source);
-            return;
-        }
+            if (isEditing) {
+                updateScanAndNavigate(file, source);
+                return;
+            }
 
-        submitReceipts(newReceiptFiles);
+            submitReceipts(newReceiptFiles);
+        });
     }, [
         isMultiScanEnabled,
         initialTransaction,
@@ -839,7 +851,10 @@ function IOURequestStepScan({
                     </View>
                 )}
                 {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
-                    <View style={styles.flex1}>
+                    <View
+                        style={styles.flex1}
+                        onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
+                    >
                         <NavigationAwareCamera
                             onUserMedia={setupCameraPermissionsAndCapabilities}
                             onUserMediaError={() => setCameraPermissionState('denied')}

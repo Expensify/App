@@ -3,7 +3,6 @@ title: Understanding Report Statuses and Actions
 description: Learn what each report status in Expensify means, what actions are available at each stage, and how to manage reports effectively.
 keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, decline, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
 ---
-<div id="new-expensify" markdown="1">
 
 Understand what each report status means, what actions are available, and how to manage reports, invoices, and IOUs in New Expensify.
 
@@ -117,4 +116,3 @@ Yes—if the report is **Open** or **Processing**. **Closed** reports cannot be 
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.
 
-</div>

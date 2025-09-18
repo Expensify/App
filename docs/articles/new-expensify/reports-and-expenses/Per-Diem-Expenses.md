@@ -3,7 +3,6 @@ title: Create a Per Diem Expense
 description: Learn how to create and submit a per diem expense by selecting a workspace, destination, time period, and eligible sub-rates.
 keywords: [New Expensify, per diem, per diem expense, create per diem, per diem submission, business travel, expensify per diem, meal reimbursement, travel expense, daily allowance]
 ---
-<div id="new-expensify" markdown="1">
 
 Per diem expenses let you claim daily allowances for meals, lodging, and incidentals based on preset rates. If your workspace has Per Diem enabled, you can easily create these expenses directly from the **Create expense** flow.
 
@@ -13,7 +12,7 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 
 **To create a per diem expense:**
 
-1. In the left-hand menu, click the green **+** button and click **Create expense**.
+1. In the navigation tabs, click the green **+** button and click **Create expense**.
 2. If your workspace supports Per Diem, you'll have the option to choose **Per Diem**.
 3. Choose the **workspace** you want to create under (if you're in more than one).
 4. Choose the **destination** (country or region where the Per Diem applies).
@@ -30,10 +29,9 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 
 # FAQ
 
-## Why don’t I see the per diem option?  
+## Why don’t I see the per diem option?
 The option only appears if the workspace you're submitting the expense on has Per Diem enabled. It won't show if you’re submitting an expense in a group chat, direct message, or if your workspace doesn't have that setting enabled.
 
 ## Can I create per diem expenses for multiple days?
 Yes! Just set your Start and End dates across the full period and add one or more sub-rates for each day or meal.
 
-</div>

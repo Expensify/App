@@ -3,8 +3,9 @@ import React, {useCallback, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import ProcessMoneyRequestHoldMenu from '@components/ProcessMoneyRequestHoldMenu';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {dismissHoldUseExplanation} from '@userActions/IOU';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function ProcessMoneyRequestHoldPage() {
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -20,7 +21,7 @@ function ProcessMoneyRequestHoldPage() {
     );
 
     const onConfirm = useCallback(() => {
-        dismissHoldUseExplanation();
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false);
     }, []);
 
     return (

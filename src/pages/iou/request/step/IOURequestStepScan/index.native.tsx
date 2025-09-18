@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
+import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -74,6 +75,8 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
+import {cropImageToAspectRatio} from './cropImageToAspectRatio';
+import type {ImageObject} from './cropImageToAspectRatio';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
@@ -384,13 +387,11 @@ function IOURequestStepScan({
                 return;
             }
 
-            // If a reportID exists in the report object, it's because either:
-            // - The user started this flow from using the + button in the composer inside a report.
-            // - The user started this flow from using the global create menu by selecting the Track expense option.
-            // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-            // to the confirm step.
+            // If the user started this flow from using the + button in the composer inside a report
+            // the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+            // to the confirmation step.
             // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-            if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            if (initialTransaction?.isFromGlobalCreate && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -491,10 +492,14 @@ function IOURequestStepScan({
         },
         [
             backTo,
-            report,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.currency,
+            initialTransaction?.participants,
+            initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
             activePolicy,
+            report,
             initialTransactionID,
             navigateToConfirmationPage,
             shouldSkipConfirmation,
@@ -504,9 +509,6 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
-            initialTransaction?.currency,
-            initialTransaction?.participants,
-            initialTransaction?.reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
@@ -614,6 +616,8 @@ function IOURequestStepScan({
         [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
     );
 
+    const viewfinderLayout = useRef<LayoutRectangle>(null);
+
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
             askForPermissions();
@@ -663,7 +667,6 @@ function IOURequestStepScan({
                     })
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
-                        const source = getPhotoSource(photo.path);
                         const transaction =
                             isMultiScanEnabled && initialTransaction?.receipt?.source
                                 ? buildOptimisticTransactionAndCreateDraft({
@@ -673,34 +676,36 @@ function IOURequestStepScan({
                                   })
                                 : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
+                        const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
+                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
+                            setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
-                        setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+                            readFileAsync(
+                                source,
+                                filename,
+                                (file) => {
+                                    if (isEditing) {
+                                        updateScanAndNavigate(file, source);
+                                        return;
+                                    }
 
-                        readFileAsync(
-                            source,
-                            photo.path,
-                            (file) => {
-                                if (isEditing) {
-                                    updateScanAndNavigate(file, source);
-                                    return;
-                                }
+                                    const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+                                    setReceiptFiles(newReceiptFiles);
 
-                                const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
-                                setReceiptFiles(newReceiptFiles);
+                                    if (isMultiScanEnabled) {
+                                        setDidCapturePhoto(false);
+                                        return;
+                                    }
 
-                                if (isMultiScanEnabled) {
+                                    submitReceipts(newReceiptFiles);
+                                },
+                                () => {
                                     setDidCapturePhoto(false);
-                                    return;
-                                }
-
-                                submitReceipts(newReceiptFiles);
-                            },
-                            () => {
-                                setDidCapturePhoto(false);
-                                showCameraAlert();
-                                Log.warn('Error reading photo');
-                            },
-                        );
+                                    showCameraAlert();
+                                    Log.warn('Error reading photo');
+                                },
+                            );
+                        });
                     })
                     .catch((error: string) => {
                         setDidCapturePhoto(false);
@@ -804,6 +809,7 @@ function IOURequestStepScan({
                                         zoom={device.neutralZoom}
                                         photo
                                         cameraTabIndex={1}
+                                        onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     {canUseMultiScan ? (

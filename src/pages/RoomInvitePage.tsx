@@ -12,11 +12,13 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {Section} from '@components/SelectionList/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, searchInServer} from '@libs/actions/Report';
+import {inviteToRoomAction, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -34,6 +36,7 @@ import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getReportName, isHiddenForCurrentUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -53,11 +56,14 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report.reportID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -109,10 +115,10 @@ function RoomInvitePage({
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers});
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    }, [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
@@ -184,8 +190,8 @@ function RoomInvitePage({
     const reportID = report?.reportID;
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const backRoute = useMemo(() => {
-        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
-    }, [isPolicyEmployee, reportID, backTo]);
+        return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
+    }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
     const reportName = useMemo(() => getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -203,11 +209,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+            inviteToRoomAction(reportID, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            clearUserSearchPhrase();
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID, backTo));
         }
-        clearUserSearchPhrase();
-        Navigation.goBack(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate, formatPhoneNumber]);
+    }, [validate, selectedOptions, reportID, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
@@ -233,6 +239,11 @@ function RoomInvitePage({
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    let subtitleKey: '' | TranslationPaths | undefined;
+    if (!isEmptyObject(report)) {
+        subtitleKey = isReportArchived ? 'roomMembersPage.roomArchived' : 'roomMembersPage.notAuthorized';
+    }
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -240,8 +251,8 @@ function RoomInvitePage({
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
-                shouldShow={isEmptyObject(report)}
-                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
+                shouldShow={isEmptyObject(report) || isReportArchived}
+                subtitleKey={subtitleKey}
                 onBackButtonPress={goBack}
             >
                 <HeaderWithBackButton

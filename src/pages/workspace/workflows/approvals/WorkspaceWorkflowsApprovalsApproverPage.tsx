@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -58,6 +58,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
     const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -66,7 +67,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
-    const defaultApprover = policy?.approver ?? policy?.owner;
+    const defaultApprover = getDefaultApprover(policy);
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
     const rhpRoutes = useNavigationState((state) => state.routes);
 
@@ -142,7 +143,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         }
 
         const filteredApprovers =
-            debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
+            debouncedSearchTerm !== ''
+                ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
+                : approvers;
 
         const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
         return [
@@ -154,18 +157,19 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         ];
     }, [
         isApprovalWorkflowLoading,
-        approversFromWorkflow,
-        isDefault,
-        approverIndex,
-        debouncedSearchTerm,
-        defaultApprover,
-        personalDetails,
         employeeList,
-        selectedApproverEmail,
-        membersEmail,
+        debouncedSearchTerm,
+        countryCode,
+        localeCompare,
         policy?.preventSelfApproval,
         policy?.owner,
-        localeCompare,
+        membersEmail,
+        approversFromWorkflow,
+        selectedApproverEmail,
+        isDefault,
+        approverIndex,
+        defaultApprover,
+        personalDetails,
     ]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !!approvalWorkflow && !sections.at(0)?.data.length && !isApprovalWorkflowLoading;

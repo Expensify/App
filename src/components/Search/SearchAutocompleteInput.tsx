@@ -3,7 +3,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -119,10 +119,18 @@ function SearchAutocompleteInput(
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
+    const {borderColor: focusedBorderColor = theme.border, ...restWrapperFocusedStyle} = wrapperFocusedStyle;
+    const {borderColor: wrapperBorderColor = theme.border, ...restWrapperStyle} = wrapperStyle ?? {};
+
     // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
     const wrapperAnimatedStyle = useAnimatedStyle(() => {
-        return focusedSharedValue.get() ? wrapperFocusedStyle : (wrapperStyle ?? {});
+        return focusedSharedValue.get() ? restWrapperFocusedStyle : (restWrapperStyle ?? {});
+    });
+    const wrapperBorderColorAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], [wrapperBorderColor as string, focusedBorderColor as string], 'RGB'),
+        };
     });
 
     useEffect(() => {
@@ -188,11 +196,8 @@ function SearchAutocompleteInput(
 
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}>
-                <View
-                    style={styles.flex1}
-                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                >
+            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
+                <View style={styles.flex1}>
                     <TextInput
                         testID="search-autocomplete-text-input"
                         value={value}
@@ -234,6 +239,7 @@ function SearchAutocompleteInput(
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
                         onClearInput={clearFilters}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                     />
                 </View>
             </Animated.View>

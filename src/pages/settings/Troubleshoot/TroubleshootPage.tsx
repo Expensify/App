@@ -26,7 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
-import closeReactNativeApp from '@libs/actions/HybridApp';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
@@ -76,7 +76,7 @@ function TroubleshootPage() {
                 icon: Expensicons.ExpensifyLogoNew,
                 ...(CONFIG.IS_HYBRID_APP
                     ? {
-                          action: () => closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true}),
+                          action: () => closeReactNativeApp({shouldSetNVP: true}),
                       }
                     : {
                           action() {

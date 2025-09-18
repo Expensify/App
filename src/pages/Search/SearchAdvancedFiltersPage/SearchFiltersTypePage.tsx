@@ -52,7 +52,7 @@ function SearchFiltersTypePage() {
             }),
         };
         updateAdvancedFilters(updatedFilters);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [searchAdvancedFiltersForm?.type, selectedItem]);
 
     return (
@@ -65,7 +65,7 @@ function SearchFiltersTypePage() {
             <HeaderWithBackButton
                 title={translate('common.type')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>

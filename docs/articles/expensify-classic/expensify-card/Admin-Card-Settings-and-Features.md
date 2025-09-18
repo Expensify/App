@@ -3,7 +3,6 @@ title: Admin Card Settings and Features
 description: Learn how to manage Expensify Card settings, set Smart Limits, reconcile expenses, and troubleshoot transaction issues.
 keywords: [Expensify Classic, Expensify Card, Smart Limits, reconciliation, declined transactions, settlement settings]
 ---
-<div id="expensify-classic" markdown="1">
 
 The Expensify Visa® Commercial Card offers various settings to help **Domain Admins** manage company spending effectively.
 
@@ -141,4 +140,3 @@ Only **Domain Admins** can access the **Reconciliation** tool.
 
 **Note:** Only posted transactions will be imported.
 
-</div>
