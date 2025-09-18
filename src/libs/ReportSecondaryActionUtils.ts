@@ -55,7 +55,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCardTransaction as isCardTransactionUtils,
+    isCorporateCardTransaction,
     isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -454,8 +454,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const isCardTransactionWithCorporateLiability =
-        isCardTransactionUtils(transaction) && isSingleTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+    const isCardTransactionWithCorporateLiability = isSingleTransaction && isCorporateCardTransaction(transaction);
 
     // Transactions with corporate cards cannot be deleted
     if (isCardTransactionWithCorporateLiability) {
