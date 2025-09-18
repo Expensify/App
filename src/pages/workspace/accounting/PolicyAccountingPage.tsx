@@ -40,7 +40,7 @@ import {
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
     hasAccountingConnections,
-    hasUnsupportedIntegration,
+    hasSupportedOnlyOnOldDotIntegration,
     isControlPolicy,
     settingsPendingAction,
     shouldShowSyncError,
@@ -102,7 +102,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
-    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasUnsupportedIntegration(policy, accountingIntegrations);
+    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
