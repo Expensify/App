@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -12,7 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isUserValidatedSelector} from '@selectors/Account';
 
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();

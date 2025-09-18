@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import type {RefObject} from 'react';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -23,7 +24,6 @@ import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isUserValidatedSelector} from '@selectors/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceInvoiceVBASectionProps = {

@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -5,7 +6,6 @@ import ScrollView from '@components/ScrollView';
 import useOnyx from '@hooks/useOnyx';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isUserValidatedSelector} from '@selectors/Account';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type DebugReportActionPreviewProps = {

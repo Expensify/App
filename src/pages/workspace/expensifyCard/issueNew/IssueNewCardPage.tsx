@@ -1,3 +1,4 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -14,7 +15,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {isActingAsDelegateSelector} from '@selectors/Account';
 import type {IssueNewCard, IssueNewCardStep} from '@src/types/onyx/Card';
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';

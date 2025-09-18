@@ -1,3 +1,4 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
@@ -15,7 +16,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isActingAsDelegateSelector} from '@selectors/Account';
 import type DeeplinkWrapperProps from './types';
 
 function isMacOSWeb(): boolean {
