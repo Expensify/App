@@ -601,9 +601,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 
-    /** Whether selected items should be shown at the top within each section */
-    shouldPrioritizeSelectedItems?: boolean;
-
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 

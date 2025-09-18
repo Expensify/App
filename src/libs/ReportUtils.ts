@@ -13,9 +13,7 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -73,20 +71,11 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {
-    canApproveIOU,
-    canIOUBePaid,
-    canSubmitReport,
-    createDraftTransaction,
-    getIOUReportActionToApproveOrPay,
-    setMoneyRequestParticipants,
-    startMoneyRequest,
-    unholdRequest,
-} from './actions/IOU';
+import {canApproveIOU, canIOUBePaid, canSubmitReport, createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged, openUnreportedExpense} from './actions/Report';
+import {handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
@@ -2588,50 +2577,6 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
             canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
         );
     });
-}
-
-/**
- * Returns the dropdown options for the add expense button
- * @param iouReport - The IOU report to add an expense to
- * @param policy - The policy of the IOU report
- * @param backToReport - The report to return to after adding an expense
- * @returns The dropdown options for the add expense button
- */
-function getAddExpenseDropdownOptions(
-    iouReportID: string | undefined,
-    policy: OnyxEntry<Policy>,
-    iouRequestBackToReport?: string,
-    unreportedExpenseBackToReport?: string,
-): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    return [
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translateLocal('iou.createExpense'),
-            icon: Expensicons.Plus,
-            onSelected: () => {
-                if (!iouReportID) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, undefined, false, iouRequestBackToReport);
-            },
-        },
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-            text: translateLocal('iou.addUnreportedExpense'),
-            icon: Expensicons.ReceiptPlus,
-            onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                openUnreportedExpense(iouReportID, unreportedExpenseBackToReport);
-            },
-        },
-    ];
 }
 
 /**
@@ -11844,7 +11789,6 @@ export {
     getRootParentReport,
     getRouteFromLink,
     canDeleteCardTransactionByLiabilityType,
-    getAddExpenseDropdownOptions,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,

@@ -590,6 +590,8 @@ function MoneyRequestReportActionsList({
         readNewestAction(report.reportID);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
 
+    const reportHasComments = visibleReportActions.length > 0;
+
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
             wrapperViewRef.current?.measureInWindow((x, y, w, height) => {
@@ -725,8 +727,9 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     violations={violations}
+                                    hasComments={reportHasComments}
+                                    isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
-                                    policy={policy}
                                 />
                             </>
                         }
