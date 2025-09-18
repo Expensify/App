@@ -401,6 +401,7 @@ function BaseVideoPlayer({
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
                                             ref={videoViewRef}
+                                            contentFit="contain"
                                             onFullscreenEnter={() => {
                                                 isFullScreenRef.current = true;
 

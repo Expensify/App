@@ -16,11 +16,6 @@ type VideoPlayerProps = {
     onSourceLoaded?: (event: SourceLoadEventPayload) => void;
 
     /**
-     * NOT USED NOW, LEFT FROM EXPO-AV: A string describing how the video should be scaled for display in the component view bounds. Must be one of the ResizeMode enum values.
-     */
-    resizeMode?: string;
-
-    /**
      * Whether the video should automatically replay after it ends.
      */
     isLooping?: boolean;
