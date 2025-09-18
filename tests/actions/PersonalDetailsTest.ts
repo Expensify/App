@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
+import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -11,7 +12,6 @@ import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
-import type { CurrentUserPersonalDetails } from '@components/CurrentUserPersonalDetailsProvider';
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -213,7 +213,7 @@ describe('actions/PersonalDetails', () => {
                 accountID: 123,
                 email: 'test@example.com',
             };
-            
+
             const expectedDisplayName = 'Alice Johnson';
 
             mockPersonalDetailsUtils.createDisplayName.mockReturnValue(expectedDisplayName);
@@ -342,8 +342,6 @@ describe('actions/PersonalDetails', () => {
             const legalFirstName = '';
             const legalLastName = '';
 
-
-
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: '',
                 lastName: '',
@@ -429,7 +427,7 @@ describe('actions/PersonalDetails', () => {
                 firstName: '',
                 lastName: '',
                 email: 'test@example.com',
-                accountID: 456, 
+                accountID: 456,
             };
 
             await waitForBatchedUpdates();
@@ -560,7 +558,7 @@ describe('actions/PersonalDetails', () => {
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',
-                accountID: 123
+                accountID: 123,
             };
 
             PersonalDetailsActions.updateAvatar(mockFile, currentUserPersonalDetail);
