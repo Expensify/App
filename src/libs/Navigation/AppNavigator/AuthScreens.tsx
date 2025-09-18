@@ -235,6 +235,7 @@ function AuthScreens() {
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, {canBeMissing: true});
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
 
     // On HybridApp we need to prevent flickering during transition to OldDot
@@ -327,6 +328,10 @@ function AuthScreens() {
 
         App.redirectThirdPartyDesktopSignIn();
 
+        if (lastOpenedPublicRoomID) {
+            // Re-open the last opened public room if the user logged in from a public room link
+            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
+        }
         Download.clearDownloads();
 
         const unsubscribeOnyxModal = onyxSubscribe({

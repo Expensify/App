@@ -4015,6 +4015,18 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     removeFromRoom(reportID, accountIDList);
 }
 
+function setLastOpenedPublicRoom(reportID: string) {
+    Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
+}
+
+/** Navigates to the last opened public room */
+function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
+    Navigation.isNavigationReady().then(() => {
+        setLastOpenedPublicRoom('');
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastOpenedPublicRoomID));
+    });
+}
+
 /** Flag a comment as offensive */
 function flagComment(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -6131,6 +6143,7 @@ export {
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
     notifyNewAction,
+    openLastOpenedPublicRoom,
     openReport,
     openReportFromDeepLink,
     openRoomMembersPage,
@@ -6149,6 +6162,7 @@ export {
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
+    setLastOpenedPublicRoom,
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,
