@@ -48,6 +48,7 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
+import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -88,13 +89,14 @@ type ExpensifyProps = {
 };
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
+    const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate, preferredLocale} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
@@ -185,6 +187,9 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
+        if (isLoadingOnyxValue(sessionMetadata)) {
+            return;
+        }
         setTimeout(() => {
             const appState = AppState.currentState;
             Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
@@ -223,25 +228,28 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports);
+            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports);
+        linkingChangeListener.current = Linking.addEventListener('url', (state) => {
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
         }
 
         return () => {
-            if (!appStateChangeListener.current) {
+            if (appStateChangeListener.current) {
+                appStateChangeListener.current.remove();
+            }
+            if (!linkingChangeListener.current) {
                 return;
             }
-            appStateChangeListener.current.remove();
+            linkingChangeListener.current.remove();
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
+    }, [sessionMetadata?.status]);
 
     // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
     useEffect(() => {
