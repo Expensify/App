@@ -43,6 +43,9 @@ type SelectedTransactionInfo = {
 
     /** The currency that the converted amount is in */
     convertedCurrency: string;
+
+    /** The transaction currency */
+    currency: string;
 };
 
 /** Model of selected transactions */

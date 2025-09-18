@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type { Policy } from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -20,6 +21,7 @@ type UseBulkPayOptionProps = {
     selectedReportID: string | undefined;
     lastPaymentMethod?: string | undefined;
     onPress?: (paymentType: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined, policyID?: string) => void;
+    activeAdminPolicies: Policy[];
 };
 
 type UseBulkPayOptionReturnType = {
@@ -30,7 +32,7 @@ type UseBulkPayOptionReturnType = {
 /**
  * Returns the payment options for the selected reports or transactions when they are being paid for the first time.
  */
-function useBulkPayOptions({selectedPolicyID, selectedReportID}: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
+function useBulkPayOptions({selectedPolicyID, selectedReportID, activeAdminPolicies}: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
