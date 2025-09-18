@@ -7090,9 +7090,9 @@ const translations = {
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
         },
         reasonRBR: {
-            hasErrors: 'Has some errors in report or report actions data',
-            hasViolations: 'really has far too many violations, just an insane amount of violations',
-            hasTransactionThreadViolations: 'Has many transaction thread violations',
+            hasErrors: 'Has errors in report or report actions data',
+            hasViolations: 'Has violations',
+            hasTransactionThreadViolations: 'Has transaction thread violations',
         },
         indicatorStatus: {
             theresAReportAwaitingAction: "There's a report awaiting action",
