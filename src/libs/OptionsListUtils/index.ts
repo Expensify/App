@@ -162,6 +162,7 @@ import type {
     GetUserToInviteConfig,
     GetValidReportsConfig,
     GetValidReportsReturnTypeCombined,
+    IsValidReportsConfig,
     MemberForList,
     Option,
     OptionList,
@@ -1489,7 +1490,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1809,11 +1810,7 @@ function getValidOptions(
                 ...getValidReportsConfig,
                 includeP2P,
                 includeDomainEmail,
-                selectedOptions,
                 loginsToExclude,
-                shouldBoldTitleByDefault,
-                shouldSeparateSelfDMChat,
-                shouldSeparateWorkspaceChat,
             });
         };
 
@@ -1822,7 +1819,6 @@ function getValidOptions(
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
             selectedOptions,
-            loginsToExclude,
             shouldBoldTitleByDefault,
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
@@ -1933,6 +1929,7 @@ function getSearchOptions(
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
     const optionList = getValidOptions(options, {
         betas,
         includeRecentReports,
@@ -1960,7 +1957,7 @@ function getSearchOptions(
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
+function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
     return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
@@ -1970,6 +1967,9 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
         includeSelfDM: true,
         includeThreads: true,
         includeReadOnly: false,
+        searchString,
+        maxElements,
+        includeUserToInvite,
     });
 }
 
@@ -2065,6 +2065,9 @@ function getShareDestinationOptions(
     selectedOptions: Array<Partial<SearchOptionData>> = [],
     excludeLogins: Record<string, boolean> = {},
     includeOwnedWorkspaceChats = true,
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
 ) {
     return getValidOptions(
         {reports, personalDetails},
@@ -2080,6 +2083,9 @@ function getShareDestinationOptions(
             excludeLogins,
             includeOwnedWorkspaceChats,
             includeSelfDM: true,
+            searchString,
+            maxElements,
+            includeUserToInvite,
         },
     );
 }
@@ -2112,6 +2118,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 
 /**
  * Build the options for the Workspace Member Invite view
+ * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
@@ -2120,8 +2127,10 @@ function getMemberInviteOptions(
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
+    searchString = '',
+    maxElements?: number,
 ): Options {
-    const options = getValidOptions(
+    return getValidOptions(
         {reports, personalDetails},
         {
             betas,
@@ -2129,15 +2138,10 @@ function getMemberInviteOptions(
             excludeLogins,
             includeSelectedOptions,
             includeRecentReports,
+            searchString,
+            maxElements,
         },
     );
-
-    const orderedOptions = orderOptions(options);
-    return {
-        ...options,
-        personalDetails: orderedOptions.personalDetails,
-        recentReports: orderedOptions.recentReports,
-    };
 }
 
 /**
