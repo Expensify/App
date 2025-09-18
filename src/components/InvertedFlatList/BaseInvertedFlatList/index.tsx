@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useImperativeHandle, useRef} from 'react';
+import React, {useCallback, useImperativeHandle, useRef} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import FlatList from '@components/FlatList';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
@@ -22,9 +22,12 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
+    ref?: ForwardedRef<RNFlatList>;
 };
 
-function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
+const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
+
+function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
     const {displayedData, maintainVisibleContentPosition, handleStartReached, setCurrentDataId} = useFlatListScrollKey<T>({
         data,
@@ -87,6 +90,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
-export default forwardRef(BaseInvertedFlatList);
+export default BaseInvertedFlatList;
 
 export type {BaseInvertedFlatListProps};
