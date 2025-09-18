@@ -830,6 +830,24 @@ function peg$parse(input, options) {
                                                                     s1 = peg$parsepurchaseCurrency();
                                                                     if (s1 === peg$FAILED) {
                                                                       s1 = peg$parsepurchaseAmount();
+                                                                      if (s1 === peg$FAILED) {
+                                                                        s1 = peg$parseamount();
+                                                                        if (s1 === peg$FAILED) {
+                                                                          s1 = peg$parsetotal();
+                                                                          if (s1 === peg$FAILED) {
+                                                                            s1 = peg$parsemerchant();
+                                                                            if (s1 === peg$FAILED) {
+                                                                              s1 = peg$parsedescription();
+                                                                              if (s1 === peg$FAILED) {
+                                                                                s1 = peg$parsereportID();
+                                                                                if (s1 === peg$FAILED) {
+                                                                                  s1 = peg$parsetitle();
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
                                                                     }
                                                                   }
                                                                 }

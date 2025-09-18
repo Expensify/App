@@ -195,9 +195,11 @@ function filterOutRangesWithCorrectValue(
             return hasList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
             return range.value.length > 0;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+            return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
         // case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
         // case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         // case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:

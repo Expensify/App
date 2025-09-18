@@ -91,6 +91,8 @@ autocompleteKey "key"
       / has
       / purchaseCurrency
       / purchaseAmount
+      / amount
+      / total
       / merchant
       / description
       / reportID
