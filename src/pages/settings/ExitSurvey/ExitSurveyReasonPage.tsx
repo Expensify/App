@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,7 +15,8 @@ import {saveExitReason} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExitReason, ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
+import {exitSurveyReasonSelector} from '@src/selectors/ExitSurveyReasonForm';
+import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
@@ -26,7 +26,7 @@ function ExitSurveyReasonPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [draftReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, {
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null,
+        selector: exitSurveyReasonSelector,
         canBeMissing: true,
     });
 

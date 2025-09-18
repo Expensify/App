@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -22,8 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ExitSurveyReasonForm} from '@src/types/form/ExitSurveyReasonForm';
-import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import {exitSurveyReasonSelector} from '@src/selectors/ExitSurveyReasonForm';
 import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ExitSurveyOffline from './ExitSurveyOffline';
@@ -36,7 +34,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const styles = useThemeStyles();
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [exitReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
+        selector: exitSurveyReasonSelector,
         canBeMissing: true,
     });
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
