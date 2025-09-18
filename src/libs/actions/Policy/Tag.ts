@@ -71,12 +71,11 @@ function openPolicyTagsPage(policyID: string) {
 type BuildOptimisticPolicyRecentlyUsedTagsProps = {
     policyTags: PolicyTagLists;
     policyRecentlyUsedTags: RecentlyUsedTags;
-    policyID?: string;
     transactionTags?: string;
 };
 
-function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTags, policyID, transactionTags}: BuildOptimisticPolicyRecentlyUsedTagsProps): RecentlyUsedTags {
-    if (!policyID || !transactionTags) {
+function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTags, transactionTags}: BuildOptimisticPolicyRecentlyUsedTagsProps): RecentlyUsedTags {
+    if (!transactionTags) {
         return {};
     }
 

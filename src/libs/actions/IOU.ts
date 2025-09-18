@@ -3277,7 +3277,6 @@ function getSendInvoiceInformation(
         // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
         // eslint-disable-next-line deprecation/deprecation
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(optimisticInvoiceReport.policyID),
-        policyID: optimisticInvoiceReport.policyID,
         transactionTags: tag,
     });
     const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
@@ -3501,7 +3500,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
         // eslint-disable-next-line deprecation/deprecation
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport.policyID),
-        policyID: iouReport.policyID,
         transactionTags: tag,
     });
     const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
@@ -3766,7 +3764,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
         // eslint-disable-next-line deprecation/deprecation
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport.policyID),
-        policyID: iouReport.policyID,
         transactionTags: tag,
     });
     const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
@@ -4403,7 +4400,6 @@ function getUpdateMoneyRequestParams(
             // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
             // eslint-disable-next-line deprecation/deprecation
             policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport?.policyID),
-            policyID: iouReport?.policyID,
             transactionTags: transactionChanges.tag,
         });
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
@@ -6695,7 +6691,6 @@ function createSplitsAndOnyxData({
                   // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
                   // eslint-disable-next-line deprecation/deprecation
                   policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
-                  policyID: participant.policyID,
                   transactionTags: tag,
               })
             : {};
@@ -7244,7 +7239,6 @@ function startSplitBill({
             // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
             // eslint-disable-next-line deprecation/deprecation
             policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
-            policyID: participant.policyID,
             transactionTags: tag,
         });
         const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);

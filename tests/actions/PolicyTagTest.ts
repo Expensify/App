@@ -755,91 +755,55 @@ describe('actions/Policy', () => {
     });
 
     describe('buildOptimisticPolicyRecentlyUsedTags', () => {
-        it('should return empty object when policyID is undefined', () => {
-            const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags: {},
-                policyRecentlyUsedTags: {},
-                policyID: undefined,
-                transactionTags: 'tag1',
-            });
-            expect(result).toEqual({});
-        });
-
         it('should return empty object when transactionTags is undefined', () => {
             const result = buildOptimisticPolicyRecentlyUsedTags({
                 policyTags: {},
                 policyRecentlyUsedTags: {},
-                policyID: 'policy123',
                 transactionTags: undefined,
             });
             expect(result).toEqual({});
         });
 
-        it('should return empty object when policyID is empty string', () => {
-            const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags: {},
-                policyRecentlyUsedTags: {},
-                policyID: '',
-                transactionTags: 'tag1',
-            });
-            expect(result).toEqual({});
-        });
-
         it('should return empty object when transactionTags is empty string', () => {
-            const policyID = 'policy123';
-            const tagListName = 'Tag';
-
-            const policyTags: PolicyTagLists = {
-                Tag: {
-                    name: 'Tag',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                        Marketing: {name: 'Marketing', enabled: true},
-                        Sales: {name: 'Sales', enabled: true},
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
                     },
                 },
-            };
-            const existingRecentlyUsedTags: RecentlyUsedTags = {
-                [tagListName]: ['Marketing', 'Sales'],
-            };
-
-            const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags,
-                policyRecentlyUsedTags: existingRecentlyUsedTags,
-                policyID,
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing', 'Sales'],
+                },
                 transactionTags: '',
             });
             expect(result).toEqual({});
         });
 
         it('should build optimistic recently used tags', () => {
-            const policyID = 'policy123';
-            const transactionTags = 'Engineering';
-
-            const policyTags: PolicyTagLists = {
-                Tag: {
-                    name: 'Tag',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                        Marketing: {name: 'Marketing', enabled: true},
-                        Sales: {name: 'Sales', enabled: true},
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
                     },
                 },
-            };
-
-            const existingRecentlyUsedTags: RecentlyUsedTags = {
-                Tag: ['Marketing', 'Sales'],
-            };
-
-            const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags,
-                policyRecentlyUsedTags: existingRecentlyUsedTags,
-                policyID,
-                transactionTags,
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing', 'Sales'],
+                },
+                transactionTags: 'Engineering',
             });
 
             expect(result).toEqual({
@@ -848,40 +812,32 @@ describe('actions/Policy', () => {
         });
 
         it('should handle multi-level tags', () => {
-            const policyID = 'policy123';
-            const transactionTags = 'Engineering:Frontend';
-
-            const policyTags: PolicyTagLists = {
-                Tag: {
-                    name: 'Tag',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                        Marketing: {name: 'Marketing', enabled: true},
-                    },
-                },
-                Team: {
-                    name: 'Team',
-                    orderWeight: 1,
-                    required: false,
-                    tags: {
-                        Frontend: {name: 'Frontend', enabled: true},
-                        Backend: {name: 'Backend', enabled: true},
-                    },
-                },
-            };
-
-            const existingRecentlyUsedTags: RecentlyUsedTags = {
-                Tag: ['Marketing'],
-                Team: ['Backend', 'DevOps'],
-            };
-
             const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags,
-                policyRecentlyUsedTags: existingRecentlyUsedTags,
-                policyID,
-                transactionTags,
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                        },
+                    },
+                    Team: {
+                        name: 'Team',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Frontend: {name: 'Frontend', enabled: true},
+                            Backend: {name: 'Backend', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    Tag: ['Marketing'],
+                    Team: ['Backend', 'DevOps'],
+                },
+                transactionTags: 'Engineering:Frontend',
             });
 
             expect(result).toEqual({
@@ -891,27 +847,19 @@ describe('actions/Policy', () => {
         });
 
         it('should handle missing recently used tags', () => {
-            const policyID = 'policy123';
-            const transactionTags = 'Engineering';
-
-            const policyTags: PolicyTagLists = {
-                Tag: {
-                    name: 'Tag',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
                     },
                 },
-            };
-
-            const existingRecentlyUsedTags: RecentlyUsedTags = {};
-
-            const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags,
-                policyRecentlyUsedTags: existingRecentlyUsedTags,
-                policyID,
-                transactionTags,
+                policyRecentlyUsedTags: {},
+                transactionTags: 'Engineering',
             });
 
             expect(result).toEqual({
@@ -920,29 +868,21 @@ describe('actions/Policy', () => {
         });
 
         it('should prevent duplicate tags in recently used array', () => {
-            const policyID = 'policy123';
-            const transactionTags = 'Engineering';
-
-            const policyTags: PolicyTagLists = {
-                Tag: {
-                    name: 'Tag',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
+            const result = buildOptimisticPolicyRecentlyUsedTags({
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
                     },
                 },
-            };
-
-            const existingRecentlyUsedTags: RecentlyUsedTags = {
-                Tag: ['Engineering', 'Marketing', 'Sales'],
-            };
-
-            const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags,
-                policyRecentlyUsedTags: existingRecentlyUsedTags,
-                policyID,
-                transactionTags,
+                policyRecentlyUsedTags: {
+                    Tag: ['Engineering', 'Marketing', 'Sales'],
+                },
+                transactionTags: 'Engineering',
             });
 
             expect(result).toEqual({
@@ -951,39 +891,31 @@ describe('actions/Policy', () => {
         });
 
         it('should handle mismatched recently used tags keys', () => {
-            const policyID = 'policy123';
-            const transactionTags = 'Engineering:Frontend';
-
-            const policyTags: PolicyTagLists = {
-                Tag: {
-                    name: 'Tag',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {
-                        Engineering: {name: 'Engineering', enabled: true},
-                    },
-                },
-                Team: {
-                    name: 'Team',
-                    orderWeight: 1,
-                    required: false,
-                    tags: {
-                        Frontend: {name: 'Frontend', enabled: true},
-                    },
-                },
-            };
-
-            const existingRecentlyUsedTags: RecentlyUsedTags = {
-                OldTag: ['Marketing'],
-                Team: ['Backend'],
-                AnotherOldList: ['SomeTag'],
-            };
-
             const result = buildOptimisticPolicyRecentlyUsedTags({
-                policyTags,
-                policyRecentlyUsedTags: existingRecentlyUsedTags,
-                policyID,
-                transactionTags,
+                policyTags: {
+                    Tag: {
+                        name: 'Tag',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                        },
+                    },
+                    Team: {
+                        name: 'Team',
+                        orderWeight: 1,
+                        required: false,
+                        tags: {
+                            Frontend: {name: 'Frontend', enabled: true},
+                        },
+                    },
+                },
+                policyRecentlyUsedTags: {
+                    OldTag: ['Marketing'],
+                    Team: ['Backend'],
+                    AnotherOldList: ['SomeTag'],
+                },
+                transactionTags: 'Engineering:Frontend',
             });
 
             expect(result).toEqual({
@@ -993,14 +925,10 @@ describe('actions/Policy', () => {
         });
 
         it('should handle empty policy tags', () => {
-            const policyID = 'policy123';
-            const transactionTags = 'Engineering';
-
             const result = buildOptimisticPolicyRecentlyUsedTags({
                 policyTags: {},
                 policyRecentlyUsedTags: {},
-                policyID,
-                transactionTags,
+                transactionTags: 'Engineering',
             });
 
             expect(result).toEqual({
@@ -1041,7 +969,6 @@ describe('actions/Policy', () => {
                 return buildOptimisticPolicyRecentlyUsedTags({
                     policyTags: policyTagsFromOnyx ?? {},
                     policyRecentlyUsedTags: policyRecentlyUsedTagsFromOnyx ?? {},
-                    policyID,
                     transactionTags,
                 });
             }
