@@ -1,6 +1,6 @@
 ---
 title: Create a New Chat
-description: Start a new private, group, or room chat 
+description: Start a new private, group, or room chat
 redirect_from: articles/other/Everything-About-Chat/
 keywords: [Expensify chat, private chat, group chat, chat rooms, start chat, New Expensify]
 ---
@@ -17,7 +17,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 
 🛑 **Note:** You cannot add more people to a private chat. If you wish to include more people later, you’ll need to create a group chat.
 
-1. Click the **+** button in the left-hand menu and select **Start Chat**.
+1. Click the **+** button in the navigation tabs and select **Start Chat**.
 2. Enter the name, email, or phone number of the person you want to chat with.
 3. Click or tap their name to start a new private chat.
 
@@ -25,7 +25,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 
 ## Start a Group Chat
 
-1. Click the green **+** button in the left-hand menu and select **Start Chat**.
+1. Click the green **+** button in the navigation tabs and select **Start Chat**.
 2. Enter the name, email, or phone number of each participant and select **Add to group**.
    - Group participants are listed with a green checkmark.
 3. Click or tap **Next**.
@@ -38,7 +38,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 
 ## Start a Chat Room
 
-1. Click the green **+** button in the left-hand menu and select **Start Chat**.
+1. Click the green **+** button in the navigation tabs and select **Start Chat**.
 2. Click or tap the **#Room** tab at the top.
 3. Enter a unique name for the room.
 4. (Optional) Add a room description.
@@ -59,7 +59,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 
 # FAQ
 
-## What's the difference between a private 1-on-1 chat and a group chat with only two people? 
+## What's the difference between a private 1-on-1 chat and a group chat with only two people?
 
 With a group chat, you can add more participants later. A private chat does not allow new participants to be added.
 

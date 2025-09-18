@@ -37,6 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -44,6 +45,7 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
+    metadata?: SearchResultsInfo;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
@@ -54,7 +56,7 @@ type SearchPageNarrowProps = {
     };
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, footerData}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, metadata, footerData}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -96,6 +98,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                 runOnJS(triggerScrollEvent)();
                 const {contentOffset, layoutMeasurement, contentSize} = event;
                 if (windowHeight > contentSize.height) {
+                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                     return;
                 }
                 const currentOffset = contentOffset.y;
@@ -147,7 +150,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
         );
     }
 
-    const shouldShowFooter = !!footerData?.count;
+    const shouldShowFooter = !!metadata?.count;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 

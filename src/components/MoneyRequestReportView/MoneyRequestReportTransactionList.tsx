@@ -2,29 +2,34 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {useSession} from '@components/OnyxListItemProvider';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import FS from '@libs/Fullstory';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isExpenseReport} from '@libs/ReportUtils';
+import {canAddTransaction, getAddExpenseDropdownOptions, getMoneyRequestSpendBreakdown, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
@@ -35,6 +40,7 @@ import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -46,6 +52,9 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
 
+    /** Policy that the report belongs to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
@@ -55,11 +64,8 @@ type MoneyRequestReportTransactionListProps = {
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
 
-    /** Whether the report that these transactions belong to has any chat comments */
-    hasComments: boolean;
-
-    /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
-    isLoadingInitialReportActions?: boolean;
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
 
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
@@ -108,15 +114,8 @@ const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableCo
             return transaction[key];
     }
 };
-function MoneyRequestReportTransactionList({
-    report,
-    transactions,
-    newTransactions,
-    reportActions,
-    hasComments,
-    isLoadingInitialReportActions: isLoadingReportActions,
-    scrollToNewTransaction,
-}: MoneyRequestReportTransactionListProps) {
+
+function MoneyRequestReportTransactionList({report, transactions, newTransactions, reportActions, violations, scrollToNewTransaction, policy}: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -132,6 +131,9 @@ function MoneyRequestReportTransactionList({
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const session = useSession();
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
+    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(report?.reportID, policy), [report?.reportID, policy]);
 
     const hasPendingAction = useMemo(() => {
         return transactions.some(getTransactionPendingAction);
@@ -139,6 +141,7 @@ function MoneyRequestReportTransactionList({
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const personalDetailsList = usePersonalDetails();
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -260,13 +263,13 @@ function MoneyRequestReportTransactionList({
 
     const listHorizontalPadding = styles.ph5;
 
+    const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
+
     if (isEmptyTransactions) {
         return (
             <>
                 <SearchMoneyRequestReportEmptyState />
                 <MoneyRequestReportTotalSpend
-                    hasComments={hasComments}
-                    isLoadingReportActions={!!isLoadingReportActions}
                     isEmptyTransactions={isEmptyTransactions}
                     totalDisplaySpend={totalDisplaySpend}
                     report={report}
@@ -321,6 +324,7 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
+                            violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                             columns={columnsToShow}
                             report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -333,44 +337,79 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                            forwardedFSClass={transactionItemFSClass}
                         />
                     );
                 })}
             </View>
-            {shouldShowBreakdown && (
-                <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
-                    {[
-                        {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
-                        {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
-                    ].map(({text, value}) => (
-                        <View
-                            key={text}
-                            style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
-                        >
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mr3]}
-                                numberOfLines={1}
-                            >
-                                {translate(text as TranslationPaths)}
-                            </Text>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
-                            >
-                                {value}
-                            </Text>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    shouldShowAddExpenseButton ? styles.justifyContentBetween : styles.justifyContentEnd,
+                    styles.gap2,
+                    listHorizontalPadding,
+                    styles.mb2,
+                    styles.alignItemsStart,
+                    styles.minHeight7,
+                ]}
+            >
+                {shouldShowAddExpenseButton && (
+                    <OfflineWithFeedback
+                        pendingAction={report?.pendingFields?.preview}
+                        style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasis0, styles.mwFitContent]}
+                    >
+                        <ButtonWithDropdownMenu
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText={translate('iou.addExpense')}
+                            options={addExpenseDropdownOptions}
+                            isSplitButton={false}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            success={false}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                <View>
+                    {shouldShowBreakdown && (
+                        <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
+                            {[
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
+                            ].map(({text, value}) => (
+                                <View
+                                    key={text}
+                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
+                                >
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mr3]}
+                                        numberOfLines={1}
+                                    >
+                                        {translate(text as TranslationPaths)}
+                                    </Text>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
+                                    >
+                                        {value}
+                                    </Text>
+                                </View>
+                            ))}
                         </View>
-                    ))}
+                    )}
+
+                    <MoneyRequestReportTotalSpend
+                        isEmptyTransactions={isEmptyTransactions}
+                        totalDisplaySpend={totalDisplaySpend}
+                        report={report}
+                        hasPendingAction={hasPendingAction}
+                    />
                 </View>
-            )}
-            <MoneyRequestReportTotalSpend
-                hasComments={hasComments}
-                isLoadingReportActions={!!isLoadingReportActions}
-                isEmptyTransactions={isEmptyTransactions}
-                totalDisplaySpend={totalDisplaySpend}
-                report={report}
-                hasPendingAction={hasPendingAction}
-            />
+            </View>
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
