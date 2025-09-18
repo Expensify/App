@@ -7,7 +7,7 @@ import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
-import type {MultipleAttachmentsValidationError, SingleAttachmentInvalidResult, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
+import type {SingleAttachmentInvalidResult, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import {getFileValidationErrorText, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
