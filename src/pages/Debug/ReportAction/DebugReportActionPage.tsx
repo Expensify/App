@@ -37,7 +37,7 @@ function DebugReportActionPage({
 
     const getReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
-            return reportActions?.[reportActionID ?? ''];
+            return reportActions?.[reportActionID];
         },
         [reportActionID],
     );
@@ -45,6 +45,7 @@ function DebugReportActionPage({
     const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         selector: getReportActionSelector,
+        canBeMissing: true,
     });
     const transactionID = getLinkedTransactionID(reportAction);
 

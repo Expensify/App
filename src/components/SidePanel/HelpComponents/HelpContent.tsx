@@ -64,9 +64,9 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     const transactionID = useMemo(() => {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
-        return getOriginalMessage((parentIOUReportAction as ReportAction<'IOU'>) ?? transactionThreadReportAction)?.IOUTransactionID ?? '';
+        return getOriginalMessage((parentIOUReportAction as ReportAction<'IOU'>) ?? transactionThreadReportAction)?.IOUTransactionID;
     }, [report, chatReport, reportActions, parentIOUReportAction]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID ?? '')}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;

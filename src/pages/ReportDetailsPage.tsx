@@ -151,7 +151,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const getParentReportActionSelector = useCallback(
         (actions: OnyxEntry<OnyxTypes.ReportActions>): OnyxEntry<OnyxTypes.ReportAction> => {
-            return report?.parentReportActionID ? actions?.[report.parentReportActionID ?? ''] : undefined;
+            return report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined;
         },
         [report?.parentReportActionID],
     );
