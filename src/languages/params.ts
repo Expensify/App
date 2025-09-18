@@ -652,6 +652,7 @@ type DemotedFromWorkspaceParams = {
 type IntegrationExportParams = {
     integration: string;
     type?: string;
+    exportPageLink?: string;
 };
 
 type ConnectionParams = {
@@ -868,6 +869,11 @@ type MergeFailureUncreatedAccountDescriptionParams = {
 
 type MergeFailureDescriptionGenericParams = {
     email: string;
+};
+
+type EnableContinuousReconciliationParams = {
+    connectionName: string;
+    accountingAdvancedSettingsLink: string;
 };
 
 type WorkspaceUpgradeNoteParams = {
@@ -1206,6 +1212,7 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    EnableContinuousReconciliationParams,
     WorkspaceUpgradeNoteParams,
     ChangedApproverMessageParams,
     WorkflowSettingsParam,
