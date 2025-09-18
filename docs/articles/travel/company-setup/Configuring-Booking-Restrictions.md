@@ -4,7 +4,6 @@ description: Learn how travel admins can restrict travel bookings in Expensify b
 keywords: [booking restrictions, restrict travel, block countries, user restrictions, legal entity, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Travel admins can set up booking restrictions and apply them based on user profiles, countries, or legal entities to meet compliance or security requirements.
 
@@ -84,4 +83,3 @@ No. You must explicitly assign users, countries, or legal entities to each restr
 ## Can employees see why their booking is restricted?
 Yes. If a restriction applies, the reason set by the admin will appear during the booking process.
 
-</div>

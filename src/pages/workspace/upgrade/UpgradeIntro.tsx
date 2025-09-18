@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
@@ -7,8 +7,8 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicon from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +16,6 @@ import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -30,11 +29,12 @@ type Props = {
     feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
+    isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -43,13 +43,22 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
-    const formattedPrice = React.useMemo(() => {
+    const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
         return `${convertToShortDisplayString(
-            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][isCategorizing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][isCategorizing || isDistanceRateUpgrade ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
-    }, [preferredCurrency, isCategorizing]);
+    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade]);
+
+    const subscriptionLink = useMemo(() => {
+        if (!subscriptionPlan) {
+            return CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
+        }
+        const currentRoute = Navigation.getActiveRoute();
+        return `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(currentRoute)}`;
+    }, [environmentURL, subscriptionPlan]);
 
     /**
      * If the feature is null or there is no policyID, it indicates the user is not associated with any specific workspace.
@@ -58,7 +67,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
      * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
      * In such scenarios, a separate Categories upgrade UI is displayed.
      */
-    if (!feature || (!isCategorizing && !policyID)) {
+    if (!feature || (!isCategorizing && !isDistanceRateUpgrade && !policyID)) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
@@ -117,23 +126,8 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     large
                 />
             </View>
-            <View style={styles.mt6}>
-                <Text style={[styles.textNormal, styles.textSupporting]}>
-                    {translate('workspace.upgrade.note.upgradeWorkspace')}{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={() => {
-                            if (!subscriptionPlan) {
-                                openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
-                        }}
-                    >
-                        {translate('workspace.upgrade.note.learnMore')}
-                    </TextLink>{' '}
-                    {translate('workspace.upgrade.note.aboutOurPlans')}
-                </Text>
+            <View style={[styles.mt6, styles.renderHTML]}>
+                <RenderHTML html={translate('workspace.upgrade.note', {subscriptionLink})} />
             </View>
         </View>
     );

@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/prefer-early-return */
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -91,6 +92,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
+
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -114,13 +118,13 @@ function MoneyRequestReportActionsList({
     reportActions = [],
     transactions = [],
     newTransactions,
+    violations,
     hasNewerActions,
     hasOlderActions,
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {preferredLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
@@ -149,13 +153,15 @@ function MoneyRequestReportActionsList({
     const personalDetails = usePersonalDetails();
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
+    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -164,6 +170,8 @@ function MoneyRequestReportActionsList({
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
+    const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
@@ -298,7 +306,7 @@ function MoneyRequestReportActionsList({
         if (!isFocused) {
             return;
         }
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
+        if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -352,12 +360,12 @@ function MoneyRequestReportActionsList({
      */
     const earliestReceivedOfflineMessageIndex = useMemo(() => {
         const lastIndex = reportActions.findLastIndex((action) => {
-            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale);
+            return wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime);
         });
 
         // The last index in the list is the earliest message that was received while offline
         return lastIndex > -1 ? lastIndex : undefined;
-    }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, reportActions]);
+    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, reportActions]);
 
     /**
      * The reportActionID the unread marker should display above
@@ -482,9 +490,15 @@ function MoneyRequestReportActionsList({
 
                 // We want to scroll to the end of the list where the newest message is
                 // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
-                setTimeout(() => {
-                    reportScrollManager.scrollToEnd();
-                }, DELAY_FOR_SCROLLING_TO_END);
+                const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
+                if (index !== -1) {
+                    setTimeout(() => {
+                        reportScrollManager.scrollToEnd();
+                    }, DELAY_FOR_SCROLLING_TO_END);
+                } else {
+                    setEnableScrollToEnd(true);
+                    setLastActionEventId(reportAction?.reportActionID);
+                }
             });
         },
         [reportScrollManager, setIsFloatingMessageCounterVisible],
@@ -505,6 +519,16 @@ function MoneyRequestReportActionsList({
         // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
+
+    useEffect(() => {
+        const index = visibleReportActions.findIndex((item) => item.reportActionID === lastActionEventId);
+        if (enableScrollToEnd && index !== -1) {
+            setTimeout(() => {
+                reportScrollManager.scrollToEnd();
+            }, DELAY_FOR_SCROLLING_TO_END);
+            setEnableScrollToEnd(false);
+        }
+    }, [visibleReportActions, lastActionEventId, enableScrollToEnd, reportScrollManager]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -543,6 +567,7 @@ function MoneyRequestReportActionsList({
                     emojiReactions={actionEmojiReactions}
                     isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
+                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 />
             );
         },
@@ -564,6 +589,8 @@ function MoneyRequestReportActionsList({
             userBillingFundID,
             emojiReactions,
             draftMessage,
+            isTryNewDotNVPDismissed,
+            isReportArchived,
         ],
     );
 
@@ -593,7 +620,6 @@ function MoneyRequestReportActionsList({
         },
         [reportScrollManager],
     );
-    const reportHasComments = visibleReportActions.length > 0;
 
     /**
      * Runs when the FlatList finishes laying out
@@ -716,9 +742,9 @@ function MoneyRequestReportActionsList({
                                     transactions={transactions}
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
-                                    hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
+                                    violations={violations}
                                     scrollToNewTransaction={scrollToNewTransaction}
+                                    policy={policy}
                                 />
                             </>
                         }
@@ -745,6 +771,7 @@ function MoneyRequestReportActionsList({
                     setIsExportWithTemplateModalVisible(false);
                     clearSelectedTransactions(undefined, true);
                 }}
+                onCancel={() => setIsExportWithTemplateModalVisible(false)}
                 isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}

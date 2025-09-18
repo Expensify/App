@@ -3,7 +3,6 @@ title: Create Tags
 description: Code expenses by creating tags
 keywords: [Expensify Classic, tags, tag expenses. code expenses]
 ---
-<div id="expensify-classic" markdown="1">
 
 You can tag expenses for a specific department, project, location, cost center, customer, etc. You can also use different tags for each workspace to create customized coding for different employees.
 
@@ -74,4 +73,3 @@ Then use one of the following templates to build your tags list:
 
 If you are connected to an accounting integration, you will not see this feature. You will need to add those tags in your integration first, then sync the connection.
  
-</div>

@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -66,7 +67,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies);
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -110,9 +112,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies]);
+    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -425,28 +427,30 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 style={[styles.searchResultsHeaderBar, styles.flex1, isAutocompleteListVisible && styles.pr1, isAutocompleteListVisible && styles.pl3]}
             >
                 <View style={[styles.appBG, ...autocompleteInputStyle]}>
-                    <SearchInputSelectionWrapper
-                        value={textInputValue}
-                        onSearchQueryChange={onSearchQueryChange}
-                        isFullWidth
-                        onSubmit={() => {
-                            const focusedOption = listRef.current?.getFocusedOption();
-                            if (focusedOption) {
-                                return;
-                            }
-                            submitSearch(textInputValue);
-                        }}
-                        autoFocus={false}
-                        onFocus={showAutocompleteList}
-                        onBlur={hideAutocompleteList}
-                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
-                        wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                        outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                        autocompleteListRef={listRef}
-                        ref={textInputRef}
-                        selection={selection}
-                        substitutionMap={autocompleteSubstitutions}
-                    />
+                    <View style={[styles.flex1]}>
+                        <SearchInputSelectionWrapper
+                            value={textInputValue}
+                            onSearchQueryChange={onSearchQueryChange}
+                            isFullWidth
+                            onSubmit={() => {
+                                const focusedOption = listRef.current?.getFocusedOption();
+                                if (focusedOption) {
+                                    return;
+                                }
+                                submitSearch(textInputValue);
+                            }}
+                            autoFocus={false}
+                            onFocus={showAutocompleteList}
+                            onBlur={hideAutocompleteList}
+                            wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                            wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
+                            outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
+                            autocompleteListRef={listRef}
+                            ref={textInputRef}
+                            selection={selection}
+                            substitutionMap={autocompleteSubstitutions}
+                        />
+                    </View>
                     <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}

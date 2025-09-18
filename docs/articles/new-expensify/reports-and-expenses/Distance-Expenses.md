@@ -4,7 +4,6 @@ description: Learn how to create a distance expense and how the reimbursement ra
 keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace policy, personal policy, map route, reimbursement rate]
 date: 2025-06-18T00:00:00Z
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify makes it easy to submit mileage expenses using a built-in map, whether you're on the web, desktop, or mobile app. This guide explains how to create a distance expense and how the reimbursement rate is determined.
 
@@ -14,7 +13,7 @@ Expensify makes it easy to submit mileage expenses using a built-in map, whether
 
 To submit a mileage-based expense:
 
-1. From the left-hand menu, click the green **+** button and select **Create expense**.
+1. From the navigation tabs, click the green **+** button and select **Create expense**.
 2. Select **Distance** from the top row.
 3. Enter your **Start** and **Finish** locations.
    - To include additional stops, click **Add stop**.
@@ -68,4 +67,3 @@ To create a round-trip distance expense, enter the same location for both the st
 For example, if you're starting and ending in San Francisco but making a stop in Los Angeles, enter:
 **San Francisco → Los Angeles → San Francisco**
 
-</div>

@@ -36,7 +36,6 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    const backTo = Navigation.getActiveRoute();
     const isPreviewsVisible = useSharedValue(false);
     const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
     const previewItemWidth = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
@@ -75,6 +74,14 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
     }, [isMultiScanEnabled, isPreviewsVisible]);
 
     useEffect(() => {
+        const hasRemovedReceipt = receiptsPhotosLength < previousReceiptsPhotosLength;
+
+        if (hasRemovedReceipt) {
+            flatListRef.current?.scrollToOffset({offset: 0, animated: true});
+        }
+    }, [receiptsPhotosLength, previousReceiptsPhotosLength]);
+
+    useEffect(() => {
         const shouldScrollToReceipt = receiptsPhotosLength && receiptsPhotosLength > previousReceiptsPhotosLength && receiptsPhotosLength > Math.floor(initialReceiptsAmount);
         if (!shouldScrollToReceipt) {
             return;
@@ -92,7 +99,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                 accessible
                 accessibilityLabel={translate('common.receipt')}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.getRoute(item.transactionID, backTo))}
+                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
             >
                 <Image
                     source={{uri: item.source}}

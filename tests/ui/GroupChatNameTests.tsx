@@ -34,6 +34,8 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
+jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
+
 jest.mock('@react-navigation/native');
 
 TestHelper.setupApp();

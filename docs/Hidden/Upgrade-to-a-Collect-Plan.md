@@ -2,7 +2,6 @@
 title: Upgrade from a Free plan to Collect
 description: You've been automatically upgraded to a Collect plan
 ---
-<div id="new-expensify" markdown="1">
 
 All customers on a Free plan have been automatically upgraded to a Collect plan!
 
@@ -49,5 +48,3 @@ The discount will be reflected on your monthly Expensify bill as a “Workspace 
 You can reach your Setup Specialist by opening your workspace’s #admins room in your chat inbox and sending a message.
 
 {% include faq-end.md %}
-
-</div>

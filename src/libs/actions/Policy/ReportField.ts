@@ -24,20 +24,6 @@ import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-let listValues: string[];
-let disabledListValues: boolean[];
-Onyx.connect({
-    key: ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        listValues = value[INPUT_IDS.LIST_VALUES] ?? [];
-        disabledListValues = value[INPUT_IDS.DISABLED_LIST_VALUES] ?? [];
-    },
-});
-
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -61,19 +47,17 @@ Onyx.connect({
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
             const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpDrafts: Record<string, null> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpDrafts[reportID] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
-            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
             delete allPolicies[key];
             return;
         }
@@ -81,6 +65,36 @@ Onyx.connect({
         allPolicies[key] = value;
     },
 });
+
+type CreateReportFieldsListValueParams = {
+    valueName: string;
+    listValues: string[];
+    disabledListValues: boolean[];
+};
+
+type RenameReportFieldsListValueParams = {
+    valueIndex: number;
+    newValueName: string;
+    listValues: string[];
+};
+
+type SetReportFieldsListValueEnabledParams = {
+    valueIndexes: number[];
+    enabled: boolean;
+    disabledListValues: boolean[];
+};
+
+type DeleteReportFieldsListValueParams = {
+    valueIndexes: number[];
+    listValues: string[];
+    disabledListValues: boolean[];
+};
+
+type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'> & {
+    listValues: string[];
+    disabledListValues: boolean[];
+    policyID: string;
+};
 
 function openPolicyReportFieldsPage(policyID: string) {
     if (!policyID) {
@@ -107,7 +121,7 @@ function setInitialCreateReportFieldsForm() {
 /**
  * Creates a new list value in the workspace report fields form.
  */
-function createReportFieldsListValue(valueName: string) {
+function createReportFieldsListValue({valueName, listValues, disabledListValues}: CreateReportFieldsListValueParams) {
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.LIST_VALUES]: [...listValues, valueName],
         [INPUT_IDS.DISABLED_LIST_VALUES]: [...disabledListValues, false],
@@ -117,7 +131,7 @@ function createReportFieldsListValue(valueName: string) {
 /**
  * Renames a list value in the workspace report fields form.
  */
-function renameReportFieldsListValue(valueIndex: number, newValueName: string) {
+function renameReportFieldsListValue({valueIndex, newValueName, listValues}: RenameReportFieldsListValueParams) {
     const listValuesCopy = [...listValues];
     listValuesCopy[valueIndex] = newValueName;
 
@@ -129,7 +143,7 @@ function renameReportFieldsListValue(valueIndex: number, newValueName: string) {
 /**
  * Sets the enabled state of a list value in the workspace report fields form.
  */
-function setReportFieldsListValueEnabled(valueIndexes: number[], enabled: boolean) {
+function setReportFieldsListValueEnabled({valueIndexes, enabled, disabledListValues}: SetReportFieldsListValueEnabledParams) {
     const disabledListValuesCopy = [...disabledListValues];
 
     valueIndexes.forEach((valueIndex) => {
@@ -144,7 +158,7 @@ function setReportFieldsListValueEnabled(valueIndexes: number[], enabled: boolea
 /**
  * Deletes a list value from the workspace report fields form.
  */
-function deleteReportFieldsListValue(valueIndexes: number[]) {
+function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValues}: DeleteReportFieldsListValueParams) {
     const listValuesCopy = [...listValues];
     const disabledListValuesCopy = [...disabledListValues];
 
@@ -161,12 +175,10 @@ function deleteReportFieldsListValue(valueIndexes: number[]) {
     });
 }
 
-type CreateReportFieldArguments = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'>;
-
 /**
  * Creates a new report field.
  */
-function createReportField(policyID: string, {name, type, initialValue}: CreateReportFieldArguments) {
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyID}: CreateReportFieldParams) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
@@ -497,7 +509,7 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
-export type {CreateReportFieldArguments};
+export type {CreateReportFieldParams};
 
 export {
     setInitialCreateReportFieldsForm,

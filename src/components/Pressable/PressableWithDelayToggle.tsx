@@ -17,7 +17,7 @@ import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
     /** The text to display */
-    text: string;
+    text?: string;
 
     /** The text to display once the pressable is pressed */
     textChecked?: string;
@@ -55,6 +55,18 @@ type PressableWithDelayToggleProps = PressableProps & {
      * Reference to the outer element
      */
     ref?: PressableRef;
+
+    /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */
+    shouldUseButtonBackground?: boolean;
+
+    /** Whether to always use active (hovered) background by default */
+    shouldHaveActiveBackground?: boolean;
+
+    /** Icon width */
+    iconWidth?: number;
+
+    /** Icon height */
+    iconHeight?: number;
 };
 
 function PressableWithDelayToggle({
@@ -69,8 +81,12 @@ function PressableWithDelayToggle({
     textStyles,
     iconStyles,
     icon,
-    accessibilityRole,
     ref,
+    accessibilityRole,
+    shouldHaveActiveBackground,
+    iconWidth = variables.iconSizeSmall,
+    iconHeight = variables.iconSizeSmall,
+    shouldUseButtonBackground = false,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -89,15 +105,17 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    const labelText = (
-        <Text
-            suppressHighlighting
-            style={textStyles}
-        >
-            {!isActive && textChecked ? textChecked : text}
-            &nbsp;
-        </Text>
-    );
+    const labelText =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
+        text || textChecked ? (
+            <Text
+                suppressHighlighting
+                style={textStyles}
+            >
+                {!isActive && textChecked ? textChecked : text}
+                &nbsp;
+            </Text>
+        ) : null;
 
     return (
         <PressableView
@@ -119,7 +137,16 @@ function PressableWithDelayToggle({
                         tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
-                        style={[styles.flexRow, pressableStyle, !isActive && styles.cursorDefault]}
+                        style={({hovered, pressed}) => [
+                            styles.flexRow,
+                            pressableStyle,
+                            !isActive && styles.cursorDefault,
+                            shouldUseButtonBackground &&
+                                StyleUtils.getButtonBackgroundColorStyle(
+                                    getButtonState(!!shouldHaveActiveBackground || hovered, shouldHaveActiveBackground ? hovered : pressed, !shouldHaveActiveBackground && !isActive),
+                                    true,
+                                ),
+                        ]}
                     >
                         {({hovered, pressed}) => (
                             <>
@@ -129,8 +156,8 @@ function PressableWithDelayToggle({
                                         src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
+                                        width={iconWidth}
+                                        height={iconHeight}
                                         inline={inline}
                                     />
                                 )}
@@ -146,3 +173,4 @@ function PressableWithDelayToggle({
 PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
 export default PressableWithDelayToggle;
+export type {PressableWithDelayToggleProps};

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
@@ -5,6 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx'
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     addSplitExpenseField,
     calculateDiffAmount,
@@ -17,11 +21,15 @@ import {
     createDistanceRequest,
     deleteMoneyRequest,
     getIOUReportActionToApproveOrPay,
+    getPerDiemExpenseInformation,
+    getSendInvoiceInformation,
     initMoneyRequest,
     initSplitExpense,
+    markRejectViolationAsResolved,
     mergeDuplicates,
     payMoneyRequest,
     putOnHold,
+    rejectMoneyRequest,
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
@@ -35,6 +43,7 @@ import {
     trackExpense,
     unholdRequest,
     updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
@@ -72,8 +81,8 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, PersonalDetailsList, Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
-import type {Accountant} from '@src/types/onyx/IOU';
+import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {Accountant, Attendee} from '@src/types/onyx/IOU';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -86,6 +95,7 @@ import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -126,17 +136,30 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-jest.mock('@src/libs/SearchQueryUtils', () => ({
-    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
-        hash: 12345,
-        query: 'test',
-        type: 'invoice',
-        status: '',
-        flatFilters: [],
-    })),
-    getTodoSearchQuery: jest.fn(),
-    buildSearchQueryJSON: jest.fn(),
-}));
+const unapprovedCashHash = 71801560;
+const unapprovedCashSimilarSearchHash = 1832274510;
+jest.mock('@src/libs/SearchQueryUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@src/libs/SearchQueryUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+            hash: unapprovedCashHash,
+            query: 'test',
+            type: 'expense',
+            status: ['drafts', 'outstanding'],
+            filters: {operator: 'eq', left: 'reimbursable', right: 'yes'},
+            flatFilters: [{key: 'reimbursable', filters: [{operator: 'eq', value: 'yes'}]}],
+            inputQuery: '',
+            recentSearchHash: 89,
+            similarSearchHash: unapprovedCashSimilarSearchHash,
+            sortBy: 'tag',
+            sortOrder: 'asc',
+        })),
+        buildCannedSearchQuery: jest.fn(),
+    };
+});
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -695,6 +718,22 @@ describe('actions/IOU', () => {
                                     // They should be linked together
                                     expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                     expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`,
+                                callback: (iouReportMetadata) => {
+                                    Onyx.disconnect(connection);
+
+                                    expect(iouReportMetadata?.isOptimisticReport).toBe(true);
+                                    expect(iouReportMetadata?.hasOnceLoadedReportActions).toBe(true);
 
                                     resolve();
                                 },
@@ -2498,6 +2537,81 @@ describe('actions/IOU', () => {
             });
             expect(searchSnapshot?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBe(undefined);
         });
+
+        it('should add split transactions optimistically on search snapshot when current search filter is on unapprovedCash', async () => {
+            const chatReport: Report = {
+                ...createRandomReport(7),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            // Given a single expense
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const transaction: Transaction = {
+                amount: 100,
+                currency: 'USD',
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                created: DateUtils.getDBTime(),
+                merchant: 'test',
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2),
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    iouReportID: expenseReport.reportID,
+                }),
+                childReportID: transactionThread.reportID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [iouAction.reportActionID]: iouAction,
+            });
+            const splitTransactionID1 = '34';
+            const splitTransactionID2 = '35';
+            const draftTransaction: OnyxEntry<Transaction> = {
+                ...transaction,
+                comment: {
+                    originalTransactionID: transaction.transactionID,
+                    splitExpenses: [
+                        {amount: transaction.amount / 2, transactionID: splitTransactionID1, created: ''},
+                        {amount: transaction.amount / 2, transactionID: splitTransactionID2, created: ''},
+                    ],
+                },
+            };
+
+            // When splitting the expense
+            const hash = 1;
+            saveSplitTransactions(draftTransaction, hash);
+
+            await waitForBatchedUpdates();
+
+            // Then the split expenses/transactions should be added on the search snapshot data
+            const searchSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            expect(searchSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`]).toBeDefined();
+            expect(searchSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`]).toBeDefined();
+        });
     });
 
     describe('payMoneyRequestElsewhere', () => {
@@ -3723,7 +3837,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added
-            addComment(thread.reportID, 'Testing a comment');
+            addComment(thread.reportID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
@@ -3821,7 +3935,7 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
 
-            addComment(thread.reportID, 'Testing a comment');
+            addComment(thread.reportID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Fetch the updated IOU Action from Onyx due to addition of comment to transaction thread.
@@ -3870,7 +3984,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             if (IOU_REPORT_ID) {
-                addComment(IOU_REPORT_ID, 'Testing a comment');
+                addComment(IOU_REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
             }
             await waitForBatchedUpdates();
 
@@ -4388,7 +4502,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (policy) {
-                        deleteWorkspace(policy.id, policy.name, undefined);
+                        deleteWorkspace(policy.id, policy.name, undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -4937,7 +5051,7 @@ describe('actions/IOU', () => {
 
             const chatReportRNVP: ReportNameValuePairs = {private_isArchived: DateUtils.getDBTime()};
 
-            const invoiceReceiver = chatReport?.invoiceReceiver as unknown as {type: string; policyID: string; accountID: number};
+            const invoiceReceiver = chatReport?.invoiceReceiver as {type: string; policyID: string; accountID: number};
 
             const iouReport = {...createRandomReport(1), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
 
@@ -6409,13 +6523,9 @@ describe('actions/IOU', () => {
             // Given a transaction with a receipt
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
-            const searchQueryJSON = {
-                hash: 12345,
-                query: 'test',
-            };
 
             // Given a snapshot of the transaction
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
@@ -6448,7 +6558,7 @@ describe('actions/IOU', () => {
                     waitForCollectionCallback: true,
                     callback: (snapshots) => {
                         Onyx.disconnect(connection);
-                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`];
                         resolve(newSnapshot);
                     },
                 });
@@ -6471,13 +6581,8 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const searchQueryJSON = {
-                hash: 12345,
-                query: 'test',
-            };
-
             // Given a snapshot of the transaction
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
@@ -6510,7 +6615,7 @@ describe('actions/IOU', () => {
                     waitForCollectionCallback: true,
                     callback: (snapshots) => {
                         Onyx.disconnect(connection);
-                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`];
                         resolve(newSnapshot);
                     },
                 });
@@ -6603,7 +6708,7 @@ describe('actions/IOU', () => {
                 return;
             }
 
-            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID);
+            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID, false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL);
 
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
@@ -7518,6 +7623,756 @@ describe('actions/IOU', () => {
 
             // Then: Verify API was called
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
+        });
+    });
+
+    describe('getPerDiemExpenseInformation', () => {
+        it('should return correct per diem expense information with new chat report', () => {
+            // Given: Mock data for per diem expense
+            const mockCustomUnit = {
+                customUnitID: 'per_diem_123',
+                customUnitRateID: 'rate_456',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                attributes: {
+                    dates: {
+                        start: '2024-01-15',
+                        end: '2024-01-15',
+                    },
+                },
+                subRates: [
+                    {
+                        id: 'breakfast_1',
+                        name: 'Breakfast',
+                        rate: 25,
+                        quantity: 1,
+                    },
+                    {
+                        id: 'lunch_1',
+                        name: 'Lunch',
+                        rate: 35,
+                        quantity: 1,
+                    },
+                ],
+                quantity: 1,
+            };
+
+            const mockParticipant = {
+                accountID: 123,
+                login: 'test@example.com',
+                displayName: 'Test User',
+                isPolicyExpenseChat: false,
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+
+            const mockTransactionParams = {
+                currency: 'USD',
+                created: '2024-01-15',
+                category: 'Travel',
+                tag: 'Project A',
+                customUnit: mockCustomUnit,
+                billable: true,
+                attendees: [],
+                reimbursable: true,
+                comment: 'Business trip per diem',
+            };
+
+            const mockParticipantParams = {
+                payeeAccountID: 456,
+                payeeEmail: 'payee@example.com',
+                participant: mockParticipant,
+            };
+
+            const mockPolicyParams = {
+                policy: createRandomPolicy(1),
+                policyCategories: createRandomPolicyCategories(3),
+                policyTagList: createRandomPolicyTags('tagList', 2),
+            };
+
+            // When: Call getPerDiemExpenseInformation
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: {} as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams,
+                participantParams: mockParticipantParams,
+                policyParams: mockPolicyParams,
+                recentlyUsedParams: {},
+                moneyRequestReportID: '1',
+            });
+
+            // Then: Verify the result structure and key values
+            expect(result).toMatchObject({
+                payerAccountID: 123,
+                payerEmail: 'test@example.com',
+                billable: true,
+                reimbursable: true,
+            });
+
+            // Verify chat report was created
+            expect(result.chatReport).toBeDefined();
+            expect(result.chatReport.reportID).toBeDefined();
+
+            // Verify IOU report was created
+            expect(result.iouReport).toBeDefined();
+            expect(result.iouReport.reportID).toBeDefined();
+            expect(result.iouReport.type).toBe(CONST.REPORT.TYPE.IOU);
+
+            // Verify transaction was created with correct per diem data
+            expect(result.transaction).toBeDefined();
+            expect(result.transaction.transactionID).toBeDefined();
+            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
+            expect(result.transaction.hasEReceipt).toBe(true);
+            expect(result.transaction.currency).toBe('USD');
+            expect(result.transaction.category).toBe('Travel');
+            expect(result.transaction.tag).toBe('Project A');
+            expect(result.transaction.comment?.comment).toBe('Business trip per diem');
+
+            // Verify IOU action was created
+            expect(result.iouAction).toBeDefined();
+            expect(result.iouAction.reportActionID).toBeDefined();
+            expect(result.iouAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
+
+            // Verify report preview action
+            expect(result.reportPreviewAction).toBeDefined();
+            expect(result.reportPreviewAction.reportActionID).toBeDefined();
+
+            // Verify Onyx data structure
+            expect(result.onyxData).toBeDefined();
+            expect(result.onyxData.optimisticData).toBeDefined();
+            expect(result.onyxData.successData).toBeDefined();
+            expect(result.onyxData.failureData).toBeDefined();
+
+            // Verify created action IDs for new reports
+            expect(result.createdChatReportActionID).toBeDefined();
+            expect(result.createdIOUReportActionID).toBeDefined();
+        });
+
+        it('should return correct per diem expense information with existing chat report', () => {
+            // Given: Existing chat report
+            const existingChatReport = {
+                reportID: 'chat_123',
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '123': {
+                        accountID: 123,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': {
+                        accountID: 456,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+                iouReportID: 'iou_456',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const mockCustomUnit = {
+                customUnitID: 'per_diem_789',
+                customUnitRateID: 'rate_101',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                attributes: {
+                    dates: {
+                        start: '2024-01-20',
+                        end: '2024-01-20',
+                    },
+                },
+                subRates: [
+                    {
+                        id: 'dinner_1',
+                        name: 'Dinner',
+                        rate: 45,
+                        quantity: 1,
+                    },
+                ],
+                quantity: 2,
+            };
+
+            const mockParticipant = {
+                accountID: 123,
+                login: 'existing@example.com',
+                displayName: 'Existing User',
+                isPolicyExpenseChat: false,
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+
+            const mockTransactionParams = {
+                comment: 'Conference per diem',
+                currency: 'USD',
+                created: '2024-01-20',
+                category: 'Meals',
+                tag: 'Conference',
+                customUnit: mockCustomUnit,
+                billable: false,
+                attendees: [],
+                reimbursable: true,
+            };
+
+            const mockParticipantParams = {
+                payeeAccountID: 456,
+                payeeEmail: 'payee@example.com',
+                participant: mockParticipant,
+            };
+
+            // When: Call getPerDiemExpenseInformation with existing chat report
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: existingChatReport as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                recentlyUsedParams: {},
+            });
+
+            // Then: Verify the result uses existing chat report
+            expect(result.chatReport.reportID).toBe('chat_123');
+            expect(result.chatReport.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+
+            // Verify transaction has correct per diem data
+            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
+            expect(result.transaction.hasEReceipt).toBe(true);
+            expect(result.transaction.currency).toBe('USD');
+            expect(result.transaction.category).toBe('Meals');
+            expect(result.transaction.tag).toBe('Conference');
+            expect(result.transaction.comment?.comment).toBe('Conference per diem');
+
+            // Verify no new chat report action ID since using existing
+            expect(result.createdChatReportActionID).toBeUndefined();
+        });
+
+        it('should handle policy expense chat correctly', () => {
+            // Given: Policy expense chat participant
+            const mockParticipant = {
+                accountID: 123,
+                login: 'policy@example.com',
+                displayName: 'Policy User',
+                isPolicyExpenseChat: true,
+                reportID: 'policy_chat_123',
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+
+            const mockCustomUnit = {
+                customUnitID: 'per_diem_policy',
+                customUnitRateID: 'rate_policy',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                attributes: {
+                    dates: {
+                        start: '2024-01-25',
+                        end: '2024-01-25',
+                    },
+                },
+                subRates: [
+                    {
+                        id: 'lodging_1',
+                        name: 'Lodging',
+                        rate: 150,
+                        quantity: 1,
+                    },
+                ],
+                quantity: 1,
+            };
+
+            const mockTransactionParams = {
+                comment: 'Policy per diem',
+                currency: 'USD',
+                created: '2024-01-25',
+                category: 'Lodging',
+                tag: 'Policy',
+                customUnit: mockCustomUnit,
+                billable: true,
+                attendees: [],
+                reimbursable: true,
+            };
+
+            const mockParticipantParams = {
+                payeeAccountID: 456,
+                payeeEmail: 'payee@example.com',
+                participant: mockParticipant,
+            };
+
+            const mockPolicyParams = {
+                policy: createRandomPolicy(2),
+            };
+
+            // When: Call getPerDiemExpenseInformation for policy expense chat
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: {} as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                policyParams: mockPolicyParams,
+                recentlyUsedParams: {},
+            });
+
+            // Then: Verify policy expense chat handling
+            expect(result.payerAccountID).toBe(123);
+            expect(result.payerEmail).toBe('policy@example.com');
+            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
+            expect(result.transaction.hasEReceipt).toBe(true);
+            expect(result.billable).toBe(true);
+            expect(result.reimbursable).toBe(true);
+        });
+    });
+
+    describe('getSendInvoiceInformation', () => {
+        it('should return correct invoice information with new chat report', () => {
+            // Given: Mock transaction data
+            const mockTransaction = {
+                transactionID: 'transaction_123',
+                reportID: 'report_123',
+                amount: 500,
+                currency: 'USD',
+                created: '2024-01-15',
+                merchant: 'Test Company',
+                category: 'Services',
+                tag: 'Project B',
+                taxCode: 'TAX001',
+                taxAmount: 50,
+                billable: true,
+                comment: {
+                    comment: 'Invoice for consulting services',
+                },
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_123',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+            const mockPolicy = createRandomPolicy(1);
+
+            const mockPolicyCategories = {
+                Services: {
+                    name: 'Services',
+                    enabled: true,
+                },
+            };
+
+            const mockPolicyTagList = {
+                tagList: {
+                    name: 'tagList',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        projectB: {
+                            name: 'Project B',
+                            enabled: true,
+                        },
+                    },
+                },
+            };
+
+            // When: Call getSendInvoiceInformation
+            const result = getSendInvoiceInformation(
+                mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                undefined, // invoiceChatReport
+                undefined, // receipt
+                mockPolicy,
+                mockPolicyTagList as OnyxEntry<PolicyTagLists>,
+                mockPolicyCategories,
+                'Test Company Inc.',
+                'https://testcompany.com',
+                ['Services', 'Consulting'],
+            );
+
+            // Then: Verify the result structure and key values
+            expect(result).toMatchObject({
+                senderWorkspaceID: 'workspace_123',
+                invoiceReportID: expect.any(String),
+                transactionID: expect.any(String),
+                transactionThreadReportID: expect.any(String),
+                createdIOUReportActionID: expect.any(String),
+                reportActionID: expect.any(String),
+                createdChatReportActionID: expect.any(String),
+                reportPreviewReportActionID: expect.any(String),
+            });
+
+            // Verify receiver information
+            expect(result.receiver).toBeDefined();
+            expect(result.receiver.accountID).toBe(123);
+
+            // Verify invoice room (chat report)
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.reportID).toBeDefined();
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+
+            // Verify Onyx data structure
+            expect(result.onyxData).toBeDefined();
+            expect(result.onyxData.optimisticData).toBeDefined();
+            expect(result.onyxData.successData).toBeDefined();
+            expect(result.onyxData.failureData).toBeDefined();
+        });
+
+        it('should return correct invoice information with existing chat report', () => {
+            // Given: Existing invoice chat report
+            const existingInvoiceChatReport = {
+                reportID: 'invoice_chat_123',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '123': {
+                        accountID: 123,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': {
+                        accountID: 456,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+                invoiceReceiver: {
+                    type: 'individual',
+                    accountID: 456,
+                    displayName: 'Client Company',
+                    login: 'client@example.com',
+                },
+            };
+
+            const mockTransaction = {
+                transactionID: 'transaction_456',
+                reportID: 'report_456',
+                amount: 750,
+                currency: 'EUR',
+                created: '2024-01-20',
+                merchant: 'Client Company',
+                category: 'Development',
+                tag: 'Project C',
+                taxCode: 'TAX002',
+                taxAmount: 75,
+                billable: true,
+                comment: {
+                    comment: 'Invoice for development work',
+                },
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_456',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+
+            // When: Call getSendInvoiceInformation with existing chat report
+            const result = getSendInvoiceInformation(
+                mockTransaction,
+                currentUserAccountID,
+                existingInvoiceChatReport as OnyxEntry<Report>,
+                undefined, // receipt
+                undefined, // policy
+                undefined, // policyTagList
+                undefined, // policyCategories
+                'Client Company Ltd.',
+                'https://clientcompany.com',
+            );
+
+            // Then: Verify the result uses existing chat report
+            expect(result.invoiceRoom.reportID).toBe('invoice_chat_123');
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+
+            // Verify transaction data
+            expect(result.transactionID).toBeDefined();
+            expect(result.senderWorkspaceID).toBe('workspace_456');
+        });
+
+        it('should handle receipt attachment correctly', () => {
+            // Given: Transaction with receipt
+            const mockTransaction = {
+                transactionID: 'transaction_789',
+                reportID: 'report_789',
+                amount: 300,
+                currency: 'USD',
+                created: '2024-01-25',
+                merchant: 'Receipt Company',
+                category: 'Equipment',
+                tag: 'Hardware',
+                taxCode: 'TAX003',
+                taxAmount: 30,
+                billable: true,
+                comment: {
+                    comment: 'Invoice with receipt',
+                },
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_789',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const mockReceipt = {
+                source: 'receipt_source_123',
+                name: 'receipt.pdf',
+                state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+            };
+
+            const currentUserAccountID = 123;
+
+            // When: Call getSendInvoiceInformation with receipt
+            const result = getSendInvoiceInformation(
+                mockTransaction,
+                currentUserAccountID,
+                undefined, // invoiceChatReport
+                mockReceipt,
+                undefined, // policy
+                undefined, // policyTagList
+                undefined, // policyCategories
+            );
+
+            // Then: Verify receipt handling
+            expect(result.transactionID).toBeDefined();
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+
+            // Verify Onyx data includes receipt information
+            expect(result.onyxData).toBeDefined();
+            expect(result.onyxData.optimisticData).toBeDefined();
+        });
+
+        it('should handle missing transaction data gracefully', () => {
+            // Given: Minimal transaction data
+            const mockTransaction = {
+                transactionID: 'transaction_minimal',
+                reportID: 'report_minimal',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-01-30',
+                merchant: 'Minimal Company',
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+
+            // When: Call getSendInvoiceInformation with minimal data
+            const result = getSendInvoiceInformation(mockTransaction, currentUserAccountID);
+
+            // Then: Verify function handles missing data gracefully
+            expect(result).toBeDefined();
+            expect(result.transactionID).toBeDefined();
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+            expect(result.receiver).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+        });
+    });
+
+    describe('updateMoneyRequestAttendees', () => {
+        it('should update recent attendees', async () => {
+            // Given a transaction
+            const transaction = createRandomTransaction(1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            // When updating the transaction attendees
+            updateMoneyRequestAttendees(
+                transaction.transactionID,
+                '2',
+                [
+                    {avatarUrl: '', displayName: 'user 1', email: 'user1@gmail.com'},
+                    {avatarUrl: '', displayName: 'user 2', email: 'user2@gmail.com'},
+                    {avatarUrl: '', displayName: 'user 3', email: 'user3@gmail.com'},
+                    {avatarUrl: '', displayName: 'user 4', email: 'user4@gmail.com'},
+                    {avatarUrl: '', displayName: 'user 5', email: 'user5@gmail.com'},
+                    {avatarUrl: '', displayName: 'user 6', email: 'user6@gmail.com'},
+                ],
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the recent attendees should be updated with a maximum of 5 attendees
+            const recentAttendees = await new Promise<OnyxEntry<Attendee[]>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: ONYXKEYS.NVP_RECENT_ATTENDEES,
+                    callback: (attendees) => {
+                        Onyx.disconnect(connection);
+                        resolve(attendees);
+                    },
+                });
+            });
+            expect(recentAttendees?.length).toBe(CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
+        });
+    });
+
+    describe('rejectMoneyRequest', () => {
+        const amount = 10000;
+        const comment = 'This expense is rejected';
+        let chatReport: OnyxEntry<Report>;
+        let iouReport: OnyxEntry<Report>;
+        let transaction: OnyxEntry<Transaction>;
+        let policy: OnyxEntry<Policy>;
+        const TEST_USER_ACCOUNT_ID = 1;
+        const MANAGER_ACCOUNT_ID = 2;
+        const ADMIN_ACCOUNT_ID = 3;
+
+        beforeEach(async () => {
+            // Set up test data
+            policy = createRandomPolicy(1);
+            policy.role = CONST.POLICY.ROLE.ADMIN;
+            policy.autoReporting = true;
+            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY;
+
+            chatReport = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy?.id,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            iouReport = {
+                ...createRandomReport(2),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                total: amount,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                policyID: policy?.id,
+                chatReportID: chatReport?.reportID,
+            };
+
+            transaction = {
+                ...createRandomTransaction(1),
+                reportID: iouReport?.reportID,
+                amount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Test Merchant',
+                transactionID: '1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: ADMIN_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.clearAllMocks();
+        });
+
+        it('should reject a money request and return navigation route', async () => {
+            // Given: An expense report (not IOU) for testing state update
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When: Reject the money request
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+
+            // Then: Should return navigation route to chat report
+            expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
+        });
+
+        it('should add AUTO_REPORTED_REJECTED_EXPENSE violation for expense reports', async () => {
+            // Given: An expense report (not IOU)
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When: Reject the money request
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+            await waitForBatchedUpdates();
+
+            // Then: Verify violation is added
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                        type: CONST.VIOLATION_TYPES.WARNING,
+                        data: expect.objectContaining({
+                            comment,
+                        }),
+                    }),
+                ]),
+            );
+        });
+    });
+
+    describe('markRejectViolationAsResolved', () => {
+        let transaction: OnyxEntry<Transaction>;
+        let iouReport: OnyxEntry<Report>;
+
+        beforeEach(async () => {
+            transaction = createRandomTransaction(1);
+            iouReport = createRandomReport(1);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {comment: 'Test reject reason'},
+                },
+            ]);
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.clearAllMocks();
+        });
+
+        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation', async () => {
+            // When: Mark violation as resolved
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            markRejectViolationAsResolved(transaction.transactionID, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: Verify violation is removed
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    }),
+                ]),
+            );
         });
     });
 });

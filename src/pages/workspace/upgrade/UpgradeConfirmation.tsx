@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import RenderHTML from '@components/RenderHTML';
@@ -11,15 +11,26 @@ import ROUTES from '@src/ROUTES';
 
 type Props = {
     policyName: string;
-    onConfirmUpgrade: () => void;
+    afterUpgradeAcknowledged: () => void;
     isCategorizing?: boolean;
     isTravelUpgrade?: boolean;
+    isDistanceRateUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTravelUpgrade}: Props) {
+function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [subscriptionLink, setSubscriptionLink] = useState('');
+
+    const updateSubscriptionLink = useCallback(() => {
+        const backTo = Navigation.getActiveRoute();
+        setSubscriptionLink(`${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`);
+    }, [environmentURL]);
+
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => updateSubscriptionLink());
+    }, [updateSubscriptionLink]);
 
     const description = useMemo(() => {
         if (isCategorizing) {
@@ -30,22 +41,23 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
             return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
         }
 
-        const backTo = Navigation.getActiveRoute();
-        const subscriptionLink = `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`;
+        if (isDistanceRateUpgrade) {
+            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
+        }
 
         return (
             <View style={[styles.renderHTML, styles.w100]}>
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', {policyName, subscriptionLink})} />
             </View>
         );
-    }, [environmentURL, isCategorizing, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate]);
+    }, [isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     return (
         <ConfirmationPage
             heading={translate('workspace.upgrade.completed.headline')}
             descriptionComponent={description}
             shouldShowButton
-            onButtonPress={onConfirmUpgrade}
+            onButtonPress={afterUpgradeAcknowledged}
             buttonText={translate('workspace.upgrade.completed.gotIt')}
             containerStyle={styles.h100}
         />
