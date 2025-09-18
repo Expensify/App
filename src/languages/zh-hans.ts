@@ -1312,6 +1312,7 @@ const translations = {
         keepAll: '保留全部',
         confirmApprove: '确认批准金额',
         confirmApprovalAmount: '仅批准合规的费用，或批准整个报告。',
+        confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
         confirmApprovalAllHoldAmount: () => ({
             one: '此费用已暂停。您仍然想要批准吗？',
             other: '这些费用已被搁置。您仍然想要批准吗？',

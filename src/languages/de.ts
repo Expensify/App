@@ -1334,6 +1334,7 @@ const translations = {
         keepAll: 'Alles behalten',
         confirmApprove: 'Betrag der Genehmigung bestätigen',
         confirmApprovalAmount: 'Genehmigen Sie nur konforme Ausgaben oder genehmigen Sie den gesamten Bericht.',
+        confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
         confirmApprovalAllHoldAmount: () => ({
             one: 'Diese Ausgabe ist zurückgestellt. Möchten Sie trotzdem genehmigen?',
             other: 'Diese Ausgaben sind zurückgestellt. Möchten Sie trotzdem genehmigen?',
