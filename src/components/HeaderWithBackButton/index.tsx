@@ -272,10 +272,7 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator
-                                    style={[styles.touchableButtonImage]}
-                                    size="small"
-                                />
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>

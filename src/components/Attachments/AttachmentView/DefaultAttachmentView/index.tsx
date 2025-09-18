@@ -62,7 +62,6 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
                 <View style={styles.ml2}>
                     <Tooltip text={isUploading ? translate('common.uploading') : translate('common.downloading')}>
                         <ActivityIndicator
-                            size="small"
                             color={theme.textSupporting}
                             testID="attachment-loading-spinner"
                         />

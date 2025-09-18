@@ -200,7 +200,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     )}
                                     {!isTotalUpdated && !isOffline ? (
                                         <ActivityIndicator
-                                            size="small"
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}
                                         />

@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
@@ -25,7 +26,6 @@ import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import ActivityIndicator from '@components/ActivityIndicator';
 
 type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
 
@@ -114,9 +114,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                         <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                             {!hasResultOfFetchingSetupLink ? (
-                                <ActivityIndicator
-                                    size="small"
-                                />
+                                <ActivityIndicator />
                             ) : (
                                 <CopyTextToClipboard
                                     text={codatSetupLink}

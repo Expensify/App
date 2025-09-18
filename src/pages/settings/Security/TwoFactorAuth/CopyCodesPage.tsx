@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -28,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import ActivityIndicator from '@components/ActivityIndicator';
 import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -91,7 +91,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator/>
+                                    <ActivityIndicator />
                                 </View>
                             ) : (
                                 <>

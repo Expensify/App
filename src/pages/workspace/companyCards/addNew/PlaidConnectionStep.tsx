@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
@@ -23,7 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ActivityIndicator from '@components/ActivityIndicator';
 
 function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID?: string}) {
     const {translate} = useLocalize();
@@ -188,9 +188,7 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
         if (plaidData?.isLoading) {
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        size="large"
-                    />
+                    <ActivityIndicator size="large" />
                 </View>
             );
         }

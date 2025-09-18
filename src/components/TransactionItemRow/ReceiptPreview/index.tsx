@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import type {LayoutChangeEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
@@ -15,7 +16,6 @@ import variables from '@styles/variables';
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import ActivityIndicator from '@components/ActivityIndicator';
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
@@ -108,9 +108,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                 <View style={[styles.w100]}>
                     {isLoading && (
                         <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                            <ActivityIndicator
-                                size="large"
-                            />
+                            <ActivityIndicator size="large" />
                         </View>
                     )}
 

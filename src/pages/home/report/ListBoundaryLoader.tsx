@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import Text from '@components/Text';
@@ -8,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ActivityIndicator from '@components/ActivityIndicator';
 
 type ListBoundaryLoaderProps = {
     /** type of rendered loader. Can be 'header' or 'footer' */
@@ -100,9 +100,7 @@ function ListBoundaryLoader({
         // the styles for android and the rest components are different that's why we use two different components
         return (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.listBoundaryLoader]}>
-                <ActivityIndicator
-                    size="small"
-                />
+                <ActivityIndicator />
             </View>
         );
     }

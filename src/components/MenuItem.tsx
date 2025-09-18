@@ -778,10 +778,7 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        size="small"
-                                                                        color={theme.textSupporting}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar

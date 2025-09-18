@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -27,7 +28,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ActivityIndicator from '@components/ActivityIndicator';
 
 function BaseTextInput({
     label = '',
@@ -442,7 +442,6 @@ function BaseTextInput({
                             )}
                             {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
-                                    size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
                                         StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),

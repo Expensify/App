@@ -4,6 +4,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -51,7 +52,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import ActivityIndicator from '@components/ActivityIndicator';
 
 type WalletPageProps = {
     /** Listen for window resize event on web and desktop. */

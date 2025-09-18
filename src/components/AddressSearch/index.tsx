@@ -340,7 +340,7 @@ function AddressSearch(
     const listLoader = useMemo(
         () => (
             <View style={[styles.pv4]}>
-                <ActivityIndicator size="small" />
+                <ActivityIndicator />
             </View>
         ),
         [styles.pv4],

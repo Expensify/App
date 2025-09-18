@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -37,7 +38,6 @@ import type SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import ActivityIndicator from '@components/ActivityIndicator';
 import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';

@@ -1,6 +1,7 @@
 import {format, parseISO} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -38,7 +39,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import ActivityIndicator from '@components/ActivityIndicator';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
@@ -177,11 +177,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     ) : null}
                     <MenuItemWithTopDescription
                         shouldShowRightComponent={card?.isLoadingLastUpdated}
-                        rightComponent={
-                            <ActivityIndicator
-                                style={[styles.popoverMenuIcon]}
-                            />
-                        }
+                        rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
                         description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
                         title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                         interactive={false}
