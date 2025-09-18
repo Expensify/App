@@ -1,3 +1,4 @@
+# https://docs.codecov.com/docs/codecovyml-reference
 coverage:
   status:
     project:
@@ -13,9 +14,3 @@ flags:
   unit:
     paths:
       - src/
-
-ignore:
-  - tests/**
-  - __mocks__/**
-  - jest/**
-
