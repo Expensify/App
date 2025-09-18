@@ -8,10 +8,6 @@ Actions - For the sake of this document, actions are the files stored in `/src/l
 
 ## Rules
 ### - Actions MUST be the only means to write or read data from the server
-### - Actions MUST NOT return data or promises
-This encourages the actions to be called in parallel with no dependency on other methods
-
-### - Actions MUST be called in parallel and never in sequence
 ### - Actions SHOULD use `Onyx.merge()` rather than `Onyx.set()`
 This improves performance and lessons the chance that one action will overwrite the changes made by another action.
 
