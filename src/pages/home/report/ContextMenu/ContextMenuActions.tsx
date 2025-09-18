@@ -852,7 +852,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.deleteAction',
+        textTranslateKey: 'common.delete',
         icon: Expensicons.Trashcan,
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions}) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
@@ -904,7 +904,7 @@ const restrictedReadOnlyActions: TranslationPaths[] = [
     'reportActionContextMenu.replyInThread',
     'reportActionContextMenu.editAction',
     'reportActionContextMenu.joinThread',
-    'reportActionContextMenu.deleteAction',
+    'common.delete',
 ];
 
 const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter(
