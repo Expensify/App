@@ -200,10 +200,10 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
-        // case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
-        // case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
-        // case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
-        //     return ValidationUtils.isNumeric(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+            return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
         default:
             return false;
     }
