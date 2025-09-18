@@ -304,68 +304,7 @@ function MoneyRequestView({
         amountTitle = translate('iou.receiptStatusTitle');
     }
 
-    const updatedTransactionDescription = useMemo(() => {
-        if (!updatedTransaction) {
-            return undefined;
-        }
-        return getDescription(updatedTransaction ?? null);
-    }, [updatedTransaction]);
-    const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
-
-    const saveBillable = useCallback(
-        (newBillable: boolean) => {
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
-                return;
-            }
-            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
-        },
-        [transaction, report?.reportID, policy, policyTagList, policyCategories],
-    );
-
-    const saveReimbursable = useCallback(
-        (newReimbursable: boolean) => {
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
-                return;
-            }
-            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
-        },
-        [transaction, report, policy, policyTagList, policyCategories],
-    );
-
-    if (isCardTransaction) {
-        if (transactionPostedDate) {
-            dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
-        }
-        if (formattedOriginalAmount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
-        }
-        if (isExpenseSplit(transaction, originalTransaction)) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
-        }
-        if (isCancelled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        }
-    } else {
-        if (!isDistanceRequest && !isPerDiemRequest) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
-        }
-        if (isExpenseSplit(transaction, originalTransaction)) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
-        }
-        if (isCancelled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        } else if (isApproved) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (shouldShowPaid) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
-        }
-    }
-
-    const hasErrors = hasMissingSmartscanFields(transaction);
-    const pendingAction = transaction?.pendingAction;
+    ngAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
