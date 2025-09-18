@@ -2468,7 +2468,12 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `查看您的[工作区设置](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    '以下是查看和更新您工作区设置的方法：\n' + '1. 点击工作区。\n' + '2. 选择您的工作区。\n' + '3. 查看和更新您的设置。\n' + `[前往您的工作区。](${workspaceSettingsLink})`,
+                    '以下是查看和更新您工作区设置的方法：\n' + 
+                    '\n' +
+                    '1. 点击工作区。\n' +
+                    '2. 选择您的工作区。\n' +
+                    '3. 查看和更新您的设置。\n' +
+                    `[前往您的工作区。](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: '创建您的第一份报告',
