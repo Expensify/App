@@ -15,6 +15,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import type DeeplinkWrapperProps from './types';
 
 function isMacOSWeb(): boolean {
@@ -47,7 +48,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef<(() => void) | undefined>(undefined);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => !!account?.delegatedAccess?.delegate,
+        selector: isActingAsDelegateSelector,
         canBeMissing: true,
     });
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
