@@ -60,7 +60,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         reportID = parentReport?.reportID;
     }
     const originalReportID = getOriginalReportID(reportID, reportAction);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     const severities: SeverityItemList = [

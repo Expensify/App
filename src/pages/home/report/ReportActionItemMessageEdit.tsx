@@ -132,7 +132,7 @@ function ReportActionItemMessageEdit(
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
     const originalReportID = getOriginalReportID(reportID, action);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
@@ -294,7 +294,7 @@ function ReportActionItemMessageEdit(
         }
         editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived, isOriginalParentReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
+    }, [reportID, action, deleteDraft, draft, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 
     /**
      * @param emoji
