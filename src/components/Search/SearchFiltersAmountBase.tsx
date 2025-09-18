@@ -1,5 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -27,7 +28,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [selectedModifier, setSelectedModifier] = useState<typeof CONST.SEARCH.AMOUNT_MODIFIERS[keyof typeof CONST.SEARCH.AMOUNT_MODIFIERS] | null>(null);
+    const [selectedModifier, setSelectedModifier] = useState<(typeof CONST.SEARCH.AMOUNT_MODIFIERS)[keyof typeof CONST.SEARCH.AMOUNT_MODIFIERS] | null>(null);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
@@ -126,7 +127,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         }
     };
 
-    const handleModifierSelect = (modifier: typeof CONST.SEARCH.AMOUNT_MODIFIERS[keyof typeof CONST.SEARCH.AMOUNT_MODIFIERS]) => {
+    const handleModifierSelect = (modifier: ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>) => {
         setSelectedModifier(modifier);
     };
 
@@ -143,18 +144,21 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         description={equalToFormattedAmount}
                         onPress={() => handleModifierSelect(CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO)}
                         shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
                     />
                     <MenuItem
                         title={translate('search.filters.amount.greaterThan')}
                         description={greaterThanFormattedAmount}
                         onPress={() => handleModifierSelect(CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN)}
                         shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
                     />
                     <MenuItem
                         title={translate('search.filters.amount.lessThan')}
                         description={lessThanFormattedAmount}
                         onPress={() => handleModifierSelect(CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN)}
                         shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
                     />
                     <View style={styles.flexGrow1} />
                     <Button
