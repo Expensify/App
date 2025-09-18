@@ -85,7 +85,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(route.params?.backTo, route.params?.threadReportID, transaction, duplicates));
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates));
     }, [route.params?.backTo, route.params?.threadReportID, transaction, duplicates]);
 
     const transactionPreview = transaction;

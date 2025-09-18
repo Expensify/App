@@ -225,7 +225,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     }
                     Navigation.navigate(
                         getReviewNavigationRoute(
-                            route.params.backTo,
+                            Navigation.getActiveRoute(),
                             reportID,
                             transaction,
                             removeSettledAndApprovedTransactions(Object.values(duplicateTransactions ?? {}).filter((t) => t?.transactionID !== transaction?.transactionID)),

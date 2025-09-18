@@ -73,7 +73,7 @@ function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, perso
     };
 }
 
-const getReviewNavigationRoute = (backTo: Route | undefined, threadReportID: string, transaction: OnyxEntry<OnyxTypes.Transaction>, duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
+const getReviewNavigationRoute = (backTo: string, threadReportID: string, transaction: OnyxEntry<OnyxTypes.Transaction>, duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
