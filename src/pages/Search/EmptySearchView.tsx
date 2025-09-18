@@ -88,6 +88,9 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
+const policiesSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
+
 function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections} = useSearchTypeMenuSections();
@@ -95,7 +98,7 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
+        selector: policiesSelector,
     });
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});

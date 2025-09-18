@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,6 +58,8 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         customUnits: policy.customUnits,
     };
 
+const policiesSelector = (policies: OnyxCollection<Policy>) => mapOnyxCollectionItems(policies, policySelector);
+
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
@@ -77,7 +79,7 @@ function IOURequestStepParticipants({
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
     });
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];

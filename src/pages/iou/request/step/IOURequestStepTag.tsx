@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {activePolicySelector} from '@src/selectors/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -43,7 +44,7 @@ function IOURequestStepTag({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+        selector: activePolicySelector,
     });
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const policy = isExpenseUnreported ? activePolicy : reportPolicy;

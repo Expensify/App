@@ -198,6 +198,8 @@ type MoneyRequestConfirmationListProps = {
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
 
+const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
+
 function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
@@ -244,11 +246,11 @@ function MoneyRequestConfirmationList({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});

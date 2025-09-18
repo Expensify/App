@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,9 +22,11 @@ type PriorityModeItem = {
     isSelected: boolean;
 };
 
+const priorityModeSelector = (mode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => mode ?? CONST.PRIORITY_MODE.DEFAULT;
+
 function PriorityModePage() {
     const {translate} = useLocalize();
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (mode) => mode ?? CONST.PRIORITY_MODE.DEFAULT});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: priorityModeSelector});
     const styles = useThemeStyles();
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,

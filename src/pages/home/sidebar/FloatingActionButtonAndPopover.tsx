@@ -89,6 +89,8 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
+const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => mapOnyxCollectionItems(policies, policySelector);
+
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
 /**
@@ -116,7 +118,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
