@@ -1,80 +1,88 @@
 import CONST from "@src/CONST";
+import type {ValueOf} from "type-fest";
+import type {TranslationPaths} from '@src/languages/types';
 
 
-type SearchDataTypes = typeof CONST.SEARCH.DATA_TYPES.EXPENSE | typeof CONST.SEARCH.DATA_TYPES.CHAT;
+type SearchDataTypes = typeof CONST.NEW_SEARCH.FILTERS.VALUES.EXPENSE | typeof CONST.NEW_SEARCH.FILTERS.VALUES.CHAT;
+type SearchFilterModifiers = typeof CONST.NEW_SEARCH.FILTERS.MODIFIERS.ON | typeof CONST.NEW_SEARCH.FILTERS.MODIFIERS.AFTER | typeof CONST.NEW_SEARCH.FILTERS.MODIFIERS.BEFORE;
 
 type FilterConfig = {
-    value: string;
-    displayValue: TranslationPath;
+    key: ValueOf<typeof CONST.NEW_SEARCH.FILTERS.KEYS>;
+    displayText: TranslationPaths;
     component: React.ComponentType<any>;
     dataTypes: SearchDataTypes[]; // Which data types this filter applies to
-    formKey?: SearchAdvancedFiltersKey; // Form field key
-    validate?: (value: any) => boolean;
-    getOptions?: (data: any) => SelectItem[];
+    validate?: (values) => boolean;
+    getOptions?: (values) => SelectItem[];
+    modifiers: SearchFilterModifiers[];
     routeKey: string;
     isExposed?: (context: SearchDataTypes) => boolean;
 }
 
-const FilterConfig: FilterConfig[] = [
+const filterConfig: FilterConfig[] = [
     {
-        key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.TYPE,
+        key: CONST.NEW_SEARCH.FILTERS.KEYS.TYPE,
         displayText: 'common.type',
         component: RadioButtons,
-        dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.FILTERS.VALUES.CHAT],
+        dataTypes: [CONST.NEW_SEARCH.FILTERS.VALUES.EXPENSE, CONST.NEW_SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
-        getOptions: () => [CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.CHAT],
-        routeKey: CONST.SEARCH.NEW_SEARCH.FILTERS.KEYS.TYPE,
+        getOptions: () => [CONST.NEW_SEARCH.FILTERS.VALUES.EXPENSE, CONST.NEW_SEARCH.FILTERS.VALUES.CHAT],
+        modifiers: [],
+        routeKey: CONST.NEW_SEARCH.FILTERS.KEYS.TYPE,
         isExposed: (context) => true,
     },
     {
-        key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.STATUS,
+        key: CONST.NEW_SEARCH.FILTERS.KEYS.STATUS,
         displayText: 'common.status',
         component: CheckboxList,
-        dataTypes: [CONST.SEARCH.FILTERS.VALUES.CHAT],
+        dataTypes: [CONST.NEW_SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
-        getOptions: () => [CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.ALL, CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.DRAFTS],
-        routeKey: CONST.SEARCH.NEW_SEARCH.FILTERS.KEYS.STATUS,
+        getOptions: () => [CONST.NEW_SEARCH.FILTERS.VALUES.ALL, CONST.NEW_SEARCH.FILTERS.VALUES.DRAFTS],
+        modifiers: [],
+        routeKey: CONST.NEW_SEARCH.FILTERS.KEYS.STATUS,
         isExposed: (context) => true,
     },
     {
-        key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.DATE,
+        key: CONST.NEW_SEARCH.FILTERS.KEYS.DATE,
         displayText: 'common.date',
         component: DatePicker,
-        dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.FILTERS.VALUES.CHAT],
+        dataTypes: [CONST.NEW_SEARCH.FILTERS.VALUES.EXPENSE, CONST.NEW_SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
-        getOptions: () => [CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.LAST_MONTH, CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.THIS_MONTH],
-        modifiers: [CONST.SEARCH.NEW_SEARCH.FILTERS.MODIFIERS.ON, CONST.SEARCH.NEW_SEARCH.FILTERS.MODIFIERS.AFTER, CONST.SEARCH.NEW_SEARCH.FILTERS.MODIFIERS.BEFORE],
-        routeKey: CONST.SEARCH.NEW_SEARCH.FILTERS.KEYS.DATE,
+        getOptions: () => [CONST.NEW_SEARCH.FILTERS.VALUES.LAST_MONTH, CONST.NEW_SEARCH.FILTERS.VALUES.THIS_MONTH],
+        modifiers: [CONST.NEW_SEARCH.FILTERS.MODIFIERS.ON, CONST.NEW_SEARCH.FILTERS.MODIFIERS.AFTER, CONST.NEW_SEARCH.FILTERS.MODIFIERS.BEFORE],
+        routeKey: CONST.NEW_SEARCH.FILTERS.KEYS.DATE,
         isExposed: (context) => true,
     },
     {
-        key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.KEYWORD,
+        key: CONST.NEW_SEARCH.FILTERS.KEYS.KEYWORD,
         displayText: 'common.keyword',
         component: TextInput,
-        dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.FILTERS.VALUES.CHAT],
+        dataTypes: [CONST.NEW_SEARCH.FILTERS.VALUES.EXPENSE, CONST.NEW_SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
         getOptions: () => [],
-        routeKey: CONST.SEARCH.NEW_SEARCH.FILTERS.KEYS.KEYWORD,
+        modifiers: [],
+        routeKey: CONST.NEW_SEARCH.FILTERS.KEYS.KEYWORD,
         isExposed: (context) => false,
     },
     {
-        key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.AMOUNT,
+        key: CONST.NEW_SEARCH.FILTERS.KEYS.AMOUNT,
         displayText: 'common.amount',
         component: TextInput,
-        dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE],
+        dataTypes: [CONST.NEW_SEARCH.FILTERS.VALUES.EXPENSE],
         validate: () => true,
         getOptions: () => [],
-        routeKey: CONST.SEARCH.NEW_SEARCH.FILTERS.KEYS.AMOUNT,
+        modifiers: [],
+        routeKey: CONST.NEW_SEARCH.FILTERS.KEYS.AMOUNT,
         isExposed: (context) => false,
     },
     {
-        key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.REIMBURSABLE,
+        key: CONST.NEW_SEARCH.FILTERS.KEYS.REIMBURSABLE,
         displayText: 'common.reimbursable',
         component: RadioButtons,
-        dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE],
+        dataTypes: [CONST.NEW_SEARCH.FILTERS.VALUES.EXPENSE],
         validate: () => true,
-        getOptions: () => [CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.YES, CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.NO],
-        routeKey: CONST.SEARCH.NEW_SEARCH.FILTERS.KEYS.REIMBURSABLE,
+        getOptions: () => [CONST.NEW_SEARCH.FILTERS.VALUES.YES, CONST.NEW_SEARCH.FILTERS.VALUES.NO],
+        modifiers: [],
+        routeKey: CONST.NEW_SEARCH.FILTERS.KEYS.REIMBURSABLE,
         isExposed: (context) => false,
     },
 ]
