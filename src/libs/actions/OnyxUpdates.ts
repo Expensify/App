@@ -46,7 +46,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
                   Log.warn(`${String(error)}, retrying Onyx update`);
                   return updateHandler(response.onyxData);
               }
-              throw error;
+              Log.warn(String(error));
           })
         : Promise.resolve();
 
