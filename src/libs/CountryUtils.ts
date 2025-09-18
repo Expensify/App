@@ -5,7 +5,9 @@ import CONST from '@src/CONST';
  * Handles the case where old data has "United States" instead of "US".
  */
 function getCountryCode(countryValue: string | undefined): string {
-    if (!countryValue) return '';
+    if (!countryValue) {
+        return '';
+    }
 
     for (const [code, name] of Object.entries(CONST.ALL_COUNTRIES)) {
         if (name === countryValue) {
