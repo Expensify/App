@@ -1929,6 +1929,7 @@ function getSearchOptions(
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
     const optionList = getValidOptions(options, {
         betas,
         includeRecentReports,
