@@ -1,7 +1,6 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
-import {preloadCoreIcons} from '@libs/IconPreloader';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -59,11 +58,6 @@ export default function () {
 
     // Preload all icons early in app initialization
     // This runs outside React lifecycle for optimal performance
-    preloadCoreIcons().catch((error) => {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to preload core icons:', error);
-    });
-
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,7 +20,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('InvoiceBlue'));
+    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadIllustration('InvoiceBlue'));
 
     return (
         <AccessOrNotFoundWrapper

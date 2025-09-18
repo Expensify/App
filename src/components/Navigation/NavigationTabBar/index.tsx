@@ -4,7 +4,9 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+// import * as Expensicons from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -79,6 +81,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
+    const {asset: ExpensifyAppIcon} = useMemoizedLazyAsset(() => loadExpensifyIcon('ExpensifyAppIcon'));
+    const {asset: Inbox} = useMemoizedLazyAsset(() => loadExpensifyIcon('Inbox'));
+    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadExpensifyIcon('MoneySearch'));
+    const {asset: Buildings} = useMemoizedLazyAsset(() => loadExpensifyIcon('Buildings'));
 
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
@@ -213,7 +219,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         >
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
-                                src={Expensicons.ExpensifyAppIcon}
+                                src={ExpensifyAppIcon}
                             />
                         </PressableWithFeedback>
                         <EducationalTooltip
@@ -238,7 +244,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                     <>
                                         <View>
                                             <Icon
-                                                src={Expensicons.Inbox}
+                                                src={Inbox}
                                                 fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
                                                 width={variables.iconBottomBar}
                                                 height={variables.iconBottomBar}
@@ -280,7 +286,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 <>
                                     <View>
                                         <Icon
-                                            src={Expensicons.MoneySearch}
+                                            src={MoneySearch}
                                             fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
@@ -311,7 +317,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 <>
                                     <View>
                                         <Icon
-                                            src={Expensicons.Buildings}
+                                            src={Buildings}
                                             fill={getIconFill(selectedTab === NAVIGATION_TABS.WORKSPACES, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
@@ -379,7 +385,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     >
                         <View>
                             <Icon
-                                src={Expensicons.Inbox}
+                                src={Inbox}
                                 fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
                                 width={variables.iconBottomBar}
                                 height={variables.iconBottomBar}
@@ -411,7 +417,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 >
                     <View>
                         <Icon
-                            src={Expensicons.MoneySearch}
+                            src={MoneySearch}
                             fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
@@ -442,7 +448,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 >
                     <View>
                         <Icon
-                            src={Expensicons.Buildings}
+                            src={Buildings}
                             fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}

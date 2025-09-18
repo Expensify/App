@@ -7,7 +7,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
@@ -111,7 +111,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
-    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Tag'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadIllustration('Tag'));
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {

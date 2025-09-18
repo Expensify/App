@@ -5,6 +5,8 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -55,6 +57,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useThemeIllustrations();
+    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadIllustration('MoneySearch'));
+
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
@@ -62,6 +66,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [allBankCards, allBankCardsMetadata] = useCardsList(policyID, bank as CompanyCardFeed);
     const card = allBankCards?.[cardID];
+
 
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -194,7 +199,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         interactive={false}
                     />
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
                         onPress={() => {

@@ -1,11 +1,12 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineReceivableAccount} from '@libs/actions/connections/QuickbooksOnline';
@@ -30,6 +31,7 @@ type CardListItem = ListItem & {
 function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT>>();
@@ -64,7 +66,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}

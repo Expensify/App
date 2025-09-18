@@ -2,7 +2,8 @@ import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, use
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import type BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -24,7 +25,7 @@ import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
-    icon = Expensicons.ThreeDots,
+    icon,
     iconFill,
     iconStyles,
     onIconPress = () => {},
@@ -54,6 +55,7 @@ function ThreeDotsMenu({
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const {asset: ThreeDots} = useMemoizedLazyAsset(() => loadExpensifyIcon('ThreeDots'));
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
@@ -153,7 +155,7 @@ function ThreeDotsMenu({
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon
-                            src={icon}
+                            src={icon ?? ThreeDots}
                             fill={(iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon}
                         />
                     </PressableWithoutFeedback>

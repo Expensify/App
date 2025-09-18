@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -36,7 +36,7 @@ function EmptyWorkspaceView() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
-    const {asset: TeleScopeIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Telescope'));
+    const {asset: TeleScopeIcon} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     return (
         <>

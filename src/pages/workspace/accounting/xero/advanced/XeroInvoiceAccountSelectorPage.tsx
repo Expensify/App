@@ -1,7 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -24,7 +25,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
-
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
     const {config} = policy?.connections?.xero ?? {};
     const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccounts(policy ?? undefined, invoiceCollectionsAccountID), [invoiceCollectionsAccountID, policy]);
@@ -51,7 +52,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.xero.noAccountsFound')}
@@ -59,7 +60,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, TeleScope],
     );
 
     return (

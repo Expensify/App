@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -14,6 +13,8 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
 
@@ -21,11 +22,12 @@ function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const {asset: MoneyWings} = useMemoizedLazyAsset(() => loadIllustration('MoneyWings'));
 
     return (
         <View>
             <Section
-                icon={Illustrations.MoneyWings}
+                icon={MoneyWings}
                 title={translate('walletPage.addYourBankAccount')}
                 titleStyles={[styles.textHeadlineLineHeightXXL]}
             >

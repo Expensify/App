@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {Plus} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -85,7 +85,7 @@ function WorkspaceReportFieldsPage({
     }, [policy]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
-    const {asset: ReportReceipt} = useMemoizedLazyAsset(() => loadSmartIllustration('ReportReceipt'));
+    const {asset: ReportReceipt} = useMemoizedLazyAsset(() => loadIllustration('ReportReceipt'));
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {

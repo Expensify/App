@@ -4,7 +4,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
@@ -37,11 +37,11 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('MoneyReceipts'));
-    const {asset: CreditCardsNewIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CreditCardsNew'));
-    const {asset: MoneyWingsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('MoneyWings'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
-    const {asset: ExpensifyCardIllustrationIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('ExpensifyCardIllustration'));
+    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadIllustration('MoneyReceipts'));
+    const {asset: CreditCardsNewIcon} = useMemoizedLazyAsset(() => loadIllustration('CreditCardsNew'));
+    const {asset: MoneyWingsIcon} = useMemoizedLazyAsset(() => loadIllustration('MoneyWings'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
+    const {asset: ExpensifyCardIllustrationIcon} = useMemoizedLazyAsset(() => loadIllustration('ExpensifyCardIllustration'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -67,7 +67,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         }
     }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
 
-    const expensifyCardFeatures = useMemo(() => {
+    const expensifyCardFeatures: FeatureListItem[] = useMemo(() => {
         const features = [
             {
                 icon: MoneyReceiptsIcon,

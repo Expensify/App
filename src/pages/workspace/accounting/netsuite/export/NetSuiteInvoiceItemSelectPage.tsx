@@ -1,9 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteInvoiceItem} from '@libs/actions/connections/NetSuiteCommands';
@@ -20,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const policyID = policy?.id;
 
@@ -41,7 +43,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noItemsFound')}

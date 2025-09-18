@@ -7,7 +7,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
@@ -92,7 +92,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
-    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('FolderOpen'));
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadIllustration('FolderOpen'));
 
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
@@ -298,7 +298,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         if (hasVisibleCategories) {
             menuItems.push({
-                icon: () => Expensicons.Download,
+                icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
@@ -352,7 +352,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 options.push({
-                    icon: () => Expensicons.Close,
+                    icon: Expensicons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {

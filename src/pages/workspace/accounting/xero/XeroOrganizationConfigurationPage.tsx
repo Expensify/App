@@ -1,7 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
@@ -36,6 +37,7 @@ function XeroOrganizationConfigurationPage({
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
     const policyID = policy?.id ?? '-1';
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const sections =
         policy?.connections?.xero?.data?.tenants.map((tenant) => ({
@@ -66,7 +68,7 @@ function XeroOrganizationConfigurationPage({
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.xero.noAccountsFound')}

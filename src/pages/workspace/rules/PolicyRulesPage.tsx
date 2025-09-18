@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,7 +21,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Rules'));
+    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadIllustration('Rules'));
 
     return (
         <AccessOrNotFoundWrapper

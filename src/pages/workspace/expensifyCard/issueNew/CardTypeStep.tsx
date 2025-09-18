@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@components/Icon/Illustrations';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
@@ -30,7 +30,7 @@ type CardTypeStepProps = {
 function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;

@@ -6,7 +6,6 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -22,7 +21,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID, updateInterestedFeatures} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
@@ -46,16 +45,16 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('FolderOpen'));
-    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Accounting'));
-    const {asset: CompanyCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCard'));
-    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Workflows'));
-    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('InvoiceBlue'));
-    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Rules'));
-    const {asset: CarIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Car'));
-    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Tag'));
-    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('PerDiem'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadIllustration('FolderOpen'));
+    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadIllustration('Accounting'));
+    const {asset: CompanyCardIcon} = useMemoizedLazyAsset(() => loadIllustration('CompanyCard'));
+    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadIllustration('Workflows'));
+    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadIllustration('InvoiceBlue'));
+    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadIllustration('Rules'));
+    const {asset: CarIcon} = useMemoizedLazyAsset(() => loadIllustration('Car'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadIllustration('Tag'));
+    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadIllustration('PerDiem'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

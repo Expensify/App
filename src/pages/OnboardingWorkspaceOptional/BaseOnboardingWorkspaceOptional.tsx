@@ -14,7 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
@@ -49,9 +49,9 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const ICON_SIZE = 48;
-    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('MoneyReceipts'));
-    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Tag'));
-    const {asset: ReportReceiptIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('ReportReceipt'));
+    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadIllustration('MoneyReceipts'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadIllustration('Tag'));
+    const {asset: ReportReceiptIcon} = useMemoizedLazyAsset(() => loadIllustration('ReportReceipt'));
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
 
@@ -62,15 +62,15 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
 
     const section: Item[] = [
         {
-            icon: MoneyReceiptsIcon as IconAsset,
+            icon: MoneyReceiptsIcon,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionOne',
         },
         {
-            icon: TagIcon as IconAsset,
+            icon: TagIcon,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionTwo',
         },
         {
-            icon: ReportReceiptIcon as IconAsset,
+            icon: ReportReceiptIcon,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionThree',
         },
     ];

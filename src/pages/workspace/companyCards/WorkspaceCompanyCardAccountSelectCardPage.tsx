@@ -1,7 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -46,6 +47,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -66,7 +68,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, currentConnectionName, styles],
+        [translate, currentConnectionName, styles, TeleScope],
     );
 
     const updateExportAccount = useCallback(

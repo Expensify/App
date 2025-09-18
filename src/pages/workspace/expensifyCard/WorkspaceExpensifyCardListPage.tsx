@@ -8,7 +8,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {Gear, Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -63,7 +63,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const {asset: HandCard} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
+    const {asset: HandCard} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);

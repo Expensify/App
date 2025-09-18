@@ -1,9 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
@@ -24,6 +25,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
@@ -55,7 +57,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbd.noAccountsFound')}

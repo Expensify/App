@@ -1,7 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -24,6 +25,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
@@ -46,7 +48,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noAccountsFound')}

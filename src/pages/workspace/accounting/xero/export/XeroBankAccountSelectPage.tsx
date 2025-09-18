@@ -2,8 +2,10 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
+
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -26,6 +28,7 @@ import type SCREENS from '@src/SCREENS';
 function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
@@ -74,7 +77,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, TeleScope],
     );
 
     return (

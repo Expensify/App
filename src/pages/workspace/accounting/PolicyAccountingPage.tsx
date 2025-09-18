@@ -7,7 +7,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -87,7 +87,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Accounting'));
+    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadIllustration('Accounting'));
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
     const accountingIntegrations = Object.values(connectionNames);

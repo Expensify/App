@@ -5,25 +5,8 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import {
-    Building,
-    CalendarSolid,
-    Car,
-    Coins,
-    CreditCard,
-    Document,
-    ExpensifyAppIcon,
-    ExpensifyCard,
-    Feed,
-    Folder,
-    Gear,
-    InvoiceGeneric,
-    Receipt,
-    Sync,
-    Tag,
-    Users,
-    Workflows,
-} from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -106,6 +89,26 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
+    
+    // Direct access to ExpensifyIcons from chunk
+    const {asset: Building} = useMemoizedLazyAsset(() => loadExpensifyIcon('Building'));
+    const {asset: CalendarSolid} = useMemoizedLazyAsset(() => loadExpensifyIcon('CalendarSolid'));
+    const {asset: Car} = useMemoizedLazyAsset(() => loadExpensifyIcon('Car'));
+    const {asset: Coins} = useMemoizedLazyAsset(() => loadExpensifyIcon('Coins'));
+    const {asset: CreditCard} = useMemoizedLazyAsset(() => loadExpensifyIcon('CreditCard'));
+    const {asset: Document} = useMemoizedLazyAsset(() => loadExpensifyIcon('Document'));
+    const {asset: ExpensifyAppIcon} = useMemoizedLazyAsset(() => loadExpensifyIcon('ExpensifyAppIcon'));
+    const {asset: ExpensifyCard} = useMemoizedLazyAsset(() => loadExpensifyIcon('ExpensifyCard'));
+    const {asset: Feed} = useMemoizedLazyAsset(() => loadExpensifyIcon('Feed'));
+    const {asset: Folder} = useMemoizedLazyAsset(() => loadExpensifyIcon('Folder'));
+    const {asset: Gear} = useMemoizedLazyAsset(() => loadExpensifyIcon('Gear'));
+    const {asset: InvoiceGeneric} = useMemoizedLazyAsset(() => loadExpensifyIcon('InvoiceGeneric'));
+    const {asset: Receipt} = useMemoizedLazyAsset(() => loadExpensifyIcon('Receipt'));
+    const {asset: Sync} = useMemoizedLazyAsset(() => loadExpensifyIcon('Sync'));
+    const {asset: Tag}   = useMemoizedLazyAsset(() => loadExpensifyIcon('Tag'));
+    const {asset: Users} = useMemoizedLazyAsset(() => loadExpensifyIcon('Users'));
+    const {asset: Workflows} = useMemoizedLazyAsset(() => loadExpensifyIcon('Workflows'));
+    
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);

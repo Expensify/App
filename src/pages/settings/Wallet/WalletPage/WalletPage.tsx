@@ -12,6 +12,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
@@ -74,6 +77,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
+    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadIllustration('MoneySearch'));
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -761,7 +765,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             />
                         )}
                         <MenuItem
-                            icon={Expensicons.MoneySearch}
+                            icon={MoneySearch}
                             title={translate('workspace.common.viewTransactions')}
                             onPress={() => {
                                 hideCardMenu();

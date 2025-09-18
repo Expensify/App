@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -34,10 +34,10 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, allWorkspaceCards);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const {asset: CreditCardsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CreditCardsNew'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
-    const {asset: MagnifyingGlassIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('MagnifyingGlassMoney'));
-    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCardsEmptyState'));
+    const {asset: CreditCardsIcon} = useMemoizedLazyAsset(() => loadIllustration('CreditCardsNew'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
+    const {asset: MagnifyingGlassIcon} = useMemoizedLazyAsset(() => loadIllustration('MagnifyingGlassMoney'));
+    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadIllustration('CompanyCardsEmptyState'));
 
     const companyCardFeatures = useMemo(() => {
         const features = [

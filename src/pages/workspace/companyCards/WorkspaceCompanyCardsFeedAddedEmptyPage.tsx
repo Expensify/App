@@ -1,7 +1,6 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
@@ -10,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
     /** Handle assign card action */
@@ -26,7 +25,7 @@ type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
 function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCardsEmptyState'));
+    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadIllustration('CompanyCardsEmptyState'));
 
     return (
         <ScrollView

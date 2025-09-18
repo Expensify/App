@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {filterInactiveCards, getAllCardsForWorkspace, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -115,16 +115,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('FolderOpen'));
-    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Accounting'));
-    const {asset: CompanyCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCard'));
-    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Workflows'));
-    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('InvoiceBlue'));
-    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Rules'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
-    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Tag'));
-    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('PerDiem'));
-    const {asset: CoinsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Coins'));
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadIllustration('FolderOpen'));
+    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadIllustration('Accounting'));
+    const {asset: CompanyCardIcon} = useMemoizedLazyAsset(() => loadIllustration('CompanyCard'));
+    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadIllustration('Workflows'));
+    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadIllustration('InvoiceBlue'));
+    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadIllustration('Rules'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadIllustration('Tag'));
+    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadIllustration('PerDiem'));
+    const {asset: CoinsIcon} = useMemoizedLazyAsset(() => loadIllustration('Coins'));
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {

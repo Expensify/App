@@ -2,7 +2,8 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -29,7 +30,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-
+    const {asset: CreditCardsNew} = useMemoizedLazyAsset(() => loadIllustration('CreditCardsNew'));
     useEffect(() => {
         openSubscriptionPage();
     }, []);
@@ -58,7 +59,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                icon={Illustrations.CreditCardsNew}
+                icon={CreditCardsNew}
                 shouldUseHeadlineHeader
             />
             <ScrollView style={styles.pt3}>

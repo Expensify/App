@@ -108,6 +108,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -120,6 +121,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import {loadIllustration} from './Icon/IllustrationLoader';
 import KYCWall from './KYCWall';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
@@ -190,7 +192,7 @@ function MoneyReportHeader({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-
+    const {asset: Buildings} = useMemoizedLazyAsset(() => loadIllustration('Buildings'));
     // Collate the list of user-created in-app export templates
     const customInAppTemplates = useMemo(() => {
         const policyTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
@@ -1054,7 +1056,7 @@ function MoneyReportHeader({
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
-            icon: Expensicons.Buildings,
+            icon: Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             onSelected: () => {
                 if (!moneyRequestReport) {

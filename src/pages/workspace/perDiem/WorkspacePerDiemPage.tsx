@@ -7,7 +7,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -129,7 +129,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('PerDiem'));
+    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadIllustration('PerDiem'));
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);

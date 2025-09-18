@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -16,6 +15,8 @@ import {updateSageIntacctSyncReimbursementAccountID} from '@userActions/connecti
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
 
 function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -24,6 +25,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
 
     const {config} = policy?.connections?.intacct ?? {};
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID), [policy, config?.sync?.reimbursementAccountID]);
 
@@ -40,7 +42,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.sageIntacct.noAccountsFound')}

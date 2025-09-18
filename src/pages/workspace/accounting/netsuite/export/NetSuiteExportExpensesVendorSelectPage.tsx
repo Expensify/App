@@ -1,7 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -26,6 +27,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT>>();
     const params = route.params;
@@ -62,7 +64,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, TeleScope],
     );
 
     return (

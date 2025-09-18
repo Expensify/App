@@ -1,7 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
+import { loadIllustration } from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -27,6 +28,8 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const currentSubsidiaryName = netsuiteConfig?.subsidiary ?? '';
     const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? '';
     const policyID = policy?.id ?? '-1';
+
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const subsidiaryListSections =
         subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
@@ -58,7 +61,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noSubsidiariesFound')}
@@ -66,7 +69,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, TeleScope],
     );
 
     const listHeaderComponent = useMemo(
