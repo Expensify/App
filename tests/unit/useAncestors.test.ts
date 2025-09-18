@@ -54,7 +54,6 @@ describe('useAncestors', () => {
 
     afterAll(Onyx.clear);
 
-
     test('returns correct ancestor reports and actions', () => {
         let reportNum = 8;
 
@@ -83,7 +82,6 @@ describe('useAncestors', () => {
             expect(ancestorReportAction).toEqual(mockReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportNum}`]?.[`${reportNum}`]);
         }
     });
-
 
     test('if no ancestor reports', () => {
         const mockReport = mockReports[`${ONYXKEYS.COLLECTION.REPORT}1`]; // First report, should have no ancestors

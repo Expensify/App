@@ -21,12 +21,11 @@ function useAncestors(report: OnyxEntry<Report>, includeTransactionThreads = fal
 
     return useMemo(() => {
         const ancestors: Ancestor[] = [];
-        if (!report || !reportActionsCollection || !(reportCollection || reportDraftCollection)) {
+        if (!report || !reportActionsCollection || !(reportCollection ?? reportDraftCollection)) {
             return ancestors;
         }
 
-        let parentReportID = report?.parentReportID,
-            parentReportActionID = report.parentReportActionID;
+        let {parentReportID, parentReportActionID} = report;
 
         // Traverse up the report hierarchy to collect ancestor reports and their associated report actions.
         while (parentReportID && parentReportActionID) {
