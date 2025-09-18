@@ -11,6 +11,7 @@ import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import type { CurrentUserPersonalDetails } from '@components/CurrentUserPersonalDetailsProvider';
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -159,9 +160,11 @@ describe('actions/PersonalDetails', () => {
         it('should call API.write with correct parameters and optimistic data', async () => {
             const legalFirstName = 'John';
             const legalLastName = 'Doe';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: 'John',
                 lastName: 'Doe',
+                accountID: 123,
+                email: 'test@example.com',
             };
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
@@ -188,9 +191,11 @@ describe('actions/PersonalDetails', () => {
         it('should call Navigation.goBack after API.write', async () => {
             const legalFirstName = 'Jane';
             const legalLastName = 'Smith';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: 'Jane',
                 lastName: 'Smith',
+                accountID: 123,
+                email: 'test@example.com',
             };
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
@@ -202,10 +207,13 @@ describe('actions/PersonalDetails', () => {
         it('should include display name update in optimistic data when user has no firstName and lastName', async () => {
             const legalFirstName = 'Alice';
             const legalLastName = 'Johnson';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: '',
                 lastName: '',
+                accountID: 123,
+                email: 'test@example.com',
             };
+            
             const expectedDisplayName = 'Alice Johnson';
 
             mockPersonalDetailsUtils.createDisplayName.mockReturnValue(expectedDisplayName);
@@ -246,9 +254,11 @@ describe('actions/PersonalDetails', () => {
         it('should call PersonalDetailsUtils.createDisplayName with correct parameters when user has no firstName and lastName', async () => {
             const legalFirstName = 'Bob';
             const legalLastName = 'Wilson';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: '',
                 lastName: '',
+                accountID: 123,
+                email: 'test@example.com',
             };
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
@@ -267,9 +277,12 @@ describe('actions/PersonalDetails', () => {
         it('should not include display name update in optimistic data when user has firstName', async () => {
             const legalFirstName = 'Charlie';
             const legalLastName = 'Brown';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: 'Charlie',
                 lastName: '',
+                accountID: 123,
+                email: 'test@example.com',
             };
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
@@ -297,11 +310,12 @@ describe('actions/PersonalDetails', () => {
         it('should not include display name update in optimistic data when user has lastName', async () => {
             const legalFirstName = 'David';
             const legalLastName = 'Miller';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: '',
                 lastName: 'Miller',
+                accountID: 123,
+                email: 'test@example.com',
             };
-
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
@@ -327,9 +341,14 @@ describe('actions/PersonalDetails', () => {
         it('should handle empty strings for legal names', async () => {
             const legalFirstName = '';
             const legalLastName = '';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+
+
+
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: '',
                 lastName: '',
+                accountID: 123,
+                email: 'test@example.com',
             };
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
@@ -368,7 +387,7 @@ describe('actions/PersonalDetails', () => {
         it('should handle null/undefined currentUserPersonalDetail', async () => {
             const legalFirstName = 'Eve';
             const legalLastName = 'Davis';
-            const currentUserPersonalDetail = null as unknown as Pick<PersonalDetails, 'firstName' | 'lastName'>;
+            const currentUserPersonalDetail = null as unknown as Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>;
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
             await waitForBatchedUpdates();
@@ -406,15 +425,13 @@ describe('actions/PersonalDetails', () => {
         it('should use currentUserAccountID from session for personal details update', async () => {
             const legalFirstName = 'Frank';
             const legalLastName = 'Garcia';
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'> = {
                 firstName: '',
                 lastName: '',
+                email: 'test@example.com',
+                accountID: 456, 
             };
 
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: 'test@example.com',
-                accountID: 456,
-            });
             await waitForBatchedUpdates();
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
@@ -464,9 +481,10 @@ describe('actions/PersonalDetails', () => {
                 uri: 'file://test-avatar.jpg',
                 name: 'test-avatar.jpg',
             } as File;
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'avatarThumbnail' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',
+                accountID: 123,
             };
 
             PersonalDetailsActions.updateAvatar(mockFile, currentUserPersonalDetail);
@@ -539,9 +557,10 @@ describe('actions/PersonalDetails', () => {
                 size: 1024,
                 type: 'image/jpeg',
             } as CustomRNImageManipulatorResult;
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'avatarThumbnail' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',
+                accountID: 123
             };
 
             PersonalDetailsActions.updateAvatar(mockFile, currentUserPersonalDetail);
@@ -612,9 +631,10 @@ describe('actions/PersonalDetails', () => {
                 uri: 'file://test-avatar.jpg',
                 name: 'test-avatar.jpg',
             } as File;
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'avatarThumbnail' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: undefined,
+                accountID: 123,
             };
 
             PersonalDetailsActions.updateAvatar(mockFile, currentUserPersonalDetail);
@@ -655,9 +675,10 @@ describe('actions/PersonalDetails', () => {
                 uri: 'file://test-avatar.jpg',
                 name: 'test-avatar.jpg',
             } as File;
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'avatarThumbnail' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',
+                accountID: 123,
             };
 
             PersonalDetailsActions.updateAvatar(mockFile, currentUserPersonalDetail);
@@ -676,9 +697,10 @@ describe('actions/PersonalDetails', () => {
         });
 
         it('should call API.write with correct parameters and optimistic data', async () => {
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'fallbackIcon' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
+                accountID: 123,
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
@@ -719,9 +741,10 @@ describe('actions/PersonalDetails', () => {
         });
 
         it('should handle null fallbackIcon in failure data', async () => {
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'fallbackIcon' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: undefined,
+                accountID: 123,
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
@@ -758,9 +781,10 @@ describe('actions/PersonalDetails', () => {
             });
             await waitForBatchedUpdates();
 
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'fallbackIcon' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
+                accountID: 123,
             };
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
@@ -777,9 +801,10 @@ describe('actions/PersonalDetails', () => {
             });
             await waitForBatchedUpdates();
 
-            const currentUserPersonalDetail: Pick<PersonalDetails, 'fallbackIcon' | 'avatar'> = {
+            const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
+                accountID: 123,
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 

@@ -31,10 +31,13 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
      * Note: If we are updating automatically, we'll immediately calculate the user's timezone.
      */
     const updateAutomaticTimezone = (isAutomatic: boolean) => {
-        PersonalDetails.updateAutomaticTimezone({
-            automatic: isAutomatic,
-            selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
-        });
+        PersonalDetails.updateAutomaticTimezone(
+            {
+                automatic: isAutomatic,
+                selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
+            },
+            currentUserPersonalDetails.accountID,
+        );
     };
 
     return (
