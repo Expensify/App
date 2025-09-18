@@ -473,13 +473,6 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
 let startingDir: string;
 describe('CIGitLogic', () => {
     beforeAll(() => {
-        if (!isVerbose) {
-            jest.spyOn(Log, 'log').mockImplementation(() => {});
-            jest.spyOn(Log, 'info').mockImplementation(() => {});
-            jest.spyOn(Log, 'success').mockImplementation(() => {});
-            jest.spyOn(Log, 'warn').mockImplementation(() => {});
-        }
-
         Log.info('Starting setup');
         startingDir = process.cwd();
         initGitServer();
