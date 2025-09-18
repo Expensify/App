@@ -116,75 +116,32 @@ function ReportActionItemParentAction({
     const ancestors = useAncestors(report);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [ancestorsReportNameValuePairs] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        {
-            canBeMissing: true,
-            selector: (allPairs) => {
-                if (!allPairs) {
-                    return {};
-                }
-                const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
-                for (const {
-                    report: {reportID: ancestorReportID},
-                } of ancestors) {
-                    ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`] =
-                        allPairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`];
-                }
-                return ancestorReportNameValuePairs;
-            },
+    const [ancestorsReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (allPairs) => {
+            if (!allPairs) {
+                return {};
+            }
+            const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
+            for (const {
+                report: {reportID: ancestorReportID},
+            } of ancestors) {
+                ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`] =
+                    allPairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`];
+            }
+            return ancestorReportNameValuePairs;
         },
-        [ancestors],
-    );
+    });
 
-    /*
-    useEffect(() => {
-        const unsubscribeReports: Array<() => void> = [];
-        const unsubscribeReportActions: Array<() => void> = [];
-        ancestors.current.reportIDs.forEach((ancestorReportID) => {
-            unsubscribeReports.push(
-                onyxSubscribe({
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
-                    callback: (val) => {
-                        ancestorReports.current[ancestorReportID] = val;
-                        //  getAllAncestorReportActions use getReportOrDraftReport to get parent reports which gets the report from allReports that
-                        // holds the report collection. However, allReports is not updated by the time this current callback is called.
-                        // Therefore we need to pass the up-to-date report to getAllAncestorReportActions so that it uses the up-to-date report value
-                        // to calculate, for instance, unread marker.
-                        setAllAncestors(getAllAncestorReportActions(report, val));
-                    },
-                }),
-            );
-            unsubscribeReportActions.push(
-                onyxSubscribe({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportID}`,
-                    callback: () => {
-                        setAllAncestors(getAllAncestorReportActions(report));
-                    },
-                }),
-            );
-        });
-
-        return () => {
-            unsubscribeReports.forEach((unsubscribeReport) => unsubscribeReport());
-            unsubscribeReportActions.forEach((unsubscribeReportAction) => unsubscribeReportAction());
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-    */
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {ancestors.map((ancestor) => {
                 const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
-                if (!ancestorReport) {
-                    return null;
-                }
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
-                const reportNameValuePair = ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`];
-                const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
+                const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
 
                 const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction);
                 const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
