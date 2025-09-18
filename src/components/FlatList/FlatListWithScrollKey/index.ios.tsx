@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useRef} from 'react';
 import type {FlatListProps, LayoutChangeEvent, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import {InteractionManager} from 'react-native';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
@@ -18,12 +18,7 @@ type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScr
  */
 function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor, ListHeaderComponent, onLayout, onContentSizeChange, ...rest} = props;
-    const {
-        displayedData,
-        maintainVisibleContentPosition: maintainVisibleContentPositionProp,
-        handleStartReached,
-        isInitialData,
-    } = useFlatListScrollKey<T>({
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
@@ -40,23 +35,9 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         },
         [renderItem, dataIndexDifference],
     );
-    const [maintainVisibleContentPosition, setMaintainVisibleContentPosition] = useState<typeof maintainVisibleContentPositionProp | undefined>(maintainVisibleContentPositionProp);
     const flatListRef = useRef<RNFlatList>(null);
     const flatListHeight = useRef(0);
     const shouldScrollToEndRef = useRef(false);
-
-    useEffect(() => {
-        if (isInitialData || initialScrollKey) {
-            return;
-        }
-        // On iOS, after the initial render is complete, if the ListHeaderComponent's height decreases shortly afterward,
-        // the maintainVisibleContentPosition mechanism on iOS keeps the viewport fixed and does not automatically scroll to fill the empty space above.
-        // Therefore, once rendering is complete and the highlighted item is kept in the viewport, we disable maintainVisibleContentPosition.
-        InteractionManager.runAfterInteractions(() => {
-            setMaintainVisibleContentPosition(undefined);
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isInitialData]);
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
@@ -111,7 +92,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             // Since ListHeaderComponent is always prioritized for rendering before the data,
             // it will be rendered once the data has finished loading.
             // This prevents an unnecessary empty space above the highlighted item.
-            ListHeaderComponent={!initialScrollKey || (!!initialScrollKey && !isInitialData) ? ListHeaderComponent : undefined}
+            ListHeaderComponent={!isInitialData ? ListHeaderComponent : undefined}
             onLayout={onLayoutInner}
             onContentSizeChange={onContentSizeChangeInner}
             // eslint-disable-next-line react/jsx-props-no-spreading

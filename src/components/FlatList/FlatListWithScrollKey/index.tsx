@@ -46,7 +46,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             // Since ListHeaderComponent is always prioritized for rendering before the data,
             // it will be rendered once the data has finished loading.
             // This prevents an unnecessary empty space above the highlighted item.
-            ListHeaderComponent={!initialScrollKey || (!!initialScrollKey && !isInitialData) ? ListHeaderComponent : undefined}
+            ListHeaderComponent={!isInitialData ? ListHeaderComponent : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
