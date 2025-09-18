@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isArchivedNonExpenseReport, isArchivedReport, isInvoiceRoom} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,16 +26,17 @@ const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportName
     );
 };
 
-const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
-    if (!report || !isInvoiceRoom(report)) {
-        return;
-    }
+const reportSelector = (c: OnyxCollection<Report>) =>
+    mapOnyxCollectionItems(c, (report: OnyxEntry<Report>): Report | undefined => {
+        if (!report || !isInvoiceRoom(report)) {
+            return;
+        }
 
-    return report;
-};
+        return report;
+    });
 
 function useParticipantsInvoiceReport(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
-    const [allInvoiceReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
+    const [allInvoiceReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: reportSelector});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {
         canBeMissing: true,
         selector: (c) => mapOnyxCollectionItems(c, reportNameValuePairsSelector),

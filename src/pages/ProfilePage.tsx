@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -54,18 +54,22 @@ type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, type
  * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
  */
-const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
-    report && {
-        reportID: report.reportID,
-        participants: report.participants,
-        parentReportID: report.parentReportID,
-        parentReportActionID: report.parentReportActionID,
-        type: report.type,
-        chatType: report.chatType,
-    };
+const chatReportSelector = (c: OnyxCollection<Report>) =>
+    mapOnyxCollectionItems(
+        c,
+        (report: OnyxEntry<Report>): OnyxEntry<Report> =>
+            report && {
+                reportID: report.reportID,
+                participants: report.participants,
+                parentReportID: report.parentReportID,
+                parentReportActionID: report.parentReportActionID,
+                type: report.type,
+                chatType: report.chatType,
+            },
+    );
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector), canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector, canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
