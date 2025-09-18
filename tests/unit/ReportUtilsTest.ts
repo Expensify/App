@@ -73,6 +73,7 @@ import {
     requiresManualSubmission,
     shouldDisableRename,
     shouldDisableThread,
+    shouldEnableNegative,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -6944,6 +6945,222 @@ describe('ReportUtils', () => {
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('shouldEnableNegative', () => {
+        let expenseReport: Report;
+        let chatReport: Report;
+        let corporatePolicy: Policy;
+        let teamPolicy: Policy;
+        let personalPolicy: Policy;
+
+        beforeEach(() => {
+            // Create test reports using the proper pattern
+            expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            chatReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // Create test policies using the existing pattern
+            corporatePolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+            };
+
+            teamPolicy = {
+                ...createRandomPolicy(2),
+                type: CONST.POLICY.TYPE.TEAM,
+            };
+
+            personalPolicy = {
+                ...createRandomPolicy(3),
+                type: CONST.POLICY.TYPE.PERSONAL,
+            };
+        });
+
+        describe('when report is an expense report', () => {
+            it('should return true for expense report with undefined iouType', () => {
+                expect(shouldEnableNegative(expenseReport)).toBe(true);
+            });
+
+            it('should return true for expense report with null iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, undefined)).toBe(true);
+            });
+
+            it('should return true for expense report with CREATE iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for expense report with REQUEST iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.REQUEST)).toBe(true);
+            });
+
+            it('should return false for expense report with SPLIT iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for expense report with INVOICE iouType', () => {
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+        });
+
+        describe('when policy is a group policy (CORPORATE)', () => {
+            it('should return true for corporate policy with undefined iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy)).toBe(true);
+            });
+
+            it('should return true for corporate policy with CREATE iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for corporate policy with REQUEST iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.REQUEST)).toBe(true);
+            });
+
+            it('should return false for corporate policy with SPLIT iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for corporate policy with INVOICE iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+        });
+
+        describe('when policy is a group policy (TEAM)', () => {
+            it('should return true for team policy with undefined iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy)).toBe(true);
+            });
+
+            it('should return true for team policy with CREATE iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for team policy with REQUEST iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.REQUEST)).toBe(true);
+            });
+
+            it('should return false for team policy with SPLIT iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for team policy with INVOICE iouType', () => {
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+        });
+
+        describe('when iouType is CREATE', () => {
+            it('should return true for CREATE iouType with personal policy', () => {
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for CREATE iouType with no policy', () => {
+                expect(shouldEnableNegative(chatReport, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for CREATE iouType with null policy', () => {
+                expect(shouldEnableNegative(chatReport, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true for CREATE iouType with expense report', () => {
+                expect(shouldEnableNegative(expenseReport, personalPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+        });
+
+        describe('exclusion cases for SPLIT and INVOICE iouTypes', () => {
+            it('should return false for SPLIT iouType regardless of report type', () => {
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            it('should return false for INVOICE iouType regardless of report type', () => {
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.INVOICE)).toBe(false);
+            });
+
+            it('should return true for SPLIT_EXPENSE iouType with expense report (different from SPLIT)', () => {
+                // SPLIT_EXPENSE is different from SPLIT - only SPLIT and INVOICE are excluded
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.SPLIT_EXPENSE)).toBe(true);
+            });
+        });
+
+        describe('edge cases with null/undefined values', () => {
+            it('should return false when all parameters are null/undefined', () => {
+                expect(shouldEnableNegative(undefined, undefined, undefined)).toBe(false);
+            });
+
+            it('should return true when report is null but policy is group policy', () => {
+                expect(shouldEnableNegative(undefined, corporatePolicy)).toBe(true);
+                expect(shouldEnableNegative(undefined, teamPolicy)).toBe(true);
+            });
+
+            it('should return false when report is null and policy is personal', () => {
+                expect(shouldEnableNegative(undefined, personalPolicy)).toBe(false);
+            });
+
+            it('should return true when report is null but iouType is CREATE', () => {
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should handle undefined policy type gracefully', () => {
+                const policyWithUndefinedType = {
+                    ...createRandomPolicy(4),
+                    type: undefined as any,
+                };
+                expect(shouldEnableNegative(chatReport, policyWithUndefinedType)).toBe(false);
+            });
+
+            it('should handle empty string policy type gracefully', () => {
+                const policyWithEmptyType = {
+                    ...createRandomPolicy(5),
+                    type: '' as any,
+                };
+                expect(shouldEnableNegative(chatReport, policyWithEmptyType)).toBe(false);
+            });
+        });
+
+        describe('combination scenarios', () => {
+            it('should return true when expense report AND group policy', () => {
+                expect(shouldEnableNegative(expenseReport, corporatePolicy)).toBe(true);
+                expect(shouldEnableNegative(expenseReport, teamPolicy)).toBe(true);
+            });
+
+            it('should return true when expense report AND CREATE iouType', () => {
+                expect(shouldEnableNegative(expenseReport, personalPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return true when group policy AND CREATE iouType', () => {
+                expect(shouldEnableNegative(chatReport, corporatePolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
+            });
+
+            it('should return false when none of the enabling conditions are met', () => {
+                // Chat report + personal policy + no iouType
+                expect(shouldEnableNegative(chatReport, personalPolicy)).toBe(false);
+                
+                // Chat report + personal policy + non-CREATE iouType
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.REQUEST)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.TRACK)).toBe(false);
+                expect(shouldEnableNegative(chatReport, personalPolicy, CONST.IOU.TYPE.SEND)).toBe(false);
+            });
+
+            it('should prioritize exclusion over inclusion', () => {
+                // Even if expense report + group policy, SPLIT should still exclude
+                expect(shouldEnableNegative(expenseReport, corporatePolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+                
+                // Even if expense report + CREATE iouType, INVOICE should still exclude
+                expect(shouldEnableNegative(expenseReport, undefined, CONST.IOU.TYPE.INVOICE)).toBe(false);
+                
+                // Even if group policy + CREATE iouType, SPLIT should still exclude
+                expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
         });
     });
 });
