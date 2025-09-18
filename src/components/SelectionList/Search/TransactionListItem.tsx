@@ -14,6 +14,7 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +35,7 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     areAllOptionalColumnsHidden,
+    violations,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -72,6 +74,8 @@ function TransactionListItem<TItem extends ListItem>({
             dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
     }, [transactionItem]);
+
+    const transactionViolations = useMemo(() => getTransactionViolations(transactionItem, violations), [transactionItem, violations]);
 
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
@@ -147,6 +151,7 @@ function TransactionListItem<TItem extends ListItem>({
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                    violations={transactionViolations}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
