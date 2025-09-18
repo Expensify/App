@@ -48,11 +48,14 @@ function IOURequestStepTaxAmountPage({
     transaction,
     report,
 }: IOURequestStepTaxAmountPageProps) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const taxPolicy = report?.policyID === CONST.POLICY.ID_FAKE ? activePolicy : policy;
-    const taxPolicyID = report?.policyID === CONST.POLICY.ID_FAKE ? activePolicyID : report?.policyID;
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
+        canBeMissing: true,
+        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const taxPolicy = report?.policyID === CONST.POLICY.ID_FAKE && activePolicy ? activePolicy : policy;
+    const taxPolicyID = report?.policyID === CONST.POLICY.ID_FAKE && activePolicy ? activePolicyID : report?.policyID;
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${taxPolicyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${taxPolicyID}`, {canBeMissing: true});
