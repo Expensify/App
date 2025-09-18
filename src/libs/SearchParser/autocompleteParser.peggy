@@ -91,6 +91,10 @@ autocompleteKey "key"
       / has
       / purchaseCurrency
       / purchaseAmount
+      / merchant
+      / description
+      / reportID
+      / title
     )
 
 filterKey

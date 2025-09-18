@@ -8,6 +8,7 @@ import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyU
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
 import {getUserFriendlyValue} from './SearchQueryUtils';
+import DateUtils from './DateUtils';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -142,6 +143,7 @@ function filterOutRangesWithCorrectValue(
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    console.log('over here', range);
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -188,9 +190,18 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return datePresetList.includes(range.value);
+            return datePresetList.includes(range.value) || DateUtils.isValidDateString(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
             return hasList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+            return range.value.length > 0;
+        // case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        // case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
+        // case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+        //     return ValidationUtils.isNumeric(range.value);
         default:
             return false;
     }
