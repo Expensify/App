@@ -93,40 +93,37 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
             const fileName = file.name ?? 'temp-file.heic';
             const fileFromBlob = new File([blob], fileName, {type: blob.type});
 
-            return processConversion(heicConverter, blob, fileFromBlob, fileName);
-
-            function processConversion(converter: HeicConverter | null, blobData: Blob, fileData: File, name: string) {
-                // Strategy 1: Try heic-to library
-                if (converter && typeof converter.heicTo === 'function') {
-                    return converter
-                        .heicTo({blob: blobData, type: CONST.IMAGE_FILE_FORMAT.JPEG})
-                        .then((convertedBlob) => {
-                            const jpegFile = Object.assign(new File([convertedBlob], name.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
-                                uri: URL.createObjectURL(convertedBlob),
-                            });
-                            onSuccess(jpegFile);
-                        })
-                        .catch(() => {
-                            // Strategy 2: Canvas fallback
-                            canvasFallback(fileData, name)
-                                .then(onSuccess)
-                                .catch((err) => {
-                                    console.error('Canvas fallback failed:', err);
-                                    onError(err, file);
-                                });
+            // Strategy 1: Try heic-to library
+            if (heicConverter && typeof heicConverter.heicTo === 'function') {
+                return heicConverter
+                    .heicTo({blob, type: CONST.IMAGE_FILE_FORMAT.JPEG})
+                    .then((convertedBlob) => {
+                        const jpegFile = Object.assign(new File([convertedBlob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
+                            uri: URL.createObjectURL(convertedBlob),
                         });
-                }
-
-                // No library - use canvas fallback
-                return canvasFallback(fileData, name)
-                    .then(onSuccess)
-                    .catch((err) => {
-                        console.error('Canvas fallback failed:', err);
-                        onError(err, file);
+                        onSuccess(jpegFile);
+                    })
+                    .catch(() => {
+                        // Strategy 2: Canvas fallback
+                        canvasFallback(fileFromBlob, fileName)
+                            .then(onSuccess)
+                            .catch((err) => {
+                                console.error('Canvas fallback failed:', err);
+                                onError(err, file);
+                            });
                     });
             }
+
+            // No library - use canvas fallback
+            return canvasFallback(fileFromBlob, fileName)
+                .then(onSuccess)
+                .catch((err) => {
+                    console.error('Canvas fallback failed:', err);
+                    onError(err, file);
+                });
         })
         .catch((err) => {
+            console.error('Error processing the file:', err);
             onError(err, file);
         })
         .finally(() => {
