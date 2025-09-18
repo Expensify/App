@@ -14,6 +14,14 @@ import Permissions from './Permissions';
 import {getTitleReportField, isArchivedReport} from './ReportUtils';
 
 /**
+ * Get the title field from report name value pairs
+ */
+function getTitleFieldFromRNVP(reportID: string, context: UpdateContext) {
+    const reportNameValuePairs = context.allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+    return reportNameValuePairs?.expensify_text_title;
+}
+
+/**
  * Get the object type from an Onyx key
  */
 function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transaction' | 'unknown' {
@@ -136,8 +144,8 @@ function getReportKey(reportID: string): OnyxKey {
 /**
  * Check if a report should have its name automatically computed
  */
-function shouldComputeReportName(report: Report, policy: Policy | undefined): boolean {
-    if (!report || !policy) {
+function shouldComputeReportName(report: Report, context: UpdateContext): boolean {
+    if (!report) {
         return false;
     }
 
@@ -147,7 +155,7 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
 
     // Only compute names for expense reports with policies that have title fields
     // Check if the policy has a title field with a formula
-    const titleField = getTitleReportField(policy.fieldList ?? {});
+    const titleField = getTitleFieldFromRNVP(report.reportID, context);
     if (!titleField?.defaultValue) {
         return false;
     }
@@ -182,11 +190,11 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const policy = getPolicyByID(targetReport.policyID, allPolicies);
 
-    if (!shouldComputeReportName(targetReport, policy)) {
+    if (!shouldComputeReportName(targetReport, context)) {
         return null;
     }
 
-    const titleField = getTitleReportField(policy?.fieldList ?? {});
+    const titleField = getTitleFieldFromRNVP(targetReport.reportID, context);
     if (!titleField?.defaultValue) {
         return null;
     }
