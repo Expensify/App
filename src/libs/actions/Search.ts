@@ -169,7 +169,7 @@ function getPayActionCallback(
     goToItem();
 }
 
-function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON, offset?: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -177,6 +177,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
             value: {
                 search: {
                     isLoading: true,
+                    ...(offset ? {offset} : {}),
                 },
             },
         },
@@ -313,7 +314,7 @@ function search({
     offset?: number;
     shouldCalculateTotals?: boolean;
 }) {
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,

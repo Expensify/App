@@ -2778,7 +2778,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {lastVisibleActionCreated: optimisticReportPreview.created, ...outstandingChildRequest},
+            value: {lastVisibleActionCreated: optimisticReportPreview.created, iouReportID: reportID, ...outstandingChildRequest},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -4012,18 +4012,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
 
 function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     removeFromRoom(reportID, accountIDList);
-}
-
-function setLastOpenedPublicRoom(reportID: string) {
-    Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
-}
-
-/** Navigates to the last opened public room */
-function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
-    Navigation.isNavigationReady().then(() => {
-        setLastOpenedPublicRoom('');
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastOpenedPublicRoomID));
-    });
 }
 
 /** Flag a comment as offensive */
@@ -6142,7 +6130,6 @@ export {
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
     notifyNewAction,
-    openLastOpenedPublicRoom,
     openReport,
     openReportFromDeepLink,
     openRoomMembersPage,
@@ -6161,7 +6148,6 @@ export {
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
-    setLastOpenedPublicRoom,
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,

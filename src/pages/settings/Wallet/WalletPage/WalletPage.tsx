@@ -388,7 +388,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         contentContainerStyle={styles.flex1}
                         onClose={clearWalletError}
                         errors={userWallet?.errors}
-                        errorRowStyles={[styles.ph6]}
+                        errorRowStyles={styles.ph6}
                     >
                         <Section
                             subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
@@ -545,9 +545,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         }
 
                                                         if (!isUserValidated) {
-                                                            Navigation.navigate(
-                                                                ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
-                                                            );
+                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
                                                             return;
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
