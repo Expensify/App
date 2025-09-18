@@ -18,4 +18,5 @@ function getCountryCode(countryValue: string | undefined): string {
     return countryValue;
 }
 
+/* eslint-disable import/prefer-default-export */
 export {getCountryCode};
