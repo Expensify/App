@@ -149,6 +149,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return [options, value];
     }, [flatFilters, type]);
 
+    const [isOptions, is] = useMemo(() => {
+        const isFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS)?.filters?.map((filter) => filter.value);
+        const options = Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
+        const value = isFilterValues ? options.filter((option) => isFilterValues.includes(option.value)) : [];
+        return [options, value];
+    }, [flatFilters, translate]);
+
     const createDateDisplayValue = useCallback(
         (filterValues: {on?: string; after?: string; before?: string}): [SearchDateValues, string[]] => {
             const value: SearchDateValues = {
@@ -389,6 +396,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return createMultiSelectComponent('search.has', hasOptions, has, updateHasFilterForm);
     }, [createMultiSelectComponent, hasOptions, has, updateFilterForm]);
 
+    const isComponent = useMemo(() => {
+        const updateIsFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+            updateFilterForm({is: selectedItems.map((item) => item.value)});
+        };
+        return createMultiSelectComponent('search.filters.is', isOptions, is, updateIsFilterForm);
+    }, [createMultiSelectComponent, isOptions, is, updateFilterForm]);
+
     const userPickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const value = filterFormValues.from ?? [];
@@ -493,13 +507,24 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 value: status.map((option) => option.text),
                 filterKey: FILTER_KEYS.STATUS,
             },
-            ...(type?.value === CONST.SEARCH.DATA_TYPES.CHAT ? 
-                [{
-                    label: translate('search.has'),
-                    PopoverComponent: hasComponent,
-                    value: has.map((option) => option.text),
-                    filterKey: FILTER_KEYS.HAS,
-                    },
+            ...(type?.value === CONST.SEARCH.DATA_TYPES.CHAT
+                ? [
+                      {
+                          label: translate('search.has'),
+                          PopoverComponent: hasComponent,
+                          value: has.map((option) => option.text),
+                          filterKey: FILTER_KEYS.HAS,
+                      },
+                  ]
+                : []),
+            ...(type?.value === CONST.SEARCH.DATA_TYPES.CHAT
+                ? [
+                      {
+                          label: translate('search.filters.is'),
+                          PopoverComponent: isComponent,
+                          value: is.map((option) => option.text),
+                          filterKey: FILTER_KEYS.IS,
+                      },
                   ]
                 : []),
             {
@@ -535,6 +560,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         filterFormValues.withdrawnAfter,
         filterFormValues.withdrawnBefore,
         translate,
+        hasComponent,
+        isComponent,
         typeComponent,
         groupByComponent,
         groupCurrencyComponent,
@@ -550,6 +577,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         feedComponent,
         feedOptions.length,
         hasMultipleOutputCurrency,
+        has,
+        is,
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
