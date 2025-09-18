@@ -1,0 +1,37 @@
+name: Regenerate translation file
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/languages/en.ts'
+
+jobs:
+  regemerate_translations:
+    name: Regenerate translations if the en.ts file changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Run generateTranslations.ts script
+        run: node scripts/generateTranslations.ts
+
+      - name: Set up git for OSBotify
+        id: setupGitForOSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "Update translation on the basis of new en.ts"
+          git push origin main
+      
+
