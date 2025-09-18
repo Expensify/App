@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -67,7 +68,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, policyTags);
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, policyTags, currentUserAccountID);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -111,9 +113,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, policyTags);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, policyTags, currentUserAccountID);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, policyTags]);
+    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, policyTags, currentUserAccountID]);
 
     useEffect(() => {
         if (searchRouterListVisible) {

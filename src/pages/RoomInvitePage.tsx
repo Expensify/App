@@ -12,12 +12,13 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {Section} from '@components/SelectionList/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, searchInServer} from '@libs/actions/Report';
+import {inviteToRoomAction, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -55,7 +56,7 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
@@ -63,6 +64,7 @@ function RoomInvitePage({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report.reportID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -208,11 +210,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+            inviteToRoomAction(reportID, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            clearUserSearchPhrase();
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID, backTo));
         }
-        clearUserSearchPhrase();
-        Navigation.goBack(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate, formatPhoneNumber]);
+    }, [validate, selectedOptions, reportID, currentUserPersonalDetails.timezone, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);

@@ -6,13 +6,14 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -21,7 +22,6 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
-import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -2146,11 +2146,13 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
+
     if (reimbursableUrls.length === 1) {
         const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        const reimbursableUrl = reimbursableUrls.at(0) ?? '';
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
-            url: reimbursableUrls.at(0) ?? '',
+            url: reimbursableUrl.startsWith('https://') ? reimbursableUrl : '',
         });
     }
     if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
@@ -2164,7 +2166,8 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = nonReimbursableUrls.at(0) ?? '';
+            const nonReimbursableUrl = nonReimbursableUrls.at(0) ?? '';
+            url = nonReimbursableUrl.startsWith('https://') ? nonReimbursableUrl : '';
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
@@ -3003,13 +3006,19 @@ function getReportActions(report: Report) {
 /**
  * @private
  */
-function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
+function wasActionCreatedWhileOffline(
+    action: ReportAction,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+): boolean {
     // The user has never gone offline or never come back online
     if (!lastOfflineAt || !lastOnlineAt) {
         return false;
     }
 
-    const actionCreatedAt = DateUtils.getLocalDateFromDatetime(locale, action.created);
+    const actionCreatedAt = getLocalDateFromDatetime(action.created);
 
     // The action was created before the user went offline.
     if (actionCreatedAt <= lastOfflineAt) {
@@ -3028,9 +3037,15 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
 /**
  * Whether a message is NOT from the active user, and it was received while the user was offline.
  */
-function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale = CONST.LOCALES.DEFAULT) {
+function wasMessageReceivedWhileOffline(
+    action: ReportAction,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+) {
     const wasByCurrentUser = wasActionTakenByCurrentUser(action);
-    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
+    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime);
 
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }

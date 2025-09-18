@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -112,7 +113,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
     const cardsDomainIDs = Object.values(getCompanyFeeds(cardFeeds))
         .map((data) => data.domainID)

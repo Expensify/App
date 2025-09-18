@@ -19,7 +19,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy, isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
-import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -79,8 +79,8 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             },
         ];
 
-        // Only show the bypass option if current approver is not a policy admin
-        if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID))) {
+        // Only show the bypass option if current approver is not a policy admin and prevent self-approval is not enabled
+        if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID)) && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
@@ -90,7 +90,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         }
 
         return [{data}];
-    }, [report, policy, selectedApproverType, translate]);
+    }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);

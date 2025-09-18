@@ -1,4 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -71,6 +72,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
     const initialSearchKeys = useRef<string[]>([]);
 
@@ -92,7 +94,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, policyTags);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, policyTags, currentUserAccountID);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -141,6 +143,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             allFeeds,
             allPolicies,
             policyTags,
+            currentUserAccountID,
         ],
     );
 

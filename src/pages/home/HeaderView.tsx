@@ -31,6 +31,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -133,9 +134,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
-    // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName({report: reportHeaderData, policy, parentReportActionParam: parentReportAction, personalDetails, invoiceReceiverPolicy, policyTags: reportPolicyTags});
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
+    // Use sorted display names for the title for group chats on native small screen widths
+    const title = getReportName({
+        report: reportHeaderData,
+        policy,
+        parentReportActionParam: parentReportAction,
+        personalDetails,
+        invoiceReceiverPolicy,
+        policyTags: reportPolicyTags,
+        isReportArchived: isReportHeaderDataArchived,
+    });
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData, reportPolicyTags, isParentReportHeaderDataArchived);
@@ -145,6 +154,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
+    const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -295,6 +305,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle || isReportArchived}
                                                 renderAdditionalText={renderAdditionalText}
                                                 shouldAddEllipsis={shouldAddEllipsis}
+                                                forwardedFSClass={displayNamesFSClass}
                                             />
                                         </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (

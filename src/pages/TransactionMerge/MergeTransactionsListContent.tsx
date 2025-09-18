@@ -8,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +18,7 @@ import {
     getMergeableDataAndConflictFields,
     getSourceTransactionFromMergeTransaction,
     getTransactionThreadReportID,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,6 +51,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const currentUserLogin = session?.email;
 
     useEffect(() => {
@@ -91,13 +91,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     const headerContent = useMemo(
         () => (
-            <View style={[styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.minHeight5, styles.breakWord, styles.flexRow]}>
-                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName({report: transactionThreadReport ?? report})})} />
-                </Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
+                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName({report: transactionThreadReport ?? report, policyTags})})} />
             </View>
         ),
-        [transactionThreadReport, report, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.breakWord, styles.flexRow],
+        [transactionThreadReport, report, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow, policyTags],
     );
 
     const subTitleContent = useMemo(() => {
@@ -122,23 +120,22 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             openReport(sourceTransaction.reportID);
         }
 
-        const {targetTransactionID: newTargetTransactionID, sourceTransactionID: newSourceTransactionID} = selectTargetAndSourceTransactionIDsForMerge(targetTransaction, sourceTransaction);
-
-        if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
+        if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransactionID,
-                sourceTransactionID: newSourceTransactionID,
+                targetTransactionID: newTargetTransaction?.transactionID,
+                sourceTransactionID: newSourceTransaction?.transactionID,
             });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         } else {
-            const mergedReceipt = targetTransaction?.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction?.receipt;
+            const mergedReceipt = newTargetTransaction?.receipt?.receiptID ? newTargetTransaction.receipt : newSourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransactionID,
-                sourceTransactionID: newSourceTransactionID,
+                targetTransactionID: newTargetTransaction?.transactionID,
+                sourceTransactionID: newSourceTransaction?.transactionID,
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
@@ -159,8 +156,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                     headerMedia={EmptyShelves}
                     title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
                     subtitleText={subTitleContent}
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
-                    headerContentStyles={styles.emptyStateCardIllustration}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
+                    headerContentStyles={styles.emptyStateTransactionMergeIllustration}
                 />
             </ScrollView>
         );

@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openWalletPage} from '@libs/actions/PaymentMethods';
+import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
@@ -42,7 +42,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
             .then((status: TokenizationStatus) => {
                 if (status === 'success') {
                     Log.info('Card added to wallet');
-                    openWalletPage();
+                    getPaymentMethods();
                 } else {
                     setIsLoading(false);
                 }

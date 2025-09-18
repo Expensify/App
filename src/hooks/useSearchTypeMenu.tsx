@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -45,6 +46,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
@@ -83,7 +85,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, policyTags);
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, policyTags, currentUserAccountID);
             }
 
             const isItemFocused = Number(key) === hash;
