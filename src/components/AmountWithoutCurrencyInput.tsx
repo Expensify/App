@@ -2,7 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
-import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
+import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
@@ -42,14 +42,11 @@ function AmountWithoutCurrencyInput(
      */
     const setNewAmount = useCallback(
         (newAmount: string) => {
-            if (allowFlippingAmount && newAmount.startsWith('-') && toggleNegative) {
-                toggleNegative();
-            }
-
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+            const processedAmount = handleNegativeAmountFlipping(newAmountWithoutSpaces, allowFlippingAmount ?? false, toggleNegative);
+            const replacedCommasAmount = replaceCommasWithPeriod(processedAmount);
             onInputChange?.(replacedCommasAmount);
         },
         [onInputChange, allowFlippingAmount, toggleNegative],

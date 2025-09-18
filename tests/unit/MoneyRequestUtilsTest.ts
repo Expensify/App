@@ -19,4 +19,60 @@ describe('ReportActionsUtils', () => {
             expect(MoneyRequestUtils.validateAmount('1234.12345', 4, 4)).toBe(false);
         });
     });
+
+    describe('handleNegativeAmountFlipping', () => {
+        it('should toggle negative and remove dash when allowFlippingAmount is true and amount starts with -', () => {
+            const mockToggleNegative = jest.fn();
+            const result = MoneyRequestUtils.handleNegativeAmountFlipping('-123.45', true, mockToggleNegative);
+            
+            expect(mockToggleNegative).toHaveBeenCalledTimes(1);
+            expect(result).toBe('123.45');
+        });
+
+        it('should not toggle negative when allowFlippingAmount is false', () => {
+            const mockToggleNegative = jest.fn();
+            const result = MoneyRequestUtils.handleNegativeAmountFlipping('-123.45', false, mockToggleNegative);
+            
+            expect(mockToggleNegative).not.toHaveBeenCalled();
+            expect(result).toBe('-123.45');
+        });
+
+        it('should not toggle negative when amount does not start with -', () => {
+            const mockToggleNegative = jest.fn();
+            const result = MoneyRequestUtils.handleNegativeAmountFlipping('123.45', true, mockToggleNegative);
+            
+            expect(mockToggleNegative).not.toHaveBeenCalled();
+            expect(result).toBe('123.45');
+        });
+
+        it('should work without toggleNegative function', () => {
+            const result = MoneyRequestUtils.handleNegativeAmountFlipping('-123.45', true);
+            
+            expect(result).toBe('123.45');
+        });
+
+        it('should return original amount when allowFlippingAmount is false and no dash', () => {
+            const mockToggleNegative = jest.fn();
+            const result = MoneyRequestUtils.handleNegativeAmountFlipping('123.45', false, mockToggleNegative);
+            
+            expect(mockToggleNegative).not.toHaveBeenCalled();
+            expect(result).toBe('123.45');
+        });
+
+        it('should handle empty string', () => {
+            const mockToggleNegative = jest.fn();
+            const result = MoneyRequestUtils.handleNegativeAmountFlipping('', true, mockToggleNegative);
+            
+            expect(mockToggleNegative).not.toHaveBeenCalled();
+            expect(result).toBe('');
+        });
+
+        it('should handle string with only dash', () => {
+            const mockToggleNegative = jest.fn();
+            const result = MoneyRequestUtils.handleNegativeAmountFlipping('-', true, mockToggleNegative);
+            
+            expect(mockToggleNegative).toHaveBeenCalledTimes(1);
+            expect(result).toBe('');
+        });
+    });
 });

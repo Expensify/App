@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {addLeadingZero, handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
@@ -200,11 +200,7 @@ function NumberWithSymbolForm({
             const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
             const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
 
-            let finalNumber = rawFinalNumber;
-            if (allowFlippingAmount && finalNumber.startsWith('-')) {
-                toggleNegative?.();
-                finalNumber = finalNumber.slice(1);
-            }
+            const finalNumber = handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
@@ -239,12 +235,11 @@ function NumberWithSymbolForm({
         // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
-        let replacedCommasNumber = replaceCommasWithPeriod(newNumberWithoutSpaces);
-
-        if (allowFlippingAmount && replacedCommasNumber.startsWith('-')) {
-            toggleNegative?.();
-            replacedCommasNumber = replacedCommasNumber.slice(1);
-        }
+        const replacedCommasNumber = handleNegativeAmountFlipping(
+            replaceCommasWithPeriod(newNumberWithoutSpaces),
+            allowFlippingAmount,
+            toggleNegative,
+        );
 
         const withLeadingZero = addLeadingZero(replacedCommasNumber);
 
@@ -344,15 +339,10 @@ function NumberWithSymbolForm({
     useImperativeHandle(numberFormRef, () => ({
         clearSelection,
         updateNumber: (newNumber: string) => {
-            let updatedNumber = newNumber;
-
-            if (allowFlippingAmount && newNumber.startsWith('-')) {
-                toggleNegative?.();
-                updatedNumber = updatedNumber.slice(1);
-            }
+            const updatedNumber = handleNegativeAmountFlipping(newNumber, allowFlippingAmount, toggleNegative);
 
             setCurrentNumber(updatedNumber);
-            setSelection({start: newNumber.length, end: newNumber.length});
+            setSelection({start: updatedNumber.length, end: updatedNumber.length});
         },
         getNumber: () => currentNumber,
     }));
