@@ -15,6 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'AI Review')
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a
