@@ -1,19 +1,21 @@
 import React from 'react';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@userActions/Report';
+import {addAttachment} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';
 import type {ShareLogListProps} from './types';
 
 function ShareLogList({logSource}: ShareLogListProps) {
+    const personalDetail = useCurrentUserPersonalDetails();
     const onAttachLogToReport = (reportID: string, filename: string) => {
-        FileUtils.readFileAsync(
+        readFileAsync(
             logSource,
             filename,
             (file) => {
-                Report.addAttachment(reportID, file);
-
+                addAttachment(reportID, file, personalDetail?.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
                 Navigation.navigate(routeToNavigate);
             },

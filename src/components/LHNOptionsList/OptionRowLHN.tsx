@@ -61,6 +61,7 @@ function OptionRowLHN({
     hasDraftComment,
     shouldShowRBRorGBRTooltip,
     isScreenFocused = false,
+    testID,
 }: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -294,6 +295,7 @@ function OptionRowLHN({
                                                         isGroupChat(report) ||
                                                         isSystemChat(report)
                                                     }
+                                                    testID={testID}
                                                 />
                                                 {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
                                                 {isStatusVisible && (
@@ -310,6 +312,7 @@ function OptionRowLHN({
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
@@ -324,7 +327,10 @@ function OptionRowLHN({
                                             )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
-                                            <View style={[styles.flexWrap]}>
+                                            <View
+                                                style={[styles.flexWrap]}
+                                                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                            >
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
                                         ) : null}
