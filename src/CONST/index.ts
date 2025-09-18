@@ -6455,7 +6455,28 @@ const CONST = {
         DEV: ' Dev',
         ADHOC: ' AdHoc',
     },
-
+    NEW_SEARCH: {
+        FILTERS: {
+            KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
+            DATE: 'date',
+            KEYWORD: 'keyword',
+            AMOUNT: 'amount',
+            REIMBURSABLE: 'reimbursable',
+        },
+        VALUES: {
+                EXPENSE: 'expense',
+                CHAT: 'chat',
+                ALL: 'all',
+                DRAFTS: 'drafts',
+                LAST_MONTH: 'last-month',
+                THIS_MONTH: 'this-month',
+                YES: 'yes',
+                NO: 'no',
+            },
+        },
+    },
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
