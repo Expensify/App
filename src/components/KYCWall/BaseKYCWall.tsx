@@ -1,7 +1,7 @@
 /* eslint-disable react-compiler/react-compiler */
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
-import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
+import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,12 +19,10 @@ import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {BankAccountList, Policy} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
+import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
@@ -169,7 +167,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy, goBackRoute?: Route) => {
+        ({event, iouPaymentType, paymentMethod, policy, goBackRoute}: ContinueActionParams) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -231,6 +229,7 @@ function KYCWall({
                 if (!hasActivatedWallet && !policy) {
                     Log.info('[KYC Wallet] User does not have active wallet');
 
+                    // We already go back to the goBackRoute, so we don't need to navigate to the enablePaymentsRoute if it's the same
                     if (goBackRoute !== enablePaymentsRoute) {
                         Navigation.navigate(enablePaymentsRoute);
                     }
