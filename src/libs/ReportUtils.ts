@@ -1205,6 +1205,7 @@ function isDraftReport(reportID: string | undefined): boolean {
 
     return !!draftReport;
 }
+
 /**
  * @private
  */
@@ -1398,6 +1399,7 @@ function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | strin
 function isIOUReportUsingReport(report: OnyxEntry<Report>): report is Report {
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
+
 /**
  * Checks if a report is a task report.
  */
@@ -2121,6 +2123,7 @@ function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isR
 function isClosedReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
+
 /**
  * Whether the provided report is the admin's room
  */
@@ -2370,6 +2373,7 @@ function isPayAtEndExpenseReport(report: OnyxEntry<Report>, transactions: Transa
 
     return isPayAtEndExpense(transactions?.[0] ?? getReportTransactions(report?.reportID).at(0));
 }
+
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
@@ -10197,7 +10201,17 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             return;
         }
         if (filteredPolicies.length === 0 || filteredPolicies.length > 1) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_UPGRADE.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    backTo: '',
+                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                    shouldSubmitExpense: true,
+                }),
+            );
             return;
         }
 
