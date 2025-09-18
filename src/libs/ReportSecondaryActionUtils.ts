@@ -22,8 +22,10 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
+    canDeleteCardTransactionByLiabilityType,
     canEditReportPolicy,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -212,7 +214,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, true));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -464,8 +466,9 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return true;
     }
 
+    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-        return isOwner;
+        return isOwner && canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport) {
@@ -537,6 +540,12 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     // Do not show merge action if there are multiple transactions
     if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    // Temporary disable merge action for IOU reports
+    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    if (isIOUReportUtils(parentReport)) {
         return false;
     }
 
@@ -660,6 +669,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
+    if (canRejectReportAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
+    }
+
     if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -739,6 +752,10 @@ function getSecondaryTransactionThreadActions(
 
     if (transactionThreadReport && isRemoveHoldActionForTransaction(transactionThreadReport, reportTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
+    if (canRejectReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     if (isSplitAction(parentReport, [reportTransaction], policy)) {

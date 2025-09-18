@@ -7,7 +7,7 @@ import {
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -439,13 +439,13 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
-    describe('selectTargetAndSourceTransactionIDsForMerge', () => {
+    describe('selectTargetAndSourceTransactionsForMerge', () => {
         it('should handle undefined transactions gracefully', () => {
-            const result = selectTargetAndSourceTransactionIDsForMerge(undefined, undefined);
+            const result = selectTargetAndSourceTransactionsForMerge(undefined, undefined);
 
             expect(result).toEqual({
-                targetTransactionID: undefined,
-                sourceTransactionID: undefined,
+                targetTransaction: undefined,
+                sourceTransaction: undefined,
             });
         });
 
@@ -461,11 +461,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: true,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction, cardTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction, cardTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -481,11 +481,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cardTransaction, cashTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cardTransaction, cashTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -501,11 +501,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction1, cashTransaction2);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction1, cashTransaction2);
 
             expect(result).toEqual({
-                targetTransactionID: 'cash1',
-                sourceTransactionID: 'cash2',
+                targetTransaction: cashTransaction1,
+                sourceTransaction: cashTransaction2,
             });
         });
     });

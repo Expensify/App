@@ -12,6 +12,7 @@ import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
@@ -41,6 +42,9 @@ const PUBLIC_SCREENS_ROUTES = {
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     SAML_SIGN_IN: 'sign-in-with-saml',
 } as const;
+
+// Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
+const VERIFY_ACCOUNT = 'verify-account';
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
@@ -223,6 +227,7 @@ const ROUTES = {
     SETTINGS_LOCK_ACCOUNT: 'settings/security/lock-account',
     SETTINGS_UNLOCK_ACCOUNT: 'settings/security/unlock-account',
     SETTINGS_FAILED_TO_LOCK_ACCOUNT: 'settings/security/failed-to-lock-account',
+    SETTINGS_DELEGATE_VERIFY_ACCOUNT: `settings/security/delegate/${VERIFY_ACCOUNT}`,
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
@@ -244,6 +249,7 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
+    SETTINGS_WALLET_VERIFY_ACCOUNT: `settings/wallet/${VERIFY_ACCOUNT}`,
     SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -273,6 +279,7 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/add-bank-account', backTo),
     },
+    SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
@@ -341,7 +348,10 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
     },
-
+    SETTINGS_2FA_VERIFY_ACCOUNT: {
+        route: `settings/security/two-factor-auth/${VERIFY_ACCOUNT}`,
+        getRoute: (params: {backTo?: string; forwardTo?: string} = {}) => getUrlWithParams(`settings/security/two-factor-auth/${VERIFY_ACCOUNT}`, params),
+    },
     SETTINGS_2FA_ROOT: {
         route: 'settings/security/two-factor-auth',
         getRoute: (backTo?: string, forwardTo?: string) =>
@@ -767,10 +777,10 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_UPGRADE: {
-        route: ':action/:iouType/upgrade/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+        route: ':action/:iouType/upgrade/:transactionID/:reportID/:featureName?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, featureName?: string, backTo = '') =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}`, backTo),
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}/${encodeURIComponent(featureName ?? '')}`, backTo),
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         route: ':action/:iouType/destination/:transactionID/:reportID',
@@ -999,6 +1009,16 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
+    },
+    MONEY_REQUEST_STEP_DISTANCE_MANUAL: {
+        route: ':action/:iouType/distance-manual/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_MANUAL route');
+            }
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-manual/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
@@ -1515,6 +1535,10 @@ const ROUTES = {
             return `workspaces/${policyID}/workflows` as const;
         },
     },
+    WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: {
+        route: 'workspaces/:policyID/workflows/connect-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/connect-account` as const,
+    },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/new` as const,
@@ -1560,6 +1584,10 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/invoices` as const;
         },
+    },
+    WORKSPACE_INVOICES_VERIFY_ACCOUNT: {
+        route: `workspaces/:policyID/invoices/${VERIFY_ACCOUNT}`,
+        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/${VERIFY_ACCOUNT}` as const,
     },
     WORKSPACE_INVOICES_COMPANY_NAME: {
         route: 'workspaces/:policyID/invoices/company-name',
@@ -2115,7 +2143,8 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/new` as const,
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
@@ -2367,6 +2396,10 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
+    },
+    TRAVEL_VERIFY_ACCOUNT: {
+        route: `travel/:domain/${VERIFY_ACCOUNT}`,
+        getRoute: (domain: string) => `travel/${domain}/${VERIFY_ACCOUNT}` as const,
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',
@@ -3175,6 +3208,10 @@ const ROUTES = {
         route: 'debug/transaction/:transactionID/violations/:index/json',
         getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
     },
+    REJECT_MONEY_REQUEST_REASON: {
+        route: 'reject/reason/:transactionID',
+        getRoute: (transactionID: string, reportID: string, backTo?: string) => `reject/reason/${transactionID}?reportID=${reportID}&backTo=${backTo}` as const,
+    },
     SCHEDULE_CALL_BOOK: {
         route: 'r/:reportID/schedule-call/book',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
@@ -3205,8 +3242,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-// eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-export {getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;

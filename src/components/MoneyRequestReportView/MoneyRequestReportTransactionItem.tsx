@@ -13,13 +13,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
-type MoneyRequestReportTransactionItemProps = {
+type MoneyRequestReportTransactionItemProps = ForwardedFSClassProps & {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
 
@@ -76,6 +77,7 @@ function MoneyRequestReportTransactionItem({
     amountColumnSize,
     taxAmountColumnSize,
     scrollToNewTransaction,
+    forwardedFSClass,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -131,6 +133,7 @@ function MoneyRequestReportTransactionItem({
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
+                forwardedFSClass={forwardedFSClass}
             >
                 <TransactionItemRow
                     transactionItem={transaction}
