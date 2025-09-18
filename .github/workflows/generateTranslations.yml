@@ -112,8 +112,12 @@ jobs:
           readonly MAX_COMMENT_SIZE=61440  # 60KB in bytes
 
           readonly PARROT_HEADER="## 🦜 Polyglot Parrot! 🦜"
-          readonly PARROT_INTRO="Squawk! Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
-          readonly PARROT_FOOTER="_Note:_ You can apply these changes to your branch by copying the patch to your clipboard, then running \`pbpaste | git apply\` 😉"
+          readonly PARROT_INTRO="_Squawk!_ Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
+          readonly PARROT_FOOTER="$(cat <<'EOF'
+          > [!NOTE]
+          > You can apply these changes to your branch by copying the patch to your clipboard, then running `pbpaste | git apply` 😉
+          EOF
+          )"
 
           if [ "$PATCH_SIZE" -le "$MAX_COMMENT_SIZE" ]; then
             # Small diff - include in comment
@@ -137,7 +141,7 @@ jobs:
               echo
               echo "$PARROT_INTRO"
               echo
-              echo "The diff is too large to include in this comment (${PATCH_SIZE} bytes), so I've created a gist for you:"
+              echo "The diff is too large to include in this comment _($((PATCH_SIZE / 1000))KB)_, so I've created a gist for you:"
               echo
               echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
               echo

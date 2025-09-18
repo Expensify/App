@@ -7092,7 +7092,7 @@ const translations = {
         reasonRBR: {
             hasErrors: 'Has some errors in report or report actions data',
             hasViolations: 'really has far too many violations, just an insane amount of violations',
-            hasTransactionThreadViolations: 'Has transaction thread violations',
+            hasTransactionThreadViolations: 'Has many transaction thread violations',
         },
         indicatorStatus: {
             theresAReportAwaitingAction: "There's a report awaiting action",
