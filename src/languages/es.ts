@@ -1306,6 +1306,7 @@ const translations = {
         addUnreportedExpenseConfirm: 'Añadir al informe',
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
+        newReport: 'Nuevo informe',
         explainHold: 'Explica la razón para retener esta solicitud.',
         retract: 'Retractar',
         reopened: 'reabrir',
@@ -1402,8 +1403,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
-            reasonPageDescription1: 'Rechaza un gasto si no tienes intención de aprobarlo o pagarlo. De lo contrario, usa "retener" para pausar el gasto y pedir más contexto.',
-            reasonPageDescription2: 'Si vas a rechazar el gasto, por favor añade un comentario para explicar el motivo:',
+            reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
             rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
@@ -6198,9 +6198,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-            },
-            has: {
-                receipt: 'Recibo',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
