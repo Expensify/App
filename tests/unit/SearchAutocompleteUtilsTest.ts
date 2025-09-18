@@ -31,16 +31,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should highlight valid filters with correct values', () => {
             const input = 'type:expense from:john@example.com currency:USD';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 5, type: 'mention-user', length: 7}, // type:expense
@@ -51,16 +43,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should highlight current user mentions with mention-here type', () => {
             const input = 'from:currentuser@example.com';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 5, type: 'mention-here', length: 23}, // from:currentuser@example.com (length is 23, not 24)
@@ -69,16 +53,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should highlight new PURCHASE_CURRENCY filter', () => {
             const input = 'purchaseCurrency:USD';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 17, type: 'mention-user', length: 3}, // purchaseCurrency:USD
@@ -87,16 +63,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should highlight new PURCHASE_AMOUNT filter with valid amount', () => {
             const input = 'purchaseAmount:100.50';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 15, type: 'mention-user', length: 6}, // purchaseAmount:100.50
@@ -105,32 +73,16 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should not highlight PURCHASE_AMOUNT filter with invalid amount', () => {
             const input = 'purchaseAmount:invalid';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([]);
         });
 
         it('should not highlight WITHDRAWAL_ID filter with valid ID because it is not in autocomplete parser', () => {
             const input = 'withdrawalID:12345';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             // withdrawalID is not in the autocomplete parser grammar
             expect(result).toEqual([]);
@@ -138,16 +90,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should not highlight WITHDRAWAL_ID filter because it is not supported in autocomplete parser', () => {
             const input = 'withdrawalID:12345';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             // withdrawalID is not in the autocomplete parser grammar, so it won't be highlighted
             expect(result).toEqual([]);
@@ -155,16 +99,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should highlight new TITLE filter with non-empty value', () => {
             const input = 'title:"Project Meeting"';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 6, type: 'mention-user', length: 17}, // title:"Project Meeting"
@@ -173,32 +109,16 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should not highlight TITLE filter with empty value', () => {
             const input = 'title:';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([]);
         });
 
         it('should highlight new ATTENDEE filter with valid user', () => {
             const input = 'attendee:john@example.com';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 9, type: 'mention-here', length: 16}, // attendee:john@example.com (john is treated as current user context)
@@ -207,16 +127,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should highlight ATTENDEE filter with current user as mention-here', () => {
             const input = 'attendee:currentuser@example.com';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 9, type: 'mention-here', length: 23}, // attendee:currentuser@example.com (length is 23)
@@ -225,16 +137,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should handle complex queries with multiple new filters', () => {
             const input = 'type:expense purchaseCurrency:USD purchaseAmount:50.00 title:"Expense Report" attendee:john@example.com';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 5, type: 'mention-user', length: 7}, // type:expense
@@ -247,16 +151,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should handle mixed valid and invalid filter values', () => {
             const input = 'purchaseAmount:invalid title:"Valid Title" purchaseCurrency:INVALID';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 29, type: 'mention-user', length: 13}, // title:"Valid Title" (adjusted position)
@@ -265,19 +161,11 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should handle amount filters with various valid formats', () => {
             const validAmounts = ['100', '100.50', '1000.00', '-50.25', '0.99'];
-            
-            validAmounts.forEach(amount => {
+
+            validAmounts.forEach((amount) => {
                 const input = `purchaseAmount:${amount}`;
-                
-                const result = parseForLiveMarkdown(
-                    input,
-                    currentUserName,
-                    mockSubstitutionMap,
-                    mockUserLogins,
-                    mockCurrencyList,
-                    mockCategoryList,
-                    mockTagList,
-                );
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
                 expect(result).toHaveLength(1);
                 expect(result.at(0)?.type).toBe('mention-user');
@@ -286,19 +174,11 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should handle amount filters with invalid formats', () => {
             const invalidAmounts = ['100.123', 'abc', '100.50.25', ''];
-            
-            invalidAmounts.forEach(amount => {
+
+            invalidAmounts.forEach((amount) => {
                 const input = `purchaseAmount:${amount}`;
-                
-                const result = parseForLiveMarkdown(
-                    input,
-                    currentUserName,
-                    mockSubstitutionMap,
-                    mockUserLogins,
-                    mockCurrencyList,
-                    mockCategoryList,
-                    mockTagList,
-                );
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
                 expect(result).toEqual([]);
             });
@@ -312,16 +192,8 @@ describe('SearchAutocompleteUtils', () => {
             };
 
             const input = 'attendee:emp123';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMapWithNewFilters,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMapWithNewFilters, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 9, type: 'mention-user', length: 6}, // attendee:emp123
@@ -329,47 +201,23 @@ describe('SearchAutocompleteUtils', () => {
         });
 
         it('should return empty array for empty input', () => {
-            const result = parseForLiveMarkdown(
-                '',
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+            const result = parseForLiveMarkdown('', currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([]);
         });
 
         it('should handle queries with only free text (no filters)', () => {
             const input = 'just some random text without filters';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([]);
         });
 
         it('should handle valid AMOUNT filters but not invalid TOTAL amounts', () => {
             const input = 'amount:-50.25';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             expect(result).toEqual([
                 {start: 7, type: 'mention-user', length: 6}, // amount:-50.25
@@ -378,16 +226,8 @@ describe('SearchAutocompleteUtils', () => {
 
         it('should not highlight TOTAL filter with amounts exceeding 8 digits', () => {
             const input = 'total:999999999';
-            
-            const result = parseForLiveMarkdown(
-                input,
-                currentUserName,
-                mockSubstitutionMap,
-                mockUserLogins,
-                mockCurrencyList,
-                mockCategoryList,
-                mockTagList,
-            );
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             // Total amounts with more than 8 digits fail validation
             expect(result).toEqual([]);
