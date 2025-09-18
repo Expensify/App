@@ -685,7 +685,9 @@ function handleBulkPayItemSelected(
     isUserValidated: boolean | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
 ) {
-    if (!isValidBulkPayOption(item)) {
+    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
+    // Policy id is also a last payment method so we shouldn't early return here for that case.
+    if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
     }
     if (isAccountLocked) {
@@ -700,7 +702,7 @@ function handleBulkPayItemSelected(
 
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
     const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
+    
 
     const paymentMethod = item.key as PaymentMethod;
     let paymentType;

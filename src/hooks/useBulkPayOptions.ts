@@ -111,7 +111,7 @@ function useBulkPayOptions({selectedPolicyID, selectedReportID, activeAdminPolic
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
                 buttonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
-                    value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                    key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
@@ -129,7 +129,7 @@ function useBulkPayOptions({selectedPolicyID, selectedReportID, activeAdminPolic
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
                     icon: Building,
-                    value: activePolicy.id,
+                    key: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
                 });
             });
