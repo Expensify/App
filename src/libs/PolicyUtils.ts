@@ -787,8 +787,8 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
-function getPersonalPolicy() {
-    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
+function getPersonalPolicy(policies?: OnyxCollection<Policy> | null) {
+    return Object.values(policies ?? allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
