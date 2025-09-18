@@ -136,7 +136,7 @@
     "expo-asset": "^11.1.2",
     "expo-av": "^15.1.5",
     "expo-font": "^13.0.4",
-    "expo-image": "2.4.0",
+    "expo-image": "^3.0.8",
     "expo-image-manipulator": "^13.1.5",
     "expo-secure-store": "~14.2.4",
     "fast-equals": "^5.2.2",

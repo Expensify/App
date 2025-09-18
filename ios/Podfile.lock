@@ -117,7 +117,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (13.3.1):
     - ExpoModulesCore
-  - ExpoImage (2.4.0):
+  - ExpoImage (3.0.8):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -421,7 +421,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - NWWebSocket (0.5.4)
+  - NWWebSocket (0.5.7)
   - Onfido (29.7.2)
   - onfido-react-native-sdk (10.6.0):
     - DoubleConversion
@@ -455,8 +455,8 @@ PODS:
   - pusher-websocket-react-native (1.3.1):
     - PusherSwift (~> 10.1.5)
     - React
-  - PusherSwift (10.1.5):
-    - NWWebSocket (~> 0.5.4)
+  - PusherSwift (10.1.6):
+    - NWWebSocket (~> 0.5.7)
     - TweetNacl (~> 1.0.0)
   - RCT-Folly (2024.11.18.00):
     - boost
@@ -2167,7 +2167,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pdf (6.7.7):
+  - react-native-pdf (6.7.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3211,7 +3211,7 @@ PODS:
     - RNSound/Core (= 0.11.2)
   - RNSound/Core (0.11.2):
     - React-Core
-  - RNSVG (15.9.0):
+  - RNSVG (15.12.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3234,9 +3234,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.9.0)
+    - RNSVG/common (= 15.12.1)
     - Yoga
-  - RNSVG/common (15.9.0):
+  - RNSVG/common (15.12.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3263,7 +3263,7 @@ PODS:
   - SDWebImage (5.21.0):
     - SDWebImage/Core (= 5.21.0)
   - SDWebImage/Core (5.21.0)
-  - SDWebImageAVIFCoder (0.11.0):
+  - SDWebImageAVIFCoder (0.11.1):
     - libavif/core (>= 0.11.0)
     - SDWebImage (~> 5.10)
   - SDWebImageSVGCoder (1.7.0):
@@ -3773,7 +3773,7 @@ SPEC CHECKSUMS:
   Expo: 63b9951a116c03a63215ae0a116e52b50107cecd
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
-  ExpoImage: 04ffc79f9a0391573b77efbc549d59c655caa5a8
+  ExpoImage: 306dd755c842dba9f3ee654c51834a9cc657e6ca
   ExpoImageManipulator: 7096d6bf874c0a0a649f60733fef8a99c4ad0fe2
   ExpoModulesCore: 4f1efd2360fd016b3ab7f13c9983320412208976
   ExpoSecureStore: 833b24a0d7feffef4505184910c058221066011e
@@ -3817,14 +3817,14 @@ SPEC CHECKSUMS:
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroModules: faec300c5f7074ec6d3255b2f6aedb94ac8a2d3d
-  NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
+  NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 0245dba46f3e3a10bbaf3969fc7c947a22fb46fa
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   pusher-websocket-react-native: e40c49a1e4ec96d4157375aebcf44943f0f8f62f
-  PusherSwift: cad631bad86cfff4b8458dce1310a7774e469b1f
+  PusherSwift: fa3d5f6587c20ad5790de87a5c9b150367b5f0f5
   RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
   RCTDeprecation: 83ffb90c23ee5cea353bd32008a7bca100908f8c
   RCTRequired: eb7c0aba998009f47a540bec9e9d69a54f68136e
@@ -3872,7 +3872,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: b8577cba87fbe7b7740c279ee23d25d7c5d87666
   react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
-  react-native-pdf: 627c954988c313c3b72a642611ae9160669e2f32
+  react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
   react-native-plaid-link-sdk: e83dc18fa6752fcfb1a9bbe995f78a8a7c659fe1
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
@@ -3933,9 +3933,9 @@ SPEC CHECKSUMS:
   RNScreens: 0dcbe4c37daf0ec9b98bc5a655b1303e58e676ff
   RNShare: 1e3e15a3d2608acde2808bc35448e2344e38e15b
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
-  RNSVG: 2aeb75970331da3a64cb89309f7fd7bd3769260a
+  RNSVG: 9346c68a0d5c5e4e74d82d664b745f28e6cfc1cb
   SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
-  SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
+  SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
@@ -3944,6 +3944,6 @@ SPEC CHECKSUMS:
   VisionCamera: b3c0cf261b9ad1ac7d60ec292d252cf3368b801e
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
-PODFILE CHECKSUM: 145b53efc0407146c2decf14202d64f78e7dbd96
+PODFILE CHECKSUM: ac0fca1ad1665b0f9a24b6b00b34d7d4e3879ec1
 
 COCOAPODS: 1.15.2
