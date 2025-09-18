@@ -11,11 +11,15 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import Log from '@libs/Log';
+import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -23,27 +27,28 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import {NavigateToAssignCardStep} from '@src/libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
-type AssigneeStepProps = {
-    /** The policy that the card will be issued under */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
 
-    /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
-};
-
-function AssigneeStep({policy, feed}: AssigneeStepProps) {
+function AssigneeStep({route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+
+    const {policyID, feed, backTo} = route.params;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+
     const [list] = useCardsList(policy?.id, feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
@@ -67,6 +72,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 isEditing: false,
             });
+            NavigateToAssignCardStep(nextStep, policyID, feed, backTo);
             return;
         }
 
@@ -93,6 +99,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             data,
             isEditing: false,
         });
+        NavigateToAssignCardStep(nextStep, policyID, feed, backTo);
     };
 
     const handleBackButtonPress = () => {
@@ -101,9 +108,10 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(policyID, feed, backTo));
             return;
         }
-        Navigation.goBack();
+        Navigation.dismissModal();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;

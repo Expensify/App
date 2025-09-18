@@ -11,25 +11,25 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-type CardNameStepProps = {
-    /** Current policy id */
-    policyID: string | undefined;
-};
-
-function CardNameStep({policyID}: CardNameStepProps) {
+type CardNameStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_NAME>;
+function CardNameStep({route}: CardNameStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
 
     const data = assignCard?.data;
+    const {policyID} = route.params;
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({
@@ -39,6 +39,9 @@ function CardNameStep({policyID}: CardNameStepProps) {
             },
             isEditing: false,
         });
+    };
+    const handleBackButtonPress = () => {
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
@@ -64,7 +67,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardName')}
-                    onBackButtonPress={() => setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false})}
+                    onBackButtonPress={handleBackButtonPress}
                 />
                 <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 <FormProvider

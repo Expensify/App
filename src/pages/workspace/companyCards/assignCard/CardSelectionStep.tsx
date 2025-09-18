@@ -20,27 +20,28 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {NavigateToAssignCardStep} from '@src/libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
-type CardSelectionStepProps = {
-    /** Selected feed */
-    feed: CompanyCardFeed;
+type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT>;
 
-    /** Current policy id */
-    policyID: string | undefined;
-};
-
-function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
+function CardSelectionStep({route}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+
+    const {policyID, feed, backTo} = route.params;
+
     const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -81,6 +82,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            NavigateToAssignCardStep(CONST.COMPANY_CARD.STEP.CONFIRMATION, policyID, feed, backTo);
             return;
         }
         if (!cardListOptions.length) {
@@ -88,6 +90,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             return;
         }
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+        NavigateToAssignCardStep(CONST.COMPANY_CARD.STEP.ASSIGNEE, policyID, feed, backTo);
     };
 
     const handleSelectCard = (cardNumber: string) => {
@@ -105,12 +108,13 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             Object.entries(filteredCardList)
                 .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
                 ?.at(0) ?? '';
-
+        const nextStep = isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
         setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
+            currentStep: nextStep,
             data: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
+        NavigateToAssignCardStep(nextStep, policyID, feed, backTo);
     };
 
     const searchedListOptions = useMemo(() => {
