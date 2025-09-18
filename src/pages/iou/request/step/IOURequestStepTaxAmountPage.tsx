@@ -8,7 +8,14 @@ import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestPartic
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getDefaultTaxCode,
+    getTaxValue,
+    getTaxAmount as getTransactionTaxAmount,
+    isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+} from '@libs/TransactionUtils';
 import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
@@ -54,8 +61,9 @@ function IOURequestStepTaxAmountPage({
         selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
     });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const taxPolicy = report?.policyID === CONST.POLICY.ID_FAKE && activePolicy ? activePolicy : policy;
-    const taxPolicyID = report?.policyID === CONST.POLICY.ID_FAKE && activePolicy ? activePolicyID : report?.policyID;
+    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
+    const taxPolicy = isExpenseUnreported ? activePolicy : policy;
+    const taxPolicyID = isExpenseUnreported ? activePolicyID : report?.policyID;
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${taxPolicyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${taxPolicyID}`, {canBeMissing: true});

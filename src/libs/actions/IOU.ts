@@ -4473,6 +4473,7 @@ function getUpdateMoneyRequestParams(
     if (
         policy &&
         isPaidGroupPolicy(policy) &&
+        !isSelfDM(iouReport) &&
         !isInvoice &&
         updatedTransaction &&
         (hasModifiedTag ||
