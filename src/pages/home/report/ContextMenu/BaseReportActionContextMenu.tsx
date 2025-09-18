@@ -372,9 +372,7 @@ function BaseReportActionContextMenu({
                         }
 
                         const {textTranslateKey} = contextAction;
-                        const isKeyInActionUpdateKeys =
-                            textTranslateKey === 'reportActionContextMenu.editAction' ||
-                            textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
+                        const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
                         const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                         const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyToClipboard' && transaction && {transaction};
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
