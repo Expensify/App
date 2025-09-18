@@ -32,6 +32,7 @@ import {
     openUnreportedExpense,
 } from '@libs/actions/Report';
 import {queueExportSearchWithTemplate, search} from '@libs/actions/Search';
+import getApprovalDropdownOptions from '@libs/ApprovalUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -777,13 +778,80 @@ function MoneyReportHeader({
                 onAnimationFinish={stopAnimation}
             />
         ),
-        [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
-            <Button
-                success
-                onPress={confirmApproval}
-                text={translate('iou.approve')}
-            />
-        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (() => {
+            // Check if we should show dropdown (only when there are held expenses and user has proper access)
+            const shouldShowDropdown = isAnyTransactionOnHold && !isDelegateAccessRestricted;
+
+            if (shouldShowDropdown) {
+                const approvalOptions = getApprovalDropdownOptions(
+                    !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+                    fullAmount,
+                    hasValidNonHeldAmount,
+                    hasOnlyHeldExpenses,
+                    () => {
+                        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+                        startApprovedAnimation();
+                        approveMoneyRequest(moneyRequestReport, false);
+                        if (currentSearchQueryJSON) {
+                            search({
+                                searchKey: currentSearchKey,
+                                shouldCalculateTotals: true,
+                                offset: 0,
+                                queryJSON: currentSearchQueryJSON,
+                            });
+                        }
+                    },
+                    () => {
+                        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+                        startApprovedAnimation();
+                        approveMoneyRequest(moneyRequestReport, true);
+                        if (currentSearchQueryJSON) {
+                            search({
+                                searchKey: currentSearchKey,
+                                shouldCalculateTotals: true,
+                                offset: 0,
+                                queryJSON: currentSearchQueryJSON,
+                            });
+                        }
+                    },
+                    translate,
+                );
+
+                if (approvalOptions.shouldShowDropdown) {
+                    return (
+                        <ButtonWithDropdownMenu
+                            success
+                            options={approvalOptions.options}
+                            menuHeaderText={approvalOptions.menuHeaderText}
+                            onPress={() => {
+                                // Default action is to approve the full amount
+                                setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+                                startApprovedAnimation();
+                                approveMoneyRequest(moneyRequestReport, true);
+                                if (currentSearchQueryJSON) {
+                                    search({
+                                        searchKey: currentSearchKey,
+                                        shouldCalculateTotals: true,
+                                        offset: 0,
+                                        queryJSON: currentSearchQueryJSON,
+                                    });
+                                }
+                            }}
+                            customText={translate('iou.approve')}
+                        />
+                    );
+                }
+            }
+
+            // Fallback to regular button for all other cases
+            return (
+                <Button
+                    success
+                    onPress={confirmApproval}
+                    text={translate('iou.approve')}
+                />
+            );
+        })(),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
             <AnimatedSettlementButton
                 isPaidAnimationRunning={isPaidAnimationRunning}
