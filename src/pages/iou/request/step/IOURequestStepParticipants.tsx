@@ -338,16 +338,14 @@ function IOURequestStepParticipants({
                     message={translate('quickAction.noLongerHaveReportAccess')}
                 />
             )}
-            {transactions.length > 0 && (
-                <MoneyRequestParticipantsSelector
-                    participants={isSplitRequest ? participants : []}
-                    onParticipantsAdded={addParticipant}
-                    onFinish={goToNextStep}
-                    iouType={iouType}
-                    action={action}
-                    isPerDiemRequest={isPerDiemRequest(initialTransaction)}
-                />
-            )}
+            <MoneyRequestParticipantsSelector
+                participants={isSplitRequest ? participants : []}
+                onParticipantsAdded={addParticipant}
+                onFinish={goToNextStep}
+                iouType={iouType}
+                action={action}
+                isPerDiemRequest={isPerDiemRequest(initialTransaction)}
+            />
         </StepScreenWrapper>
     );
 }
