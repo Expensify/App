@@ -42,7 +42,11 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
             containerElements={focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined}
             focusTrapOptions={{
                 onActivate: () => {
-                    (document?.activeElement as HTMLElement)?.blur();
+                    const activeElement = document?.activeElement as HTMLElement;
+                    if (activeElement?.nodeName === CONST.ELEMENT_NAME.INPUT || activeElement?.nodeName === CONST.ELEMENT_NAME.TEXTAREA) {
+                        return;
+                    }
+                    activeElement?.blur();
                 },
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,

@@ -1,11 +1,13 @@
 import type {ValueOf} from 'type-fest';
 import type {SearchStatus} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
 import type {PolicyEmployeeList} from './PolicyEmployee';
@@ -21,27 +23,17 @@ type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? typeof ChatListItem
     : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? typeof TransactionListItem
-    : typeof ReportListItem;
+      ? typeof TransactionListItem
+      : typeof TransactionGroupListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? TransactionListItemType[]
-    : ReportListItemType[];
-
-/** Model of columns to show for search results */
-type ColumnsToShow = {
-    /** Whether the category column should be shown */
-    shouldShowCategoryColumn: boolean;
-
-    /** Whether the tag column should be shown */
-    shouldShowTagColumn: boolean;
-
-    /** Whether the tax column should be shown */
-    shouldShowTaxColumn: boolean;
-};
+    : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
+      ? TaskListItemType[]
+      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
+        ? TransactionListItemType[]
+        : TransactionGroupListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -64,8 +56,14 @@ type SearchResultsInfo = {
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
-    /** The optional columns that should be shown according to policy settings */
-    columnsToShow: ColumnsToShow;
+    /** The number of results */
+    count?: number;
+
+    /** The total spend */
+    total?: number;
+
+    /** The currency of the total spend */
+    currency?: string;
 };
 
 /** Model of personal details search result */
@@ -118,8 +116,11 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The action that can be performed for the report */
+    /** The main action that can be performed for the report */
     action?: SearchTransactionAction;
+
+    /** The available actions that can be performed for the report */
+    allActions?: SearchTransactionAction[];
 
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -177,6 +178,15 @@ type SearchReport = {
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
+
+    /** Pending fields for the report */
+    pendingFields?: {
+        /** Pending action for the preview */
+        preview?: OnyxCommon.PendingAction;
+    };
+
+    /** Pending action for the report */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Model of report action search result */
@@ -232,6 +242,12 @@ type SearchPolicy = {
     /** Whether the rules feature is enabled */
     areRulesEnabled?: boolean;
 
+    /** Scheduled submit data */
+    harvesting?: {
+        /** Whether the scheduled submit is enabled */
+        enabled: boolean;
+    };
+
     /**
      * The scheduled submit frequency set up on this policy.
      * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
@@ -272,12 +288,12 @@ type SearchPolicy = {
     /** The approver of the policy */
     approver?: string;
 
-    /** A set of rules related to the workpsace */
+    /** A set of rules related to the workspace */
     rules?: {
-        /** A set of rules related to the workpsace approvals */
+        /** A set of rules related to the workspace approvals */
         approvalRules?: ApprovalRule[];
 
-        /** A set of rules related to the workpsace expenses */
+        /** A set of rules related to the workspace expenses */
         expenseRules?: ExpenseRule[];
     };
 };
@@ -365,6 +381,9 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
+    /** Used during the creation flow before the transaction is saved to the server */
+    iouRequestType?: IOURequestType;
+
     /** If the transaction has violations */
     hasViolation?: boolean;
 
@@ -374,11 +393,17 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** The name of the file used for a receipt */
+    filename?: string;
+
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
-    /** The action that can be performed for the transaction */
+    /** The main action that can be performed for the transaction */
     action: SearchTransactionAction;
+
+    /** The available actions that can be performed for the transaction */
+    allActions: SearchTransactionAction[];
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -400,6 +425,117 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** The CC for this transaction */
+    cardID?: number;
+
+    /** The display name of the purchaser card, if any */
+    cardName?: string;
+
+    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
+    convertedAmount: number;
+
+    /** The currency that the converted amount is in */
+    convertedCurrency: string;
+};
+
+/** Model of tasks search result */
+type SearchTask = {
+    /** The type of the response */
+    type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+
+    /** The account ID of the user who created the task */
+    accountID: number;
+
+    /** When the task was created */
+    created: string;
+
+    /** The description of the task that needs to be done */
+    description: string;
+
+    /** The person the task was assigned to */
+    managerID: number;
+
+    /** The chat report that the task was created in */
+    parentReportID: string;
+
+    /** The ID of the report that the task is associated with */
+    reportID: string;
+
+    /** The title of the task */
+    reportName: string;
+
+    /** The state of the task */
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+
+    /** The status of the task */
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+};
+
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Bank name */
+    bank: string;
+
+    /** Card name */
+    cardName: string;
+
+    /** Card ID */
+    cardID: number;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+};
+
+/** Model of withdrawal ID grouped search result */
+type SearchWithdrawalIDGroup = {
+    /** Withdrawal ID */
+    entryID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Masked account number */
+    accountNumber: string;
+
+    /** Bank name */
+    bankName: BankName;
+
+    /** When the withdrawal completed */
+    debitPosted: string;
 };
 
 /** Types of searchable transactions */
@@ -424,10 +560,14 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
+
+    /** Whether search data fetch has failed */
+    errors?: OnyxCommon.Errors;
 };
 
 export default SearchResults;
@@ -435,6 +575,7 @@ export default SearchResults;
 export type {
     ListItemType,
     ListItemDataType,
+    SearchTask,
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,
@@ -443,4 +584,8 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
 };

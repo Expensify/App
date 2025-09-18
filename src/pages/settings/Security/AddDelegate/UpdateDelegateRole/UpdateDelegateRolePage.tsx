@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -10,13 +11,11 @@ import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegateRolePendingAction, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type {DelegateRole} from '@src/types/onyx/Account';
 import UpdateDelegateMagicCodeModal from './UpdateDelegateMagicCodeModal';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
@@ -25,8 +24,15 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
     const currentRole = route.params.currentRole;
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | null>();
+    const showValidateActionModalFromURL = route.params.showValidateActionModal === 'true';
+    const newRoleFromURL = route.params.newRole;
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModalFromURL ?? false);
+    const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | undefined>(newRoleFromURL);
+    const [shouldShowLoading, setShouldShowLoading] = useState(showValidateActionModalFromURL ?? false);
+
+    useEffect(() => {
+        Navigation.setParams({showValidateActionModal: isValidateCodeActionModalVisible, newRole});
+    }, [isValidateCodeActionModalVisible, newRole]);
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -38,12 +44,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     }));
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
-    useEffect(() => {
-        updateDelegateRoleOptimistically(login ?? '', currentRole as DelegateRole);
-        return () => clearDelegateRolePendingAction(login);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [login]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -69,6 +69,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                                 >
                                     {translate('common.learnMore')}
                                 </TextLink>
+                                .
                             </>
                         </Text>
                     }
@@ -89,11 +90,13 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         role={newRole}
                         isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
                         onClose={() => {
+                            setShouldShowLoading(false);
                             setIsValidateCodeActionModalVisible(false);
                         }}
                     />
                 )}
             </DelegateNoAccessWrapper>
+            {shouldShowLoading && <FullScreenLoadingIndicator />}
         </ScreenWrapper>
     );
 }

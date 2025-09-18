@@ -1,9 +1,15 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {isExpenseReport} from '@libs/ReportUtils';
+import IntlStore from '@src/languages/IntlStore';
+import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
+import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {Report, ReportAction} from '../../src/types/onyx';
+import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
+import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -12,15 +18,17 @@ describe('ReportActionsUtils', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        return waitForBatchedUpdates();
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
@@ -191,16 +199,336 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
             ],
+            [
+                [
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    // this item has no created field, so it should appear right after CONST.REPORT.ACTIONS.TYPE.CREATED
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+                [
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+            ],
         ];
 
         test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[]);
             expect(result).toStrictEqual(expectedOutput);
         });
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input, true);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
             expect(result).toStrictEqual(expectedOutput.reverse());
+        });
+    });
+
+    describe('isIOUActionMatchingTransactionList', () => {
+        const nonIOUAction = {
+            created: '2022-11-13 22:27:01.825',
+            reportActionID: '8401445780099176',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {
+                html: 'Hello world',
+                whisperedTo: [],
+            },
+            message: [
+                {
+                    html: 'Hello world',
+                    type: 'Action type',
+                    text: 'Action text',
+                },
+            ],
+        };
+
+        it('returns false for non-money request actions when defaultToFalseForNonIOU is true', () => {
+            expect(isIOUActionMatchingTransactionList(nonIOUAction, undefined, true)).toBeFalsy();
+        });
+
+        it('returns true for non-money request actions when defaultToFalseForNonIOU is false', () => {
+            expect(isIOUActionMatchingTransactionList(nonIOUAction, undefined, false)).toBeTruthy();
+        });
+
+        it('returns true if no reportTransactionIDs are provided', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction)).toBeTruthy();
+        });
+
+        it('returns true if action is of excluded type', () => {
+            const action = {
+                ...mockIOUAction,
+                originalMessage: {
+                    ...mockOriginalMessage,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            expect(isIOUActionMatchingTransactionList(action, ['124', '125', '126'])).toBeTruthy();
+        });
+
+        it('returns true if IOUTransactionID matches any provided reportTransactionIDs', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124', mockOriginalMessage.IOUTransactionID])).toBeTruthy();
+        });
+
+        it('returns false if IOUTransactionID does not match any provided reportTransactionIDs', () => {
+            expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124'])).toBeFalsy();
+        });
+    });
+
+    describe('getOneTransactionThreadReportAction', () => {
+        const IOUReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_IOU` as const;
+        const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
+        const IOUExpenseTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_EXPENSE` as const;
+        const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.reportID}` as const;
+        const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+            [IOUReportID]: {...mockIOUReport, reportID: IOUReportID},
+            [mockChatReportID]: mockChatReport,
+        };
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
+
+        const linkedActionWithChildReportID = {
+            ...mockIOUAction,
+            originalMessage: {...originalMessage, IOUTransactionID},
+            childReportID: 'existingChildReportID',
+        };
+
+        const linkedActionWithoutChildReportID = {
+            ...mockIOUAction,
+            originalMessage: {...originalMessage, IOUTransactionID},
+            childReportID: undefined,
+        };
+
+        const unlinkedAction = {
+            ...mockIOUAction,
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
+        };
+
+        const payAction = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...originalMessage,
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            },
+        };
+
+        it('should return action when single IOU action exists', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedActionWithChildReportID], false, [
+                IOUTransactionID,
+            ]);
+            expect(result).toEqual(linkedActionWithChildReportID);
+        });
+
+        it('should return undefined when no linked actions exist', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [unlinkedAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when multiple IOU actions exist', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, linkedActionWithoutChildReportID],
+                false,
+                [IOUTransactionID],
+            );
+            expect(result).toBeUndefined();
+        });
+
+        it('should skip PAY actions and return valid IOU action', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [payAction, linkedActionWithoutChildReportID],
+                false,
+                [IOUTransactionID],
+            );
+            expect(result).toEqual(linkedActionWithoutChildReportID);
+        });
+
+        it('should return undefined when only PAY actions exist', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [payAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('getOneTransactionThreadReportID', () => {
+        const IOUReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_IOU` as const;
+        const IOUTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_IOU` as const;
+        const IOUExpenseTransactionID = `${ONYXKEYS.COLLECTION.TRANSACTION}TRANSACTION_EXPENSE` as const;
+        const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.reportID}` as const;
+        const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+            [IOUReportID]: {...mockIOUReport, reportID: IOUReportID},
+            [mockChatReportID]: mockChatReport,
+        };
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
+        const linkedCreateAction = {
+            ...mockIOUAction,
+            originalMessage: {...originalMessage, IOUTransactionID},
+        };
+
+        const linkedCreateActionWithoutChildReportID = {
+            ...mockIOUAction,
+            originalMessage: {...originalMessage, IOUTransactionID},
+            childReportID: undefined,
+        };
+
+        const unlinkedCreateAction = {
+            ...mockIOUAction,
+            originalMessage: {...originalMessage, IOUTransactionID: IOUExpenseTransactionID},
+        };
+
+        const linkedDeleteAction = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...originalMessage,
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+            },
+        };
+
+        const linkedPayAction = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...originalMessage,
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            },
+        };
+
+        const linkedPayActionWithIOUDetails = {
+            ...mockIOUAction,
+            originalMessage: {
+                ...originalMessage,
+                IOUTransactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                IOUDetails: {
+                    amount: originalMessage?.amount,
+                    currency: originalMessage?.currency,
+                },
+            },
+        };
+
+        it('should return the childReportID for a valid single IOU action', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return CONST.FAKE_REPORT_ID when action exists but childReportID is undefined', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateActionWithoutChildReportID], false, [IOUTransactionID]);
+            expect(result).toEqual(CONST.FAKE_REPORT_ID);
+        });
+
+        it('should return undefined for action with a transaction that is not linked to it', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [unlinkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined if multiple IOU actions are present', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateAction, linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toBeUndefined();
+        });
+
+        it('should skip actions where original message type is PAY', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedPayAction, linkedCreateAction], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
+        it('should return the childReportID if original message type is PAY with IOUDetails', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedPayActionWithIOUDetails], false, [IOUTransactionID]);
+            expect(result).toEqual(linkedPayActionWithIOUDetails.childReportID);
+        });
+
+        it('should return undefined if no valid IOU actions are present', () => {
+            const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [unlinkedCreateAction, linkedDeleteAction, linkedPayAction], false, [
+                IOUTransactionID,
+            ]);
+            expect(result).toBeUndefined();
         });
     });
 
@@ -544,6 +872,64 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('hasRequestFromCurrentAccount', () => {
+        const currentUserAccountID = 1242;
+        const deletedIOUReportID = '2';
+        const activeIOUReportID = '3';
+
+        const deletedIOUReportAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: '22',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    deleted: '2025-07-15 09:06:16.568',
+                    html: '',
+                    isDeletedParentAction: false,
+                    isEdited: true,
+                    text: '',
+                    type: 'COMMENT',
+                },
+            ],
+        };
+
+        const activeIOUReportAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: '33',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    deleted: '',
+                    html: '$87.00 expense',
+                    isDeletedParentAction: false,
+                    isEdited: true,
+                    text: '',
+                    type: 'COMMENT',
+                },
+            ],
+        };
+
+        beforeEach(() => {
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedIOUReportID}`]: {[deletedIOUReportAction.reportActionID]: deletedIOUReportAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${activeIOUReportID}`]: {[activeIOUReportAction.reportActionID]: activeIOUReportAction},
+            } as unknown as KeyValueMapping);
+            return waitForBatchedUpdates();
+        });
+
+        it('should return false for a deleted IOU report action', () => {
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for an active IOU report action', () => {
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
+            expect(result).toBe(true);
+        });
+    });
+
     describe('getLastVisibleAction', () => {
         it('should return the last visible action for a report', () => {
             const report: Report = {
@@ -634,6 +1020,67 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+    });
+
+    describe('getSendMoneyFlowAction', () => {
+        const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
+        const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;
+        const childReportID = `${ONYXKEYS.COLLECTION.REPORT}childReport123` as const;
+
+        const mockedReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+            [mockChatReportID]: {...mockChatReport, reportID: mockChatReportID},
+            [mockDMChatReportID]: {
+                ...mockChatReport,
+                reportID: mockDMChatReportID,
+                chatType: undefined,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const originalMessage = getOriginalMessage(mockIOUAction) as OriginalMessageIOU;
+        const createAction = {
+            ...mockIOUAction,
+            childReportID,
+            originalMessage: {...originalMessage, type: CONST.IOU.TYPE.CREATE},
+        };
+
+        const nonIOUAction = {
+            ...mockIOUAction,
+            childReportID,
+            type: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        };
+
+        const payAction = {
+            ...mockIOUAction,
+            childReportID,
+            originalMessage: {...originalMessage, type: CONST.IOU.TYPE.PAY},
+        };
+
+        it('should return undefined for a single non-IOU action', () => {
+            expect(getSendMoneyFlowAction([nonIOUAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
+        });
+
+        it('should return undefined for multiple IOU actions regardless of type', () => {
+            expect(getSendMoneyFlowAction([payAction, payAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
+        });
+
+        it('should return undefined for a single IOU action that is not `Pay`', () => {
+            expect(getSendMoneyFlowAction([createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
+        });
+
+        it('should return the appropriate childReportID for a valid single `Pay` IOU action in DM chat', () => {
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockDMChatReportID])?.childReportID).toEqual(childReportID);
+        });
+
+        it('should return undefined for a valid single `Pay` IOU action in a chat that is not DM', () => {
+            expect(getSendMoneyFlowAction([payAction], mockedReports[mockChatReportID])?.childReportID).toBeUndefined();
+        });
+
+        it('should return undefined for a valid `Pay` IOU action in DM chat that has also a create IOU action', () => {
+            expect(getSendMoneyFlowAction([payAction, createAction], mockedReports[mockDMChatReportID])?.childReportID).toBeUndefined();
         });
     });
 
@@ -842,6 +1289,95 @@ describe('ReportActionsUtils', () => {
                 ],
             };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('getRenamedAction', () => {
+        it('should return the correct translated message for a renamed action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    lastModified: '2022-11-09 22:27:01.825',
+                    oldName: 'Old name',
+                    newName: 'New name',
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.CHAT};
+            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
+        });
+
+        it('should return the correct translated message for a renamed action in expense report', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    lastModified: '2022-11-09 22:27:01.825',
+                    oldName: 'Old name',
+                    newName: 'New name',
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE};
+
+            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
+        });
+    });
+    describe('getCardIssuedMessage', () => {
+        const mockVirtualCardIssuedAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+            reportActionID: 'virtual-card-action-123',
+            actorAccountID: 123,
+            created: '2024-01-01',
+            message: [],
+            originalMessage: {
+                assigneeAccountID: 456,
+                cardID: 789,
+            },
+        } as ReportAction;
+
+        const activeExpensifyCard: Card = {
+            cardID: 789,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            bank: '',
+            availableSpend: 0,
+            domainName: '',
+            lastFourPAN: '',
+            lastUpdated: '2024-01-01',
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+        } as Card;
+
+        const testPolicyID = 'test-policy-123';
+
+        describe('render virtual card issued messages', () => {
+            it('should render a plain text message without card link when no card data is available', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockVirtualCardIssuedAction,
+                    shouldRenderHTML: true,
+                    policyID: testPolicyID,
+                    expensifyCard: undefined,
+                });
+
+                expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
+            });
+
+            it('should render a message with clickable card link when the card is active', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockVirtualCardIssuedAction,
+                    shouldRenderHTML: true,
+                    policyID: testPolicyID,
+                    expensifyCard: activeExpensifyCard,
+                });
+
+                expect(messageResult).toBe(
+                    `issued <mention-user accountID="456"/> a virtual <a href='https://dev.new.expensify.com:8082/settings/card/789'>Expensify Card</a>! The card can be used right away.`,
+                );
+            });
         });
     });
 });

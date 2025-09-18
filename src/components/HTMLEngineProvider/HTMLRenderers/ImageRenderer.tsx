@@ -1,15 +1,15 @@
 import React, {memo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
 import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Document, GalleryNotFound} from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
@@ -19,13 +19,12 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {User} from '@src/types/onyx';
 
 type ImageRendererWithOnyxProps = {
-    /** Current user */
+    /** Whether we should use the staging version of the secure API server */
     // Following line is disabled because the onyx prop is only being used on the memo HOC
     // eslint-disable-next-line react/no-unused-prop-types
-    user: OnyxEntry<User>;
+    shouldUseStagingServer: OnyxEntry<boolean>;
 };
 
 type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBlock>;
@@ -41,7 +40,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //
     //     - Chat Attachment images
     //
-    //           Images uploaded by the user via the app or email.
+    //           Images uploaded by the user account via the app or email.
     //           These have a full-sized image `htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]`
     //           and a thumbnail `htmlAttribs.src`. Both of these URLs need to have
     //           an authToken added to them in order to control who
@@ -57,6 +56,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const attachmentSourceAttribute =
         htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
@@ -72,7 +72,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     const fileType = getFileType(attachmentSourceAttribute);
-    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
+    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Document : GalleryNotFound;
     const theme = useTheme();
 
     let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
@@ -100,7 +100,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -111,14 +111,25 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute({
+                                    attachmentID,
+                                    reportID,
+                                    type,
+                                    source,
+                                    accountID,
+                                    isAuthTokenRequired: isAttachmentOrReceipt,
+                                    originalFileName: fileName,
+                                    attachmentLink,
+                                });
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
-                                if (isDisabled) {
+                                if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
-                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                                return onShowContextMenu(() =>
+                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
+                                );
                             }}
                             isNested
                             shouldUseHapticsOnLongPress
@@ -138,16 +149,16 @@ ImageRenderer.displayName = 'ImageRenderer';
 
 const ImageRendererMemorize = memo(
     ImageRenderer,
-    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.user?.shouldUseStagingServer === nextProps.user?.shouldUseStagingServer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.shouldUseStagingServer === nextProps.shouldUseStagingServer,
 );
 
 function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
     return (
         <ImageRendererMemorize
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            user={user}
+            shouldUseStagingServer={shouldUseStagingServer}
         />
     );
 }

@@ -32,6 +32,12 @@ type ImageSVGProps = {
 
     /** The preserveAspectRatio attribute indicates how an element with a viewBox providing a given aspect ratio must fit into a viewport with a different aspect ratio. */
     preserveAspectRatio?: string;
+
+    /** TestID for test */
+    testID?: string;
+
+    //* Called when the image load either succeeds or fails. */
+    onLoadEnd?: () => void;
 };
 
 export default ImageSVGProps;

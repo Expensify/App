@@ -16,6 +16,7 @@ jest.mock('@libs/GoogleTagManager');
 
 // Mock the Overlay since it doesn't work in tests
 jest.mock('@libs/Navigation/AppNavigator/Navigators/Overlay');
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const FUND_LIST: FundList = {
     defaultCard: {
@@ -70,11 +71,11 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace();
+        createWorkspace({});
         await waitForBatchedUpdates();
-        createWorkspace();
+        createWorkspace({});
         await waitForBatchedUpdates();
-        createWorkspace();
+        createWorkspace({});
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);

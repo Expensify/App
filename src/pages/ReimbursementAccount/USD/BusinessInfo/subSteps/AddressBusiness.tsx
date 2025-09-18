@@ -1,16 +1,13 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
+import React from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_BUSINESS_INFO_KEY = INPUT_IDS.BUSINESS_INFO_STEP;
 
@@ -23,38 +20,18 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY.CITY, COMPANY_BUSINESS_INFO_KEY.STATE, COMPANY_BUSINESS_INFO_KEY.ZIP_CODE];
 
-function AddressBusiness({onNext, isEditing}: SubStepProps) {
+function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-            if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-                errors.addressStreet = translate('bankAccount.error.addressStreet');
-            }
-
-            if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
-                errors.addressCity = translate('bankAccount.error.addressCity');
-            }
-
-            if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-                errors.addressZipCode = translate('bankAccount.error.zipCode');
-            }
-
-            return errors;
-        },
-        [translate],
-    );
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     const defaultValues = {
         street: reimbursementAccount?.achData?.addressStreet ?? '',
         city: reimbursementAccount?.achData?.addressCity ?? '',
         state: reimbursementAccount?.achData?.addressState ?? '',
         zipCode: reimbursementAccount?.achData?.addressZipCode ?? '',
+        country: reimbursementAccount?.achData?.country ?? '',
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -63,24 +40,25 @@ function AddressBusiness({onNext, isEditing}: SubStepProps) {
         shouldSaveDraft: isEditing,
     });
 
+    if (isLoadingReimbursementAccount) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
-        <FormProvider
+        <AddressStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            validate={validate}
+            formTitle={translate('businessInfoStep.enterYourCompanyAddress')}
+            formPOBoxDisclaimer={translate('common.noPO')}
             onSubmit={handleSubmit}
-            submitButtonStyles={[styles.mb0]}
-            style={[styles.mh5, styles.flexGrow1]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
-            <Text style={[styles.pv3, styles.textSupporting]}>{translate('common.noPO')}</Text>
-            <AddressFormFields
-                inputKeys={INPUT_KEYS}
-                shouldSaveDraft={!isEditing}
-                defaultValues={defaultValues}
-                streetTranslationKey="common.companyAddress"
-            />
-        </FormProvider>
+            stepFields={STEP_FIELDS}
+            inputFieldsIDs={INPUT_KEYS}
+            defaultValues={defaultValues}
+            shouldAllowCountryChange={false}
+            streetTranslationKey="common.companyAddress"
+        />
     );
 }
 

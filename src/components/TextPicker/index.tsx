@@ -8,7 +8,7 @@ import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
 function TextPicker(
-    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, disabled = false, interactive = true, ...rest}: TextPickerProps,
+    {value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, disabled = false, interactive = true, required = false, ...rest}: TextPickerProps,
     forwardedRef: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
@@ -54,6 +54,7 @@ function TextPicker(
                 onClose={hidePickerModal}
                 onValueSelected={updateInput}
                 disabled={disabled}
+                required={required}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

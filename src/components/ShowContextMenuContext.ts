@@ -2,31 +2,35 @@ import {createContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getOriginalReportID} from '@libs/ReportUtils';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type ShowContextMenuContextProps = {
     anchor: ContextMenuAnchor;
     report: OnyxEntry<Report>;
-    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
+    isReportArchived: boolean;
     action: OnyxEntry<ReportAction>;
     transactionThreadReport?: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
+    onShowContextMenu: (callback: () => void) => void;
     isDisabled: boolean;
+    shouldDisplayContextMenu?: boolean;
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
+    onShowContextMenu: (callback) => callback(),
     report: undefined,
-    reportNameValuePairs: undefined,
+    isReportArchived: false,
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
-    isDisabled: false,
+    isDisabled: true,
+    shouldDisplayContextMenu: true,
 });
 
 ShowContextMenuContext.displayName = 'ShowContextMenuContext';
@@ -49,23 +53,28 @@ function showContextMenuForReport(
     checkIfContextMenuActive: () => void,
     isArchivedRoom = false,
 ) {
-    if (!DeviceCapabilities.canUseTouchScreen()) {
+    if (!canUseTouchScreen()) {
         return;
     }
 
-    ReportActionContextMenu.showContextMenu(
-        CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+    showContextMenu({
+        type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
-        '',
-        anchor,
-        reportID,
-        action?.reportActionID,
-        reportID ? ReportUtils.getOriginalReportID(reportID, action) : undefined,
-        undefined,
-        checkIfContextMenuActive,
-        checkIfContextMenuActive,
-        isArchivedRoom,
-    );
+        selection: '',
+        contextMenuAnchor: anchor,
+        report: {
+            reportID,
+            originalReportID: reportID ? getOriginalReportID(reportID, action) : undefined,
+            isArchivedRoom,
+        },
+        reportAction: {
+            reportActionID: action?.reportActionID,
+        },
+        callbacks: {
+            onShow: checkIfContextMenuActive,
+            onHide: checkIfContextMenuActive,
+        },
+    });
 }
 
 export {ShowContextMenuContext, showContextMenuForReport};

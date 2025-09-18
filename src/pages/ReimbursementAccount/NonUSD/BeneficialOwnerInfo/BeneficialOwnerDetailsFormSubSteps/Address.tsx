@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
@@ -94,6 +94,7 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
             onCountryChange={handleCountryChange}
             shouldDisplayStateSelector={shouldDisplayStateSelector}
             shouldDisplayCountrySelector
+            shouldValidateZipCodeFormat={reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.US}
         />
     );
 }

@@ -54,12 +54,10 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
     }, [opacity, scale, onHide]);
 
     return (
-        <Reanimated.View
-            onLayout={hide}
-            style={[StyleSheet.absoluteFill, styles.splashScreenHider, opacityStyle]}
-        >
+        <Reanimated.View style={[StyleSheet.absoluteFill, styles.splashScreenHider, opacityStyle]}>
             <Reanimated.View style={scaleStyle}>
                 <ImageSVG
+                    onLoadEnd={hide}
                     contentFit="fill"
                     style={{width: 100 * logoSizeRatio, height: 100 * logoSizeRatio}}
                     src={Logo}

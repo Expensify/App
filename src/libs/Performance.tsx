@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
 import React, {forwardRef, Profiler} from 'react';
@@ -8,7 +8,7 @@ import type {PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
-import * as Metrics from './Metrics';
+import canCapturePerformanceMetrics from './Metrics';
 
 /**
  * Deep diff between two objects. Useful for figuring out what changed about an object from one render to the next so
@@ -17,7 +17,7 @@ import * as Metrics from './Metrics';
 function diffObject(object: Record<string, unknown>, base: Record<string, unknown>): Record<string, unknown> {
     function changes(obj: Record<string, unknown>, comparisonObject: Record<string, unknown>): Record<string, unknown> {
         return lodashTransform(obj, (result, value, key) => {
-            if (isEqual(value, comparisonObject[key])) {
+            if (deepEqual(value, comparisonObject[key])) {
                 return;
             }
 
@@ -52,7 +52,7 @@ function measureTTI(endMark?: string): void {
             // We don't want an alert to show:
             // - on builds with performance metrics collection disabled by a feature flag
             // - e2e test sessions
-            if (!Metrics.canCapturePerformanceMetrics() || isE2ETestSession()) {
+            if (!canCapturePerformanceMetrics() || isE2ETestSession()) {
                 return;
             }
 
@@ -197,9 +197,8 @@ type Phase = 'mount' | 'update' | 'nested-update';
  * @param baseDuration estimated time to render the entire subtree without memoization
  * @param startTime when React began rendering this update
  * @param commitTime when React committed this update
- * @param interactions the Set of interactions belonging to this update
  */
-function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number, interactions: Set<unknown>): PerformanceMeasure {
+function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number): PerformanceMeasure {
     return performance.measure(id, {
         start: startTime,
         duration: actualDuration,
@@ -207,7 +206,6 @@ function traceRender(id: string, phase: Phase, actualDuration: number, baseDurat
             phase,
             baseDuration,
             commitTime,
-            interactions,
         },
     });
 }
@@ -218,7 +216,7 @@ type WrappedComponentConfig = {id: string};
  * A HOC that captures render timings of the Wrapped component
  */
 function withRenderTrace({id}: WrappedComponentConfig) {
-    if (!Metrics.canCapturePerformanceMetrics()) {
+    if (!canCapturePerformanceMetrics()) {
         return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => WrappedComponent;
     }
 

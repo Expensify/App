@@ -1,15 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type BeneficialOwnersListProps = {
     /** Method called when user confirms data */
-    handleConfirmation: () => void;
+    handleConfirmation: (value: {anyIndividualOwn25PercentOrMore?: boolean}) => void;
 
     /** Method called when user presses on one of owners to edit its data */
     handleOwnerEdit: (value: string) => void;
@@ -31,9 +31,10 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const owners =
@@ -64,41 +65,39 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
     const areThereOwners = owners !== undefined && owners?.length > 0;
 
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <ScrollView
-                    style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, styles.ph0, safeAreaPaddingBottomStyle]}
-                >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
-                    <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
-                    {areThereOwners && (
-                        <View>
-                            <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
-                            {owners}
-                        </View>
-                    )}
-                    <View style={[styles.mtAuto, styles.p5]}>
-                        {!!error && error.length > 0 && (
-                            <DotIndicatorMessage
-                                textStyles={[styles.formError]}
-                                type="error"
-                                messages={{error}}
-                            />
-                        )}
-                        <Button
-                            success
-                            large
-                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
-                            isDisabled={isOffline}
-                            style={[styles.w100, styles.mt2]}
-                            onPress={handleConfirmation}
-                            text={translate('common.confirm')}
-                        />
-                    </View>
-                </ScrollView>
+        <ScrollView
+            style={styles.pt0}
+            contentContainerStyle={[styles.flexGrow1, {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
+        >
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
+            <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+            {areThereOwners && (
+                <View>
+                    <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
+                    {owners}
+                </View>
             )}
-        </SafeAreaConsumer>
+            <View style={[styles.ph5, styles.mt5, styles.flexGrow1, styles.justifyContentEnd]}>
+                {!!error && error.length > 0 && (
+                    <DotIndicatorMessage
+                        textStyles={[styles.formError]}
+                        type="error"
+                        messages={{error}}
+                    />
+                )}
+                <Button
+                    success
+                    large
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
+                    isDisabled={isOffline}
+                    style={styles.w100}
+                    onPress={() => {
+                        handleConfirmation({anyIndividualOwn25PercentOrMore: true});
+                    }}
+                    text={translate('common.confirm')}
+                />
+            </View>
+        </ScrollView>
     );
 }
 

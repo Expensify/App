@@ -2,7 +2,7 @@
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
 import debounce from 'lodash/debounce';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
@@ -54,7 +54,7 @@ function BaseVideoPlayer({
     isVideoHovered = false,
     isPreview,
     reportID,
-}: VideoPlayerProps) {
+}: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
     const {
         pauseVideo,
@@ -64,10 +64,9 @@ function BaseVideoPlayer({
         originalParent,
         shareVideoPlayerElements,
         currentVideoPlayerRef,
-        updateCurrentlyPlayingURL,
+        updateCurrentURLAndReportID,
         videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
-        currentlyPlayingURLReportID,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -78,7 +77,7 @@ function BaseVideoPlayer({
     const [isEnded, setIsEnded] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
     const [hasError, setHasError] = useState(false);
-    // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
+    // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
@@ -111,13 +110,13 @@ function BaseVideoPlayer({
         setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
-            updateCurrentlyPlayingURL(url);
+            updateCurrentURLAndReportID(url, reportID);
         } else if (isPlaying) {
             pauseVideo();
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -225,7 +224,7 @@ function BaseVideoPlayer({
 
             // These two conditions are essential for the mute and unmute functionality to work properly during
             // fullscreen playback on the web
-            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted && status.volume === 0) {
                 updateVolume(lastNonZeroVolume.get());
             }
 
@@ -238,9 +237,9 @@ function BaseVideoPlayer({
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const currentDuration = status.durationMillis || videoDuration * 1000;
-            const currentPositon = status.positionMillis || 0;
+            const currentPosition = status.positionMillis || 0;
 
-            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon) && !isEnded) {
+            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPosition) && !isEnded) {
                 videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
             }
 
@@ -249,7 +248,7 @@ function BaseVideoPlayer({
             setIsLoading(Number.isNaN(status.durationMillis)); // when video is ready to display duration is not NaN
             setIsBuffering(status.isBuffering);
             setDuration(currentDuration);
-            setPosition(currentPositon);
+            setPosition(currentPosition);
 
             videoStateRef.current = status;
             onPlaybackStatusUpdate?.(status);
@@ -333,10 +332,11 @@ function BaseVideoPlayer({
         if (currentVideoPlayerRef.current) {
             pauseVideo();
         }
+
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
-    const isCurrentlyURLSetRef = useRef<boolean>();
+    const isCurrentlyURLSetRef = useRef<boolean | undefined>(undefined);
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
 
     useEffect(
@@ -352,17 +352,15 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
-            return;
-        }
         // On mobile safari, we need to auto-play when sharing video element here
         shareVideoPlayerElements(
             videoPlayerRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
             isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
+            {shouldUseSharedVideoElement, url, reportID},
         );
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID]);
 
     // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
     const bindFunctionsRef = useRef<(() => void) | null>(null);
@@ -409,14 +407,14 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentlyPlayingURL, currentlyPlayingURLReportID, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
             return;
         }
-        updateCurrentlyPlayingURL(url);
-    }, [shouldPlay, updateCurrentlyPlayingURL, url]);
+        updateCurrentURLAndReportID(url, reportID);
+    }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
     useEffect(() => {
         videoPlayerRef.current?.setStatusAsync({isMuted: true});
@@ -451,7 +449,7 @@ function BaseVideoPlayer({
                                 {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
-                                            ref={sharedVideoPlayerParentRef as MutableRefObject<View | null>}
+                                            ref={sharedVideoPlayerParentRef as RefObject<View | null>}
                                             style={[styles.flex1]}
                                         />
                                         {/* We are adding transparent absolute View between appended video component and control buttons to enable
@@ -461,7 +459,7 @@ function BaseVideoPlayer({
                                     </>
                                 ) : (
                                     <View
-                                        fsClass="fs-exclude"
+                                        fsClass={CONST.FULLSTORY.CLASS.EXCLUDE}
                                         style={styles.flex1}
                                         ref={(el) => {
                                             if (!el) {
@@ -496,6 +494,9 @@ function BaseVideoPlayer({
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
                                             }}
                                             onLoad={() => {
+                                                if (hasError) {
+                                                    setHasError(false);
+                                                }
                                                 if (!isCurrentlyURLSet || isUploading) {
                                                     return;
                                                 }
@@ -504,8 +505,14 @@ function BaseVideoPlayer({
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                             onError={() => {
+                                                // No need to set hasError while offline, since the offline indicator is already shown.
+                                                // Once the user reconnects, if the video is unsupported, the error will be triggered again.
+                                                if (isOffline) {
+                                                    return;
+                                                }
                                                 setHasError(true);
                                             }}
+                                            testID={CONST.VIDEO_PLAYER_TEST_ID}
                                         />
                                     </View>
                                 )}
@@ -527,6 +534,7 @@ function BaseVideoPlayer({
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
                                     controlsStatus={controlStatusState}
                                     showPopoverMenu={showPopoverMenu}
+                                    reportID={reportID}
                                 />
                             )}
                         </View>

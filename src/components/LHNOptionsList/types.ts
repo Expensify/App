@@ -1,11 +1,12 @@
-import type {ContentStyle} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -14,13 +15,13 @@ type CustomLHNOptionsListProps = {
     style?: StyleProp<ViewStyle>;
 
     /** Extra styles for the section list container */
-    contentContainerStyles?: StyleProp<ContentStyle>;
+    contentContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Sections for the section list */
-    data: string[];
+    /** List of reports */
+    data: Report[];
 
     /** Callback to fire when a row is selected */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Toggle between compact and default view of the option */
     optionMode: OptionMode;
@@ -36,13 +37,25 @@ type LHNOptionsListProps = CustomLHNOptionsListProps;
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
-    isFocused?: boolean;
+    isOptionFocused?: boolean;
 
     /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
 
     /** The preferred language for the app */
     preferredLocale?: OnyxEntry<Locale>;
+
+    /** The active policy ID */
+    activePolicyID?: string;
+
+    /** The onboarding purpose */
+    onboardingPurpose?: OnboardingPurpose;
+
+    /** Whether the fullscreen is visible */
+    isFullscreenVisible?: boolean;
+
+    /** Whether the reports split navigator is last */
+    isReportsSplitNavigatorLast: boolean;
 
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
@@ -98,21 +111,42 @@ type OptionRowLHNDataProps = {
     lastMessageTextFromReport: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** The report attributes for the report */
+    reportAttributes: OnyxEntry<ReportAttributes>;
+
+    /** Whether to show the educational tooltip for the GBR or RBR */
+    shouldShowRBRorGBRTooltip: boolean;
+
+    /** Whether the screen is focused */
+    isScreenFocused?: boolean;
+
+    /** Function to compare locale strings */
+    localeCompare: LocaleContextProps['localeCompare'];
+
+    /** TestID of the row, indicating order */
+    testID: number;
+
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 type OptionRowLHNProps = {
     /** The ID of the report that the option is for */
     reportID: string;
 
+    /** The report for this option */
+    report?: Report;
+
     /** Whether this option is currently in focus so we can modify its style */
-    isFocused?: boolean;
+    isOptionFocused?: boolean;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
@@ -123,12 +157,33 @@ type OptionRowLHNProps = {
     /** The item that should be rendered */
     optionItem?: OptionData;
 
+    /** The active policy ID */
+    activePolicyID?: string;
+
+    /** The onboarding purpose */
+    onboardingPurpose?: OnboardingPurpose;
+
+    /** Whether the fullscreen is visible */
+    isFullscreenVisible?: boolean;
+
+    /** Whether the reports split navigator is last */
+    isReportsSplitNavigatorLast: boolean;
+
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether to show the educational tooltip on the GBR or RBR */
+    shouldShowRBRorGBRTooltip: boolean;
+
+    /** Whether the screen is focused */
+    isScreenFocused?: boolean;
+
+    /** The testID of the row */
+    testID: number;
 };
 
-type RenderItemProps = {item: string};
+type RenderItemProps = {item: Report; index: number};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

@@ -12,8 +12,8 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canModifyTask as canModifyTaskTaskUtils, editTask} from '@libs/actions/Task';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,6 +24,7 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import variables from '@styles/variables';
+import {canModifyTask, editTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,7 +42,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-            const parsedTitle = getParsedComment(title);
+            const parsedTitle = getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]);
             const parsedTitleLength = getCommentLength(parsedTitle);
 
             if (!parsedTitle) {
@@ -63,21 +64,22 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                 editTask(report, {title: values.title});
             }
 
-            Navigation.dismissModal(report?.reportID);
+            Navigation.dismissModalWithReport({reportID: report?.reportID});
         },
         [report],
     );
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(report?.reportID);
+            Navigation.dismissModalWithReport({reportID: report?.reportID});
         });
     }
 
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const isOpen = isOpenTaskReport(report);
-    const canModifyTask = canModifyTaskTaskUtils(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = isTaskReport(report) && (!canModifyTask || !isOpen);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     return (
         <ScreenWrapper
@@ -101,6 +103,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         onSubmit={submit}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
+                        shouldHideFixErrorsAlert
                     >
                         <View style={[styles.mb4]}>
                             <InputWrapper
@@ -110,8 +113,8 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
-                                ref={(element: AnimatedTextInputRef) => {
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {})}
+                                ref={(element: AnimatedTextInputRef | null) => {
                                     if (!element) {
                                         return;
                                     }

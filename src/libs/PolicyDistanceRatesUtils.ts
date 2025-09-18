@@ -1,11 +1,15 @@
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import CONST from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
-import type {Rate} from '@src/types/onyx/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CustomUnit, Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
+import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
-import * as Localize from './Localize';
-import * as MoneyRequestUtils from './MoneyRequestUtils';
-import * as NumberUtils from './NumberUtils';
+import {translateLocal} from './Localize';
+import {replaceAllDigits} from './MoneyRequestUtils';
+import {parseFloatAnyLocale} from './NumberUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
 
@@ -18,7 +22,7 @@ function validateRateValue(
     currentRateValue?: number,
 ): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
-    const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
+    const parsedRate = replaceAllDigits(values.rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
     const ratesList = Object.values(customUnitRates)
         .filter((rate) => currentRateValue !== rate.rate)
@@ -38,11 +42,11 @@ function validateRateValue(
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-        errors.rate = Localize.translateLocal('common.error.invalidRateError');
+        errors.rate = translateLocal('common.error.invalidRateError');
     } else if (ratesList.some((r) => r.rate === convertedRate)) {
-        errors.rate = Localize.translateLocal('workspace.perDiem.errors.existingRateError', {rate: Number(values.rate)});
-    } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
-        errors.rate = Localize.translateLocal('common.error.lowRateError');
+        errors.rate = translateLocal('workspace.perDiem.errors.existingRateError', {rate: Number(values.rate)});
+    } else if (parseFloatAnyLocale(parsedRate) <= 0) {
+        errors.rate = translateLocal('common.error.lowRateError');
     }
     return errors;
 }
@@ -51,7 +55,7 @@ function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, r
     const errors: FormInputErrors<TaxReclaimableForm> = {};
 
     if (rate?.rate && Number(values.taxClaimableValue) >= rate.rate / 100) {
-        errors.taxClaimableValue = Localize.translateLocal('workspace.taxes.error.updateTaxClaimableFailureMessage');
+        errors.taxClaimableValue = translateLocal('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;
 }
@@ -61,8 +65,93 @@ function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, r
  * @param rates
  */
 function getOptimisticRateName(rates: Record<string, Rate>): string {
-    const existingRatesWithSameName = Object.values(rates ?? {}).filter((rate) => (rate.name ?? '').startsWith(CONST.CUSTOM_UNITS.DEFAULT_RATE));
-    return existingRatesWithSameName.length ? `${CONST.CUSTOM_UNITS.DEFAULT_RATE} ${existingRatesWithSameName.length}` : CONST.CUSTOM_UNITS.DEFAULT_RATE;
+    if (Object.keys(rates).length === 0) {
+        return CONST.CUSTOM_UNITS.DEFAULT_RATE;
+    }
+    const newRateCount = Object.values(rates).filter((rate) => rate.name?.startsWith(CONST.CUSTOM_UNITS.NEW_RATE)).length;
+    return newRateCount === 0 ? CONST.CUSTOM_UNITS.NEW_RATE : `${CONST.CUSTOM_UNITS.NEW_RATE} ${newRateCount}`;
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue};
+type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof TaxRateAttributes;
+
+/**
+ * Builds optimistic, success, and failure Onyx data for policy distance rate updates
+ * @param policyID - The policy ID
+ * @param customUnit - The custom unit being updated
+ * @param customUnitRates - The rates being updated
+ * @param fieldName - The field name being updated
+ * @returns Object containing optimisticData, successData, and failureData arrays
+ */
+function buildOnyxDataForPolicyDistanceRateUpdates(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[], fieldName: PolicyDistanceRateUpdateField): OnyxData {
+    const currentRates = customUnit.rates;
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
+    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
+
+    for (const rateID of Object.keys(customUnit.rates)) {
+        if (rateIDs.includes(rateID)) {
+            const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
+            optimisticRates[rateID] = {
+                ...foundRate,
+                pendingFields: {[fieldName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+            successRates[rateID] = {
+                ...foundRate,
+                pendingFields: {[fieldName]: null},
+            };
+            failureRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {[fieldName]: null},
+                errorFields: {[fieldName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            };
+        }
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: optimisticRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: successRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: failureRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
+export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, buildOnyxDataForPolicyDistanceRateUpdates};
+export type {PolicyDistanceRateUpdateField};

@@ -1,11 +1,12 @@
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import type {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
+import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {IOURequestType} from '@libs/actions/IOU';
 import Tab from '@userActions/Tab';
@@ -13,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import onTabSelectHandler from './onTabSelectHandler';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorProps = ChildrenProps & {
@@ -44,14 +46,49 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
+
+    /** Disable swipe between tabs */
+    disableSwipe?: boolean;
+
+    /** Determines whether the product training tooltip should be displayed to the user. */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Function to render the content of the product training tooltip. */
+    renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    /** Whether to lazy load the tab screens */
+    lazyLoadEnabled?: boolean;
+
+    /** Callback to handle the Pager's internal onPageSelected event callback */
+    onTabSelect?: ({index}: {index: number}) => void;
+
+    /** Whether tabs should have equal width */
+    equalWidth?: boolean;
 };
 
-// eslint-disable-next-line rulesdir/no-inline-named-export
-const TopTab = createMaterialTopTabNavigator();
+const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
 
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
 // This provider is placed in the OnyxTabNavigator component and the consumer is in the TabScreenWithFocusTrapWrapper component.
 const TabFocusTrapContext = React.createContext<(tabName: string, containerElement: HTMLElement | null) => void>(() => {});
+
+const getTabNames = (children: React.ReactNode): string[] => {
+    const result: string[] = [];
+
+    React.Children.forEach(children, (child) => {
+        if (!React.isValidElement(child)) {
+            return;
+        }
+
+        const element = child as React.ReactElement<{name?: string}>;
+
+        if (typeof element.props.name === 'string') {
+            result.push(element.props.name);
+        }
+    });
+
+    return result;
+};
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
@@ -66,13 +103,28 @@ function OnyxTabNavigator({
     onTabSelected = () => {},
     screenListeners,
     shouldShowLabelWhenInactive = true,
+    disableSwipe = false,
+    shouldShowProductTrainingTooltip,
+    renderProductTrainingTooltip,
+    lazyLoadEnabled = false,
+    onTabSelect,
+    equalWidth = false,
     ...rest
 }: OnyxTabNavigatorProps) {
+    const isFirstMount = useRef(true);
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: true});
 
-    // This callback is used to register the focus trap container element of each avaiable tab screen
+    const tabNames = useMemo(() => getTabNames(children), [children]);
+
+    const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
+
+    const LazyPlaceholder = useCallback(() => {
+        return <FullScreenLoadingIndicator />;
+    }, []);
+
+    // This callback is used to register the focus trap container element of each available tab screen
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
         setFocusTrapContainerElementMapping((prevMapping) => {
             const resultMapping = {...prevMapping};
@@ -95,12 +147,15 @@ function OnyxTabNavigator({
                 <TabBar
                     onFocusTrapContainerElementChanged={onTabBarFocusTrapContainerElementChanged}
                     shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                    shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
+                    renderProductTrainingTooltip={renderProductTrainingTooltip}
+                    equalWidth={equalWidth}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             );
         },
-        [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive],
+        [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, shouldShowProductTrainingTooltip, renderProductTrainingTooltip, equalWidth],
     );
 
     // If the selected tab changes, we need to update the focus trap container element of the active tab
@@ -118,16 +173,23 @@ function OnyxTabNavigator({
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...rest}
                 id={id}
-                initialRouteName={selectedTab ?? defaultSelectedTab}
+                initialRouteName={validInitialTab}
                 backBehavior="initialRoute"
                 keyboardDismissMode="none"
                 tabBar={TabBarWithFocusTrapInclusion}
+                onTabSelect={onTabSelect}
                 screenListeners={{
                     state: (e) => {
                         const event = e as unknown as EventMapCore<NavigationState>['state'];
                         const state = event.data.state;
                         const index = state.index;
                         const routeNames = state.routeNames;
+                        // For web-based platforms we need to focus the selected tab input once on first mount as well as
+                        // when the tab selection is changed via internal Pager onPageSelected (passed to the navigator)
+                        if (isFirstMount.current) {
+                            onTabSelectHandler(index, onTabSelect);
+                            isFirstMount.current = false;
+                        }
                         const newSelectedTab = routeNames.at(index);
                         if (selectedTab === newSelectedTab) {
                             return;
@@ -137,7 +199,12 @@ function OnyxTabNavigator({
                     },
                     ...(screenListeners ?? {}),
                 }}
-                screenOptions={defaultScreenOptions}
+                screenOptions={{
+                    ...defaultScreenOptions,
+                    swipeEnabled: !disableSwipe,
+                    lazy: lazyLoadEnabled,
+                    lazyPlaceholder: LazyPlaceholder,
+                }}
             >
                 {children}
             </TopTab.Navigator>

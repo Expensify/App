@@ -26,6 +26,7 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+    WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
     WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
     WRITE_COMMANDS.ENABLE_POLICY_TAGS,
     WRITE_COMMANDS.ENABLE_POLICY_TAXES,
@@ -119,7 +120,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
         // If we find a new message, we probably want to remove it and not perform any request given that the server
         // doesn't know about it yet.
-        if (addNewMessage.has(request.command) && !request.isRollbacked) {
+        if (addNewMessage.has(request.command) && !request.isRollback) {
             addCommentFound = true;
             commentCouldBeThread[reportActionID] = commentIndicesToDelete.length;
         }
@@ -228,3 +229,5 @@ export {
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
 };
+
+export type {EnablePolicyFeatureCommand, RequestMatcher};

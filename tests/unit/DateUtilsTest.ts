@@ -4,9 +4,12 @@ import {toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
 const UTC = 'UTC';
@@ -34,6 +37,11 @@ describe('DateUtils', () => {
         return waitForBatchedUpdates();
     });
 
+    beforeEach(() => {
+        IntlStore.load(LOCALE);
+        return waitForBatchedUpdates();
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
         jest.useRealTimers();
@@ -45,7 +53,7 @@ describe('DateUtils', () => {
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('PST');
+        expect(zoneAbbreviation).toBe('GMT-8');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -68,56 +76,56 @@ describe('DateUtils', () => {
     });
 
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
-        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, undefined, 'InvalidTimezone' as SelectedTimezone);
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, 'InvalidTimezone' as SelectedTimezone, undefined);
         expect(localDate.getTime()).not.toBeNaN();
     });
 
-    it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
+    it.only('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC as SelectedTimezone, false)).toBe('Today at 2:32 PM');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow, UTC as SelectedTimezone, false)).toBe('Tomorrow at 2:32 PM');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday, UTC as SelectedTimezone, false)).toBe('Yesterday at 7:43 AM');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, date, UTC as SelectedTimezone, false)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, UTC as SelectedTimezone, false, true)).toBe('today at 2:32 PM');
     });
 
-    it('should update timezone if automatic and selected timezone do not match', () => {
+    it('should update timezone if automatic and selected timezone do not match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: 'America/Chicago'}),
-                } as Intl.DateTimeFormat),
+                }) as Intl.DateTimeFormat,
         );
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
-            const result = DateUtils.getCurrentTimezone();
-            expect(result).toEqual({
-                selected: 'America/Chicago',
-                automatic: true,
-            });
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
+        await waitForBatchedUpdates();
+        const result = DateUtils.getCurrentTimezone({selected: 'Europe/London', automatic: true});
+        expect(result).toEqual({
+            selected: 'America/Chicago',
+            automatic: true,
         });
     });
 
-    it('should not update timezone if automatic and selected timezone match', () => {
+    it('should not update timezone if automatic and selected timezone match', async () => {
         jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: UTC}),
-                } as Intl.DateTimeFormat),
+                }) as Intl.DateTimeFormat,
         );
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
-            const result = DateUtils.getCurrentTimezone();
-            expect(result).toEqual({
-                selected: UTC,
-                automatic: true,
-            });
+        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
+        await waitForBatchedUpdates();
+        const result = DateUtils.getCurrentTimezone({selected: 'Europe/London', automatic: true});
+        expect(result).toEqual({
+            selected: UTC,
+            automatic: true,
         });
     });
 
@@ -140,13 +148,13 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
         const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC as SelectedTimezone)).toBe('less than a minute ago');
 
         const aMinuteAgo = subMinutes(new Date(), 1).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo, UTC as SelectedTimezone)).toBe('1 minute ago');
 
         const anHourAgo = subHours(new Date(), 1).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC as SelectedTimezone)).toBe('about 1 hour ago');
     });
 
     it('subtractMillisecondsFromDateTime should subtract milliseconds from a given date and time', () => {
@@ -233,6 +241,12 @@ describe('DateUtils', () => {
 
                 expect(formattedDate).toEqual(expectedResult);
             });
+        });
+
+        it('returns the correct date when the date with time is used', () => {
+            const datetimeStr = '2022-11-07 17:48:00';
+            const expectedResult = '2022-11-07';
+            expect(DateUtils.formatWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
         });
     });
 

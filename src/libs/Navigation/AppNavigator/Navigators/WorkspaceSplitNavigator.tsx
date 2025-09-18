@@ -1,7 +1,9 @@
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,10 +26,11 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.MORE_FEATURES]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceMoreFeaturesPage').default,
     [SCREENS.WORKSPACE.TAGS]: () => require<ReactComponentModule>('../../../../pages/workspace/tags/WorkspaceTagsPage').default,
     [SCREENS.WORKSPACE.TAXES]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceTaxesPage').default,
-    [SCREENS.WORKSPACE.REPORT_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/WorkspaceReportFieldsPage').default,
+    [SCREENS.WORKSPACE.REPORTS]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/WorkspaceReportsPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardsPage').default,
     [SCREENS.WORKSPACE.PER_DIEM]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/WorkspacePerDiemPage').default,
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage').default,
     [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default,
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
 } satisfies Screens;
@@ -36,6 +39,9 @@ const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
+    usePreloadFullScreenNavigators();
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('transitionEnd', () => {
@@ -56,26 +62,28 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
 
     return (
         <FocusTrapForScreens>
-            <Split.Navigator
-                persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
-                sidebarScreen={SCREENS.WORKSPACE.INITIAL}
-                defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
-                parentRoute={route}
-                screenOptions={splitNavigatorScreenOptions.centralScreen}
-            >
-                <Split.Screen
-                    name={SCREENS.WORKSPACE.INITIAL}
-                    getComponent={loadWorkspaceInitialPage}
-                    options={splitNavigatorScreenOptions.sidebarScreen}
-                />
-                {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
+            <View style={{flex: 1}}>
+                <Split.Navigator
+                    persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
+                    sidebarScreen={SCREENS.WORKSPACE.INITIAL}
+                    defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
+                    parentRoute={route}
+                    screenOptions={splitNavigatorScreenOptions.centralScreen}
+                >
                     <Split.Screen
-                        key={screenName}
-                        name={screenName as keyof Screens}
-                        getComponent={componentGetter}
+                        name={SCREENS.WORKSPACE.INITIAL}
+                        getComponent={loadWorkspaceInitialPage}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
                     />
-                ))}
-            </Split.Navigator>
+                    {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
+                        <Split.Screen
+                            key={screenName}
+                            name={screenName as keyof Screens}
+                            getComponent={componentGetter}
+                        />
+                    ))}
+                </Split.Navigator>
+            </View>
         </FocusTrapForScreens>
     );
 }

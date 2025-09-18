@@ -4,7 +4,9 @@ import Onyx from 'react-native-onyx';
 import {addComment} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -27,13 +29,28 @@ jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => undefined,
 }));
 
+function assertSidebarOptionsAlphabetical() {
+    const firstElement = screen.queryByTestId('DisplayNames-0');
+    const secondElement = screen.queryByTestId('DisplayNames-1');
+    const thirdElement = screen.queryByTestId('DisplayNames-2');
+    const fourthElement = screen.queryByTestId('DisplayNames-3');
+
+    expect(firstElement).toHaveTextContent('Email Five');
+    expect(secondElement).toHaveTextContent('Email Four');
+    expect(thirdElement).toHaveTextContent('Email Three');
+    expect(fourthElement).toHaveTextContent('Email Two');
+}
+
 describe('Sidebar', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+        initOnyxDerivedValues();
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
 
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
@@ -48,14 +65,14 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-        it('is not rendered when there are no props passed to it', () => {
+        it('is rendered with empty state when no reports are available', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Then it should render nothing and be null
-            // This is expected because there is an early return when there are no personal details
-            expect(screen.toJSON()).toBe(null);
+            // Then it should render with the empty state message and not show the reports list
+            expect(screen.getByText(translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
+            expect(screen.queryByTestId('lhn-options-list')).not.toBeOnTheScreen();
         });
 
         it('is rendered with an empty list when personal details exist', () =>
@@ -74,8 +91,7 @@ describe('Sidebar', () => {
                 // Then the component should be rendered with an empty list since it will get past the early return
                 .then(() => {
                     expect(screen.toJSON()).not.toBe(null);
-                    const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(0);
+                    expect(screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex())).toHaveLength(0);
                 }));
 
         it('contains one report when a report is in Onyx', () => {
@@ -114,9 +130,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -162,9 +178,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const currentReportId = report1.reportID;
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -211,9 +227,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -245,12 +261,13 @@ describe('Sidebar', () => {
                     // Then the order of the reports should be 1 > 3 > 2
                     //                                         ^--- (1 goes to the front and pushes other two down)
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(3);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Two');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
+                        const firstElement = screen.queryByTestId('DisplayNames-0');
+                        const secondElement = screen.queryByTestId('DisplayNames-1');
+                        const thirdElement = screen.queryByTestId('DisplayNames-2');
+
+                        expect(firstElement).toHaveTextContent('Email Two');
+                        expect(secondElement).toHaveTextContent('Email Four');
+                        expect(thirdElement).toHaveTextContent('Email Three');
                     })
             );
         });
@@ -272,9 +289,9 @@ describe('Sidebar', () => {
             };
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -346,9 +363,9 @@ describe('Sidebar', () => {
             report3.iouReportID = iouReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -404,6 +421,7 @@ describe('Sidebar', () => {
                 managerID: 4,
                 policyName: fakePolicy.name,
                 policyID: fakeReport.policyID,
+                reportName: 'Report Name',
                 total: -10000,
                 currency: 'USD',
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -424,9 +442,9 @@ describe('Sidebar', () => {
             report3.iouReportID = expenseReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -456,7 +474,7 @@ describe('Sidebar', () => {
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
                         expect(displayNames.at(0)).toHaveTextContent(`Email One's expenses`);
-                        expect(displayNames.at(1)).toHaveTextContent('Workspace-Test-001 owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('Report Name');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
                         expect(displayNames.at(3)).toHaveTextContent('Email Two');
                     })
@@ -474,9 +492,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const currentReportId = report2.reportID;
 
@@ -623,7 +641,7 @@ describe('Sidebar', () => {
                 iouReportID: undefined,
             };
             const report4 = LHNTestUtils.getFakeReport([1, 5], 1);
-            addComment(report4.reportID, 'Hi, this is a comment');
+            addComment(report4.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const iouReport: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 4]),
@@ -746,13 +764,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Five');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
-                        expect(displayNames.at(3)).toHaveTextContent('Email Two');
+                        assertSidebarOptionsAlphabetical();
                     })
             );
         });
@@ -815,20 +827,14 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             ...reportDraftCommentCollectionDataSet,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
-                            ...reportCollectionDataSet,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                            ...reportCollectionDataSet,
                         }),
                     )
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Five');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
-                        expect(displayNames.at(3)).toHaveTextContent('Email Two');
+                        assertSidebarOptionsAlphabetical();
                     })
             );
         });
@@ -843,9 +849,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -897,9 +903,9 @@ describe('Sidebar', () => {
             const report3: OnyxTypes.Report = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report2.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
+            addComment(report3.reportID, 'Hi, this is a comment', CONST.DEFAULT_TIME_ZONE);
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -976,13 +982,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                        const displayNames = screen.queryAllByLabelText(hintText);
-                        expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email Five');
-                        expect(displayNames.at(1)).toHaveTextContent('Email Four');
-                        expect(displayNames.at(2)).toHaveTextContent('Email Three');
-                        expect(displayNames.at(3)).toHaveTextContent('Email Two');
+                        assertSidebarOptionsAlphabetical();
                     })
             );
         });

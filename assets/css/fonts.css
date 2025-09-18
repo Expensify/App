@@ -73,6 +73,11 @@
     src: url('/fonts/seguiemj.ttf');
 }
 
+@font-face {
+    font-family: Custom Emoji Font;
+    src: url('/fonts/CustomEmojiWebFont.ttf') format('truetype');
+}
+
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

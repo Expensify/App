@@ -23,4 +23,4 @@ type Cache<K, V> = {
     size: number;
 };
 
-export type {CacheConfig, Cache, BoxedValue};
+export type {CacheConfig, Cache};

@@ -1,3 +1,4 @@
+import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +19,9 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: M
     }
     if (!isFocused && !onyxFocused && !modal.willAlertModalBecomeVisible && !modal.isVisible && refSave) {
         if (!ReportActionComposeFocusManager.isFocused()) {
-            refSave.focus();
+            InteractionManager.runAfterInteractions(() => {
+                refSave?.focus();
+            });
         } else {
             refSave = undefined;
         }

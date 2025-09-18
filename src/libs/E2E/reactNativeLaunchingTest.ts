@@ -5,7 +5,7 @@
  * By doing this, we avoid bundling any E2E testing code
  * into the actual release app.
  */
-import * as Metrics from '@libs/Metrics';
+import canCapturePerformanceMetrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import Config from 'react-native-config';
 import E2EConfig from '../../../tests/e2e/config';
@@ -19,7 +19,7 @@ console.debug('==== Running e2e test ====');
 console.debug('==========================');
 
 // Check if the performance module is available
-if (!Metrics.canCapturePerformanceMetrics()) {
+if (!canCapturePerformanceMetrics()) {
     throw new Error('Performance module not available! Please set CAPTURE_METRICS=true in your environment file!');
 }
 
@@ -36,6 +36,7 @@ const tests: Tests = {
     [E2EConfig.TEST_NAMES.ChatOpening]: require<TestModule>('./tests/chatOpeningTest.e2e').default,
     [E2EConfig.TEST_NAMES.ReportTyping]: require<TestModule>('./tests/reportTypingTest.e2e').default,
     [E2EConfig.TEST_NAMES.Linking]: require<TestModule>('./tests/linkingTest.e2e').default,
+    [E2EConfig.TEST_NAMES.MoneyRequest]: require<TestModule>('./tests/moneyRequestTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:

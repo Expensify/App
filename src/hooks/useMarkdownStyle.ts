@@ -1,15 +1,13 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import {useMemo} from 'react';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
 const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
 
-function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray, additionalStyles?: MarkdownStyle): MarkdownStyle {
+function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
-    const hasMessageOnlyEmojis = message != null && message.length > 0 && containsOnlyEmojis(message);
     const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeEmojisWithinText;
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
@@ -37,6 +35,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 fontSize: variables.fontSizeLarge,
             },
             emoji: {
+                ...FontUtils.fontFamily.platform.CUSTOM_EMOJI_FONT,
                 fontSize: emojiFontSize,
                 lineHeight: variables.lineHeightXLarge,
             },
@@ -56,21 +55,29 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 fontSize: 13, // TODO: should be 15 if inside h1, see StyleUtils.getCodeFontSize
                 color: theme.text,
-                backgroundColor: 'transparent',
+                paddingHorizontal: 5,
+                borderColor: theme.border,
+                backgroundColor: theme.textBackground,
+                h1NestedFontSize: 15,
             },
             pre: {
                 ...FontUtils.fontFamily.platform.MONOSPACE,
                 fontSize: 13,
                 color: theme.text,
-                backgroundColor: 'transparent',
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                borderColor: theme.border,
+                backgroundColor: theme.textBackground,
             },
             mentionHere: {
                 color: theme.ourMentionText,
                 backgroundColor: theme.ourMentionBG,
+                borderRadius: variables.componentBorderRadiusSmall,
             },
             mentionUser: {
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
+                borderRadius: variables.componentBorderRadiusSmall,
             },
             mentionReport: {
                 color: theme.mentionText,
@@ -102,41 +109,10 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
             });
         }
 
-        if (additionalStyles) {
-            Object.keys(additionalStyles).forEach((key) => {
-                if (!isValidStyleKey(styling, key)) {
-                    return;
-                }
-
-                const style = getStyle(styling, key);
-                const additionalStyle = getStyle(additionalStyles, key);
-
-                if (!style || !additionalStyle) {
-                    return;
-                }
-
-                Object.keys(additionalStyle).forEach((styleKey) => {
-                    if (!isValidStyleKey(additionalStyle, styleKey)) {
-                        return;
-                    }
-
-                    style[styleKey] = additionalStyle[styleKey];
-                });
-            });
-        }
-
         return styling;
-    }, [theme, emojiFontSize, excludeStyles, nonStylingDefaultValues, additionalStyles]);
+    }, [theme, emojiFontSize, excludeStyles, nonStylingDefaultValues]);
 
     return markdownStyle;
-}
-
-function isValidStyleKey<T extends MarkdownStyle>(obj: T, key: PropertyKey): key is keyof T {
-    return key in obj;
-}
-
-function getStyle<T extends MarkdownStyle, K extends keyof T>(obj: T, key: K): Record<string, unknown> | undefined {
-    return obj[key] as Record<string, unknown> | undefined;
 }
 
 export default useMarkdownStyle;

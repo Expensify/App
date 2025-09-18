@@ -1,36 +1,40 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldBlockTransactionThreadReportCreation, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {User as UserOnyx} from '@src/types/onyx';
+import type {Account as AccountOnyx} from '@src/types/onyx';
 import Button from './Button';
+import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-const USER_DEFAULT: UserOnyx = {
-    shouldUseStagingServer: undefined,
+const ACCOUNT_DEFAULT: AccountOnyx = {
     isSubscribedToNewsletter: false,
     validated: false,
     isFromPublicDomain: false,
     isUsingExpensifyCard: false,
-    isDebugModeEnabled: false,
 };
 
 function TestToolMenu() {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
-    const [user = USER_DEFAULT] = useOnyx(ONYXKEYS.USER);
-    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const shouldUseStagingServer = user?.shouldUseStagingServer ?? isUsingStagingApi();
-    const isDebugModeEnabled = !!user?.isDebugModeEnabled;
+    const {isBetaEnabled} = usePermissions();
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
+    const shouldBlockTransactionThreadReportCreation = !!account?.shouldBlockTransactionThreadReportCreation;
+    const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -47,6 +51,17 @@ function TestToolMenu() {
             </Text>
             {isAuthenticated && (
                 <>
+                    {/* When toggled, the app won't create the transaction thread report. It should be removed together with CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS beta */}
+                    {shouldShowTransactionThreadReportToggle && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.shouldBlockTransactionThreadReportCreation')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.shouldBlockTransactionThreadReportCreation')}
+                                isOn={shouldBlockTransactionThreadReportCreation}
+                                onToggle={() => setShouldBlockTransactionThreadReportCreation(!shouldBlockTransactionThreadReportCreation)}
+                            />
+                        </TestToolRow>
+                    )}
+
                     {/* When toggled the app will be put into debug mode. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
                         <Switch
@@ -119,7 +134,7 @@ function TestToolMenu() {
             </TestToolRow>
 
             {/* When toggled all network requests will fail. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatFailingNetworkRequests')}>
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}
@@ -127,6 +142,7 @@ function TestToolMenu() {
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
+            <SoftKillTestToolRow />
             <TestCrash />
         </>
     );

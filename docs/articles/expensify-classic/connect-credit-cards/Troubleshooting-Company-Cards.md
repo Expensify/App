@@ -1,6 +1,7 @@
 ---
 title: Troubleshooting Company Cards
 description: Learn how to troubleshoot company card issues in Expensify, including fixing connection errors, resolving missing transactions, and troubleshooting CSV imports.
+keywords: [Expensify Classic, company card troubleshooting, card errors]
 ---
 
 This guide provides solutions to common issues encountered when connecting, importing, and managing company credit cards in Expensify. It covers troubleshooting steps for failed connections, missing transactions, CSV import errors, and duplicate expenses, helping you resolve issues efficiently and ensure a seamless experience.
@@ -134,3 +135,4 @@ For the most stable connection, consider:
 - If using multiple programs, connect **ALL programs** at once.
 
 If you still experience issues with your company card connection, contact Expensify Concierge for additional support.
+

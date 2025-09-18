@@ -1,14 +1,15 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
+import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
@@ -21,6 +22,12 @@ type TagPickerProps = {
 
     /** The selected tag of the expense */
     selectedTag: string;
+
+    /** The current transaction tag of the expense */
+    transactionTag?: string;
+
+    /** Whether the policy has dependent tags */
+    hasDependentTags?: boolean;
 
     /** The name of tag list we are getting tags for */
     tagListName: string;
@@ -38,19 +45,25 @@ type TagPickerProps = {
     tagListIndex: number;
 };
 
-function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShowDisabledAndSelectedOption = false, shouldOrderListByTagName = false, onSubmit}: TagPickerProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+function TagPicker({
+    selectedTag,
+    transactionTag,
+    hasDependentTags,
+    tagListName,
+    policyID,
+    tagListIndex,
+    shouldShowDisabledAndSelectedOption = false,
+    shouldOrderListByTagName = false,
+    onSubmit,
+}: TagPickerProps) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
-    const policyTagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
-    const isTagsCountBelowThreshold = policyTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
-
-    const shouldShowTextInput = !isTagsCountBelowThreshold;
 
     const selectedOptions: SelectedTagOption[] = useMemo(() => {
         if (!selectedTag) {
@@ -67,13 +80,36 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
     }, [selectedTag]);
 
     const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
-        if (!shouldShowDisabledAndSelectedOption) {
+        if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
             return policyTagList.tags;
         }
+
+        if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
+            // Truncate transactionTag to the current level (e.g., "California:North")
+            const parentTag = getTagArrayFromName(transactionTag ?? '')
+                .slice(0, tagListIndex)
+                .join(':');
+
+            return Object.values(policyTagList.tags).filter((policyTag) => {
+                const filterRegex = policyTag.rules?.parentTagsFilter;
+                if (!filterRegex) {
+                    return policyTagList.tags;
+                }
+
+                const regex = new RegExp(filterRegex);
+                return regex.test(parentTag ?? '');
+            });
+        }
+
         const selectedNames = selectedOptions.map((s) => s.name);
 
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
-    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
+    }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
+
+    const availableTagsCount = Array.isArray(enabledTags) ? enabledTags.length : Object.keys(enabledTags).length;
+    const isTagsCountBelowThreshold = availableTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const shouldShowTextInput = !isTagsCountBelowThreshold;
 
     const sections = useMemo(() => {
         const tagSections = getTagListSections({
@@ -81,14 +117,15 @@ function TagPicker({selectedTag, tagListName, policyID, tagListIndex, shouldShow
             selectedOptions,
             tags: enabledTags,
             recentlyUsedTags: policyRecentlyUsedTagsList,
+            localeCompare,
         });
         return shouldOrderListByTagName
             ? tagSections.map((option) => ({
                   ...option,
-                  data: option.data.sort((a, b) => a.text?.localeCompare(b.text ?? '') ?? 0),
+                  data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
               }))
             : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName]);
+    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName, localeCompare]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
 

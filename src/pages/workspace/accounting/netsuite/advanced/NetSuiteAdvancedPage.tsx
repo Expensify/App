@@ -264,7 +264,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            shouldIncludeSafeAreaPaddingBottom
             displayName={NetSuiteAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}

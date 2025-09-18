@@ -1,20 +1,19 @@
-import React, {forwardRef, useEffect, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
-import * as Browser from '@libs/Browser';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {isMobileChrome} from '@libs/Browser';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import BaseSelectionList from './BaseSelectionList';
-import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
+import type {ListItem, SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function SelectionList<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
     const touchEnd = () => setIsScreenTouched(false);
 
     useEffect(() => {
-        if (!DeviceCapabilities.canUseTouchScreen()) {
+        if (!canUseTouchScreen()) {
             return;
         }
 
@@ -58,8 +57,8 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
 
     // In SearchPageBottomTab we use useAnimatedScrollHandler from reanimated(for performance reasons) and it returns object instead of function. In that case we cannot change it to a function call, that's why we have to choose between onScroll and defaultOnScroll.
     const defaultOnScroll = () => {
-        // Only dismiss the keyboard whenever the user scrolls the screen
-        if (!isScreenTouched) {
+        // Only dismiss the keyboard whenever the user scrolls the screen or `shouldHideKeyboardOnScroll` is true
+        if (!isScreenTouched || !shouldHideKeyboardOnScroll) {
             return;
         }
         Keyboard.dismiss();
@@ -73,7 +72,7 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
             onScroll={onScroll ?? defaultOnScroll}
             // Ignore the focus if it's caused by a touch event on mobile chrome.
             // For example, a long press will trigger a focus event on mobile chrome.
-            shouldIgnoreFocus={Browser.isMobileChrome() && isScreenTouched}
+            shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
             shouldDebounceScrolling={shouldDebounceScrolling}
         />
     );
@@ -81,4 +80,4 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
 
 SelectionList.displayName = 'SelectionList';
 
-export default forwardRef(SelectionList);
+export default SelectionList;

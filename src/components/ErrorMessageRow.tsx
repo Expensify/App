@@ -8,7 +8,7 @@ import MessagesRow from './MessagesRow';
 
 type ErrorMessageRowProps = {
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | ReceiptErrors | null;
+    errors?: OnyxCommon.Errors | ReceiptErrors | OnyxCommon.TranslationKeyErrors | null;
 
     /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
@@ -18,12 +18,15 @@ type ErrorMessageRowProps = {
 
     /** Whether we can dismiss the error message */
     canDismissError?: boolean;
+
+    /** A function to dismiss error */
+    dismissError?: () => void;
 };
 
-function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = true}: ErrorMessageRowProps) {
+function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = true, dismissError}: ErrorMessageRowProps) {
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
     const errorEntries = Object.entries(errors ?? {});
-    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError] => errorEntry[1] !== null);
+    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError | OnyxCommon.TranslationKeyError] => errorEntry[1] !== null);
     const errorMessages = mapValues(Object.fromEntries(filteredErrorEntries), (error) => error);
     const hasErrorMessages = !isEmptyObject(errorMessages);
 
@@ -34,6 +37,7 @@ function ErrorMessageRow({errors, errorRowStyles, onClose, canDismissError = tru
             onClose={onClose}
             containerStyles={errorRowStyles}
             canDismiss={canDismissError}
+            dismissError={dismissError}
         />
     ) : null;
 }

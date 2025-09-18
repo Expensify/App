@@ -1,27 +1,31 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BankAccount from '@libs/models/BankAccount';
+import {isCurrencySupportedForECards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
+import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -35,66 +39,84 @@ import {
     setReimbursementAccountLoading,
     updateReimbursementAccountDraft,
 } from '@userActions/BankAccounts';
+import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
-import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
+import requiresDocusignStep from './NonUSD/utils/requiresDocusignStep';
 import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
 import getFieldsForStep from './USD/utils/getFieldsForStep';
 import getStepToOpenFromRouteParams from './USD/utils/getStepToOpenFromRouteParams';
 import VerifiedBankAccountFlowEntryPoint from './VerifiedBankAccountFlowEntryPoint';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
-const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURRENCY.GBP, CONST.CURRENCY.CAD, CONST.CURRENCY.AUD];
-
-function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: ReimbursementAccountPageProps) {
+    const {environmentURL} = useEnvironment();
     const session = useSession();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
-    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
-    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
+    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
+    const backTo = route.params.backTo;
+    const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const requestorStepRef = useRef(null);
+    const requestorStepRef = useRef<View>(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
-    const {isDevelopment} = useEnvironment();
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
-
-    // TODO once nonUSD flow is complete update the flags below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
-    // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
-        isDevelopment || isDebugModeEnabled ? policyCurrency !== CONST.CURRENCY.USD && !SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) : policyCurrency !== CONST.CURRENCY.USD;
-    const hasForeignCurrency = isDevelopment || isDebugModeEnabled ? SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) : false;
+        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
+            ? !isCurrencySupportedForECards(policyCurrency)
+            : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND));
+    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
+    let workspaceRoute = '';
+    const isFocused = useIsFocused();
 
-    /**
-     The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
-     user left off. This view will refer to the achData as the single source of truth to determine which route to
-     display. We can also specify a specific route to navigate to via route params when the component first
-     mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
-     next step.
-     */
+    // Navigation.getActiveRoute() can return the route of previous page while this page is blurred
+    // So add isFocused check to get the correct workspaceRoute
+    if (isFocused) {
+        workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
+    }
+
+    const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
     const achData = reimbursementAccount?.achData;
     const isPreviousPolicy = policyIDParam === achData?.policyID;
+    const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
+    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
 
-    // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
-    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    /**
+     We main rely on `achData.currentStep` to determine the step to display in USD flow.
+     This data is synchronized with the BE to know which step to resume/start from.
+     Except for the CountryStep which exists purely in the FE.
+     This function is to decide if we should start from the CountryStep.
+     */
+    const getInitialCurrentStep = () => {
+        if (!hasConfirmedUSDCurrency) {
+            return CONST.BANK_ACCOUNT.STEP.COUNTRY;
+        }
+
+        return achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.COUNTRY;
+    };
+    const currentStep = getInitialCurrentStep();
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
@@ -104,26 +126,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         };
     }
 
-    /**
-     * Returns true if a VBBA exists in any state other than OPEN or LOCKED
-     */
-    const hasInProgressVBBA = useCallback((): boolean => {
-        return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
-    }, [achData?.bankAccountID, achData?.state]);
-
-    /** Returns true if user passed first step of flow for non USD VBBA */
-    const hasInProgressNonUSDVBBA = useCallback((): boolean => {
-        return !!achData?.bankAccountID && !!achData?.created;
-    }, [achData?.bankAccountID, achData?.created]);
-
-    /** Calculates the state used to show the "Continue with setup" view. */
-    const getShouldShowContinueSetupButtonValue = useCallback(() => {
-        if (hasForeignCurrency) {
-            return hasInProgressNonUSDVBBA();
-        }
-
-        return hasInProgressVBBA();
-    }, [hasForeignCurrency, hasInProgressNonUSDVBBA, hasInProgressVBBA]);
+    const shouldShowContinueSetupButtonValue = useMemo(() => {
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
+    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -133,18 +138,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(() => getShouldShowContinueSetupButtonValue());
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
 
     /**
      * Retrieve verified business bank account currently being set up.
      */
-    function fetchData() {
+    function fetchData(preserveCurrentStep = false) {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
-        const stepToOpen = getStepToOpenFromRouteParams(route);
-        const subStep = isPreviousPolicy ? achData?.subStep ?? '' : '';
-        const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
+        const stepToOpen = preserveCurrentStep ? currentStep : getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
+        const subStep = isPreviousPolicy ? (achData?.subStep ?? '') : '';
+
+        let localCurrentStep: ReimbursementAccountStep = '';
+        if (preserveCurrentStep) {
+            localCurrentStep = currentStep;
+        } else if (isPreviousPolicy) {
+            localCurrentStep = achData?.currentStep ?? '';
+        }
 
         if (policyIDParam) {
             openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
@@ -164,30 +175,29 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
-        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
+        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
         if (isStepToOpenEmpty) {
             setBankAccountSubStep(null);
             setPlaidEvent(null);
         }
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []); // The empty dependency array ensures this runs only once after the component mounts.
+    }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
 
     useEffect(() => {
         if (!isPreviousPolicy) {
             return;
         }
 
-        // TODO double check condition for non USD accounts - will be done in https://github.com/Expensify/App/issues/50912
-        setShouldShowConnectedVerifiedBankAccount(hasForeignCurrency ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
-        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
-    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, getShouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy]);
+        setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
+        setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
+    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state]);
 
     useEffect(
         () => {
             // Check for network change from offline to online
             if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                fetchData();
+                fetchData(true);
             }
 
             if (!hasACHDataBeenLoaded) {
@@ -202,14 +212,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
             ) {
-                setShouldShowContinueSetupButton(hasInProgressVBBA());
+                setShouldShowContinueSetupButton(hasInProgressUSDVBBA(achData));
             }
 
             if (shouldShowContinueSetupButton) {
                 return;
             }
 
-            const currentStepRouteParam = getStepToOpenFromRouteParams(route);
+            const currentStepRouteParam = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
             if (currentStepRouteParam === currentStep) {
                 // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
@@ -233,22 +243,33 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 hideBankAccountErrors();
             }
 
-            Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
+            // Use the current page navigation object to set the param to the correct route in the stack
+            navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
+        [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
     );
 
-    const continueUSDVBBASetup = () => {
-        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-        setShouldShowContinueSetupButton(false);
-        setUSDBankAccountStep(currentStep);
-    };
+    const continueUSDVBBASetup = useCallback(() => {
+        // If user comes back to the flow we never want to allow him to go through plaid again
+        // so we're always showing manual setup with locked numbers he can not change
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+            setShouldShowContinueSetupButton(false);
+            setUSDBankAccountStep(currentStep);
+        });
+    }, [currentStep]);
 
     const continueNonUSDVBBASetup = () => {
+        const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
+        const allAgreementsChecked =
+            reimbursementAccountDraft?.authorizedToBindClientToAgreement === true &&
+            reimbursementAccountDraft?.agreeToTermsAndConditions === true &&
+            reimbursementAccountDraft?.consentToPrivacyNotice === true &&
+            reimbursementAccountDraft?.provideTruthfulInformation === true;
+
         setShouldShowContinueSetupButton(false);
-        if (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '') {
-            setNonUSDBankAccountStep(corpayFields !== undefined ? CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO : CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+        if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
             return;
         }
 
@@ -267,29 +288,41 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined) {
+        if (isPastSignerStep && !allAgreementsChecked) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+            return;
+        }
+
+        if (isPastSignerStep && allAgreementsChecked && !isDocusignStepRequired) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+            return;
+        }
+
+        if (isPastSignerStep && allAgreementsChecked && isDocusignStepRequired) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
+            return;
+        }
+
+        if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
         }
     };
 
-    const goBack = () => {
-        const subStep = achData?.subStep;
+    const goBack = useCallback(() => {
         const shouldShowOnfido = onfidoToken && !achData?.isOnfidoSetupComplete;
 
         switch (currentStep) {
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                if (hasInProgressVBBA()) {
+            case CONST.BANK_ACCOUNT.STEP.COUNTRY:
+                if (hasInProgressUSDVBBA(achData)) {
                     setShouldShowContinueSetupButton(true);
                 }
-                if (subStep) {
-                    setUSDBankAccountStep(null);
-                    setBankAccountSubStep(null);
-                    setPlaidEvent(null);
-                } else {
-                    Navigation.goBack();
-                }
+                setUSDBankAccountStep(null);
+                setBankAccountSubStep(null);
                 break;
-
+            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                setPlaidEvent(null);
+                goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+                break;
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 clearOnfidoToken();
                 goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
@@ -312,9 +345,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                if ([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP].some((value) => value === achData?.state)) {
+                if ([CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.SETUP].some((value) => value === achData?.state)) {
                     goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
-                } else if (!isOffline && achData?.state === BankAccount.STATE.PENDING) {
+                } else if (!isOffline && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                     setUSDBankAccountStep(null);
                 } else {
@@ -323,17 +356,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 break;
 
             default:
-                Navigation.goBack();
+                Navigation.dismissModal();
         }
-    };
+    }, [achData, currentStep, isOffline, onfidoToken]);
 
     const isLoading =
-        (isLoadingApp || !!account?.isLoading || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
+        (isLoadingApp || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
         (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
     const shouldShowOfflineLoader = !(
         isOffline &&
         [
+            CONST.BANK_ACCOUNT.STEP.COUNTRY,
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
             CONST.BANK_ACCOUNT.STEP.COMPANY,
             CONST.BANK_ACCOUNT.STEP.REQUESTOR,
@@ -377,24 +411,22 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = translate('bankAccount.hasPhoneLoginError');
+        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />;
     } else if (throttledDate) {
-        errorText = translate('bankAccount.hasBeenThrottledError');
+        errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
-        errorText = translate('bankAccount.hasCurrencyError');
+        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
     }
 
     if (errorText) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <HeaderWithBackButton
-                    title={translate('workspace.common.connectBankAccount')}
+                    title={translate('bankAccount.addBankAccount')}
                     subtitle={policyName}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <View style={[styles.m5, styles.mv3, styles.flex1]}>
-                    <Text>{errorText}</Text>
-                </View>
+                <View style={[styles.m5, styles.mv3, styles.flex1]}>{errorText}</View>
             </ScreenWrapper>
         );
     }
@@ -405,17 +437,23 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 reimbursementAccount={reimbursementAccount}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
+                setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 onBackButtonPress={goBack}
+                isNonUSDWorkspace={isNonUSDWorkspace}
             />
         );
     }
 
-    if (hasForeignCurrency && nonUSDBankAccountStep !== null) {
+    if (isNonUSDWorkspace && nonUSDBankAccountStep !== null) {
         return (
             <NonUSDVerifiedBankAccountFlow
                 nonUSDBankAccountStep={nonUSDBankAccountStep}
                 setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+                policyID={policyIDParam}
+                isComingFromExpensifyCard={isComingFromExpensifyCard}
+                shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
+                policyCurrency={policyCurrency}
             />
         );
     }
@@ -436,16 +474,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     return (
         <VerifiedBankAccountFlowEntryPoint
+            setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
             reimbursementAccount={reimbursementAccount}
-            onContinuePress={hasForeignCurrency ? continueNonUSDVBBASetup : continueUSDVBBASetup}
+            onContinuePress={isNonUSDWorkspace ? continueNonUSDVBBASetup : continueUSDVBBASetup}
             policyName={policyName}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
             onBackButtonPress={Navigation.goBack}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
-            hasForeignCurrency={hasForeignCurrency}
+            isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}
             setUSDBankAccountStep={setUSDBankAccountStep}
+            policyID={policyIDParam}
         />
     );
 }

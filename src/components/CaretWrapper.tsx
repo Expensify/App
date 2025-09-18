@@ -1,5 +1,5 @@
 import React from 'react';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +9,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 
 type CaretWrapperProps = ChildrenProps & {
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
 };
 
 function CaretWrapper({children, style}: CaretWrapperProps) {

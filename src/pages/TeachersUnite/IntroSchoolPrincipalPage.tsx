@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,8 +8,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
@@ -25,14 +26,15 @@ function IntroSchoolPrincipalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
+        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID, localCurrencyCode, login ?? '', accountID);
     };
 
     /**
@@ -44,25 +46,25 @@ function IntroSchoolPrincipalPage() {
 
             if (!values.firstName || !isValidPersonName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
-            } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
                 addErrorMessage(
                     errors,
                     'firstName',
                     translate('common.error.characterLimitExceedCounter', {
                         length: values.firstName.length,
-                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                        limit: CONST.NAME.MAX_LENGTH,
                     }),
                 );
             }
             if (!values.lastName || !isValidPersonName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
-            } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+            } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
                 addErrorMessage(
                     errors,
                     'lastName',
                     translate('common.error.characterLimitExceedCounter', {
                         length: values.lastName.length,
-                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                        limit: CONST.NAME.MAX_LENGTH,
                     }),
                 );
             }
@@ -101,7 +103,7 @@ function IntroSchoolPrincipalPage() {
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.letsStart')}
             >
-                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
+                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerifyExpense')}</Text>
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}

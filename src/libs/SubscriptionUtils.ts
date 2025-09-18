@@ -1,11 +1,18 @@
-import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {differenceInDays, differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
+import * as Illustrations from '@components/Icon/Illustrations';
+import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
+import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {convertToShortDisplayString} from './CurrencyUtils';
 import {translateLocal} from './Localize';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
@@ -32,6 +39,15 @@ type DiscountInfo = {
     discountType: number;
 };
 
+type SubscriptionPlanInfo = {
+    title: string;
+    subtitle: string;
+    note: string | undefined;
+    benefits: string[];
+    src: React.FC<SvgProps>;
+    description: string;
+};
+
 let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -46,18 +62,6 @@ Onyx.connect({
     callback: (value) => (amountOwed = value),
 });
 
-let stripeCustomerId: OnyxEntry<StripeCustomerID>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        stripeCustomerId = value;
-    },
-});
-
 let billingDisputePending: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
@@ -68,6 +72,22 @@ let billingStatus: OnyxEntry<BillingStatus>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
     callback: (value) => (billingStatus = value),
+});
+
+let firstPolicyDate: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE,
+    callback: (value) => {
+        firstPolicyDate = value;
+    },
+});
+
+let hasManualTeam2025Pricing: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
+    callback: (value) => {
+        hasManualTeam2025Pricing = value;
+    },
 });
 
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -146,6 +166,21 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
+// Indicates if downgrading the current subscription plan is allowed for the user.
+let canDowngrade = false;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (val) => {
+        canDowngrade = val?.canDowngrade ?? false;
+    },
+});
+
+let introSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
 /**
  * @returns The date when the grace period ends.
  */
@@ -157,7 +192,7 @@ function getOverdueGracePeriodDate(): OnyxEntry<number> {
  * @returns Whether the workspace owner has an overdue grace period.
  */
 function hasOverdueGracePeriod(): boolean {
-    return !!ownerBillingGraceEndPeriod ?? false;
+    return !!ownerBillingGraceEndPeriod;
 }
 
 /**
@@ -184,7 +219,7 @@ function hasAmountOwed(): boolean {
 /**
  * @returns Whether there is a card authentication error.
  */
-function hasCardAuthenticatedError() {
+function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>) {
     return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
 }
 
@@ -192,7 +227,7 @@ function hasCardAuthenticatedError() {
  * @returns Whether there is a billing dispute pending.
  */
 function hasBillingDisputePending() {
-    return !!billingDisputePending ?? false;
+    return !!billingDisputePending;
 }
 
 /**
@@ -210,7 +245,11 @@ function hasInsufficientFundsError() {
 }
 
 function shouldShowPreTrialBillingBanner(): boolean {
-    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded();
+    // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
+    // with the promo code.
+    const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
+
+    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded() && !wasUserTestDriveReceiver;
 }
 /**
  * @returns The card to be used for subscription billing.
@@ -244,7 +283,7 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(): boolean {
+function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
     }
@@ -254,6 +293,10 @@ function shouldShowDiscountBanner(): boolean {
     }
 
     if (doesUserHavePaymentCardAdded()) {
+        return false;
+    }
+
+    if (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         return false;
     }
 
@@ -299,14 +342,14 @@ function getEarlyDiscountInfo(): DiscountInfo | null {
  * @returns Whether there is a retry billing error.
  */
 function hasRetryBillingError(): boolean {
-    return !!retryBillingFailed ?? false;
+    return !!retryBillingFailed;
 }
 
 /**
  * @returns Whether the retry billing was successful.
  */
 function isRetryBillingSuccessful(): boolean {
-    return !!retryBillingSuccessful ?? false;
+    return !!retryBillingSuccessful;
 }
 
 type SubscriptionStatus = {
@@ -317,7 +360,7 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(): SubscriptionStatus | undefined {
+function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -362,7 +405,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     }
 
     // 6. Card not authenticated
-    if (hasCardAuthenticatedError()) {
+    if (hasCardAuthenticatedError(stripeCustomerId)) {
         return {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
             isError: true,
@@ -414,15 +457,15 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(): boolean {
-    return getSubscriptionStatus()?.isError ?? false;
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
+    return getSubscriptionStatus(stripeCustomerId)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(): boolean {
-    return getSubscriptionStatus()?.isError === false;
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
+    return getSubscriptionStatus(stripeCustomerId)?.isError === false;
 }
 
 /**
@@ -538,6 +581,98 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
+function shouldCalculateBillNewDot(): boolean {
+    return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
+}
+
+function checkIfHasTeam2025Pricing() {
+    if (hasManualTeam2025Pricing) {
+        return true;
+    }
+
+    if (!firstPolicyDate) {
+        return true;
+    }
+
+    return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
+}
+
+function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
+    if (!privateSubscriptionType || !plan) {
+        return 0;
+    }
+
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
+
+    if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
+        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
+    }
+
+    return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
+}
+
+function getSubscriptionPlanInfo(
+    subscriptionPlan: PersonalPolicyTypeExcludedProps | null,
+    privateSubscriptionType: SubscriptionType | undefined,
+    preferredCurrency: PreferredCurrency,
+    isFromComparisonModal: boolean,
+): SubscriptionPlanInfo {
+    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
+    const price = convertToShortDisplayString(priceValue, preferredCurrency);
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
+
+    if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
+        let subtitle = translateLocal('subscription.yourPlan.customPricing');
+        let note: string | undefined = translateLocal('subscription.yourPlan.asLowAs', {price});
+
+        if (hasTeam2025Pricing) {
+            if (isFromComparisonModal) {
+                subtitle = price;
+                note = translateLocal('subscription.yourPlan.perMemberMonth');
+            } else {
+                subtitle = translateLocal('subscription.yourPlan.pricePerMemberMonth', {price});
+                note = undefined;
+            }
+        }
+
+        return {
+            title: translateLocal('subscription.yourPlan.collect.title'),
+            subtitle,
+            note,
+            benefits: [
+                translateLocal('subscription.yourPlan.collect.benefit1'),
+                translateLocal('subscription.yourPlan.collect.benefit2'),
+                translateLocal('subscription.yourPlan.collect.benefit3'),
+                translateLocal('subscription.yourPlan.collect.benefit4'),
+                translateLocal('subscription.yourPlan.collect.benefit5'),
+                translateLocal('subscription.yourPlan.collect.benefit6'),
+                translateLocal('subscription.yourPlan.collect.benefit7'),
+                translateLocal('subscription.yourPlan.collect.benefit8'),
+            ],
+            src: Illustrations.Mailbox,
+            description: translateLocal('subscription.yourPlan.collect.description'),
+        };
+    }
+
+    return {
+        title: translateLocal('subscription.yourPlan.control.title'),
+        subtitle: translateLocal('subscription.yourPlan.customPricing'),
+        note: translateLocal('subscription.yourPlan.asLowAs', {price}),
+        benefits: [
+            translateLocal('subscription.yourPlan.control.benefit1'),
+            translateLocal('subscription.yourPlan.control.benefit2'),
+            translateLocal('subscription.yourPlan.control.benefit3'),
+            translateLocal('subscription.yourPlan.control.benefit4'),
+            translateLocal('subscription.yourPlan.control.benefit5'),
+            translateLocal('subscription.yourPlan.control.benefit6'),
+            translateLocal('subscription.yourPlan.control.benefit7'),
+            translateLocal('subscription.yourPlan.control.benefit8'),
+        ],
+        src: Illustrations.ShieldYellow,
+        description: translateLocal('subscription.yourPlan.control.description'),
+    };
+}
+
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -557,4 +692,7 @@ export {
     shouldShowPreTrialBillingBanner,
     shouldShowDiscountBanner,
     getEarlyDiscountInfo,
+    shouldCalculateBillNewDot,
+    getSubscriptionPlanInfo,
+    getSubscriptionPrice,
 };

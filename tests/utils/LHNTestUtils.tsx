@@ -5,10 +5,10 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
+import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import DateUtils from '@libs/DateUtils';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
@@ -19,9 +19,6 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockedReportActionItemSingleProps = {
-    /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-    shouldShowSubscriptAvatar?: boolean;
-
     /** Report for this action */
     report: Report;
 
@@ -276,7 +273,7 @@ function getFakeAdvancedReportAction(actionName: ReportActionName = 'IOU', actor
 
 function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/*
              * Only required to make unit tests work, since we
              * explicitly pass the currentReportID in LHNTestUtils
@@ -286,7 +283,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              * So this is a work around to have currentReportID available
              * only in testing environment.
              *  */}
-            <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
+            <SidebarOrderedReportsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
                     insets={{
                         top: 0,
@@ -295,7 +292,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                         bottom: 0,
                     }}
                 />
-            </ReportIDsContextProvider>
+            </SidebarOrderedReportsContextProvider>
         </ComposeProviders>
     );
 }
@@ -333,14 +330,13 @@ function internalRender(component: ReactElement) {
     }
 }
 
-function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report, reportAction}: MockedReportActionItemSingleProps) {
+function MockedReportActionItemSingle({report, reportAction}: MockedReportActionItemSingleProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
                 action={reportAction}
                 report={report}
                 showHeader
-                shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                 hasBeenFlagged={false}
                 iouReport={undefined}
                 isHovered={false}
@@ -349,13 +345,12 @@ function MockedReportActionItemSingle({shouldShowSubscriptAvatar = true, report,
     );
 }
 
-function getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar = true, report?: Report, reportAction?: ReportAction) {
+function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?: ReportAction) {
     const currentReport = report ?? getFakeReport();
     const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
 
     internalRender(
         <MockedReportActionItemSingle
-            shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
             report={currentReport}
             reportAction={currentReportAction}
         />,

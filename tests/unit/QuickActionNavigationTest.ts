@@ -1,10 +1,18 @@
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
+import {startOutCreateTaskQuickAction} from '@libs/actions/Task';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/IOU', () => ({
     startMoneyRequest: jest.fn(),
+    startDistanceRequest: jest.fn(),
+}));
+jest.mock('@libs/actions/Report', () => ({
+    createNewReport: jest.fn(),
+}));
+jest.mock('@libs/actions/Task', () => ({
+    startOutCreateTaskQuickAction: jest.fn(),
 }));
 
 describe('IOU Utils', () => {
@@ -14,8 +22,12 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Manual Submit Expense', () => {
             // When the quick action is REQUEST_MANUAL
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL}, (onSelected: () => void) => {
-                onSelected();
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
             });
             // Then we should start manual submit request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
@@ -23,8 +35,12 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Scan receipt Split Expense', () => {
             // When the quick action is SPLIT_SCAN
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.SPLIT_SCAN}, (onSelected: () => void) => {
-                onSelected();
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.SPLIT_SCAN, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
             });
             // Then we should start scan split request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
@@ -32,20 +48,72 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Track distance Expense', () => {
             // When the quick action is TRACK_DISTANCE
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE}, (onSelected: () => void) => {
-                onSelected();
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
             });
             // Then we should start distance track request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
         });
 
+        it('should be navigated to Map distance Expense if isManualDistanceTrackingEnabled beta', () => {
+            // When the quick action is REQUEST_DISTANCE and isManualDistanceTrackingEnabled
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_DISTANCE, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+                isManualDistanceTrackingEnabled: true,
+            });
+            // Then we should start map distance request flow
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true);
+        });
+
+        it('should be navigated to request distance Expense if isManualDistanceTrackingEnabled beta depending on lastDistanceExpenseType', () => {
+            // When the quick action is REQUEST_DISTANCE and isManualDistanceTrackingEnabled
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_DISTANCE, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+                isManualDistanceTrackingEnabled: true,
+                lastDistanceExpenseType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            });
+            // Then we should start manual distance request flow
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, true);
+        });
+
         it('should be navigated to Per Diem Expense', () => {
             // When the quick action is PER_DIEM
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.PER_DIEM}, (onSelected: () => void) => {
-                onSelected();
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
             });
             // Then we should start per diem request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true);
+        });
+    });
+});
+
+describe('Non IOU quickActions test:', () => {
+    describe('navigateToQuickAction', () => {
+        it('starts create task flow for "assignTask" quick action', () => {
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.ASSIGN_TASK, targetAccountID: 123},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+            });
+            expect(startOutCreateTaskQuickAction).toHaveBeenCalled();
         });
     });
 });

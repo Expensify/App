@@ -1,10 +1,6 @@
+import type {ForwardedRef} from 'react';
+
 type LoginFormProps = {
-    /** The login input value */
-    login: string;
-
-    /** A callback to notify that the login input value is changed */
-    onLoginChanged: (login: string) => void;
-
     /** Function used to scroll to the top of the page */
     scrollPageToTop?: () => void;
 
@@ -13,6 +9,9 @@ type LoginFormProps = {
 
     /** Whether the content is visible. */
     isVisible: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<InputHandle>;
 };
 
 type InputHandle = {

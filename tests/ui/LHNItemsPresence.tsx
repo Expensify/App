@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -14,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -23,7 +25,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
@@ -71,8 +72,7 @@ const signUpWithTestUser = () => {
 };
 
 const getOptionRows = () => {
-    const hintText = translateLocal('accessibilityHints.navigatesToChat');
-    return screen.queryAllByAccessibilityHint(hintText);
+    return screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
 };
 
 const getDisplayNames = () => {
@@ -105,8 +105,9 @@ describe('SidebarLinksData', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        initOnyxDerivedValues();
     });
 
     // Helper to initialize common state
@@ -126,6 +127,7 @@ describe('SidebarLinksData', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         signUpWithTestUser();
     });
 
@@ -149,8 +151,9 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(0);
 
             // When the SidebarLinks are rendered again with the current active report ID.
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+            await LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
+            await waitForBatchedUpdatesWithAct();
             // Then the active report should be displayed as part of LHN,
             expect(getOptionRows()).toHaveLength(1);
 
@@ -221,22 +224,30 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
 
+            await waitForBatchedUpdatesWithAct();
+
             // Then the report should appear in the sidebar because it’s pinned.
             expect(getOptionRows()).toHaveLength(1);
-            await waitForBatchedUpdatesWithAct();
 
             const expenseReport: Report = {
                 ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: report.reportID,
             };
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
+            const reportAction = LHNTestUtils.getFakeAdvancedReportAction();
 
             // When the report has outstanding violations
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the RBR icon should be shown
             expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
@@ -254,6 +265,8 @@ describe('SidebarLinksData', () => {
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the report should appear in the sidebar because it requires attention from the user
             expect(getOptionRows()).toHaveLength(1);
@@ -296,6 +309,8 @@ describe('SidebarLinksData', () => {
             await initializeState({
                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the selfDM report should appear in the sidebar by default
             expect(getOptionRows()).toHaveLength(1);
@@ -426,7 +441,7 @@ describe('SidebarLinksData', () => {
         it('should not display the single transaction thread', async () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport(chatReportR14932.reportID, '123', 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -434,21 +449,15 @@ describe('SidebarLinksData', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
@@ -457,13 +466,13 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`]: transactionThreadReport,
             });
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
                 [expenseCreatedAction.reportActionID]: expenseCreatedAction,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
 
-            // Then such report should not appear in the sidebar because the highest level context is on the workspace chat with GBR that is visible in the LHN
+            // Then such report should not appear in the sidebar because the highest level context is on the expense chat with GBR that is visible in the LHN
             expect(getOptionRows()).toHaveLength(0);
         });
 
@@ -534,6 +543,41 @@ describe('SidebarLinksData', () => {
 
             // Then the report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display an empty submitted report having only a CREATED action', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // When creating a report with total = 0, stateNum = SUBMITTED, statusNum = SUBMITTED
+            const report = {
+                ...createReport(false, [1, 2], 0),
+                total: 0,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // And setting up a report action collection with only a CREATED action
+            const reportActionID = '1';
+            const reportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            };
+
+            // When the Onyx state is initialized with this report
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // And a report action collection with only a CREATED action is added
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportActionID]: reportAction,
+            });
+
+            // Then the report should not be displayed in the sidebar
+            expect(getOptionRows()).toHaveLength(0);
+            expect(getDisplayNames()).toHaveLength(0);
         });
     });
 });

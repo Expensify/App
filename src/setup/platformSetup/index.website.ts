@@ -8,7 +8,7 @@ import type PlatformSpecificUpdater from './types';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
- * then refresh. If the page is visibile, prompt the user to refresh.
+ * then refresh. If the page is visible, prompt the user to refresh.
  */
 function webUpdate() {
     fetch('/version.json', {cache: 'no-cache'})
@@ -36,7 +36,7 @@ function webUpdate() {
  */
 const webUpdater = (): PlatformSpecificUpdater => ({
     init: () => {
-        // We want to check for updates and refresh the page if necessary when the app is backgrounded.
+        // We want to check for updates and refresh the page if necessary when the app is background.
         // That way, it will auto-update silently when they minimize the page,
         // and we don't bug the user any more than necessary :)
         window.addEventListener('visibilitychange', () => {

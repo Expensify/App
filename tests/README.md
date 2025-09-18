@@ -7,7 +7,7 @@
 - Much of the logic in the app is asynchronous in nature. [`react-native-onyx`](https://github.com/expensify/react-native-onyx) writes data async before updating subscribers.
 - [Actions](https://github.com/Expensify/App#actions) do not typically return a `Promise` and therefore can't always be "awaited" before running an assertion.
 - To test a result after some asynchronous code has run we can use [`Onyx.connect()`](https://github.com/Expensify/react-native-onyx/blob/2c94a94e51fab20330f7bd5381b72ea6c25553d9/lib/Onyx.js#L217-L231) and the helper method [`waitForBatchedUpdates()`](https://github.com/Expensify/ReactNativeChat/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/utils/waitForBatchedUpdates.js#L1-L9) which returns a `Promise` and will ensure that all other `Promises` have finished running before resolving.
-- **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**.
+- **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**. In hooks like BeforeEach, BeforeAll, AfterAll, etc., you also need to return a promise or use async/await if they perform any asynchronous calls.
 
 ## Mocking Network Requests
 
@@ -20,7 +20,7 @@
 When unit testing an interface with Jest/performance testing with Reassure you might need to work with collections of data. These often get tricky to generate and maintain. To help with this we have a few helper methods located in `tests/utils/collections/`.
 
 - `createCollection()` - Creates a collection of data (`Record<string, T>`) with a given number of items (default=500). This is useful for eg. testing the performance of a component with a large number of items. You can use it to populate Onyx.
-- `createRandom*()` - like `createRandomPolicy`, these functions are responsible for generating a randomised object of the given type. You can use them as your defaults when calling `createCollection()` or as standalone utilities.
+- `createRandom*()` - like `createRandomPolicy`, these functions are responsible for generating a randomized object of the given type. You can use them as your defaults when calling `createCollection()` or as standalone utilities.
 
 Basic example:
 ```ts

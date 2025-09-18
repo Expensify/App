@@ -11,13 +11,18 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
     Log.info('[PushNotification] push notification received', false, {pushPayload});
     const data = parsePushNotificationPayload(pushPayload.extras.payload);
 
-    if (data?.reportID === undefined) {
-        Log.info('[PushNotification] Not a report action notification. Showing notification');
+    if (!data) {
         return true;
     }
 
-    const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData(data.onyxData ?? null);
-    const shouldShow = Report.shouldShowReportActionNotification(String(data.reportID), reportAction, true);
+    let shouldShow = false;
+    if (data.type === 'transaction') {
+        shouldShow = true;
+    } else {
+        const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData(data.onyxData ?? null);
+        shouldShow = Report.shouldShowReportActionNotification(String(data.reportID), reportAction, true);
+    }
+
     Log.info(`[PushNotification] ${shouldShow ? 'Showing' : 'Not showing'} notification`);
     return shouldShow;
 }

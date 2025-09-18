@@ -1,12 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ComponentType} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {acceptACHContractForBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -23,15 +23,15 @@ const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
 
     const submit = useCallback(() => {
-        BankAccounts.acceptACHContractForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
+        acceptACHContractForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID),
             {
                 isAuthorizedToUseBankAccount: values.isAuthorizedToUseBankAccount,
                 certifyTrueInformation: values.certifyTrueInformation,
@@ -63,7 +63,7 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
             shouldEnableMaxHeight
             headerTitle={translate('completeVerificationStep.completeVerification')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={5}
+            startStepIndex={6}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep

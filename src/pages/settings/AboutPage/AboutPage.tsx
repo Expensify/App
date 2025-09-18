@@ -8,18 +8,18 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {openExternalLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -65,7 +65,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: Expensicons.Keyboard,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS)),
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
@@ -102,7 +102,13 @@ function AboutPage() {
             onPress: action,
             shouldShowRightIcon: true,
             onSecondaryInteraction: link
-                ? (event: GestureResponderEvent | MouseEvent) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current)
+                ? (event: GestureResponderEvent | MouseEvent) =>
+                      showContextMenu({
+                          type: CONST.CONTEXT_MENU_TYPES.LINK,
+                          event,
+                          selection: link,
+                          contextMenuAnchor: popoverAnchor.current,
+                      })
                 : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
@@ -136,7 +142,7 @@ function AboutPage() {
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                onBackButtonPress={Navigation.popToSidebar}
                 icon={Illustrations.PalmTree}
                 shouldUseHeadlineHeader
             />
@@ -159,27 +165,8 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <Text
-                        style={[styles.chatItemMessageHeaderTimestamp]}
-                        numberOfLines={1}
-                    >
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
-                        </TextLink>{' '}
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
-                        </TextLink>
-                        .
-                    </Text>
+                <View style={[styles.renderHTML, styles.pl5, styles.mb5]}>
+                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
                 </View>
             </ScrollView>
         </ScreenWrapper>

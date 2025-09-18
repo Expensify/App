@@ -1,11 +1,10 @@
-import React, {forwardRef, useState} from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import OpacityView from '@components/OpacityView';
 import type {Color} from '@styles/theme/types';
 import variables from '@styles/variables';
 import GenericPressable from './GenericPressable';
-import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
 
 type PressableWithFeedbackProps = PressableProps & {
@@ -13,14 +12,14 @@ type PressableWithFeedbackProps = PressableProps & {
     wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /**
-     * Determines what opacity value should be applied to the underlaying view when Pressable is pressed.
+     * Determines what opacity value should be applied to the underlying view when Pressable is pressed.
      * To disable dimming, pass 1 as pressDimmingValue
      * @default variables.pressDimValue
      */
     pressDimmingValue?: number;
 
     /**
-     * Determines what opacity value should be applied to the underlaying view when pressable is hovered.
+     * Determines what opacity value should be applied to the underlying view when pressable is hovered.
      * To disable dimming, pass 1 as hoverDimmingValue
      * @default variables.hoverDimValue
      */
@@ -37,26 +36,31 @@ type PressableWithFeedbackProps = PressableProps & {
 
     /** The color of the underlay that will show through when the Pressable is active. */
     underlayColor?: Color;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
 };
 
-function PressableWithFeedback(
-    {
-        children,
-        wrapperStyle = [],
-        needsOffscreenAlphaCompositing = false,
-        pressDimmingValue = variables.pressDimValue,
-        hoverDimmingValue = variables.hoverDimValue,
-        dimAnimationDuration,
-        ...rest
-    }: PressableWithFeedbackProps,
-    ref: PressableRef,
-) {
+function PressableWithFeedback({
+    children,
+    wrapperStyle = [],
+    needsOffscreenAlphaCompositing = false,
+    pressDimmingValue = variables.pressDimValue,
+    hoverDimmingValue = variables.hoverDimValue,
+    dimAnimationDuration,
+    shouldBlendOpacity,
+    ref,
+    ...rest
+}: PressableWithFeedbackProps) {
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
     return (
         <OpacityView
-            shouldDim={!!(!rest.disabled && (isPressed || isHovered))}
+            shouldDim={!shouldBlendOpacity && !!(!rest.disabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
             dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}
@@ -100,5 +104,5 @@ function PressableWithFeedback(
 
 PressableWithFeedback.displayName = 'PressableWithFeedback';
 
-export default forwardRef(PressableWithFeedback);
+export default PressableWithFeedback;
 export type {PressableWithFeedbackProps};

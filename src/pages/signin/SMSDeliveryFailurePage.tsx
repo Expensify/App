@@ -1,12 +1,12 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {beginSignIn, clearSignInData, resetSMSDeliveryFailureStatus} from '@userActions/Session';
@@ -18,8 +18,8 @@ function SMSDeliveryFailurePage() {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const login = useMemo(() => {
         if (!credentials?.login) {
@@ -29,8 +29,32 @@ function SMSDeliveryFailurePage() {
     }, [credentials?.login]);
 
     const SMSDeliveryFailureMessage = account?.smsDeliveryFailureStatus?.message;
+    const isResettingSMSDeliveryFailureStatus = account?.smsDeliveryFailureStatus?.isLoading;
+
+    type TimeData = {
+        days?: number;
+        hours?: number;
+        minutes?: number;
+    };
+
+    const timeData = useMemo<TimeData | null>(() => {
+        if (!SMSDeliveryFailureMessage) {
+            return null;
+        }
+
+        const parsedData = JSON.parse(SMSDeliveryFailureMessage) as TimeData | [];
+
+        if (Array.isArray(parsedData) && !parsedData.length) {
+            return null;
+        }
+
+        return parsedData as TimeData;
+    }, [SMSDeliveryFailureMessage]);
+
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
-    const isReset = account?.smsDeliveryFailureStatus?.isReset;
+
+    // We need to show two different messages after clicking validate button, based on API response for hasSMSDeliveryFailure.
+    const [hasClickedValidate, setHasClickedValidate] = useState(false);
 
     const errorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const shouldShowError = !!errorText;
@@ -42,14 +66,12 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
-    if (hasSMSDeliveryFailure && isReset) {
+    if (hasSMSDeliveryFailure && hasClickedValidate && !isResettingSMSDeliveryFailureStatus) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
-                        <Text>
-                            {translate('smsDeliveryFailurePage.validationFailed')} {SMSDeliveryFailureMessage}
-                        </Text>
+                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
                     </View>
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
@@ -72,7 +94,7 @@ function SMSDeliveryFailurePage() {
         );
     }
 
-    if (!hasSMSDeliveryFailure && isReset) {
+    if (!hasSMSDeliveryFailure && hasClickedValidate) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -110,8 +132,11 @@ function SMSDeliveryFailurePage() {
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.validate')}
-                    isLoading={account?.smsDeliveryFailureStatus?.isLoading}
-                    onSubmit={() => resetSMSDeliveryFailureStatus(login)}
+                    isLoading={isResettingSMSDeliveryFailureStatus}
+                    onSubmit={() => {
+                        resetSMSDeliveryFailureStatus(login);
+                        setHasClickedValidate(true);
+                    }}
                     message={errorText}
                     isAlertVisible={shouldShowError}
                     containerStyles={[styles.w100, styles.mh0]}

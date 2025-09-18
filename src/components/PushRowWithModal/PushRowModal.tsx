@@ -77,7 +77,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             onModalHide={handleClose}
             shouldUseCustomBackdrop
-            useNativeDriver
+            shouldHandleNavigationBack
         >
             <ScreenWrapper
                 includePaddingTop={false}
@@ -106,7 +106,5 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
 }
 
 PushRowModal.displayName = 'PushRowModal';
-
-export type {ListItemType};
 
 export default PushRowModal;

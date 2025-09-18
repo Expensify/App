@@ -1,10 +1,9 @@
 import React from 'react';
-import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
@@ -37,27 +36,29 @@ type AmountTextInputProps = {
     /** Style for the TextInput container */
     containerStyle?: StyleProp<ViewStyle>;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur'>;
 
-function AmountTextInput(
-    {
-        formattedAmount,
-        onChangeAmount,
-        placeholder,
-        selection,
-        onSelectionChange,
-        style,
-        touchableInputWrapperStyle,
-        onKeyPress,
-        containerStyle,
-        disableKeyboard = true,
-        hideFocusedState = true,
-        ...rest
-    }: AmountTextInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountTextInput({
+    formattedAmount,
+    onChangeAmount,
+    placeholder,
+    selection,
+    onSelectionChange,
+    style,
+    touchableInputWrapperStyle,
+    onKeyPress,
+    containerStyle,
+    disableKeyboard = true,
+    hideFocusedState = true,
+    shouldApplyPaddingToContainer = false,
+    ref,
+    ...rest
+}: AmountTextInputProps) {
     return (
         <TextInput
             autoGrow
@@ -85,6 +86,8 @@ function AmountTextInput(
             autoCorrect={false}
             spellCheck={false}
             disableKeyboardShortcuts
+            shouldUseFullInputHeight
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
@@ -93,4 +96,4 @@ function AmountTextInput(
 
 AmountTextInput.displayName = 'AmountTextInput';
 
-export default React.forwardRef(AmountTextInput);
+export default AmountTextInput;

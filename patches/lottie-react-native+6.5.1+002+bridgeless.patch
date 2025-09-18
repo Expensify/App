@@ -4,7 +4,7 @@ index aa538d3..0185eaf 100644
 +++ b/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationFailureEvent.kt
 @@ -21,6 +21,6 @@ constructor(surfaceId: Int, viewId: Int, private val error: Throwable) :
      }
- 
+
      companion object {
 -        const val EVENT_NAME = "topAnimationFailureEvent"
 +        const val EVENT_NAME = "topAnimationFailure"
@@ -17,7 +17,7 @@ index f17cff9..4ebe3ba 100644
 +++ b/node_modules/lottie-react-native/android/src/main/java/com/airbnb/android/react/lottie/OnAnimationLoadedEvent.kt
 @@ -16,6 +16,6 @@ class OnAnimationLoadedEvent constructor(surfaceId: Int, viewId: Int) :
      }
- 
+
      companion object {
 -        const val EVENT_NAME = "topAnimationLoadedEvent"
 +        const val EVENT_NAME = "topAnimationLoaded"

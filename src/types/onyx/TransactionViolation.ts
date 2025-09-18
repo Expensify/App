@@ -97,6 +97,12 @@ type TransactionViolationData = {
 
     /** Message to display to the user */
     tooltip?: string;
+
+    /** What prohibitive expense rule did they break? */
+    prohibitedExpenseRule?: string;
+
+    /** Comment that triggered the violation */
+    comment?: string;
 };
 
 /** Model of a transaction violation */
@@ -120,5 +126,5 @@ type TransactionViolations = TransactionViolation[];
 /** Collection of mock transaction violations, indexed by transactionViolations_${transactionID} */
 type TransactionViolationsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>;
 
-export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationData, TransactionViolationsCollectionDataSet};
+export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationsCollectionDataSet};
 export default TransactionViolations;

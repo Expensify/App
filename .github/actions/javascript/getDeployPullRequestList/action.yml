@@ -13,6 +13,8 @@ inputs:
 outputs:
     PR_LIST:
         description: Array of pull request numbers
+    MOBILE_EXPENSIFY_PR_LIST:
+        description: Array of Mobile-Expensify pull request numbers
 runs:
     using: 'node20'
     main: './index.js'

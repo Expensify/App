@@ -1,7 +1,9 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
@@ -12,7 +14,6 @@ const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../..
 type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React.ComponentType>>;
 
 const CENTRAL_PANE_SETTINGS_SCREENS = {
-    [SCREENS.SETTINGS.WORKSPACES]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspacesListPage').default,
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default,
     [SCREENS.SETTINGS.SECURITY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/SecuritySettingsPage').default,
     [SCREENS.SETTINGS.PROFILE.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/ProfilePage').default,
@@ -29,30 +30,35 @@ function SettingsSplitNavigator() {
     const route = useRoute();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
+    usePreloadFullScreenNavigators();
+
     return (
         <FocusTrapForScreens>
-            <Split.Navigator
-                persistentScreens={[SCREENS.SETTINGS.ROOT]}
-                sidebarScreen={SCREENS.SETTINGS.ROOT}
-                defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
-                parentRoute={route}
-                screenOptions={splitNavigatorScreenOptions.centralScreen}
-            >
-                <Split.Screen
-                    name={SCREENS.SETTINGS.ROOT}
-                    getComponent={loadInitialSettingsPage}
-                    options={splitNavigatorScreenOptions.sidebarScreen}
-                />
-                {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
-                    return (
-                        <Split.Screen
-                            key={screenName}
-                            name={screenName as keyof Screens}
-                            getComponent={componentGetter}
-                        />
-                    );
-                })}
-            </Split.Navigator>
+            <View style={{flex: 1}}>
+                <Split.Navigator
+                    persistentScreens={[SCREENS.SETTINGS.ROOT]}
+                    sidebarScreen={SCREENS.SETTINGS.ROOT}
+                    defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
+                    parentRoute={route}
+                    screenOptions={splitNavigatorScreenOptions.centralScreen}
+                >
+                    <Split.Screen
+                        name={SCREENS.SETTINGS.ROOT}
+                        getComponent={loadInitialSettingsPage}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
+                    />
+                    {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
+                        return (
+                            <Split.Screen
+                                key={screenName}
+                                name={screenName as keyof Screens}
+                                getComponent={componentGetter}
+                            />
+                        );
+                    })}
+                </Split.Navigator>
+            </View>
         </FocusTrapForScreens>
     );
 }

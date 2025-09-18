@@ -1,6 +1,7 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
@@ -28,8 +29,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -39,18 +41,6 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
         currentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
-});
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = val),
-});
-
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (val) => (privatePersonalDetails = val),
 });
 
 function updatePronouns(pronouns: string) {
@@ -75,7 +65,7 @@ function updatePronouns(pronouns: string) {
     });
 }
 
-function setDisplayName(firstName: string, lastName: string) {
+function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     if (!currentUserAccountID) {
         return;
     }
@@ -84,15 +74,19 @@ function setDisplayName(firstName: string, lastName: string) {
         [currentUserAccountID]: {
             firstName,
             lastName,
-            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                firstName,
-                lastName,
-            }),
+            displayName: PersonalDetailsUtils.createDisplayName(
+                currentUserEmail ?? '',
+                {
+                    firstName,
+                    lastName,
+                },
+                formatPhoneNumber,
+            ),
         },
     });
 }
 
-function updateDisplayName(firstName: string, lastName: string) {
+function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     if (!currentUserAccountID) {
         return;
     }
@@ -108,10 +102,14 @@ function updateDisplayName(firstName: string, lastName: string) {
                     [currentUserAccountID]: {
                         firstName,
                         lastName,
-                        displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                            firstName,
-                            lastName,
-                        }),
+                        displayName: PersonalDetailsUtils.createDisplayName(
+                            currentUserEmail ?? '',
+                            {
+                                firstName,
+                                lastName,
+                            },
+                            formatPhoneNumber,
+                        ),
                     },
                 },
             },
@@ -119,7 +117,12 @@ function updateDisplayName(firstName: string, lastName: string) {
     });
 }
 
-function updateLegalName(legalFirstName: string, legalLastName: string) {
+function updateLegalName(
+    legalFirstName: string,
+    legalLastName: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'>,
+) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
     const optimisticData: OnyxUpdate[] = [
         {
@@ -132,16 +135,20 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
         },
     ];
     // In case the user does not have a display name, we will update the display name based on the legal name
-    if (!allPersonalDetails?.[currentUserAccountID]?.firstName && !allPersonalDetails?.[currentUserAccountID]?.lastName) {
+    if (!currentUserPersonalDetail?.firstName && !currentUserPersonalDetail?.lastName) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                        firstName: legalFirstName,
-                        lastName: legalLastName,
-                    }),
+                    displayName: PersonalDetailsUtils.createDisplayName(
+                        currentUserEmail ?? '',
+                        {
+                            firstName: legalFirstName,
+                            lastName: legalLastName,
+                        },
+                        formatPhoneNumber,
+                    ),
                     firstName: legalFirstName,
                     lastName: legalLastName,
                 },
@@ -175,7 +182,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     Navigation.goBack();
 }
 
-function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
+function updatePhoneNumber(phoneNumber: string, currentPhoneNumber: string) {
     const parameters: UpdatePhoneNumberParams = {phoneNumber};
     API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
         optimisticData: [
@@ -192,7 +199,7 @@ function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
-                    phoneNumber: currenPhoneNumber,
+                    phoneNumber: currentPhoneNumber,
                     errorFields: {
                         phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
                     },
@@ -210,7 +217,7 @@ function clearPhoneNumberError() {
     });
 }
 
-function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
+function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
@@ -233,7 +240,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     addresses: [
-                        ...(privatePersonalDetails?.addresses ?? []),
+                        ...addresses,
                         {
                             street: PersonalDetailsUtils.getFormattedStreet(street, street2),
                             city,
@@ -260,9 +267,9 @@ function updateAutomaticTimezone(timezone: Timezone) {
         return;
     }
 
-    const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
+    const formattedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(formatedTimezone),
+        timezone: JSON.stringify(formattedTimezone),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
@@ -272,7 +279,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [currentUserAccountID]: {
-                        timezone: formatedTimezone,
+                        timezone: formattedTimezone,
                     },
                 },
             },
@@ -362,7 +369,7 @@ function openPublicProfilePage(accountID: number) {
 /**
  * Updates the user's avatar image
  */
-function updateAvatar(file: File | CustomRNImageManipulatorResult) {
+function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPersonalDetails: Pick<PersonalDetails, 'avatarThumbnail' | 'avatar'>) {
     if (!currentUserAccountID) {
         return;
     }
@@ -407,8 +414,8 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: allPersonalDetails?.[currentUserAccountID]?.avatar,
-                    avatarThumbnail: allPersonalDetails?.[currentUserAccountID]?.avatarThumbnail ?? allPersonalDetails?.[currentUserAccountID]?.avatar,
+                    avatar: currentUserPersonalDetails?.avatar,
+                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail ?? currentUserPersonalDetails?.avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -425,7 +432,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
 /**
  * Replaces the user's avatar image with a default avatar
  */
-function deleteAvatar() {
+function deleteAvatar(currentUserPersonalDetails: Pick<PersonalDetails, 'fallbackIcon' | 'avatar'>) {
     if (!currentUserAccountID) {
         return;
     }
@@ -451,8 +458,8 @@ function deleteAvatar() {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: allPersonalDetails?.[currentUserAccountID]?.avatar,
-                    fallbackIcon: allPersonalDetails?.[currentUserAccountID]?.fallbackIcon,
+                    avatar: currentUserPersonalDetails?.avatar,
+                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
                 },
             },
         },
@@ -490,11 +497,11 @@ function clearPersonalDetailsErrors() {
     });
 }
 
-function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string) {
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? ''),
+        phoneNumber: LoginUtils.appendCountryCodeWithCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
         addressCity: values.city.trim(),
         addressStreet: values.addressLine1?.trim() ?? '',
         addressStreet2: values.addressLine2?.trim() ?? '',

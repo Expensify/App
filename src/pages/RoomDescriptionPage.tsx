@@ -1,9 +1,10 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,6 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,13 +33,13 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
-    policies: OnyxCollection<OnyxTypes.Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 
-function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
+function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
@@ -45,7 +47,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const reportIsArchived = useReportIsArchived(report?.reportID);
 
     const handleReportDescriptionChange = useCallback((value: string) => {
         setDescription(value);
@@ -63,18 +65,21 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         goBack();
     }, [report.reportID, report.description, description, goBack]);
 
-    const validate = useCallback((): Errors => {
-        const errors: Errors = {};
-        const descriptionLength = description.trim().length;
-        if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-            errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
-                length: descriptionLength,
-                limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
-            });
-        }
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
+            const errors: Errors = {};
+            const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
+            if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+                errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
+                    length: descriptionLength,
+                    limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
+                });
+            }
 
-        return errors;
-    }, [description, translate]);
+            return errors;
+        },
+        [translate],
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -90,7 +95,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
-    const canEdit = canEditReportDescription(report, policy);
+    const canEdit = canEditReportDescription(report, policy, reportIsArchived);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -109,6 +114,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
                     <View style={[styles.mb6]}>

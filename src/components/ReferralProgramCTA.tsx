@@ -11,15 +11,11 @@ import {getButtonRole} from './Button/utils';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
-import Text from './Text';
+import RenderHTML from './RenderHTML';
 import Tooltip from './Tooltip';
 
 type ReferralProgramCTAProps = {
-    referralContentType:
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
+    referralContentType: typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT;
     style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
 };
@@ -58,15 +54,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             accessibilityLabel="referral"
             role={getButtonRole(true)}
         >
-            <Text>
-                {translate(`referralProgram.${referralContentType}.buttonText1`)}
-                <Text
-                    color={theme.success}
-                    style={styles.textStrong}
-                >
-                    {translate(`referralProgram.${referralContentType}.buttonText2`)}
-                </Text>
-            </Text>
+            <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
                     onPress={handleDismissCallToAction}

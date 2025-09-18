@@ -1,14 +1,32 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled as arePaymentsEnabledUtils, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
 import {
+    arePaymentsEnabled as arePaymentsEnabledUtils,
+    getSubmitToAccountID,
+    getValidConnectedIntegration,
+    hasIntegrationAutoSync,
+    isPolicyAdmin as isPolicyAdminPolicyUtils,
+    isPreferredExporter,
+} from './PolicyUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
+import {
+    canAddTransaction as canAddTransactionUtil,
+    canHoldUnholdReportAction,
+    getMoneyRequestSpendBreakdown,
+    getParentReport,
+    hasExportError as hasExportErrorUtil,
+    hasOnlyHeldExpenses,
+    hasReportBeenReopened as hasReportBeenReopenedUtils,
+    hasReportBeenRetracted as hasReportBeenRetractedUtils,
+    isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
+    isExported as isExportedUtil,
     isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
@@ -16,77 +34,191 @@ import {
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
+    isReportManager,
     isSettled,
+    requiresManualSubmission,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {
+    allHavePendingRTERViolation,
+    getTransactionViolations,
+    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    isDuplicate,
+    isOnHold as isOnHoldTransactionUtils,
+    isPending,
+    isScanning,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+} from './TransactionUtils';
 
-function isSubmitAction(report: Report, policy: Policy) {
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isOpenReport = isOpenReportUtils(report);
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+type GetReportPrimaryActionParams = {
+    report: Report | undefined;
+    chatReport: OnyxEntry<Report>;
+    reportTransactions: Transaction[];
+    violations: OnyxCollection<TransactionViolation[]>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    reportActions?: ReportAction[];
+    isChatReportArchived: boolean;
+    invoiceReceiverPolicy?: Policy;
+    isPaidAnimationRunning?: boolean;
+    isSubmittingAnimationRunning?: boolean;
+};
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled;
-}
-
-function isApproveAction(report: Report, policy: Policy, reportTransactions: Transaction[]) {
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    const isApprovalEnabled = policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-
-    if (!isExpenseReport || !isReportApprover || !isApprovalEnabled) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
+    if (isChatReportArchived) {
         return false;
     }
 
-    const isOneExpenseReport = isExpenseReport && reportTransactions.length === 1;
-    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
-    const isProcessingReport = isProcessingReportUtils(report);
-    const isOneExpenseReportOnHold = isOneExpenseReport && isReportOnHold;
+    const isExpenseReport = isExpenseReportUtils(report);
+    const canAddTransaction = canAddTransactionUtil(report);
 
-    if (isProcessingReport || isOneExpenseReportOnHold) {
+    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
+}
+
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isOpenReport = isOpenReportUtils(report);
+    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+    const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
+    const baseIsSubmit = isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
+    if (hasReportBeenRetracted && baseIsSubmit) {
         return true;
     }
 
-    return false;
+    return requiresManualSubmission(report, policy) && baseIsSubmit;
 }
 
-function isPayAction(report: Report, policy: Policy) {
+function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isCurrentUserManager) {
+        return false;
+    }
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
+    if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
+        return false;
+    }
+
+    return isProcessingReportUtils(report);
+}
+
+function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
+    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+        return false;
+    }
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
-    const isReportFinished = isReportApproved || isReportClosed;
-
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished) {
-        return true;
-    }
-
     const isProcessingReport = isProcessingReportUtils(report);
-    const isInvoiceReport = isInvoiceReportUtils(report);
-    const isIOUReport = isIOUReportUtils(report);
 
-    if ((isInvoiceReport || isIOUReport) && isProcessingReport) {
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
+
+    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
         return true;
     }
 
-    return false;
-}
-
-function isExportAction(report: Report, policy: Policy) {
-    const hasAccountingConnection = hasAccountingConnections(policy);
-    if (!hasAccountingConnection) {
+    if (!isProcessingReport) {
         return false;
     }
 
-    const isReportExporter = isPrefferedExporter(policy);
+    const isIOUReport = isIOUReportUtils(report);
+
+    if (isIOUReport && isReportPayer && reimbursableSpend > 0) {
+        return true;
+    }
+
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (!isInvoiceReport) {
+        return false;
+    }
+
+    const parentReport = getParentReport(report);
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
+        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
+    }
+
+    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
+}
+
+function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
+    if (!policy) {
+        return false;
+    }
+
+    const connectedIntegration = getValidConnectedIntegration(policy);
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (!connectedIntegration || isInvoiceReport) {
+        return false;
+    }
+
+    const isReportExporter = isPreferredExporter(policy);
     if (!isReportExporter) {
         return false;
     }
 
-    const syncEnabled = isAutoSyncEnabled(policy);
-    if (syncEnabled) {
+    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
+    const isExported = isExportedUtil(reportActions);
+    if (isExported) {
+        return false;
+    }
+
+    const hasExportError = hasExportErrorUtil(reportActions);
+    if (syncEnabled && !hasExportError) {
+        return false;
+    }
+
+    if (report.isWaitingOnBankAccount) {
         return false;
     }
 
@@ -101,22 +233,35 @@ function isExportAction(report: Report, policy: Policy) {
     return false;
 }
 
-function isRemoveHoldAction(report: Report, reportTransactions: Transaction[]) {
+function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[]) {
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
-    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, report.reportID));
 
-    return isReportOnHold && isHolder;
+    if (!isReportOnHold) {
+        return false;
+    }
+
+    const reportActions = getAllReportActions(report.reportID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+
+    if (!transactionThreadReportID) {
+        return false;
+    }
+
+    // Transaction is attached to expense report but hold action is attached to transaction thread report
+    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID));
+
+    return isHolder;
 }
 
-function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransactions: Transaction[]) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[]) {
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction, true));
 
     if (!hasDuplicates) {
         return false;
     }
 
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportApprover = isReportManager(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportOpen = isOpenReportUtils(report);
 
@@ -130,59 +275,204 @@ function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransact
     return false;
 }
 
-function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>) {
+function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+    const isOneExpenseReport = isExpenseReportUtils(report) && reportTransactions.length === 1;
+
+    if (!isOneExpenseReport) {
+        return false;
+    }
+
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
     const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function getPrimaryAction(
+function isMarkAsResolvedReportAction(
     report: Report,
-    policy: Policy,
-    reportTransactions: Transaction[],
-    violations: OnyxCollection<TransactionViolation[]>,
-): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    if (isSubmitAction(report, policy)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+    chatReport: OnyxEntry<Report>,
+    reportTransactions?: Transaction[],
+    violations?: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+    reportActions?: ReportAction[],
+) {
+    if (!report || !reportTransactions || !violations) {
+        return false;
     }
 
-    if (isApproveAction(report, policy, reportTransactions)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const isOneExpenseReport = reportTransactions.length === 1;
+    const transaction = reportTransactions.at(0);
+
+    if ((!!reportActions && !transactionThreadReportID) || !isOneExpenseReport || !transaction) {
+        return false;
     }
 
-    if (isPayAction(report, policy)) {
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+    if (!isReportSubmitter && !isAdmin) {
+        return false;
+    }
+
+    return getTransactionViolations(transaction, violations)?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+}
+
+function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[], policy?: Policy) {
+    if (!report || !violations) {
+        return false;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+    if (!isReportSubmitter && !isAdmin) {
+        return false;
+    }
+
+    return violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+}
+
+function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
+    if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
+        return [];
+    }
+
+    return reportActions?.filter((action) => isMoneyRequestAction(action) && action.childType === CONST.REPORT.TYPE.CHAT && canHoldUnholdReportAction(action).canUnholdRequest);
+}
+
+function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    const {
+        report,
+        reportTransactions,
+        violations,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        isChatReportArchived,
+        chatReport,
+        invoiceReceiverPolicy,
+        isPaidAnimationRunning,
+        isSubmittingAnimationRunning,
+    } = params;
+
+    if (isPaidAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
-
-    if (isExportAction(report, policy)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
+    if (isSubmittingAnimationRunning) {
+        return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+    }
+    if (!report) {
+        return '';
     }
 
-    if (isRemoveHoldAction(report, reportTransactions)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
+    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+
+    if (isMarkAsResolvedReportAction(report, chatReport, reportTransactions, violations, policy, reportActions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isReviewDuplicatesAction(report, policy, reportTransactions)) {
+    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+    }
+
+    if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
+    }
+
+    if (isReviewDuplicatesAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isMarkAsCashAction(report, policy, reportTransactions, violations)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
+    if (isApproveAction(report, reportTransactions, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
+    }
+
+    if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
+    }
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
+    }
+
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.PAY;
+    }
+
+    if (isExportAction(report, policy, reportActions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
+    }
+
+    if (getAllExpensesToHoldIfApplicable(report, reportActions).length) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
     return '';
 }
 
-export default getPrimaryAction;
+function isMarkAsCashActionForTransaction(parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
+    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations);
+
+    if (hasPendingRTERViolation) {
+        return true;
+    }
+
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, violations);
+
+    if (!shouldShowBrokenConnectionViolation) {
+        return false;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(parentReport);
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    return isReportSubmitter || isReportApprover || isAdmin;
+}
+
+function getTransactionThreadPrimaryAction(
+    transactionThreadReport: Report,
+    parentReport: Report,
+    reportTransaction: Transaction,
+    violations: TransactionViolation[],
+    policy?: Policy,
+): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
+    if (isMarkAsResolvedAction(parentReport, violations, policy)) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
+    }
+
+    if (isHoldCreator(reportTransaction, transactionThreadReport.reportID)) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
+    }
+
+    if (isReviewDuplicatesAction(parentReport, [reportTransaction])) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+    }
+
+    if (isMarkAsCashActionForTransaction(parentReport, violations, policy)) {
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH;
+    }
+
+    return '';
+}
+
+export {
+    getReportPrimaryAction,
+    getTransactionThreadPrimaryAction,
+    isAddExpenseAction,
+    isPrimaryPayAction,
+    isExportAction,
+    isMarkAsResolvedAction,
+    isMarkAsResolvedReportAction,
+    getAllExpensesToHoldIfApplicable,
+    isReviewDuplicatesAction,
+};

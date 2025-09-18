@@ -1,19 +1,21 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
-import Avatar from './Avatar';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencyPicker from './CurrencyPicker';
 import FormProvider from './Form/FormProvider';
@@ -24,13 +26,6 @@ import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import TextInput from './TextInput';
-
-function getFirstAlphaNumericCharacter(str = '') {
-    return str
-        .normalize('NFD')
-        .replace(/[^0-9a-z]/gi, '')
-        .toUpperCase()[0];
-}
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
@@ -81,11 +76,11 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     );
 
     const policyID = useMemo(() => generatePolicyID(), []);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session, metadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
-    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -99,22 +94,12 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useCallback(
-        () => (
-            <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={workspaceAvatar?.avatarUri || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter)}
-                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XLARGE}
-                name={workspaceNameFirstCharacter}
-                avatarID={policyID}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-        ),
-        [workspaceAvatar?.avatarUri, workspaceNameFirstCharacter, styles.alignSelfCenter, styles.avatarXLarge, policyID],
-    );
+    const DefaultAvatar = useWorkspaceConfirmationAvatar({
+        policyID,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
+        name: workspaceNameFirstCharacter,
+    });
 
     return (
         <>
@@ -142,7 +127,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}
@@ -167,24 +152,27 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         })
                     }
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.common.workspaceName')}
-                            accessibilityLabel={translate('workspace.common.workspaceName')}
-                            spellCheck={false}
-                            defaultValue={defaultWorkspaceName}
-                            onChangeText={(str) => {
-                                if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
-                                    return;
-                                }
-                                setWorkspaceNameFirstCharacter(str);
-                            }}
-                            ref={inputCallbackRef}
-                        />
+                        {!isLoadingOnyxValue(metadata) && (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.common.workspaceName')}
+                                accessibilityLabel={translate('workspace.common.workspaceName')}
+                                spellCheck={false}
+                                defaultValue={defaultWorkspaceName}
+                                onChangeText={(str) => {
+                                    if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
+                                        return;
+                                    }
+                                    setWorkspaceNameFirstCharacter(str);
+                                }}
+                                ref={inputCallbackRef}
+                            />
+                        )}
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper

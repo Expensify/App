@@ -42,13 +42,13 @@ type ContextMenuItemProps = {
     /** Whether the width should be limited */
     shouldLimitWidth?: boolean;
 
-    /** Styles to apply to ManuItem wrapper */
+    /** Styles to apply to MenuItem wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     shouldPreventDefaultFocusOnPress?: boolean;
 
     /** The ref of mini context menu item */
-    buttonRef?: React.RefObject<View>;
+    buttonRef?: React.RefObject<View | null>;
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;

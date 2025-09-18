@@ -1,28 +1,40 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {emailSelector} from '@selectors/Session';
+import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
 import Button from '@components/Button';
+import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {UserPlus} from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
+import useContactImport from '@hooks/useContactImport';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
+import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Section} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -46,10 +58,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ImportContactButton from './ImportContactButton';
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestParticipantsSelector.getValidOptions'});
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish: (value?: string) => void;
+    onFinish?: (value?: string) => void;
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -62,31 +77,61 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
+
+    /** Whether this is a per diem expense request */
+    isPerDiemRequest?: boolean;
 };
 
-function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, action}: MoneyRequestParticipantsSelectorProps) {
+type InputFocusRef = {
+    focus?: () => void;
+};
+
+function MoneyRequestParticipantsSelector(
+    {
+        participants = CONST.EMPTY_ARRAY,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onFinish = (_value?: string) => {},
+        onParticipantsAdded,
+        iouType,
+        action,
+        isPerDiemRequest = false,
+    }: MoneyRequestParticipantsSelectorProps,
+    ref: Ref<InputFocusRef>,
+) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
+    const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const referralContentType = iouType === CONST.IOU.TYPE.PAY ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
+    const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+
+    const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
+    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -109,10 +154,10 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             };
         }
 
-        const optionList = getValidOptions(
+        const optionList = memoizedGetValidOptions(
             {
                 reports: options.reports,
-                personalDetails: options.personalDetails,
+                personalDetails: options.personalDetails.concat(contacts),
             },
             {
                 betas,
@@ -120,16 +165,22 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to submit an expense from their admin on their own Workspace Chat.
+                // sees the option to submit an expense from their admin on their own Expense Chat.
                 includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
 
-                includeP2P: !isCategorizeOrShareAction,
+                // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
+                excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
+
+                // Per diem expenses should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
-                canShowManagerMcTest: true,
+                canShowManagerMcTest,
+                isPerDiemRequest,
+                showRBR: false,
             },
         );
 
@@ -139,7 +190,20 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
+    }, [
+        action,
+        contacts,
+        areOptionsInitialized,
+        betas,
+        didScreenTransitionEnd,
+        iouType,
+        isCategorizeOrShareAction,
+        options.personalDetails,
+        options.reports,
+        participants,
+        isPerDiemRequest,
+        canShowManagerMcTest,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -154,8 +218,8 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             };
         }
 
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
-            canInviteUser: !isCategorizeOrShareAction,
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {
+            canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -163,8 +227,28 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, countryCode]);
 
+    const inputHelperText = useMemo(
+        () =>
+            getHeaderMessage(
+                (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 ||
+                    !isEmptyObject(chatOptions.selfDMChat),
+                !!chatOptions?.userToInvite,
+                debouncedSearchTerm.trim(),
+                participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            ),
+        [
+            chatOptions.personalDetails,
+            chatOptions.recentReports,
+            chatOptions.selfDMChat,
+            chatOptions?.userToInvite,
+            chatOptions.workspaceChats,
+            cleanSearchTerm,
+            debouncedSearchTerm,
+            participants,
+        ],
+    );
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -182,6 +266,8 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             chatOptions.personalDetails,
             personalDetails,
             true,
+            undefined,
+            reportAttributesDerived,
         );
 
         newSections.push(formatResults.section);
@@ -200,14 +286,14 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
         newSections.push({
             title: translate('common.recents'),
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
+            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
             data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
+            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
         });
 
         if (
@@ -216,24 +302,23 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 ...chatOptions.userToInvite,
                 accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 status: chatOptions.userToInvite?.status ?? undefined,
-            })
+            }) &&
+            !isPerDiemRequest
         ) {
             newSections.push({
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
         }
 
-        const headerMessage = getHeaderMessage(
-            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
-            !!chatOptions?.userToInvite,
-            debouncedSearchTerm.trim(),
-            participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
-        );
+        let headerMessage = '';
+        if (!showImportContacts) {
+            headerMessage = inputHelperText;
+        }
 
         return [newSections, headerMessage];
     }, [
@@ -243,12 +328,15 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
-        chatOptions.selfDMChat,
         chatOptions.workspaceChats,
+        chatOptions.selfDMChat,
         chatOptions.userToInvite,
         personalDetails,
         translate,
-        cleanSearchTerm,
+        isPerDiemRequest,
+        showImportContacts,
+        reportAttributesDerived,
+        inputHelperText,
     ]);
 
     /**
@@ -257,10 +345,10 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
      * @param {Object} option
      */
     const addSingleParticipant = useCallback(
-        (option: Participant) => {
+        (option: Participant & Option) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
                     selected: true,
                     iouType,
                 },
@@ -373,6 +461,11 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
+    const initiateContactImportAndSetState = useCallback(() => {
+        setContactPermissionState(RESULTS.GRANTED);
+        InteractionManager.runAfterInteractions(importAndSaveContacts);
+    }, [importAndSaveContacts, setContactPermissionState]);
+
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -446,29 +539,98 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
+    const footerContentAbovePaginationComponent = useMemo(() => {
+        if (!showImportContacts) {
+            return null;
+        }
+        return (
+            <MenuItem
+                title={translate('contact.importContacts')}
+                icon={UserPlus}
+                onPress={goToSettings}
+                shouldShowRightIcon
+                style={styles.mb3}
+            />
+        );
+    }, [showImportContacts, styles.mb3, translate]);
+
+    const ClickableImportContactTextComponent = useMemo(() => {
+        if (debouncedSearchTerm.length || isSearchingForReports) {
+            return;
+        }
+        return (
+            <ImportContactButton
+                showImportContacts={showImportContacts}
+                inputHelperText={translate('contact.importContactsTitle')}
+                isInSearch={false}
+            />
+        );
+    }, [debouncedSearchTerm, isSearchingForReports, showImportContacts, translate]);
+    const EmptySelectionListContentWithPermission = useMemo(() => {
+        return (
+            <>
+                {ClickableImportContactTextComponent}
+                <EmptySelectionListContent contentType={iouType} />
+            </>
+        );
+    }, [iouType, ClickableImportContactTextComponent]);
+
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            if (!textInputAutoFocus) {
+                return;
+            }
+            selectionListRef.current?.focusTextInput?.();
+        },
+    }));
+
     return (
-        <SelectionList
-            onConfirm={handleConfirmSelection}
-            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-            ListItem={InviteMemberListItem}
-            textInputValue={searchTerm}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            textInputHint={offlineMessage}
-            onChangeText={setSearchTerm}
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={onSelectRow}
-            shouldSingleExecuteRowSelect
-            footerContent={footerContent}
-            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
-            headerMessage={header}
-            showLoadingPlaceholder={showLoadingPlaceholder}
-            canSelectMultiple={isIOUSplit && isAllowedToSplit}
-            isLoadingNewOptions={!!isSearchingForReports}
-            shouldShowListEmptyContent={shouldShowListEmptyContent}
-        />
+        <>
+            <ContactPermissionModal
+                onGrant={initiateContactImportAndSetState}
+                onDeny={setContactPermissionState}
+                onFocusTextInput={() => {
+                    setTextInputAutoFocus(true);
+                    selectionListRef.current?.focusTextInput?.();
+                }}
+            />
+            <SelectionList
+                onConfirm={handleConfirmSelection}
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                ListItem={InviteMemberListItem}
+                textInputValue={searchTerm}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                textInputHint={offlineMessage}
+                onChangeText={setSearchTerm}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                onSelectRow={onSelectRow}
+                shouldSingleExecuteRowSelect
+                canShowProductTrainingTooltip={canShowManagerMcTest}
+                headerContent={
+                    <ImportContactButton
+                        showImportContacts={showImportContacts}
+                        inputHelperText={inputHelperText}
+                        isInSearch
+                    />
+                }
+                footerContent={footerContent}
+                listEmptyContent={EmptySelectionListContentWithPermission}
+                footerContentAbovePagination={footerContentAbovePaginationComponent}
+                headerMessage={header}
+                showLoadingPlaceholder={showLoadingPlaceholder}
+                canSelectMultiple={isIOUSplit && isAllowedToSplit}
+                isLoadingNewOptions={!!isSearchingForReports}
+                shouldShowListEmptyContent={shouldShowListEmptyContent}
+                textInputAutoFocus={!isNative}
+                ref={selectionListRef}
+            />
+        </>
     );
 }
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(
+    forwardRef(MoneyRequestParticipantsSelector),
+    (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
+);

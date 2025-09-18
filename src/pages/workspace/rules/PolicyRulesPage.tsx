@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -11,7 +10,6 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import CustomRulesSection from './CustomRulesSection';
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 
@@ -19,7 +17,6 @@ type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorPara
 
 function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
-    const {canUseCustomRules} = usePermissions();
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -39,11 +36,11 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 icon={Illustrations.Rules}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
+                addBottomSafeAreaPadding
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <ExpenseReportRulesSection policyID={policyID} />
-                    {canUseCustomRules ? <CustomRulesSection policyID={policyID} /> : null}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

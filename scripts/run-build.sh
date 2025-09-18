@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-export PROJECT_ROOT_PATH
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
 
 IOS_MODE="DebugDevelopment"
 ANDROID_MODE="developmentDebug"
@@ -42,28 +46,27 @@ NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
     cd Mobile-Expensify && npm run grunt:build:shared && cd ..
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
-    PROJECT_ROOT_PATH="Mobile-Expensify/"
     export CUSTOM_APK_NAME="Expensify-debug.apk"
+    export IS_HYBRID_APP="true"
 else
     echo -e "\n${GREEN}Starting a standalone NewDot build!${NC}"
     echo $ANDROID_MODE
-    PROJECT_ROOT_PATH="./"
     unset CUSTOM_APK_NAME
 fi
 
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        npx react-native run-ios --list-devices --mode $IOS_MODE --scheme "$SCHEME"
+        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --ipad)
-        npx react-native run-ios --simulator "iPad Pro (12.9-inch) (6th generation)" --mode $IOS_MODE --scheme "$SCHEME"
+        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --ipad-sm)
-        npx react-native run-ios --simulator "iPad Pro (11-inch) (4th generation)" --mode $IOS_MODE --scheme "$SCHEME"
+        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --android)
-        npx react-native run-android --mode $ANDROID_MODE --appId $APP_ID --active-arch-only
+        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
         ;;
     *)
         print_error_and_exit

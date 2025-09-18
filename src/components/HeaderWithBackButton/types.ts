@@ -4,9 +4,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
-import type {AnchorPosition} from '@src/styles';
-import type {Policy, Report} from '@src/types/onyx';
+import type {TranslationPaths} from '@src/languages/types';
+import type {Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -14,8 +15,8 @@ type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
     icon: IconAsset;
 
-    /** Text label */
-    text: string;
+    /** Translation key for the label */
+    translationKey: TranslationPaths;
 
     /** A callback triggered when the item is selected */
     onSelected: () => void;
@@ -62,6 +63,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom?: boolean;
 
+    /** Whether we should display the status of the report */
+    shouldDisplayStatus?: boolean;
+
     /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
@@ -71,10 +75,10 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
 
-    /** Whether we should show a more options (threedots) button */
+    /** Whether we should show a more options (three dots) button */
     shouldShowThreeDotsButton?: boolean;
 
-    /** Whether we should disable threedots button */
+    /** Whether we should disable three dots button */
     shouldDisableThreeDotsButton?: boolean;
 
     /** Whether we should set modal visibility when three dot menu opens */
@@ -83,8 +87,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: PopoverMenuItem[];
 
-    /** The anchor position of the menu */
-    threeDotsAnchorPosition?: AnchorPosition;
+    /** The anchor alignment of the menu */
+    threeDotsAnchorAlignment?: AnchorAlignment;
 
     /** Icon displayed on the right of the title */
     threeDotsMenuIcon?: IconAsset;
@@ -110,9 +114,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report?: OnyxEntry<Report>;
 
-    /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
-    policy?: OnyxEntry<Policy>;
-
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
 
@@ -134,7 +135,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
 
-    /** Whether we should display the button that opens the help pane */
+    /** Whether we should display the button that opens the Help Panel */
     shouldDisplayHelpButton?: boolean;
 
     /** Whether we should display the button that opens new SearchRouter */
@@ -151,6 +152,11 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** If true, display the individual button instead of the three-dot menu when there's only one menu item */
+    shouldMinimizeMenuButton?: boolean;
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

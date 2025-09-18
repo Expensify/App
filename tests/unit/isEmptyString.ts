@@ -53,7 +53,7 @@ describe('libs/StringUtils.isEmptyString', () => {
             expect(StringUtils.isEmptyString(key)).toBe(false);
         });
     });
-    it('remove invisible characters (editpad)', () => {
+    it('remove invisible characters (edit pad)', () => {
         expect(StringUtils.isEmptyString('\u0020')).toBe(true);
         expect(StringUtils.isEmptyString('\u00A0')).toBe(true);
         expect(StringUtils.isEmptyString('\u2000')).toBe(true);

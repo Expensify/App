@@ -1,34 +1,57 @@
 ---
-title: Subscription Management
-description: How to manage your subscription
+title: Manage Expensify Subscription
+description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
+keywords: [New Expensify, subscription, billing, payment card, cancel subscription, delete workspace, remove workspace, subscription settings, bill]
+
 ---
-Under the subscriptions section of your account, you can manage your payment card details, view your current plan, add a billing card, and adjust your subscription size and renewal date.
-To view or manage your subscription in New Expensify:
-* **Open the App**: Launch New Expensify on your device.
-* **Go to Account Settings**: Click your profile icon in the bottom-left corner.
-* **Find Workspaces**: Navigate to the Workspaces section.
-* **Open Subscriptions**: Click Subscription under Workspaces to view your subscription.
 
-## Add a Payment Card
 
-Look for the option to **Add Payment Card**. Enter your payment card details securely to ensure uninterrupted service.
-![A screenshot of adding payment card]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default.png){:width="100%"}
-## Subscription Overview
+Easily manage your subscription in New Expensify—update payment details, adjust your plan, request early cancellation, or delete a workspace if needed.
 
-This is where you can view your current subscription plan and see details like the number of seats, billing information, and the next renewal date.
+You can view and manage your subscription under **Account > Subscription**.
 
-**Subscription Settings**:
-   - **Auto-renew**: See when your subscription will automatically renew (e.g., **Renews on Nov 1, 2024**).
-- **Auto-increase annual seats**: Here you can see how much you could save by automatically increasing seats to accommodate team members who exceed the current subscription size.
+---
 
-**Note**: This will extend your annual subscription end date.
-![A screenshot of subscription details]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details.png){:width="100%"}
-## Early Cancellation Requests
+# Manage Subscription
 
-If you need to cancel your subscription early, you can find the **Request Early Cancellation** option in the same Subscriptions section. 
+In the Subscription section, you can view and update your plan details, including:
 
-**Note**: Not all customers are eligible to cancel their subscription early.
-![A screenshot of cancellation button]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing.png){:width="100%"}
-## Pricing Information
+- **Add a payment card**: Connect the credit card you want to use to pay for Expensify each month.
+- **Current plan:** View your subscription type and number of seats.
+- **Billing info:** See your payment method and next renewal date.
+- **Auto-renew:** Check when your subscription will automatically renew (e.g., **Renews on Nov 1, 2026**).
+- **Auto-increase annual seats:** See how much you could save by automatically increasing seats if your team grows.
 
-For more details on pricing plans, visit Billing Page [coming soon!]
+**Note:** Enabling auto-increase will extend your annual subscription end date.
+
+---
+
+# Request Early Cancellation
+
+To request an early cancellation:
+
+1. Head to **Account > Subscription**.
+2. Click the **Request early cancellation** button.
+3. Depending on how your subscription is configured, the early cancellation will happen automatically or be sent to our team for review.
+
+**Note:** Early cancellations aren’t available to all customers.
+
+---
+
+# Delete a Workspace
+
+To permanently delete a workspace and downgrade to a free account:
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click the three dots next to the workspace name.
+3. Select **Delete workspace** from the dropdown.
+4. Confirm the deletion when prompted.
+
+**Note:** Deleting a workspace is permanent and cannot be undone.
+
+---
+
+# Pricing Information
+
+Visit our [Billing page](https://help.expensify.com/new-expensify/hubs/billing-and-subscriptions/) for full pricing details.
+

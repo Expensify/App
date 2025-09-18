@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,55 +12,44 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
-type DetailsStepProps = {
-    /** ID of the current policy */
-    policyID: string | undefined;
-};
-
-function DetailsStep({policyID}: DetailsStepProps) {
+function DetailsStep() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
-        if (!addNewCard?.data) {
-            return;
-        }
+    const submit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>) => {
+            if (!addNewCard?.data) {
+                return;
+            }
 
-        const feedDetails = Object.entries({
-            ...values,
-            bankName: addNewCard.data.bankName ?? 'Amex',
-        })
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', ');
+            const feedDetails = {
+                ...values,
+                bankName: addNewCard.data.bankName ?? 'Amex',
+            };
 
-        addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, lastSelectedFeed);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    };
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
+        },
+        [addNewCard?.data],
+    );
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
@@ -142,6 +130,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
+                            defaultValue={addNewCard?.data.feedDetails?.processorID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -149,6 +138,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
+                            defaultValue={addNewCard?.data.feedDetails?.bankID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -156,6 +146,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
+                            defaultValue={addNewCard?.data.feedDetails?.companyID}
                         />
                     </>
                 );
@@ -168,6 +159,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
+                        defaultValue={addNewCard?.data.feedDetails?.distributionID}
                     />
                 );
             case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
@@ -179,6 +171,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
+                        defaultValue={addNewCard?.data.feedDetails?.deliveryFileName}
                     />
                 );
             default:
@@ -189,7 +182,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
     return (
         <ScreenWrapper
             testID={DetailsStep.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -199,11 +192,12 @@ function DetailsStep({policyID}: DetailsStepProps) {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                submitButtonText={translate('common.submit')}
+                submitButtonText={translate('common.next')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
-                enabledWhenOffline
+                shouldHideFixErrorsAlert={feedProvider !== CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}

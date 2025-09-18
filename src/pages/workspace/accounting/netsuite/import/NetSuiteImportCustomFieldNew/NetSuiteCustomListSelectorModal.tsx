@@ -7,7 +7,6 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -65,22 +64,18 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
         };
     }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, translate, currentCustomListValue]);
 
-    const styles = useThemeStyles();
-
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={NetSuiteCustomListSelectorModal.displayName}
             >
                 <HeaderWithBackButton
@@ -101,6 +96,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

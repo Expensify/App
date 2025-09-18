@@ -1,17 +1,17 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addPersonalBankAccount, clearPersonalBankAccount} from '@libs/actions/BankAccounts';
+import {continueSetup} from '@libs/actions/PaymentMethods';
+import {updateCurrentStep} from '@libs/actions/Wallet';
 import Navigation from '@navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,7 +32,7 @@ function AddBankAccount() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccountDraft?.plaidAccountID);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+            addPersonalBankAccount(selectedPlaidBankAccount);
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 
@@ -45,11 +45,11 @@ function AddBankAccount() {
         const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
         if (exitReportID) {
-            Navigation.dismissModal(exitReportID);
+            Navigation.dismissModalWithReport({reportID: exitReportID});
             return;
         }
         if (shouldContinue && onSuccessFallbackRoute) {
-            PaymentMethods.continueSetup(onSuccessFallbackRoute);
+            continueSetup(onSuccessFallbackRoute);
             return;
         }
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -61,8 +61,8 @@ function AddBankAccount() {
             return;
         }
         if (screenIndex === 0) {
-            BankAccounts.clearPersonalBankAccount();
-            Wallet.updateCurrentStep(null);
+            clearPersonalBankAccount();
+            updateCurrentStep(null);
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }

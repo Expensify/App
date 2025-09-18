@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -17,6 +17,7 @@ import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
@@ -25,7 +26,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
+jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -74,6 +75,7 @@ function triggerListLayout(reportID?: string) {
                 ...LIST_SIZE,
             },
         },
+        persist: () => {},
     });
 
     fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
@@ -91,7 +93,7 @@ function getReportActions(reportID?: string) {
 async function navigateToSidebarOption(reportID: string): Promise<void> {
     const optionRow = screen.getByTestId(reportID);
     fireEvent(optionRow, 'press');
-    await act(() => {
+    await waitFor(() => {
         (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
@@ -319,7 +321,7 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
-        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
 
         // We now have 18 messages. 15 (MIN_INITIAL_REPORT_ACTION_COUNT) from the initial OpenReport and 3 from GetOlderActions.
         // GetOlderActions only returns 3 actions since it reaches id '1', which is the created action.
@@ -335,9 +337,12 @@ describe('Pagination', () => {
 
         const link = screen.getByText('Link 1');
         fireEvent(link, 'press');
-        await act(() => {
+        await waitFor(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
+        // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
+        // we need to scroll too to trigger `onStartReached` which triggers other updates
+        scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
         await waitForBatchedUpdatesWithAct();
@@ -359,10 +364,10 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(15);
+        expect(getReportActions()).toHaveLength(10);
 
         // Simulate the backend returning no new messages to simulate reaching the start of the chat.
         mockGetNewerActions(0);
@@ -374,9 +379,9 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 3);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
         // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(15);
+        expect(getReportActions()).toHaveLength(10);
     });
 });

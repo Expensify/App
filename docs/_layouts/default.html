@@ -2,15 +2,18 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="script-src https://kit.fontawesome.com https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com/ https://cse.google.com http://cse.google.com https://partner.googleadservices.com/ https://cdnjs.cloudflare.com/ajax/libs/tocbot/ https://www.googletagmanager.com 'self' 'unsafe-eval' 'unsafe-inline'; style-src cdnjs.cloudflare.com cse.google.com www.google.com ka-f.fontawesome.com fonts.googleapis.com 'self' 'unsafe-inline'" >
+    <meta http-equiv="Content-Security-Policy" content="script-src https://kit.fontawesome.com https://cdnjs.cloudflare.com https://vjs.zencdn.net https://unpkg.com https://www.google.com https://www.gstatic.com/ https://cse.google.com http://cse.google.com https://clients1.google.com https://partner.googleadservices.com/ https://cdnjs.cloudflare.com/ajax/libs/tocbot/ https://www.googletagmanager.com 'self' 'unsafe-eval' 'unsafe-inline'; style-src cdnjs.cloudflare.com vjs.zencdn.net unpkg.com cse.google.com www.google.com ka-f.fontawesome.com fonts.googleapis.com 'self' 'unsafe-inline'; worker-src blob: 'self';" >
     <title>Expensify Help</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
     <link rel="icon" type="image/png" href="{{ '/assets/images/expensify-logo-round.png' | cache_bust }}">
     <link rel="stylesheet" href="{{ site.main_style | cache_bust}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.css">
+    <link rel="stylesheet" href="https://vjs.zencdn.net/8.5.2/video-js.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@videojs/themes@1/dist/fantasy/index.css" />
 
     <script src="https://kit.fontawesome.com/263e5e8608.js" crossorigin="anonymous"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.js"></script>
+    <script defer src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
     <script defer src="{{ '/assets/js/main.js' | cache_bust }}"></script>
     <script defer src="{{ '/assets/js/platform-tabs.js' | cache_bust }}"></script>
     <script defer src="{{ '/assets/js/selector.js' | cache_bust }}"></script>
@@ -96,6 +99,15 @@
                 </div>
             </a>
         </div>
+
+        {% if page.url contains "/articles/" %}
+        <div>
+            <a href="https://github.com/Expensify/App/edit/main/docs{{ page.url | remove: '.html' }}.md" target="_blank" class="edit-article-link">
+                <svg class="edit-article-link__icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="Layer_1" x="0" y="0" version="1.1" viewBox="0 0 20 20" style="enable-background:new 0 0 20 20" xml:space="preserve"><path d="M17,8l-5-5l2.3-2.3c0.4-0.4,1-0.4,1.4,0l3.6,3.6c0.4,0.4,0.4,1,0,1.4L17,8z"/><path d="M7.3,16.3l-3.6-3.6c-0.4-0.4-0.4-1,0-1.4l6.6-6.6c0.4-0.4,1-0.4,1.4,0l3.6,3.6c0.4,0.4,0.4,1,0,1.4l-6.6,6.6	C8.3,16.7,7.7,16.7,7.3,16.3z"/><path d="M2,15l-1,4l4-1L2,15z"/></svg>
+                Recommend a change to this page
+            </a>
+        </div>
+        {% endif %}
 
         <div id="footer">
             {% include footer.html %}

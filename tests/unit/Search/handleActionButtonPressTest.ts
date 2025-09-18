@@ -1,11 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {ReportListItemType} from '@components/SelectionList/types';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const mockReportItemWithHold = {
+    groupedBy: 'reports',
     shouldAnimateInHighlight: false,
     accountID: 1206,
     action: 'approve',
+    allActions: ['approve'],
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
     currency: 'USD',
@@ -28,8 +36,8 @@ const mockReportItemWithHold = {
     from: {
         accountID: 1206,
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
-        displayName: 'aesf',
-        firstName: 'aesf',
+        displayName: 'Ames',
+        firstName: 'Ames',
         lastName: '',
         login: 'apb@apb.com',
         pronouns: '',
@@ -43,8 +51,8 @@ const mockReportItemWithHold = {
     to: {
         accountID: 1206,
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
-        displayName: 'aesf',
-        firstName: 'aesf',
+        displayName: 'Ames',
+        firstName: 'Ames',
         lastName: '',
         login: 'apb@apb.com',
         pronouns: '',
@@ -57,8 +65,12 @@ const mockReportItemWithHold = {
     },
     transactions: [
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
+            allActions: ['view'],
             amount: -1200,
             canDelete: true,
             canHold: false,
@@ -73,7 +85,7 @@ const mockReportItemWithHold = {
             hasEReceipt: false,
             isFromOneTransactionReport: false,
             managerID: 1206,
-            merchant: 'qewr',
+            merchant: 'Qatar',
             modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
@@ -89,8 +101,8 @@ const mockReportItemWithHold = {
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
-                displayName: 'aesf',
-                firstName: 'aesf',
+                displayName: 'Ames',
+                firstName: 'Ames',
                 lastName: '',
                 login: 'apb@apb.com',
                 pronouns: '',
@@ -104,8 +116,8 @@ const mockReportItemWithHold = {
             to: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
-                displayName: 'aesf',
-                firstName: 'aesf',
+                displayName: 'Ames',
+                firstName: 'Ames',
                 lastName: '',
                 login: 'apb@apb.com',
                 pronouns: '',
@@ -116,22 +128,27 @@ const mockReportItemWithHold = {
                 phoneNumber: '',
                 validated: false,
             },
-            formattedFrom: 'aesf',
-            formattedTo: 'aesf',
+            formattedFrom: 'Ames',
+            formattedTo: 'Ames',
             formattedTotal: 1200,
-            formattedMerchant: 'qewr',
+            formattedMerchant: 'Qatar',
             date: '2024-12-04',
             shouldShowMerchant: true,
-            shouldShowCategory: true,
-            shouldShowTag: false,
-            shouldShowTax: false,
-            keyForList: '1049531721038862176',
             shouldShowYear: false,
+            keyForList: '1049531721038862176',
+            isAmountColumnWide: false,
+            isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
+            allActions: ['view'],
             amount: -12300,
             canDelete: true,
             canHold: true,
@@ -145,7 +162,7 @@ const mockReportItemWithHold = {
             hasEReceipt: false,
             isFromOneTransactionReport: false,
             managerID: 1206,
-            merchant: 'fgdfgadfaf',
+            merchant: 'Forbes',
             modifiedAmount: 0,
             modifiedCreated: '',
             modifiedCurrency: '',
@@ -161,30 +178,31 @@ const mockReportItemWithHold = {
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
-                displayName: 'aesf',
+                displayName: 'Ames',
                 login: 'apb@apb.com',
             },
             to: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
-                displayName: 'aesf',
+                displayName: 'Ames',
             },
-            formattedFrom: 'aesf',
-            formattedTo: 'aesf',
+            formattedFrom: 'Ames',
+            formattedTo: 'Ames',
             formattedTotal: 12300,
-            formattedMerchant: 'fgdfgadfaf',
+            formattedMerchant: 'Forbes',
             date: '2024-12-04',
             shouldShowMerchant: true,
-            shouldShowCategory: true,
-            shouldShowTag: false,
-            shouldShowTax: false,
-            keyForList: '5345995386715609966',
             shouldShowYear: false,
+            keyForList: '5345995386715609966',
+            isAmountColumnWide: false,
+            isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
     ],
     isSelected: false,
-} as ReportListItemType;
+} as TransactionReportGroupListItemType;
 
 const updatedMockReportItem = {
     ...mockReportItemWithHold,
@@ -201,17 +219,62 @@ const updatedMockReportItem = {
     }),
 };
 
+const mockSnapshotForItem: OnyxEntry<SearchResults> = {
+    // @ts-expect-error: Allow partial record in snapshot update for testing
+    data: {
+        [`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold?.policyID}`]: {
+            ...(mockReportItemWithHold.policyID
+                ? {
+                      [String(mockReportItemWithHold.policyID)]: {
+                          type: 'policy',
+                          id: String(mockReportItemWithHold.policyID),
+                          role: 'admin',
+                          owner: 'apb@apb.com',
+                          ...mockReportItemWithHold,
+                      },
+                  }
+                : {}),
+        },
+    },
+};
+
+const mockLastPaymentMethod: OnyxEntry<LastPaymentMethod> = {
+    expense: 'Elsewhere',
+    lastUsed: 'Elsewhere',
+};
+
 describe('handleActionButtonPress', () => {
     const searchHash = 1;
+    beforeAll(() => {
+        Onyx.merge(
+            `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            // @ts-expect-error: Allow partial record in snapshot update for testing
+            mockSnapshotForItem,
+        );
+        Onyx.merge(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, mockLastPaymentMethod);
+    });
+
+    const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
+    const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
+
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem);
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
         expect(goToItem).toHaveBeenCalledTimes(0);
+    });
+
+    test('Should run goToItem callback when user is in mobile selection mode', () => {
+        const goToItem = jest.fn(() => {});
+        // @ts-expect-error: Allow partial record in snapshot update for testing
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true, snapshotReport, snapshotPolicy, mockLastPaymentMethod);
+        expect(goToItem).toHaveBeenCalledTimes(1);
     });
 });

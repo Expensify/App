@@ -11,9 +11,11 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import {requestResetFreePlanBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -27,13 +29,27 @@ type ConnectedVerifiedBankAccountProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
-    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    /** Method to set the state of USD bank account step */
     setUSDBankAccountStep: (step: string | null) => void;
+
+    /** Method to set the state of setNonUSDBankAccountStep */
+    setNonUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Whether the workspace currency is set to non USD currency */
+    isNonUSDWorkspace: boolean;
 };
 
-function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectedVerifiedBankAccountProps) {
+function ConnectedVerifiedBankAccount({
+    reimbursementAccount,
+    onBackButtonPress,
+    setShouldShowConnectedVerifiedBankAccount,
+    setUSDBankAccountStep,
+    setNonUSDBankAccountStep,
+    isNonUSDWorkspace,
+}: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: reimbursementAccount?.achData?.bankName, styles});
 
@@ -52,9 +68,10 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             style={[styles.flex1, styles.justifyContentBetween, styles.mh2]}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.connectBankAccount')}
+                title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={onBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>
@@ -83,8 +100,8 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={Close}
-                            onPress={requestResetFreePlanBankAccount}
-                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            onPress={requestResetBankAccount}
+                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                             disabled={!!pendingAction || !isEmptyObject(errors)}
                         />
                     </OfflineWithFeedback>
@@ -93,8 +110,10 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
             {shouldShowResetModal && (
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={reimbursementAccount}
+                    isNonUSDWorkspace={isNonUSDWorkspace}
                     setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
+                    setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 />
             )}
         </ScreenWrapper>

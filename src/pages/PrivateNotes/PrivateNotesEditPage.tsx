@@ -3,7 +3,6 @@ import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -43,7 +43,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(
@@ -97,7 +97,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
 
         const hasNewNoteBeenAdded = !originalNote && editedNote;
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
-            goBackToDetailsPage(report, backTo);
+            goBackToDetailsPage(report, backTo, true);
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
@@ -135,6 +135,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <Text style={[styles.mb5]}>
                     {translate(
@@ -166,7 +167,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                             debouncedSavePrivateNote(text);
                             setPrivateNote(text);
                         }}
-                        ref={(el: AnimatedTextInputRef) => {
+                        ref={(el: AnimatedTextInputRef | null) => {
                             if (!el) {
                                 return;
                             }

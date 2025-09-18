@@ -7,6 +7,8 @@ module.exports = {
     rules: {
         'deprecation/deprecation': 'error',
         'rulesdir/no-default-id-values': 'error',
+        'rulesdir/provide-canBeMissing-in-useOnyx': 'error',
+        'rulesdir/no-unstable-hook-defaults': 'error',
         'no-restricted-syntax': [
             'error',
             {

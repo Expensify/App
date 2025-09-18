@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+
 const getDefinedKeys = (obj: Record<string, unknown>): string[] => {
     return Object.entries(obj)
         .filter(([, value]) => value !== undefined)
@@ -16,5 +18,15 @@ const shallowCompare = (obj1?: Record<string, unknown>, obj2?: Record<string, un
     return false;
 };
 
+function filterObject<TObject extends Record<string, unknown>>(obj: TObject, predicate: (key: keyof TObject, value: ValueOf<TObject>) => boolean): TObject {
+    return Object.keys(obj)
+        .filter((key: keyof TObject) => predicate(key, obj[key]))
+        .reduce<TObject>((result, key: keyof TObject) => {
+            // eslint-disable-next-line no-param-reassign
+            result[key] = obj[key];
+            return result;
+        }, {} as TObject);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {shallowCompare};
+export {shallowCompare, filterObject};

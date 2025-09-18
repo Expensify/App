@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -10,11 +11,14 @@ import {updateQuickbooksDesktopPreferredExporter} from '@libs/actions/connection
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type CardListItem = ListItem & {
     value: string;
@@ -27,8 +31,15 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const currentExporter = qbdConfig?.export?.exporter;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_PREFERRED_EXPORTER>>();
+    const backTo = route.params?.backTo;
 
     const policyID = policy?.id;
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
+    }, [policyID, backTo]);
+
     const data: CardListItem[] = useMemo(
         () =>
             exporters?.reduce<CardListItem[]>((options, exporter) => {
@@ -61,9 +72,9 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             if (row.value !== currentExporter) {
                 updateQuickbooksDesktopPreferredExporter(policyID, row.value, currentExporter);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
+            goBack();
         },
-        [currentExporter, policyID],
+        [currentExporter, goBack, policyID],
     );
 
     const headerContent = useMemo(
@@ -85,12 +96,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
-            onBackButtonPress={() => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
-            }}
+            onBackButtonPress={goBack}
             onSelectRow={selectExporter}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

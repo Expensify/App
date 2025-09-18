@@ -1,9 +1,10 @@
-import {NavigationContext} from '@react-navigation/native';
+import {NavigationContext, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
+import useIsResizing from '@hooks/useIsResizing';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -19,55 +20,94 @@ type ScrollingEventData = {
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
 function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
-    const genericTooltipStateRef = useRef<GenericTooltipState>();
-    const tooltipElementRef = useRef<React.Component & Readonly<NativeMethods>>();
+    const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
+    const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
-    const show = useRef<() => void>();
+    const show = useRef<(() => void) | undefined>(undefined);
 
     const navigator = useContext(NavigationContext);
+    const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
+
+    const isResizing = useIsResizing();
+
+    const shouldSuppressTooltip = !isFocused && shouldHideOnNavigate;
+
+    const renderTooltip = useCallback(() => {
+        if (!tooltipElementRef.current || !genericTooltipStateRef.current || shouldSuppressTooltip) {
+            return;
+        }
+
+        const {hideTooltip, showTooltip, updateTargetBounds} = genericTooltipStateRef.current;
+
+        getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
+            updateTargetBounds(bounds);
+            const {x, y, width: elementWidth, height} = bounds;
+
+            const offset = 10; // Tooltip hides when content moves 10px past header/footer.
+            const dimensions = Dimensions.get('window');
+            const top = y - (insets.top || 0);
+            const bottom = y + height + insets.bottom || 0;
+            const left = x - (insets.left || 0);
+            const right = x + elementWidth + (insets.right || 0);
+            // Calculate the available space at the top, considering the header height and offset
+            const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
+
+            // Calculate the total height available after accounting for the bottom tab and offset
+            const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
+
+            // Calculate available horizontal space, taking into account safe-area insets
+            const availableWidthForLeft = left - offset;
+            const availableWidthForRight = dimensions.width - (right - offset);
+
+            // Hide if the element scrolled out vertically or horizontally
+            if (availableHeightForTop < 0 || availableHeightForBottom < 0 || availableWidthForLeft < 0 || availableWidthForRight < 0) {
+                hideTooltip();
+            } else {
+                showTooltip();
+            }
+        });
+    }, [insets, shouldSuppressTooltip]);
+
+    useEffect(() => {
+        if (!genericTooltipStateRef.current || !shouldRender) {
+            return;
+        }
+
+        if (isResizing) {
+            const {hideTooltip} = genericTooltipStateRef.current;
+
+            // Hide the tooltip if the screen is being resized
+            hideTooltip();
+        } else {
+            // Re-render the tooltip when resizing ends
+            // This is necessary to ensure the tooltip is positioned correctly after resizing
+            renderTooltip();
+        }
+    }, [isResizing, renderTooltip, shouldRender]);
 
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
-            if (!shouldHideOnScroll || !genericTooltipStateRef.current || !tooltipElementRef.current) {
+            if (!shouldHideOnScroll || !genericTooltipStateRef.current) {
                 return;
             }
 
-            const {hideTooltip, showTooltip, updateTargetBounds} = genericTooltipStateRef.current;
+            const {hideTooltip} = genericTooltipStateRef.current;
             if (isScrolling) {
                 hideTooltip();
             } else {
-                getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
-                    updateTargetBounds(bounds);
-                    const {y, height} = bounds;
-
-                    const offset = 10; // Tooltip hides when content moves 10px past header/footer.
-                    const dimensions = Dimensions.get('screen');
-                    const top = y - (insets.top || 0);
-                    const bottom = y + height + insets.bottom || 0;
-
-                    // Calculate the available space at the top, considering the header height and offset
-                    const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
-
-                    // Calculate the total height available after accounting for the bottom tab and offset
-                    const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
-
-                    if (availableHeightForTop < 0 || availableHeightForBottom < 0) {
-                        hideTooltip();
-                    } else {
-                        showTooltip();
-                    }
-                });
+                renderTooltip();
             }
         },
-        [insets, shouldHideOnScroll],
+        [renderTooltip, shouldHideOnScroll],
     );
 
     useLayoutEffect(() => {
         if (!shouldRender || !shouldHideOnScroll) {
             return;
         }
+
         setTooltipPosition(false);
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling}: ScrollingEventData = {isScrolling: false}) => {
             setTooltipPosition(isScrolling);
@@ -83,7 +123,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     }, []);
 
     useEffect(() => {
-        if (!shouldMeasure) {
+        if (!shouldMeasure || shouldSuppressTooltip) {
             return;
         }
         if (!shouldRender) {
@@ -93,11 +133,11 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
-        }, 500);
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldRender]);
+    }, [shouldMeasure, shouldRender, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!navigator) {
@@ -124,7 +164,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 const {updateTargetBounds, showTooltip} = genericTooltipState;
                 // eslint-disable-next-line react-compiler/react-compiler
                 genericTooltipStateRef.current = genericTooltipState;
-                return React.cloneElement(children as React.ReactElement, {
+                return React.cloneElement(children as React.ReactElement<{onLayout?: (e: LayoutChangeEventWithTarget) => void}>, {
                     onLayout: (e: LayoutChangeEventWithTarget) => {
                         if (!shouldMeasure) {
                             setShouldMeasure(true);

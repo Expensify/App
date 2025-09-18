@@ -1,13 +1,15 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,9 +22,9 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function EnabledPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [isVisible, setIsVisible] = useState(false);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
+    const [isVisible, setIsVisible] = useState(false);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const {translate} = useLocalize();
 
     const closeModal = useCallback(() => {
@@ -39,27 +41,24 @@ function EnabledPage() {
                 <Section
                     title={translate('twoFactorAuth.twoFactorAuthEnabled')}
                     icon={Illustrations.ShieldYellow}
-                    menuItems={[
-                        {
-                            title: translate('twoFactorAuth.disableTwoFactorAuth'),
-                            onPress: () => {
-                                if (hasPolicyWithXeroConnection(currentUserLogin)) {
-                                    setIsVisible(true);
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
-                            },
-                            icon: Expensicons.Close,
-                            iconFill: theme.danger,
-                            wrapperStyle: [styles.cardMenuItem],
-                        },
-                    ]}
-                    containerStyles={[styles.twoFactorAuthSection]}
+                    containerStyles={[styles.twoFactorAuthSection, styles.mb0]}
                 >
                     <View style={styles.mv3}>
                         <Text style={styles.textLabel}>{translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
                     </View>
                 </Section>
+                <MenuItem
+                    title={translate('twoFactorAuth.disableTwoFactorAuth')}
+                    onPress={() => {
+                        if (hasPolicyWithXeroConnection(currentUserLogin)) {
+                            setIsVisible(true);
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
+                    }}
+                    icon={Expensicons.Close}
+                    iconFill={theme.danger}
+                />
                 <ConfirmModal
                     title={translate('twoFactorAuth.twoFactorAuthCannotDisable')}
                     prompt={translate('twoFactorAuth.twoFactorAuthRequired')}

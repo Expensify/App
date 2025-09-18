@@ -2,15 +2,19 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {AppActionsMock} from '@libs/actions/__mocks__/App';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +36,10 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     default: () => ({
         didScreenTransitionEnd: true,
     }),
+}));
+
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
 
 const App = AppImport as AppActionsMock;
@@ -246,17 +254,17 @@ describe('actions/OnyxUpdateManager', () => {
         applyOnyxUpdatesReliably(mockUpdate5);
 
         const assertAfterFirstGetMissingOnyxUpdates = () => {
-            // While the fetching of missing udpates and the validation and application of the deferred updaes is running,
+            // While the fetching of missing updates and the validation and application of the deferred updates is running,
             // the SequentialQueue should be paused.
-            expect(SequentialQueue.isPaused()).toBeTruthy();
+            expect(isSequentialQueuePaused()).toBeTruthy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
         };
 
         const assertAfterSecondGetMissingOnyxUpdates = () => {
             // The SequentialQueue should still be paused.
-            expect(SequentialQueue.isPaused()).toBeTruthy();
-            expect(SequentialQueue.isRunning()).toBeFalsy();
+            expect(isSequentialQueuePaused()).toBeTruthy();
+            expect(isSequentialQueueRunning()).toBeFalsy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
         };
@@ -280,7 +288,7 @@ describe('actions/OnyxUpdateManager', () => {
         return OnyxUpdateManagerExports.queryPromise.then(() => {
             // Once the OnyxUpdateManager has finished filling the gaps, the SequentialQueue should be unpaused again.
             // It must not necessarily be running, because it might not have been flushed yet.
-            expect(SequentialQueue.isPaused()).toBeFalsy();
+            expect(isSequentialQueuePaused()).toBeFalsy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
         });
     });

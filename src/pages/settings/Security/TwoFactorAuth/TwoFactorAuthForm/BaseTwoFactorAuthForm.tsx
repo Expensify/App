@@ -1,12 +1,16 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {isMobileSafari} from '@libs/Browser';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseTwoFactorAuthFormRef} from './types';
 
@@ -16,12 +20,19 @@ type BaseTwoFactorAuthFormProps = {
     // Set this to true in order to call the validateTwoFactorAuth action which is used when setting up 2FA for the first time.
     // Set this to false in order to disable 2FA when a valid code is entered.
     validateInsteadOfDisable?: boolean;
+
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
+    shouldAutoFocusOnMobile?: boolean;
 };
 
-function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+const isMobile = !canFocusInputOnScreenFocus();
+
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
@@ -77,7 +88,31 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             }
             inputRef.current.focus();
         },
+        focusLastSelected() {
+            if (!inputRef.current) {
+                return;
+            }
+            setTimeout(() => {
+                inputRef.current?.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
+        },
     }));
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!inputRef.current || (isMobile && !shouldAutoFocusOnMobile)) {
+                return;
+            }
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            if (!isMobileSafari()) {
+                setTimeout(() => {
+                    inputRef.current?.focusLastSelected();
+                }, CONST.ANIMATED_TRANSITION);
+            } else {
+                inputRef.current?.focusLastSelected();
+            }
+        }, [shouldAutoFocusOnMobile]),
+    );
 
     return (
         <MagicCodeInput
@@ -85,10 +120,11 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             name="twoFactorAuthCode"
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
+            onFocus={onFocus}
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}
-            shouldDelayFocus
+            autoFocus={false}
         />
     );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -11,27 +10,37 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/User';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getPlatform from '@libs/getPlatform';
-import LocaleUtils from '@libs/LocaleUtils';
+import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
+import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 function PreferencesPage() {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
     const platform = getPlatform(true);
-    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const personalPolicy = usePolicy(getPersonalPolicy()?.id);
+
+    const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
@@ -47,7 +56,7 @@ function PreferencesPage() {
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.popToSidebar}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -65,8 +74,8 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                                        isOn={user?.isSubscribedToNewsletter ?? true}
-                                        onToggle={User.updateNewsletterSubscription}
+                                        isOn={account?.isSubscribedToNewsletter ?? true}
+                                        onToggle={updateNewsletterSubscription}
                                     />
                                 </View>
                             </View>
@@ -78,7 +87,7 @@ function PreferencesPage() {
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
                                         isOn={isPlatformMuted ?? false}
-                                        onToggle={() => User.togglePlatformMute(platform, mutedPlatforms)}
+                                        onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
                             </View>
@@ -91,9 +100,17 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
+                                title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
+                            />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
+                                description={translate('billingCurrency.paymentCurrency')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                             <MenuItemWithTopDescription

@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -12,11 +11,12 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,7 +30,7 @@ type BankAccountListItem = ListItem & {
 };
 
 function ChooseTransferAccountPage() {
-    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -41,7 +41,7 @@ function ChooseTransferAccountPage() {
      * @param account of the selected account data
      */
     const selectAccountAndNavigateBack = (accountType?: string, account?: AccountData) => {
-        PaymentMethods.saveWalletTransferAccountTypeAndID(
+        saveWalletTransferAccountTypeAndID(
             accountType ?? '',
             (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? account?.bankAccountID?.toString() : account?.fundID?.toString()) ?? '',
         );
@@ -53,10 +53,10 @@ function ChooseTransferAccountPage() {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }
-        BankAccounts.openPersonalBankAccountSetupView();
+        openPersonalBankAccountSetupView({});
     };
 
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const selectedAccountID = walletTransfer?.selectedAccountID;
     const data = useMemo(() => {
         const options = Object.values(bankAccountsList ?? {}).map((bankAccount): BankAccountListItem => {

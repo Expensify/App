@@ -1,13 +1,15 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 type CategoryTreeSection = SectionBase & {
     data: OptionTree[];
@@ -83,18 +85,20 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
  */
 function getCategoryListSections({
     categories,
+    localeCompare,
     searchValue,
     selectedOptions = [],
     recentlyUsedCategories = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
 }: {
     categories: PolicyCategories;
+    localeCompare: LocaleContextProps['localeCompare'];
     selectedOptions?: Category[];
     searchValue?: string;
     recentlyUsedCategories?: string[];
     maxRecentReportsToShow?: number;
 }): CategoryTreeSection[] {
-    const sortedCategories = sortCategories(categories);
+    const sortedCategories = sortCategories(categories, localeCompare);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
     const enabledCategoriesNames = enabledCategories.map((category) => category.name);
     const selectedOptionsWithDisabledState: Category[] = [];
@@ -125,17 +129,11 @@ function getCategoryListSections({
 
     if (searchValue) {
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
-        const searchCategories: Category[] = [];
 
-        categoriesForSearch.forEach((category) => {
-            if (!category.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
-            }
-            searchCategories.push({
-                ...category,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
-            });
-        });
+        const searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+            ...category,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+        }));
 
         const data = getCategoryOptionTree(searchCategories, true);
         categorySections.push({
@@ -192,7 +190,7 @@ function getCategoryListSections({
         const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
+            title: translateLocal('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -202,7 +200,7 @@ function getCategoryListSections({
     const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: translateLocal('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,
@@ -216,9 +214,9 @@ function getCategoryListSections({
  * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  */
-function sortCategories(categories: Record<string, Category>): Category[] {
+function sortCategories(categories: Record<string, Category>, localeCompare: LocaleContextProps['localeCompare']): Category[] {
     // Sorts categories alphabetically by name.
-    const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
+    const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy: Hierarchy = {};
@@ -268,7 +266,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
             if (!isEmptyObject(subcategories)) {
                 const nestedCategories = flatHierarchy(subcategories);
 
-                acc.push(...nestedCategories.sort((a, b) => a.name.localeCompare(b.name)));
+                acc.push(...nestedCategories.sort((a, b) => localeCompare(a.name, b.name)));
             }
 
             return acc;
@@ -279,4 +277,4 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 
 export {getCategoryListSections, getCategoryOptionTree, sortCategories};
 
-export type {Category, SectionBase as CategorySectionBase, CategoryTreeSection, Hierarchy};
+export type {Category, CategoryTreeSection};

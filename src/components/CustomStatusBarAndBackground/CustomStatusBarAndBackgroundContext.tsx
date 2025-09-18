@@ -9,4 +9,3 @@ type CustomStatusBarAndBackgroundContextType = {
 const CustomStatusBarAndBackgroundContext = createContext<CustomStatusBarAndBackgroundContextType>({isRootStatusBarEnabled: true, setRootStatusBarEnabled: () => undefined});
 
 export default CustomStatusBarAndBackgroundContext;
-export {type CustomStatusBarAndBackgroundContextType};

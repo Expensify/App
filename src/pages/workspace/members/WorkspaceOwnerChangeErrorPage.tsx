@@ -5,16 +5,16 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as MemberActions from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -27,19 +27,27 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
 
     const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
 
     const closePage = useCallback(() => {
-        MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-    }, [accountID, policyID]);
+        clearWorkspaceOwnerChangeFlow(policyID);
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        }
+    }, [accountID, backTo, policyID]);
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
         >
-            <ScreenWrapper testID={WorkspaceOwnerChangeErrorPage.displayName}>
+            <ScreenWrapper
+                testID={WorkspaceOwnerChangeErrorPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={closePage}
@@ -53,13 +61,11 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
                         additionalStyles={styles.mb3}
                     />
                     <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{translate('workspace.changeOwner.errorTitle')}</Text>
-                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-                        {translate('workspace.changeOwner.errorDescriptionPartOne')}{' '}
-                        <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`}>{translate('workspace.changeOwner.errorDescriptionPartTwo')}</TextLink>{' '}
-                        {translate('workspace.changeOwner.errorDescriptionPartThree')}
-                    </Text>
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('workspace.changeOwner.errorDescription')} />
+                    </View>
                 </View>
-                <FixedFooter>
+                <FixedFooter addBottomSafeAreaPadding>
                     <Button
                         success
                         large

@@ -1,10 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
-import AmountForm from '@components/AmountForm';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -47,23 +47,24 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={AmountSelectorModal.displayName}
                 shouldEnableMaxHeight
-                style={[styles.pb0]}
             >
                 <HeaderWithBackButton
                     title={description}
                     onBackButtonPress={onClose}
                 />
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mb5]}>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.mb5]}
+                    addBottomSafeAreaPadding
+                >
                     <View style={styles.flex1}>
-                        <AmountForm
+                        <NumberWithSymbolForm
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...rest}
                             value={currentValue}

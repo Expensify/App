@@ -3,7 +3,7 @@ import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@rea
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePane from '@hooks/useSidePane';
+import useSidePanel from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import variables from '@styles/variables';
 
@@ -11,9 +11,10 @@ type ModalCardStyleInterpolatorProps = {
     isOnboardingModal?: boolean;
     isFullScreenModal?: boolean;
     shouldFadeScreen?: boolean;
-    shouldAnimateSidePane?: boolean;
+    shouldAnimateSidePanel?: boolean;
     props: StackCardInterpolationProps;
-    outputRangeMultiplier?: number;
+    outputRangeMultiplier?: Animated.AnimatedNode;
+    animationEnabled?: boolean;
 };
 
 type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
@@ -21,7 +22,7 @@ type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => St
 const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {sidePaneOffset} = useSidePane();
+    const {sidePanelOffset} = useSidePanel();
 
     const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({
         props: {
@@ -32,8 +33,9 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         isOnboardingModal = false,
         isFullScreenModal = false,
         shouldFadeScreen = false,
-        shouldAnimateSidePane = false,
+        shouldAnimateSidePanel = false,
         outputRangeMultiplier = 1,
+        animationEnabled = true,
     }) => {
         if (isOnboardingModal ? onboardingIsMediumOrLargerScreenWidth : shouldFadeScreen) {
             return {
@@ -42,22 +44,25 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         const translateX = Animated.multiply(
-            progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [outputRangeMultiplier * (shouldUseNarrowLayout ? screen.width : variables.sideBarWidth), 0],
-                extrapolate: 'clamp',
-            }),
+            Animated.multiply(
+                progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
+                    extrapolate: 'clamp',
+                }),
+                outputRangeMultiplier,
+            ),
             inverted,
         );
 
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
-        if (!isFullScreenModal || shouldUseNarrowLayout) {
+        if (animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout)) {
             cardStyle.transform = [{translateX}];
         }
 
-        if (shouldAnimateSidePane) {
-            cardStyle.paddingRight = sidePaneOffset.current;
+        if (shouldAnimateSidePanel) {
+            cardStyle.paddingRight = sidePanelOffset.current;
         }
 
         return {

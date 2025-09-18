@@ -61,26 +61,22 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 shouldEnableMaxHeight
                 testID={PolicyDistanceRateTaxRateEditPage.displayName}
             >
-                {({insets}) => (
-                    <>
-                        <HeaderWithBackButton
-                            title={translate('workspace.taxes.taxRate')}
-                            shouldShowBackButton
-                        />
-                        <TaxPicker
-                            selectedTaxRate={selectedTaxRate}
-                            policyID={policyID}
-                            insets={insets}
-                            onSubmit={onTaxRateChange}
-                            onDismiss={dismiss}
-                        />
-                    </>
-                )}
+                <HeaderWithBackButton
+                    title={translate('workspace.taxes.taxRate')}
+                    shouldShowBackButton
+                />
+                <TaxPicker
+                    selectedTaxRate={selectedTaxRate}
+                    policyID={policyID}
+                    onSubmit={onTaxRateChange}
+                    onDismiss={dismiss}
+                    addBottomSafeAreaPadding
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

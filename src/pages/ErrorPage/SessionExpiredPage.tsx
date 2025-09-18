@@ -1,5 +1,5 @@
 import React from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -32,12 +32,8 @@ function SessionExpiredPage() {
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
-                                if (!NativeModules.HybridAppModule) {
-                                    clearSignInData();
-                                    Navigation.goBack();
-                                    return;
-                                }
-                                NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
+                                clearSignInData();
+                                Navigation.goBack();
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}

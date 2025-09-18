@@ -14,6 +14,7 @@ const restrictedImportPaths = [
             'Text',
             'ScrollView',
             'Animated',
+            'findNodeHandle',
         ],
         message: [
             '',
@@ -88,8 +89,22 @@ const restrictedImportPaths = [
         message: "Please use '@src/libs/memoize' instead.",
     },
     {
-        name: 'react-native-animatable',
-        message: "Please use 'react-native-reanimated' instead.",
+        name: 'lodash/isEqual',
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['isEqual'],
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
+        name: 'react-native-onyx',
+        importNames: ['useOnyx'],
+        message: "Please use '@hooks/useOnyx' instead.",
+    },
+    {
+        name: '@src/utils/findNodeHandle',
+        message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
 ];
 
@@ -145,6 +160,7 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-import-type-side-effects': 'error',
         '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
+        '@typescript-eslint/max-params': ['error', {max: 10}],
         '@typescript-eslint/naming-convention': [
             'error',
             {
@@ -204,6 +220,7 @@ module.exports = {
         'es/no-optional-chaining': 'off',
         'deprecation/deprecation': 'off',
         'arrow-body-style': 'off',
+        'no-continue': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -215,12 +232,27 @@ module.exports = {
         'rulesdir/no-multiple-onyx-in-file': 'off',
         'rulesdir/prefer-underscore-method': 'off',
         'rulesdir/prefer-import-module-contents': 'off',
+        'rulesdir/no-beta-handler': 'error',
 
         // React and React Native specific rules
         'react-native-a11y/has-accessibility-hint': ['off'],
         'react/require-default-props': 'off',
         'react/prop-types': 'off',
+        'react/jsx-key': 'error',
         'react/jsx-no-constructed-context-values': 'error',
+        'react/forbid-component-props': [
+            'error',
+            {
+                forbid: [
+                    {
+                        propName: 'fsClass',
+                        allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
+                        message:
+                            "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components.",
+                    },
+                ],
+            },
+        ],
         'react-native-a11y/has-valid-accessibility-descriptors': [
             'error',
             {
@@ -236,6 +268,21 @@ module.exports = {
                 selector: 'TSEnumDeclaration',
                 message: "Please don't declare enums, use union types instead.",
             },
+            {
+                selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
+                message:
+                    'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into documentation and use alternative routing methods instead.',
+            },
+
+            // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
+            {
+                selector: 'LabeledStatement',
+                message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
+            },
+            {
+                selector: 'WithStatement',
+                message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.',
+            },
         ],
         'no-restricted-properties': [
             'error',
@@ -243,6 +290,21 @@ module.exports = {
                 object: 'Image',
                 property: 'getSize',
                 message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+            },
+            // Disallow direct HybridAppModule.isHybridApp() usage, because it requires a native call
+            // Use CONFIG.IS_HYBRID_APP, which keeps cached value instead
+            {
+                object: 'HybridAppModule',
+                property: 'isHybridApp',
+                message: 'Use CONFIG.IS_HYBRID_APP instead.',
+            },
+            // Prevent direct use of HybridAppModule.closeReactNativeApp().
+            // Instead, use the `closeReactNativeApp` action from `@userActions/HybridApp`,
+            // which correctly updates `hybridApp.closingReactNativeApp` when closing NewDot
+            {
+                object: 'HybridAppModule',
+                property: 'closeReactNativeApp',
+                message: 'Use `closeReactNativeApp` from `@userActions/HybridApp` instead.',
             },
         ],
         'no-restricted-imports': [
@@ -274,6 +336,7 @@ module.exports = {
                     '@libs': './src/libs',
                     '@navigation': './src/libs/Navigation',
                     '@pages': './src/pages',
+                    '@prompts': './prompts',
                     '@styles': './src/styles',
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',

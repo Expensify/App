@@ -13,12 +13,13 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
 const SEARCH_VALUE = 'TestingValue';
+const COUNTRY_CODE = 1;
 
 const PERSONAL_DETAILS_COUNT = 1000;
 const SELECTED_OPTIONS_COUNT = 1000;
@@ -120,14 +121,14 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
         const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '');
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE);
         });
     });
 

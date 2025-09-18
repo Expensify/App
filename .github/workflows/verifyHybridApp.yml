@@ -51,8 +51,25 @@ jobs:
     steps:
       - name: Comment on forks
         run: |
-          gh pr comment ${{github.event.pull_request.html_url }} --body \
-          ":warning: This PR is possibly changing native code and/or updating libraries, it may cause problems with HybridApp. Please check if any patch updates are required in the HybridApp repo and run an AdHoc build to verify that HybridApp will not break. Ask Contributor Plus for help if you are not sure how to handle this. :warning:"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          COMMENT=":warning: This PR is possibly changing native code and/or updating libraries, it may cause problems with HybridApp. \
+          Please check if any patch updates are required in the HybridApp repo and run an AdHoc build to verify that HybridApp will not break. \
+          Ask Contributor Plus for help if you are not sure how to handle this. :warning:"
+
+          # Fetch existing comments from author github-actions
+          EXISTING_COMMENTS="$(\
+            gh pr view "$PR_URL" \
+              --comments \
+              --json comments \
+              --jq '.comments[] | select(.author = "github-actions") | .body' \
+          )"
+
+          # Leave the comment only if it's not already present
+          if grep -q "$COMMENT" <(echo "$EXISTING_COMMENTS"); then
+            echo "Comment already exists, not posting again."
+          else
+            gh pr comment "$PR_URL" --body "$COMMENT"
+          fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
   verify_android:
@@ -62,17 +79,12 @@ jobs:
     if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote --depth 1
-          cd Mobile-Expensify
-          git checkout main
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -84,7 +96,8 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
@@ -99,21 +112,18 @@ jobs:
   verify_ios:
     name: Verify iOS HybridApp builds on main
     runs-on: macos-15-xlarge
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
     # Only run on pull requests that are *not* on a fork
     if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote --depth 1
-          cd Mobile-Expensify
-          git checkout main
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -125,12 +135,14 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
       - name: Cache Pod dependencies
-        uses: actions/cache@v4
+        # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods

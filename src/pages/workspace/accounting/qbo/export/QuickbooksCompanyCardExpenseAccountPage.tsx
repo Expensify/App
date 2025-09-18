@@ -42,7 +42,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_EXPORT_DESTINATION],
         },
         {
-            title: qboConfig?.nonReimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
+            title: qboConfig?.nonReimbursableExpensesAccount?.name,
             description: getQBONonReimbursableExportAccountType(qboConfig?.nonReimbursableExpensesExportDestination),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT],
@@ -63,7 +63,10 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
             {sections.map((section) => (
-                <OfflineWithFeedback pendingAction={settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}>
+                <OfflineWithFeedback
+                    key={section.title}
+                    pendingAction={settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}
+                >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
@@ -91,7 +94,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 {
                                     [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
                                     [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
-                                        ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                                        ? (policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE)
                                         : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
                                 },
                                 {
@@ -101,6 +104,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                             )
                         }
                         onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
+                        shouldPlaceSubtitleBelowSwitch
                     />
                     <Accordion
                         isExpanded={isAccordionExpanded}

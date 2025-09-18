@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,18 +17,24 @@ import CONST from '@src/CONST';
 type EmptyCardViewProps = {
     /** Whether the bank account is verified */
     isBankAccountVerified: boolean;
+    /** ID of the current policy */
+    policyID?: string;
 };
 
-function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
+function EmptyCardView({isBankAccountVerified, policyID}: EmptyCardViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     return (
-        <ScrollView>
+        <ScrollView
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            addBottomSafeAreaPadding
+        >
             <View style={[{height: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
@@ -50,7 +57,9 @@ function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
                     minModalHeight={isBankAccountVerified ? 500 : 400}
                 />
             </View>
-            <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+            <Text style={[styles.textMicroSupporting, styles.m5]}>
+                {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+            </Text>
         </ScrollView>
     );
 }

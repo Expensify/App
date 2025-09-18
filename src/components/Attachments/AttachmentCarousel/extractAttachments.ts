@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import {getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
@@ -21,17 +21,20 @@ function extractAttachments(
         parentReportAction,
         reportActions,
         report,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
+        isReportArchived,
+    }: {
+        privateNotes?: Record<number, Note>;
+        accountID?: number;
+        parentReportAction?: OnyxEntry<ReportAction>;
+        reportActions?: OnyxEntry<ReportActions>;
+        report: OnyxEntry<Report>;
+        isReportArchived?: boolean;
+    },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const canUserPerformAction = canUserPerformWriteAction(report);
-
-    // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
-    // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
-    const uniqueSourcesAndLinks = new Set();
-
+    const canUserPerformAction = canUserPerformWriteAction(report, isReportArchived);
     let currentLink = '';
 
     const htmlParser = new HtmlParser({
@@ -41,19 +44,17 @@ function extractAttachments(
             }
             if (name === 'video') {
                 const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-                if (uniqueSourcesAndLinks.has(source)) {
-                    return;
-                }
 
-                uniqueSourcesAndLinks.add(source);
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
                 attachments.unshift({
+                    reportActionID: attribs['data-id'],
+                    attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: fileName},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
-                    hasBeenFlagged: false,
+                    hasBeenFlagged: attribs['data-flagged'] === 'true',
                 });
                 return;
             }
@@ -62,13 +63,6 @@ function extractAttachments(
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(attribs.src) ? attribs.src : null);
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const previewSource = tryResolveUrlFromApiRoot(attribs.src);
-                const sourceLinkKey = `${source}|${currentLink}`;
-
-                if (uniqueSourcesAndLinks.has(sourceLinkKey)) {
-                    return;
-                }
-
-                uniqueSourcesAndLinks.add(sourceLinkKey);
 
                 let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
 
@@ -87,6 +81,7 @@ function extractAttachments(
                 // we ensure correct order of attachments even across actions with multiple attachments.
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
+                    attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source,
                     previewSource,
                     isAuthTokenRequired: !!expensifySource,
@@ -128,8 +123,10 @@ function extractAttachments(
 
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = getReportActionHtml(action).replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
-        htmlParser.write(html);
+        const html = getReportActionHtml(action)
+            .replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
+            .replaceAll('<video ', `<video data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}" `);
+        htmlParser.write(getHtmlWithAttachmentID(html, action.reportActionID));
     });
     htmlParser.end();
 

@@ -15,12 +15,15 @@ type CreateDistanceRequestParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
+    reimbursable?: boolean;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
     payerEmail?: string;
     splits?: string;
     chatType?: string;
     description?: string;
+    attendees?: string;
+    distance?: number;
 };
 
 export default CreateDistanceRequestParams;

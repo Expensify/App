@@ -13,7 +13,8 @@ import type {Args, ChunkedDataEvents, EventCallbackError, EventData, PusherEvent
 import type PusherModule from './types';
 
 let shouldForceOffline = false;
-Onyx.connect({
+// We have used `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -89,6 +90,39 @@ function getChannel(channelName: string): PusherChannel | undefined {
 }
 
 /**
+ * Parses JSON data that may be single or double-encoded
+ * This handles cases where the backend sometimes sends double-encoded JSON
+ * Reference issue: https://github.com/Expensify/App/issues/60332
+ */
+function parseEventData<EventName extends PusherEventName>(eventData: EventData<EventName>): EventData<EventName> | null {
+    if (isObject(eventData)) {
+        return eventData;
+    }
+
+    if (typeof eventData !== 'string') {
+        Log.alert('[Pusher] Event data is neither object nor string', {eventData});
+        return null;
+    }
+
+    try {
+        const firstParse = JSON.parse(eventData) as EventData<EventName> | string;
+
+        // If result is still a string, it was double-encoded - parse again
+        if (typeof firstParse === 'string') {
+            return JSON.parse(firstParse) as EventData<EventName>;
+        }
+
+        return firstParse;
+    } catch (error) {
+        Log.alert('[Pusher] Failed to parse event data', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            eventData,
+        });
+        return null;
+    }
+}
+
+/**
  * Binds an event callback to a channel + eventName
  */
 function bindEventToChannel<EventName extends PusherEventName>(channel: string, eventName?: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
@@ -103,11 +137,9 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: string, 
             return;
         }
 
-        let data: EventData<EventName>;
-        try {
-            data = isObject(eventData) ? eventData : (JSON.parse(eventData) as EventData<EventName>);
-        } catch (err) {
-            Log.alert('[Pusher] Unable to parse single JSON event data from Pusher', {error: err, eventData});
+        const data = parseEventData(eventData);
+        if (!data) {
+            // Error already logged in parseEventData
             return;
         }
         if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
@@ -299,7 +331,7 @@ function registerSocketEventCallback(cb: SocketEventCallback) {
  */
 function disconnect() {
     if (!socket) {
-        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialization has occurred, ignoring.');
         return;
     }
 

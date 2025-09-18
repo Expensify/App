@@ -1,5 +1,6 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import type ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
@@ -11,7 +12,7 @@ type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEN
 
 type SettlementButtonProps = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean) => void;
+    onPress: (paymentType: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined, policyID?: string) => void;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -44,7 +45,7 @@ type SettlementButtonProps = {
     shouldDisableApproveButton?: boolean;
 
     /** The policyID of the report we are paying */
-    policyID?: string;
+    policyID: string | undefined;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
@@ -60,9 +61,6 @@ type SettlementButtonProps = {
 
     /** The size of button size */
     buttonSize?: ButtonSizeValue;
-
-    /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute?: Route;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
@@ -93,6 +91,12 @@ type SettlementButtonProps = {
 
     /** Whether we only show pay elsewhere button */
     onlyShowPayElsewhere?: boolean;
+
+    /** Whether to use short form for the button */
+    shouldUseShortForm?: boolean;
+
+    /** Whether we the report has only held expenses */
+    hasOnlyHeldExpenses?: boolean;
 };
 
 export default SettlementButtonProps;

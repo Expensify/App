@@ -59,7 +59,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
                 updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
             }
 
-            return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID)));
+            return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
         },
         [reportID, currentChatName],
     );
@@ -82,6 +82,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
                 validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -91,7 +92,6 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
-                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>

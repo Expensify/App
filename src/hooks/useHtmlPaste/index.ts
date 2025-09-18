@@ -54,6 +54,23 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                     htmlInput.setRangeText(text.slice(0, availableLength));
                 }
 
+                requestAnimationFrame(() => {
+                    const selection = window.getSelection();
+                    if (selection && selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const caretRect = range.getBoundingClientRect();
+                        const inputRect = textInputHTMLElement.getBoundingClientRect();
+
+                        // Calculate position need to scroll to
+                        const scrollLeft = Math.max(0, caretRect.left - inputRect.left + textInputHTMLElement.scrollLeft - textInputHTMLElement.clientWidth / 2);
+                        const scrollTop = Math.max(0, caretRect.top - inputRect.top + textInputHTMLElement.scrollTop - textInputHTMLElement.clientHeight / 2);
+
+                        // Auto scroll to the position of cursor
+                        textInputHTMLElement.scrollLeft = scrollLeft;
+                        textInputHTMLElement.scrollTop = scrollTop;
+                    }
+                });
+
                 // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
                 // To avoid the keyboard toggle issue in mWeb if using blur() and focus() functions, we just need to dispatch the event to trigger the onFocus handler
                 // We need to trigger the bubbled "focusin" event to make sure the onFocus handler is triggered
@@ -77,9 +94,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html.slice(0, maxLength)));
+            paste(Parser.htmlToMarkdown(html, {}));
         },
-        [paste, maxLength],
+        [paste],
     );
 
     /**
@@ -131,6 +148,12 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                         handlePastePlainText(event);
                         return;
                     }
+                }
+                // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
+                // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
+                if (pastedHTML.startsWith('<p dir="ltr">')) {
+                    handlePastePlainText(event);
+                    return;
                 }
                 handlePastedHTML(pastedHTML);
                 return;

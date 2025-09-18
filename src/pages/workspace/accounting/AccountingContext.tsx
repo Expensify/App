@@ -1,10 +1,9 @@
-import type {MutableRefObject, RefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -30,13 +29,16 @@ type AccountingContextType = {
     /*
      * This stores refs to integration buttons, so the PopoverMenu can be positioned correctly
      */
-    popoverAnchorRefs: RefObject<Record<string, MutableRefObject<View | null>>>;
+    popoverAnchorRefs: RefObject<Record<string, RefObject<View | null>>>;
 };
 
-const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce((acc, key) => {
-    acc[key] = {current: null};
-    return acc;
-}, {} as Record<ConnectionName, MutableRefObject<View | null>>);
+const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce(
+    (acc, key) => {
+        acc[key] = {current: null};
+        return acc;
+    },
+    {} as Record<ConnectionName, RefObject<View | null>>,
+);
 
 const defaultAccountingContext = {
     activeIntegration: undefined,
@@ -53,14 +55,10 @@ type AccountingContextProviderProps = ChildrenProps & {
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const popoverAnchorRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
+    const popoverAnchorRefs = useRef<Record<string, RefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
-
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to allow QuickBooks Desktop setup to be shown only on large screens
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -77,7 +75,6 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.integrationToDisconnect,
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 undefined,
-                isSmallScreenWidth,
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
@@ -91,7 +88,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [isSmallScreenWidth, policy, policyID, translate],
+        [policy, policyID, translate],
     );
 
     const closeConfirmationModal = () => {
@@ -136,7 +133,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                         if (!policyID || !activeIntegration?.integrationToDisconnect) {
                             return;
                         }
-                        removePolicyConnection(policyID, activeIntegration?.integrationToDisconnect);
+                        removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
                         closeConfirmationModal();
                     }}
                     integrationToConnect={activeIntegration?.name}
@@ -155,4 +152,3 @@ function useAccountingContext() {
 
 export default AccountingContext;
 export {AccountingContextProvider, useAccountingContext};
-export type {ActiveIntegrationState};

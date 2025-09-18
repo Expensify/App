@@ -44,8 +44,8 @@ function NamePage({
     const submit = () => {
         const taxName = name.trim();
         // Do not call the API if the edited tax name is the same as the current tag name
-        if (currentTaxRate?.name !== taxName) {
-            renamePolicyTax(policyID, taxID, taxName);
+        if (currentTaxRate?.name !== taxName && policy?.taxRates?.taxes[taxID]) {
+            renamePolicyTax(policyID, taxID, taxName, policy?.taxRates?.taxes[taxID]);
         }
         goBack();
     };
@@ -74,7 +74,7 @@ function NamePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={NamePage.displayName}
             >
@@ -90,6 +90,8 @@ function NamePage({
                     onSubmit={submit}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

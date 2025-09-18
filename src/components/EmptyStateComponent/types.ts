@@ -9,22 +9,24 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type Button = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean};
+type EmptyStateButton = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean; style?: StyleProp<ViewStyle>};
 
 type SharedProps<T> = {
-    SkeletonComponent: ValidSkeletons;
+    SkeletonComponent?: ValidSkeletons;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;
     children?: React.ReactNode;
-    buttons?: Button[];
+    buttons?: EmptyStateButton[];
     containerStyles?: StyleProp<ViewStyle>;
+    cardStyles?: StyleProp<ViewStyle>;
+    cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
-    showsVerticalScrollIndicator?: boolean;
+    subtitleText?: React.ReactNode;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
@@ -44,4 +46,4 @@ type VideoLoadedEventType = {
     };
 };
 
-export type {EmptyStateComponentProps, VideoLoadedEventType};
+export type {EmptyStateComponentProps, VideoLoadedEventType, EmptyStateButton};

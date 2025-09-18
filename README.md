@@ -20,10 +20,13 @@
 * [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
+* [Onyx derived values](#onyx-derived-values)
+* [canBeMissing onyx param](#canbemissing-onyx-param)
 
 #### Additional Reading
+* [Application Philosophy](contributingGuides/philosophies/INDEX.md)
 * [API Details](contributingGuides/API.md)
-* [Offline First](contributingGuides/OFFLINE_UX.md)
+* [Offline First](contributingGuides/philosophies/OFFLINE.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](CLA.md)
@@ -84,18 +87,66 @@ If you want to run the app on an actual physical iOS device, please follow the i
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+### Enabling prebuilt `react-native` artifacts on Android
+#### Disabling build from source
+
+By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
+
+   - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
+   - Set `patchedArtifacts.forceBuildFromSource=false`
+
+#### Configuring GitHub CLI
+
+To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
+
+1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
+
+2. Create a GitHub Personal Access Token:
+   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select the following scopes:
+     - `repo`
+     - `read:org`
+     - `gist`
+     - `read:packages`
+   - Copy the generated token
+
+3. Login to GitHub CLI:
+   ```bash
+   echo "YOUR_TOKEN" | gh auth login --with-token
+   ```
+4. Verify the login was successful:
+   ```bash
+   gh auth status
+   ```
+   You should see a message confirming you are authenticated with your GitHub account.
+
+After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
+
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-## Receiving Notifications
-To receive notifications on development build of the app while hitting the Staging or Production API, you need to use the production airship config.
+## Receiving Mobile Push Notifications
+To receive mobile push notifications in the development build while hitting the Staging or Production API, you need to use the production airship config.
 ### Android
-1. Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
-2. Rebuild the app.
+
+#### HybridApp
+
+Add `inProduction = true` to [Mobile-Expensify/Android/assets/airshipconfig.properties](https://github.com/Expensify/Mobile-Expensify/blob/main/Android/assets/airshipconfig.properties)
+
+#### Standalone
+
+Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
 
 ### iOS
-1. Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
-2. Rebuild the app.
+
+#### HybridApp
+
+Set `inProduction` to `true` in [Mobile-Expensify/iOS/AirshipConfig/Debug/AirshipConfig.plist](https://github.com/Expensify/Mobile-Expensify/blob/ab67becf5e8610c8df9b4da3132501153c7291a1/iOS/AirshipConfig/Debug/AirshipConfig.plist#L8)
+
+#### Standalone
+
+Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
@@ -130,6 +181,8 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
+
+> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
 
 ----
 
@@ -366,40 +419,6 @@ validateAndSubmitForm() {
 }
 ```
 
-## Directory structure
-Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
-created to house a collection of items in plural form and using camelCase (eg: pages, libs, etc), the main ones we have for now are:
-
-- components: React native components that are re-used in several places.
-- libs: Library classes/functions, these are not React native components (ie: they are not UI)
-- pages: These are components that define pages in the app. The component that defines the page itself should be named
-`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`
-- styles: These files define styles used among components/pages
-- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo
-
-**Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
-
-## File naming/structure
-Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
-
-- If you export a constant named `CONST`, its file/directory should be named the `CONST`.
-- If you export a component named `Text`, the file/directory should be named `Text`.
-- If you export a function named `guid`, the file/directory should be named `guid`.
-- For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) should be named in camelCase, like `withOnyx`.
-- All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
-
-## Platform-Specific File Extensions
-In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
-- Mobile => `index.native.js`
-- iOS Native App/Android Native App => `index.ios.js`/`index.android.js`
-- Web => `index.website.js`
-- Desktop => `index.desktop.js`
-
-**Note:** `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
-
-`index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
-
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
@@ -414,14 +433,14 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
 
 **To flag a key as safe for removal:**
-- Add the key to the `safeEvictionKeys` option in `Onyx.init(options)`
+- Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
 ```js
 Onyx.init({
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 
@@ -458,22 +477,24 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 ## Getting started with HybridApp
 
 1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
-2. Run `git submodule update --init --progress --depth 100` to download the `Mobile-Expensify` sourcecode.
-- If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
+2. In the root directory, run `git submodule init`
+3. Run `git submodule update`
+    - If this takes too long, try `git submodule update --init --progress --depth 100` (Note: this makes it difficult to checkout remote branches in the submodule)
+    - If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
 
     ```
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
-- To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config`:
+    - To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config` (This ensures that submodule changes are ignored unless you deliberately update them):
     ```
     [submodule "Mobile-Expensify"]
         ignore = all
     ```
-    This ensures that submodule changes are ignored unless you deliberately update them.
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App.
 
 
-> [!Note]  
+> [!Note]
 > #### For external agencies and C+ contributors only
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
@@ -508,15 +529,15 @@ If for some reason, you need to target the standalone NewDot application, you ca
 
 ### Working with HybridApp vs Standalone NewDot
 
-Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.  
-The primary difference is that the native code, which runs React Native, is located in the following directories:  
+Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.
+The primary difference is that the native code, which runs React Native, is located in the following directories:
 
 - `./Mobile-Expensify/Android`
 - `./Mobile-Expensify/iOS`
 
 ### Important Notes:
 1. **Root Folders Do Not Affect HybridApp Builds:**
-   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.  
+   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.
 
 2. **Modifying iOS Code for HybridApp:**
    - If you need to remove `Pods`, you must do it in the **`./Mobile-Expensify/iOS`** directory.
@@ -531,15 +552,15 @@ The primary difference is that the native code, which runs React Native, is loca
 
 ### Updating the `Mobile-Expensify` Submodule
 
-The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.  
+The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.
 
-If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project: 
+If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project:
 
 ```
 git config submodule.recurse true
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > Please, remember that the submodule will get updated automatically only after executing the `git pull` command - if you switch between branches it is still recommended to execute `git submodule update` to make sure you're working on a compatible submodule version!
 
 If you'd like to download the most recent changes from the `main` branch, please use the following command:
@@ -547,7 +568,7 @@ If you'd like to download the most recent changes from the `main` branch, please
 git submodule update --remote
 ```
 
-It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
+It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory.
 
 ### Adding HybridApp-related patches
 
@@ -559,36 +580,15 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 
 ### Additional information and troubleshooting
 
-If you seek some addtional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
+If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
 
 ----
 
 # Philosophy
 This application is built with the following principles.
-1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
-    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this step is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
-    2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
-    3. UI pushes data to people's brains (React component -> device screen).
-    4. Brain pushes data into UI inputs (Device input -> React component).
-    5. UI inputs push data to the server (React component -> Action -> XHR to server).
-    6. Go to 1
-    ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
-1. **Offline first**
-    - Be sure to read [OFFLINE_UX.md](contributingGuides/OFFLINE_UX.md)!
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
-    - All data that is displayed, comes from persistent storage.
-1. **UI Binds to data on disk**
-    - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
-    - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
-    - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
-    - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `openReport(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
-        - The order that actions are done in. All actions should be done in parallel instead of sequence.
-            - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
-            - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
+1. [Data Flow](contributingGuides/philosophies/DATA-FLOW.md)
+1. [Offline First](contributingGuides/philosophies/OFFLINE.md)
+1. [Data Binding](contributingGuides/philosophies/DATA_BINDING.md)
 1. **Actions manage Onyx Data**
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Action methods should only have return values (data or a promise) if they are called by other actions. This is done to encourage that action methods can be called in parallel with no dependency on other methods (see discussion above).
@@ -603,11 +603,7 @@ This application is built with the following principles.
         4. server responds
         5. UI updates with data from the server
 
-1. **Cross Platform 99.9999%**
-    1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
-    1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
-    1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+1. [Cross Platform](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 
@@ -617,8 +613,8 @@ Updated rules for managing members across all types of chats in New Expensify.
 - **Nobody can leave or be removed from something they were automatically added to. For example:**
 
     - DM members can't leave or be removed from their DMs
-    - Members can't leave or be removed from their own workspace chats
-    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from their own expense chats
+    - Admins can't leave or be removed from expense chats
     - Members can't leave or be removed from the #announce room
     - Admins can't leave or be removed from #admins
     - Domain members can't leave or be removed from their domain chat
@@ -687,7 +683,7 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Everyone can be removed/can leave from the room including creator
         - Guests are not able to remove anyone from the room
 
-    4. #### Workspace chats
+    4. #### Expense chats
         |                    | Admin | Member(default) | Member(invited) |
         | :----------------: | :---: | :-------------: | :-------------: |
         |     **Invite**     |   ✅   |        ✅        |        ❌        |
@@ -695,10 +691,10 @@ Updated rules for managing members across all types of chats in New Expensify.
         |     **Leave**      |   ❌   |        ❌        |        ✅        |
         | **Can be removed** |   ❌   |        ❌        |        ✅        |
 
-        - Admins are not able to leave/be removed from the workspace chat
-        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
-        - Invited members(invited by members) are not able to invite or remove from the workspace chat
-        - Invited members(invited by members) are able to leave the workspace chat
+        - Admins are not able to leave/be removed from the expense chat
+        - Default members(automatically invited) are not able to leave/be removed from the expense chat
+        - Invited members(invited by members) are not able to invite or remove from the expense chat
+        - Invited members(invited by members) are able to leave the expense chat
         - Default members and admins are able to remove invited members
 
 3. ### Domain chat
@@ -731,7 +727,7 @@ localize the following types of data when presented to the user (even accessibil
 - Numbers and amounts: see [NumberFormatUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/NumberFormatUtils.js) and [LocaleDigitUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/LocaleDigitUtils.js)
 - Phones: see [LocalPhoneNumber](https://github.com/Expensify/App/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
 
-In most cases, you will be needing to localize data used in a component, if that's the case, there's a HOC [withLocalize](https://github.com/Expensify/App/blob/37465dbd07da1feab8347835d82ed3d2302cde4c/src/components/withLocalize.js).
+In most cases, you will be needing to localize data used in a component, if that's the case, there's a hook [useLocalize](https://github.com/Expensify/App/blob/4510fc76bbf5df699a2575bfb49a276af90f3ed7/src/hooks/useLocalize.ts).
 It will abstract most of the logic you need (mostly subscribe to the [NVP_PREFERRED_LOCALE](https://github.com/Expensify/App/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key)
 and is the preferred way of localizing things inside components.
 
@@ -743,12 +739,17 @@ Some pointers:
 - Always prefer longer and more complex strings in the translation files. For example
   if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
   key to the translation file and use the arrow function version, like so:
-  `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
+
+  ```
+  nameOfTheKey: ({amount, dateTime}) => `User has sent ${amount} to you on ${datetime}`,
+  ```
+
   This is because the order of the phrases might vary from one language to another.
+
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
-  - zero: Used when there are no items **(optional)**. 
+  - zero: Used when there are no items **(optional)**.
   - one: Used when there's exactly one item.
   - two: Used when there's two items. **(optional)**
   - few: Used for a small number of items **(optional)**.
@@ -769,6 +770,25 @@ Some pointers:
   In your code, you can use the translation like this:
 
   `translate('common.messages', {count: 1});`
+
+## Generating translations
+`src/languages/en.ts` is the source of truth for static strings in the App. `src/languages/es.ts` is (for now) manually-curated. The remainder are AI-generated. The script to perform this transformation is `scripts/generateTranslations.ts`.
+
+### Running the translation script
+To run the translation script:
+
+```bash
+npx ts-node scripts/generateTranslations.ts
+```
+
+You will need `OPENAI_API_KEY` set in your `.env`. Expensify employees can follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/20012).  If you want to test the script without actually talking to ChatGPT, you can pass the `--dry-run` flag to the script.
+
+### Fine-tuning translations
+If you are unhappy with the results of an AI translation, there are currently two methods of recourse:
+
+1. If you are adding a string that can have an ambiguous meaning without proper context, you can add a context annotation in `en.ts`. This takes the form of a comment before your string starting with `@context`.
+2. The base prompt(s) can be found in `prompts/translation`, and can be adjusted if necessary.
+
 ----
 
 # Deploying
@@ -809,10 +829,7 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ### testBuild
-The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
-
-### testBuildHybrid
-The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (hybrid iOS, hybrid Android, web, and desktop) from pull requests submitted to the App and Mobile-Expensify repositories. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. This workflow accepts up to two inputs:
 - A PR number from the App repository for testing New Dot (ND) changes.
 - A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
 
@@ -853,6 +870,43 @@ To build an APK to share run (e.g. via Slack), run `npm run android-build`, this
 # Onyx derived values
 Onyx derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
 
+## When to use derived values?
+
+1. **Complex Computations Across Multiple Components**
+   - Multiple components need the same computed value from one or more Onyx keys
+   - The computation is expensive (e.g., filtering large arrays, complex object transformations)
+   - The result needs to be cached and shared to avoid redundant calculations
+
+2. **Performance Critical Paths**
+   - The computation appears in frequently rendered components
+   - Profiling shows the same calculation being done repeatedly
+   - The computation involves multiple Onyx dependencies that change independently
+
+3. **Data Aggregation and Transformation**
+   - You need to combine data from multiple Onyx keys into a single, normalized structure
+   - The transformation logic is complex and reusable
+   - The derived data structure is used in multiple places
+
+4. **State-Dependent Calculations**
+   - The value depends on multiple pieces of state that can change independently
+   - The relationship between states is complex (e.g., filtering + sorting + grouping)
+   - Changes in any dependency should trigger a recalculation
+
+## When not to use derived values?
+
+1. **Simple or Local Computations**
+   - The computation is trivial (e.g., simple string manipulation, basic math)
+   - The value is only used in one component
+
+2. **Component-Specific Logic**
+   - The computation is specific to a single component's UI state
+   - The logic involves component-local state
+
+3. **Temporary or Volatile Data**
+   - The computed value is only needed temporarily
+   - The data doesn't need to persist across component unmounts
+   - The computation depends on non-Onyx values
+
 ## Creating new Onyx derived values
 1. Add the new Onyx key. The keys for Onyx derived values are stored in `ONYXKEYS.ts`, in the `ONYXKEYS.DERIVED` object.
 2. Declare the type for the derived value in `ONYXKEYS.ts`, in the `OnyxDerivedValuesMapping` type.
@@ -860,3 +914,68 @@ Onyx derived values are special Onyx keys which contain values derived from othe
    1. The Onyx key for the derived value
    2. An array of dependent Onyx keys (which can be any keys, not including the one from the previous step. Including other derived values!)
    3. A `compute` function, which takes an array of dependent Onyx values (in the same order as the array of keys from the previous step), and returns a value matching the type you declared in `OnyxDerivedValuesMapping`
+
+## Best practices
+
+1. **Keep computations pure and predictable**
+   ```typescript
+      // GOOD ✅
+   compute: ([reports, personalDetails]) => {
+     // Pure function, only depends on input
+     return reports.map(report => ({
+       ...report,
+       authorName: personalDetails[report.authorID]?.displayName
+     }));
+   }
+
+   // BAD ❌
+   compute: ([reports]) => {
+     // Don't use external state or cause side effects
+     const currentUser = getCurrentUser(); // External dependency!
+     sendAnalytics('computation-done'); // Side effect!
+     return reports;
+   }
+   ```
+2. **Handle edge cases**
+   ```typescript
+   // GOOD ✅
+   compute: ([reports, personalDetails]: [Report[], PersonalDetails]): DerivedType => {
+     if (!reports?.length || !personalDetails) {
+       return { items: [], count: 0 };
+     }
+     // Rest of computation...
+   }
+
+   // BAD ❌
+   compute: ([reports, personalDetails]) => {
+     // Missing type safety and edge cases
+     return reports.map(report => personalDetails[report.id]);
+   }
+   ```
+
+3. **Document derived values**
+   - Explain the purpose and dependencies
+   - Document any special cases or performance considerations
+
+# canBeMissing onyx param
+
+Context https://expensify.slack.com/archives/C03TQ48KC/p1741208342513379
+
+## What is this param and lint error for?
+
+The idea of the param is to indicate if the component connecting to onyx expects the data to be there (and thus does not need to handle the case when it is not) or not (and thus has to handle the case when it is not).
+
+It was added because in some places we are assuming some data will be there, but actually we never load it, which leads to hard to debug bugs.
+
+The linter error is there till we add the param to all callers, once that happens we can make the param mandatory and remove the linter.
+
+
+## How do I determine if the param should be false or true?
+
+The main things to look at for the `canBeMissing` param are:
+- Where/who loads the data? If the data is always ensured to be loaded before this component renders, then `canBeMissing` would be set to `false`. So any data that is always returned by `OpenApp` used in a component where we have a user (so not in the homepage for example) will have `canBeMissing` set to `false`
+- Will the user always have data? Maybe we always try to load a piece of data, but the data can be missing/empty, in this case `canBeMissing` would be set to `false`
+- If neither of above, then the param should probably be `true`, but additionally we need to make sure that the code using the data manages correctly the fact that the data might be missing
+
+
+

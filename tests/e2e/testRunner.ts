@@ -250,12 +250,11 @@ const runTests = async (): Promise<void> => {
 
             // assume that "includes" is a regexp
             if (!test?.name?.match(includes)) {
-                // eslint-disable-next-line no-continue
                 continue;
             }
         }
 
-        // Having the cooldown right at the beginning lowers the chances of heat
+        // Having the cool-down right at the beginning lowers the chances of heat
         // throttling from the previous run (which we have no control over and will be a
         // completely different AWS DF customer/app). It also gives the time to cool down between tests.
         Logger.info(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
@@ -357,7 +356,7 @@ const runTests = async (): Promise<void> => {
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
     await compare(results.main, results.delta, {
-        outputFile: `${config.OUTPUT_DIR}/output.md`,
+        outputDir: config.OUTPUT_DIR,
         outputFormat: 'all',
         metricForTest,
         skippedTests,

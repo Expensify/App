@@ -1,8 +1,11 @@
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToAccountingIntegrationParams, UpdateXeroGenericTypeParams} from '@libs/API/parameters';
+import type UpdateXeroAccountingMethodParams from '@libs/API/parameters/UpdateXeroAccountingMethodParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -409,7 +412,11 @@ function updateXeroEnableNewCategories(
     API.write(WRITE_COMMANDS.UPDATE_XERO_ENABLE_NEW_CATEGORIES, parameters, {optimisticData, failureData, successData});
 }
 
-function updateXeroAutoSync(policyID: string, autoSync: Partial<Connections['xero']['config']['autoSync']>, oldAutoSync?: Partial<Connections['xero']['config']['autoSync']>) {
+function updateXeroAutoSync(policyID: string | undefined, autoSync: Partial<Connections['xero']['config']['autoSync']>, oldAutoSync?: Partial<Connections['xero']['config']['autoSync']>) {
+    if (!policyID) {
+        return;
+    }
+
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(autoSync),
@@ -528,10 +535,14 @@ function updateXeroSyncReimbursementAccountID(
 }
 
 function updateXeroSyncSyncReimbursedReports(
-    policyID: string,
+    policyID: string | undefined,
     syncReimbursedReports: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
     oldSyncReimbursedReports?: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(syncReimbursedReports),
@@ -541,6 +552,25 @@ function updateXeroSyncSyncReimbursedReports(
     const {optimisticData, failureData, successData} = prepareXeroSyncOptimisticData(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS, syncReimbursedReports, oldSyncReimbursedReports);
 
     API.write(WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
+}
+
+function updateXeroAccountingMethod(
+    policyID: string | undefined,
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+    oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+) {
+    if (!policyID) {
+        return;
+    }
+
+    const parameters: UpdateXeroAccountingMethodParams = {
+        policyID,
+        accountingMethod,
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_ACCOUNTING_METHOD, parameters, {optimisticData, failureData, successData});
 }
 
 export {
@@ -553,6 +583,7 @@ export {
     updateXeroImportCustomers,
     updateXeroEnableNewCategories,
     updateXeroAutoSync,
+    updateXeroAccountingMethod,
     updateXeroExportBillStatus,
     updateXeroExportExporter,
     updateXeroExportBillDate,

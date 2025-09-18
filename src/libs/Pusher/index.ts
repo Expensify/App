@@ -12,7 +12,7 @@ import type {
     EventCallbackError,
     EventData,
     PusherEventName,
-    PusherSubscribtionErrorData,
+    PusherSubscriptionErrorData,
     PusherWithAuthParams,
     SocketEventCallback,
     SocketEventName,
@@ -21,7 +21,10 @@ import type {
 import type PusherModule from './types';
 
 let shouldForceOffline = false;
-Onyx.connect({
+
+// shouldForceOffline is only used to ignore pusher events when the client has been forced offline.
+// Since it's not connected to any UI, it's OK to use connectWithoutView.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -226,7 +229,7 @@ function subscribe<EventName extends PusherEventName>(
                             onResubscribe();
                         });
 
-                        channel.bind('pusher:subscription_error', (data: PusherSubscribtionErrorData = {}) => {
+                        channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
                             const {type, error, status} = data;
                             Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                                 channelName,
@@ -341,7 +344,7 @@ function registerCustomAuthorizer(authorizer: ChannelAuthorizerGenerator) {
  */
 function disconnect() {
     if (!socket) {
-        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialization has occurred, ignoring.');
         return;
     }
 

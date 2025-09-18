@@ -1,27 +1,21 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Credentials} from '@src/types/onyx';
 
-type ChangeExpensifyLoginLinkOnyxProps = {
-    /** The credentials of the person logging in */
-    credentials: OnyxEntry<Credentials>;
-};
-
-type ChangeExpensifyLoginLinkProps = ChangeExpensifyLoginLinkOnyxProps & {
+type ChangeExpensifyLoginLinkProps = {
     onPress: () => void;
 };
 
-function ChangeExpensifyLoginLink({credentials, onPress}: ChangeExpensifyLoginLinkProps) {
+function ChangeExpensifyLoginLink({onPress}: ChangeExpensifyLoginLinkProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
 
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
@@ -40,8 +34,4 @@ function ChangeExpensifyLoginLink({credentials, onPress}: ChangeExpensifyLoginLi
 
 ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
-export default withOnyx<ChangeExpensifyLoginLinkProps, ChangeExpensifyLoginLinkOnyxProps>({
-    credentials: {
-        key: ONYXKEYS.CREDENTIALS,
-    },
-})(ChangeExpensifyLoginLink);
+export default ChangeExpensifyLoginLink;

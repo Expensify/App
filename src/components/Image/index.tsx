@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
 import CONST from '@src/CONST';
@@ -8,7 +8,16 @@ import BaseImage from './BaseImage';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
 import type {ImageOnLoadEvent, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
+function Image({
+    source: propsSource,
+    isAuthTokenRequired = false,
+    onLoad,
+    objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    style,
+    loadingIconSize,
+    loadingIndicatorStyles,
+    ...forwardedProps
+}: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
@@ -52,7 +61,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     /**
      * trying to figure out if the current session is expired or fresh from a necessary reauthentication
      */
-    const previousSessionAge = useRef<number | undefined>();
+    const previousSessionAge = useRef<number | undefined>(undefined);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const validSessionAge: number | undefined = useMemo(() => {
         // Authentication is required only for certain types of images (attachments and receipts),
@@ -130,7 +139,12 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         return undefined;
     }
     if (source === undefined) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <FullScreenLoadingIndicator
+                iconSize={loadingIconSize}
+                style={loadingIndicatorStyles}
+            />
+        );
     }
     return (
         <BaseImage

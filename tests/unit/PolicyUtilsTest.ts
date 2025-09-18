@@ -2,13 +2,28 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {getActivePolicies, getManagerAccountID, getPolicyNameByID, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    getActivePolicies,
+    getManagerAccountID,
+    getPolicyEmployeeAccountIDs,
+    getPolicyNameByID,
+    getRateDisplayValue,
+    getSubmitToAccountID,
+    getTagList,
+    getTagListByOrderWeight,
+    getUnitRateValue,
+    isCurrentUserMemberOfAnyPolicy,
+    isPolicyMemberWithoutPendingDelete,
+    shouldShowPolicy,
+    sortWorkspacesBySelected,
+} from '@libs/PolicyUtils';
+import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -68,14 +83,16 @@ const employeeList: PolicyEmployeeList = {
 
 const adminAccountID = 1;
 const employeeAccountID = 2;
-const categoryapprover1AccountID = 3;
-const categoryapprover2AccountID = 4;
-const tagapprover1AccountID = 5;
-const tagapprover2AccountID = 6;
+const categoryApprover1AccountID = 3;
+const categoryApprover2AccountID = 4;
+const tagApprover1AccountID = 5;
+const tagApprover2AccountID = 6;
 const ownerAccountID = 7;
+const approverAccountID = 8;
 const employeeEmail = 'employee@test.com';
 const adminEmail = 'admin@test.com';
 const categoryApprover1Email = 'categoryapprover1@test.com';
+const approverEmail = 'approver@test.com';
 
 const personalDetails: PersonalDetailsList = {
     '1': {
@@ -87,24 +104,28 @@ const personalDetails: PersonalDetailsList = {
         login: employeeEmail,
     },
     '3': {
-        accountID: categoryapprover1AccountID,
+        accountID: categoryApprover1AccountID,
         login: categoryApprover1Email,
     },
     '4': {
-        accountID: categoryapprover2AccountID,
+        accountID: categoryApprover2AccountID,
         login: 'categoryapprover2@test.com',
     },
     '5': {
-        accountID: tagapprover1AccountID,
+        accountID: tagApprover1AccountID,
         login: 'tagapprover1@test.com',
     },
     '6': {
-        accountID: tagapprover2AccountID,
+        accountID: tagApprover2AccountID,
         login: 'tagapprover2@test.com',
     },
     '7': {
         accountID: ownerAccountID,
         login: 'owner@test.com',
+    },
+    '8': {
+        accountID: approverAccountID,
+        login: approverEmail,
     },
 };
 
@@ -156,13 +177,27 @@ const rules = {
         },
     ],
 };
+const policyTags = {
+    TagListTest0: {
+        name: 'TagListTest0',
+        orderWeight: 0,
+        required: false,
+        tags: {},
+    },
+    TagListTest2: {
+        name: 'TagListTest2',
+        orderWeight: 2,
+        required: false,
+        tags: {},
+    },
+};
 
 describe('PolicyUtils', () => {
     describe('getActivePolicies', () => {
         it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
             const policies = createCollection<Policy>(
                 (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-                (index) => ({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: null})} as Policy),
+                (index) => ({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: null})}) as Policy,
                 2,
             );
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
@@ -332,7 +367,35 @@ describe('PolicyUtils', () => {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
                 });
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
+            });
+            it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    employeeList,
+                    rules,
+                    preventSelfApproval: true,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0),
+                    ownerAccountID: categoryApprover1AccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(0),
+                    category: 'cat1',
+                    reportID: expenseReport.reportID,
+                    tag: '',
+                };
+
+                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
+                    [transaction.transactionID]: transaction,
+                });
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
@@ -365,7 +428,7 @@ describe('PolicyUtils', () => {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
                 });
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover2AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -401,7 +464,7 @@ describe('PolicyUtils', () => {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
                     });
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                     const policy: Policy = {
@@ -436,7 +499,7 @@ describe('PolicyUtils', () => {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
                     });
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover2AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover2AccountID);
                 });
             });
         });
@@ -472,7 +535,7 @@ describe('PolicyUtils', () => {
             // The result should be true, since it is an active paid policy.
             expect(result).toBe(true);
         });
-        it('should returnfalse', () => {
+        it('should return false', () => {
             // Given a control workspace which is pending delete.
             const policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -496,7 +559,7 @@ describe('PolicyUtils', () => {
             expect(getPolicyNameByID('1')).toBe('testName');
         });
 
-        it('should return the policyID if the name is not set', async () => {
+        it('should return the empty if the name is not set', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -505,7 +568,7 @@ describe('PolicyUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            expect(getPolicyNameByID('1')).toBe('1');
+            expect(getPolicyNameByID('1')).toBe('');
         });
     });
 
@@ -530,7 +593,7 @@ describe('PolicyUtils', () => {
             };
             const result = getManagerAccountID(policy, report);
 
-            expect(result).toBe(categoryapprover1AccountID);
+            expect(result).toBe(categoryApprover1AccountID);
         });
 
         it('should return -1 if there is no employee or default approver', () => {
@@ -586,7 +649,320 @@ describe('PolicyUtils', () => {
 
             const result = getManagerAccountID(policy, report);
 
-            expect(result).toBe(categoryapprover1AccountID);
+            expect(result).toBe(categoryApprover1AccountID);
+        });
+    });
+
+    describe('isWorkspaceEligibleForReportChange', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('returns false if policy is not paid group policy', async () => {
+            const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: currentUserAccountID,
+                managerID: approverAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            expect(result).toBe(false);
+        });
+
+        it('returns true if policy is paid group policy and the manger is the payer', async () => {
+            const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            expect(result).toBe(true);
+        });
+
+        it('returns false if the manager is not the payer of the new policy', async () => {
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: employeeAccountID,
+                managerID: approverAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policies are not policyExpenseChatEnabled', async () => {
+            const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                isPolicyExpenseChatEnabled: false,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isCurrentUserMemberOfAnyPolicy', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return false if user has no policies', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
+
+            const result = isCurrentUserMemberOfAnyPolicy();
+
+            expect(result).toBeFalsy();
+        });
+
+        it('should return true if user owns a workspace', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isCurrentUserMemberOfAnyPolicy();
+
+            expect(result).toBeTruthy();
+        });
+
+        it('should return false if expense chat is not enabled', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isCurrentUserMemberOfAnyPolicy();
+
+            expect(result).toBeFalsy();
+        });
+
+        it('should return false if its a fake policy id', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isCurrentUserMemberOfAnyPolicy();
+
+            expect(result).toBeFalsy();
+        });
+
+        it('should return true if user is invited to a workspace', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isCurrentUserMemberOfAnyPolicy();
+
+            expect(result).toBeTruthy();
+        });
+    });
+    describe('getTagList', () => {
+        it.each([
+            ['when index is 0', 0, policyTags.TagListTest0.name],
+            ['when index is 1', 1, policyTags.TagListTest2.name],
+            ['when index is out of range', 2, ''],
+        ])('%s', (_description, index, expected) => {
+            const tagList = getTagList(policyTags, index);
+            expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('getTagListByOrderWeight', () => {
+        it.each([
+            ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
+            ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
+            ['when orderWeight is out of range', 1, ''],
+        ])('%s', (_description, orderWeight, expected) => {
+            const tagList = getTagListByOrderWeight(policyTags, orderWeight);
+            expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('sortWorkspacesBySelected', () => {
+        it('should order workspaces with selected workspace first', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
+            const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
+            expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+        });
+
+        it('should order workspaces using name if no workspace is selected', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const workspace3 = {policyID: '3', name: 'Workspace 3'};
+            const workspace4 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
+        });
+
+        it('should sort workspaces when using this method correctly', () => {
+            const unsortedWorkspaces = [
+                {policyID: '2', name: 'Workspace 2'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '3', name: 'Workspace 3'},
+            ];
+            const selectedWorkspaceIDs = ['3', '4'];
+            const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
+            expect(sortedWorkspaces).toEqual([
+                {policyID: '3', name: 'Workspace 3'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '2', name: 'Workspace 2'},
+            ]);
+        });
+    });
+
+    describe('getPolicyEmployeeAccountIDs', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return an array of employee accountIDs for the given policy (including current user accountID) if no current user is passed', () => {
+            const policy = {
+                employeeList,
+            };
+            const result = getPolicyEmployeeAccountIDs(policy);
+            expect(result).toEqual([7, 1, 2, 3, 4, 5, 6]);
+        });
+
+        it('should return an array of employee accountIDs for the given policy (excluding current user accountID) if current user is passed', () => {
+            const policy = {
+                employeeList,
+            };
+            const result = getPolicyEmployeeAccountIDs(policy, 5);
+            expect(result).toEqual([7, 1, 2, 3, 4, 6]);
+        });
+
+        it('should return an empty array if no employees are found', () => {
+            const policy = {
+                employeeList: {},
+            };
+            const result = getPolicyEmployeeAccountIDs(policy);
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('isPolicyMemberWithoutPendingDelete', () => {
+        it('should return true if the policy member is not pending delete', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false if the policy member is pending delete', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false if the policy member is not found', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
+            expect(result).toBe(false);
         });
     });
 });

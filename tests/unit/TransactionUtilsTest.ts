@@ -1,12 +1,17 @@
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -30,6 +35,7 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 const CURRENT_USER_ID = 1;
+const CURRENT_USER_EMAIL = 'test@example.com';
 const SECOND_USER_ID = 2;
 const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
@@ -67,16 +73,52 @@ const reportCollectionDataSet: ReportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
 };
+const defaultDistanceRatePolicyID1: Record<string, Rate> = {
+    customUnitRateID1: {
+        currency: 'USD',
+        customUnitRateID: 'customUnitRateID1',
+        enabled: true,
+        name: 'Default Rate',
+        rate: 70,
+        subRates: [],
+    },
+};
+const distanceRateTransactionID1: TransactionCustomUnit = {
+    customUnitID: 'customUnitID1',
+    customUnitRateID: 'customUnitRateID1',
+    distanceUnit: 'mi',
+    name: 'Distance',
+};
+const distanceRateTransactionID2: TransactionCustomUnit = {
+    customUnitID: 'customUnitID2',
+    customUnitRateID: 'customUnitRateID2',
+    distanceUnit: 'mi',
+    name: 'Distance',
+};
+const defaultCustomUnitPolicyID1: Record<string, CustomUnit> = {
+    customUnitID1: {
+        attributes: {
+            unit: 'mi',
+        },
+        customUnitID: 'customUnitID1',
+        defaultCategory: 'Car',
+        enabled: true,
+        name: 'Distance',
+        rates: defaultDistanceRatePolicyID1,
+    },
+};
 
 describe('TransactionUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
+                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID, email: 'test@example.com'},
                 ...reportCollectionDataSet,
             },
         });
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     describe('getCreated', () => {
@@ -293,13 +335,74 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
         });
+
+        it('should update transaction when distance is changed', () => {
+            // Given: a policy with a mileage rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1, // 1 USD per mile
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10, // original distance
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const newDistance = 20; // change distance to 20 miles
+
+            // When: updating the transaction with a new distance
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {distance: newDistance},
+            });
+
+            // Then: quantity should be updated
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+
+            // And: amount should be recalculated (20 miles × 1 USD = 20)
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+
+            // And: merchant should be updated with mileage description
+            expect(updatedTransaction.modifiedMerchant).toContain('20');
+
+            // And: currency should be set from policy mileage rate
+            expect(updatedTransaction.modifiedCurrency).toBe(CONST.CURRENCY.USD);
+
+            // And: pending fields should mark distance-related updates
+            expect(updatedTransaction.pendingFields).toMatchObject({
+                quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+        });
     });
 
     describe('shouldShowRTERViolationMessage', () => {
         it('should return true if transaction is receipt being scanned', () => {
             const transaction = generateTransaction({
                 receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 },
             });
             expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
@@ -402,6 +505,225 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('getMerchant', () => {
+        it('should return merchant if transaction has merchant', () => {
+            const transaction = generateTransaction({
+                merchant: 'Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Merchant');
+        });
+
+        it('should return (none) if transaction has no merchant', () => {
+            const transaction = generateTransaction();
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('(none)');
+        });
+
+        it('should return modified merchant if transaction has modified merchant', () => {
+            const transaction = generateTransaction({
+                modifiedMerchant: 'Modified Merchant',
+                merchant: 'Original Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Modified Merchant');
+        });
+
+        it('should return distance merchant if transaction is distance expense and pending create', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Pending...');
+        });
+
+        it('should return distance merchant if transaction is created distance expense', () => {
+            return waitForBatchedUpdates()
+                .then(async () => {
+                    const fakePolicy: Policy = {
+                        ...createRandomPolicy(0),
+                        customUnits: {
+                            Unit1: {
+                                customUnitID: 'Unit1',
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                rates: {
+                                    Rate1: {
+                                        customUnitRateID: 'Rate1',
+                                        currency: CONST.CURRENCY.USD,
+                                        rate: 100,
+                                    },
+                                },
+                                enabled: true,
+                                attributes: {
+                                    unit: 'mi',
+                                },
+                            },
+                        },
+                        outputCurrency: CONST.CURRENCY.USD,
+                    };
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
+                })
+                .then(() => {
+                    const transaction = generateTransaction({
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID: 'Unit1',
+                                customUnitRateID: 'Rate1',
+                                quantity: 100,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            },
+                        },
+                        reportID: FAKE_OPEN_REPORT_ID,
+                    });
+                    const merchant = TransactionUtils.getMerchant(transaction);
+                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
+                });
+        });
+    });
+    describe('getTransactionPendingAction', () => {
+        it.each([
+            ['when pendingAction is null', null, null],
+            ['when pendingAction is delete', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE],
+            ['when pendingAction is add', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD],
+        ])('%s', (_description, pendingAction, expected) => {
+            const transaction = generateTransaction({pendingAction});
+            const result = TransactionUtils.getTransactionPendingAction(transaction);
+            expect(result).toEqual(expected);
+        });
+        it('when pendingAction is update', () => {
+            const pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+            const transaction = generateTransaction({
+                pendingFields: {amount: pendingAction},
+                pendingAction: null,
+            });
+            const result = TransactionUtils.getTransactionPendingAction(transaction);
+            expect(result).toEqual(pendingAction);
+        });
+    });
+
+    describe('isTransactionPendingDelete', () => {
+        it.each([
+            ['when pendingAction is null', null, false],
+            ['when pendingAction is delete', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, true],
+            ['when pendingAction is add', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, false],
+            ['when pendingAction is update', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, false],
+        ])('%s', (_description, pendingAction, expected) => {
+            const transaction = generateTransaction({pendingAction});
+            const result = TransactionUtils.isTransactionPendingDelete(transaction);
+            expect(result).toEqual(expected);
+        });
+    });
+
+    describe('isUnreportedAndHasInvalidDistanceRateTransaction', () => {
+        it('should be false when transaction is null', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(null, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is not distance type transaction', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            };
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is reported', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '1',
+            };
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is unreported and has valid rate', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '0',
+                comment: {
+                    customUnit: distanceRateTransactionID1,
+                    type: 'customUnit',
+                },
+            };
+
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is unreported, has invalid rate but policy has default rate', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '0',
+                comment: {
+                    customUnit: distanceRateTransactionID2,
+                    type: 'customUnit',
+                },
+            };
+
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be true when transaction is unreported, has invalid rate and policy has no default rate', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {},
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '0',
+                comment: {
+                    customUnit: distanceRateTransactionID2,
+                    type: 'customUnit',
+                },
+            };
+
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('isViolationDismissed', () => {
+        it('should return true when violation is dismissed for current user', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                            [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+                        },
+                    },
+                },
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+            const result = TransactionUtils.isViolationDismissed(transaction, violation);
+            expect(result).toBe(true);
         });
     });
 });

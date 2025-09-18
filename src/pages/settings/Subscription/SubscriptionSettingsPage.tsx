@@ -1,29 +1,27 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
-import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
-import SubscriptionSettings from './SubscriptionSettings';
 
-type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
+type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
 
 function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const backTo = route?.params?.backTo;
@@ -35,7 +33,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
 
     if (!subscriptionPlan && isAppLoading) {
         return <FullScreenLoadingIndicator />;
@@ -51,7 +49,13 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => {
+                    if (Navigation.getShouldPopToSidebar()) {
+                        Navigation.popToSidebar();
+                        return;
+                    }
+                    Navigation.goBack(backTo);
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}
@@ -62,8 +66,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     <ReducedFunctionalityMessage />
                     <CardSection />
                     <SubscriptionPlan />
-                    <SubscriptionDetails />
-                    <SubscriptionSettings />
                 </View>
             </ScrollView>
         </ScreenWrapper>

@@ -1,7 +1,7 @@
 import SCREENS from '@src/SCREENS';
 
 /**
- * Screens displayed in the BottomTab and CentralPane displayed side by side that should not have active
+ * Screens displayed in the NavigationTab and CentralPane displayed side by side that should not have active
  * focus trap when rendered on a wide screen to allow navigation between them using the keyboard
  */
 const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
@@ -13,7 +13,7 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.SETTINGS.SECURITY,
     SCREENS.SETTINGS.WALLET.ROOT,
     SCREENS.SETTINGS.ABOUT,
-    SCREENS.SETTINGS.WORKSPACES,
+    SCREENS.WORKSPACES_LIST,
     SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
     SCREENS.WORKSPACE.ACCOUNTING.ROOT,
     SCREENS.WORKSPACE.INITIAL,
@@ -25,7 +25,7 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.WORKSPACE.MORE_FEATURES,
     SCREENS.WORKSPACE.TAGS,
     SCREENS.WORKSPACE.TAXES,
-    SCREENS.WORKSPACE.REPORT_FIELDS,
+    SCREENS.WORKSPACE.REPORTS,
     SCREENS.WORKSPACE.EXPENSIFY_CARD,
     SCREENS.WORKSPACE.COMPANY_CARDS,
     SCREENS.WORKSPACE.DISTANCE_RATES,
@@ -34,6 +34,7 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.SETTINGS.SAVE_THE_WORLD,
     SCREENS.WORKSPACE.RULES,
     SCREENS.WORKSPACE.PER_DIEM,
+    SCREENS.WORKSPACE.RECEIPT_PARTNERS,
 ];
 
 export default WIDE_LAYOUT_INACTIVE_SCREENS;

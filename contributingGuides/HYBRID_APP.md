@@ -3,7 +3,7 @@ Every React Native mobile application needs native codebase with an entry point,
 
 It means that whenever we create a React Native application from scratch we instantiate it on a (very basic, bare) native codebase. However, we can always use a different, already existing codebase to run React Native. This is how we've built HybridApp - we've created a new `ReactRootView`, and taken all JavaScript code to run it within the existing mobile application (OldDot).
 
-It means that HybridApp is a **regular native application**, which has an additional screen that runs React Native. HybridApp let us combine New Expensify and our classic app into a single mobile app for a seemless migration
+It means that HybridApp is a **regular native application**, which has an additional screen that runs React Native. HybridApp let us combine New Expensify and our classic app into a single mobile app for a seamless migration
 # How is HybridApp built?
 If you have access to the closed-source `Mobile-Expensify` repository, you are eligible to build HybridApp. The main difference between NewDot and HybridApp is that the native code is located in a different place. The native code is located under `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS`.
 
@@ -116,17 +116,26 @@ In this case you can do the following:
 1. `rm -rf node_modules`
 2. `npm i-standalone`
 3. `npm run pod-install-standalone` (required only if you build iOS)
-4. `npm run ios-standalone` or `npm run android-stanalone`
+4. `npm run ios-standalone` or `npm run android-standalone`
 
 Alternatively, you may notice in `package.json` that all these scripts are based on `STANDALONE_NEW_DOT` environment variable. If you feel confident you can do `export STANDALONE_NEW_DOT=true` to change the default behaviour in the current process of the terminal, and use regular commands (`npm i`, `npm run android`, `npm run ios` etc.) to build NewDot. 
 
 ### Do I need to clean cache and rebuild the app?
 It's a valid question, especially because clean builds may take some time. On the way I've noticed that many developers tend to rebuild the app from scratch, even though in some cases it is unnecessary. In this case, when should you rebuild the app?
 1. Whenever any code located in `./Mobile-Expensify` has changed - this means that we need to recompile OldDot/native code
-2. Whenever you've pulled the newest main - not always necessary, but usually we don't analise what code has just been merged by `git pull`
+2. Whenever you've pulled the newest main - not always necessary, but usually we don't analyze what code has just been merged by `git pull`
 3. Whenever `package-lock.json` has changed - this may indicate that some packages with native code were bumped (however it's not always necessary, see [[#Should I rebuild HybridApp after bumping a `node_module`?]])
 4. Whenever you've updated `.env` files
 This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `npm run start --reset-cache`
+
+💡 **Tip**: If you're still experiencing build issues after running `npm run clean`, try a full Git clean:
+
+```
+git clean -fdx
+```
+This will remove all untracked files and directories, ensuring no lingering artifacts interfere with the build process.
+**Warning**: This will delete **all untracked files**, including anything not committed—make sure you’ve backed up anything important.
+
 ### Should I rebuild HybridApp after bumping a `node_modules` library?
 The `package-lock.json` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily check to see if you would need to rebuild the app by going to the `./node_modules/<PACKAGE_NAME>`, and seeing if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
 ### How to clear platform-specific cache?
@@ -139,6 +148,10 @@ Executing `npm run clean` clears cache for React Native, Android, and iOS. It me
 	- `Pods`, `DerivedData`, `build`, `cocoapods`
 - **YAPL**: `npm run clean -- --npm`
 	- `npm`, `Mobile-Expensify/node_modules` (OldDot-specific)
+### I use VSCode and the patches are constantly failing during `npm install`
+In case you use VSCode and are having problems during `npm install` caused by patch errors, e.g. `@onfido/react-native-sdk` and/or `react-native-vision-camera`, **please check if you have any Java-related extensions enabled in your editor**. In case you have it, try **disabling** them and running the steps specified above to have a clean install.
+
+The reason is that some Java extensions are constantly creating files inside `node_modules` libraries and thus messing up with `patch-package` logic, so it’s advisable to keep them disabled in order to avoid such problems.
 ## Android
 ### Error: `Could not find method autolinkLibrariesFromCommandForPath()`
 
@@ -160,6 +173,22 @@ IMPORTANT: It's easily to confuse this error with a very similar one: `Failed to
 This error indicates that YAPL JS (OldDot's JavaScript code) hasn't been built properly. In order to fix that, do the following:
 1. cd to `Mobile-Expensify`
 2. run `npm run grunt:build:shared`
+
+### Error: `No JDK found / Please select a valid JDK`
+Android Studio and Gradle require a JDK (Java Development Kit) to build the app. If you're seeing this error or being prompted to select a JDK, it means no valid JDK has been configured. Our project requires JDK 17, so make sure you select or install that version.
+
+**To fix this:**
+- Open Android Studio.
+- Go to File > Project Structure > SDK Location.
+- Under JDK Location:
+    - Set the path to a previously installed JDK 17
+    - Or select the default JDK bundled with Android Studio (on macOS, that's usually at /Applications/Android Studio.app/Contents/jbr) only if it is JDK 17
+
+Alternatively, from the terminal:
+```
+export JAVA_HOME=$(/usr/libexec/java_home -v17)
+```
+
 ### How to find an `.apk`, and install it on your device?
 
 After a successful build, gradle creates an `.apk` file, which you can install on your android devices/emulators. There is a chance that eg. the app failed to install after a successful build, or you want to test the app on another device. In this case you **don't need to rebuild the app**, because you can reuse the existing `.apk`. These are the steps how to do it:
@@ -186,9 +215,6 @@ If you'd like to build HybridApp in `release` configuration you need to adjust o
 ### How to see native logs in Android Studio?
 The easiest way to see native logs is to use Logcat. In order to find it go to: `View` > `Tool windows` > `Logcat`
 ## iOS
-### Error: `undefined method [] for nil`
-It's an error that you may encounter while executing `npm run pod-install`. Unfortunately it's very generic, and indicates an error in some React Native CLI script. In order to debug it, you have to get deeper into JS script files of the `@react-native-community/cli` package. If you haven't changed anything in the `Podfile`, or haven't bumped `react-native` the best thing to do is to remove and reinstall `node_modules` and make sure all patches were applied correctly.
-
 ### Error: `"xcodebuild" exited with error code '65'`
 This is a very common error that may appear during an iOS build, it's especially annoying when it appears after executing `npm run ios`, because it doesn't give any additional information that may be useful for debugging. In order to see the real error you need to open XCode and rerun the build from there. When the build fails, pick `Errors Only` in the main panel, and extend the error by pressing an icon with 4 parallel lines on the right hand side. On the very bottom you should see the real error.
 
@@ -202,9 +228,25 @@ This one is pretty enigmatic, and usually appears after subsequent android, and 
 2. rerun the iOS build
 
 ### Error: `CDN: trunk URL couldn't be downloaded`
-This error may appear after execution of `npm run pod-install`. In this case you shaould do the following:
+This error may appear after execution of `npm run pod-install`. In this case you should do the following:
 1. cd to `Mobile-Expensify/ios`
 2. run `pod repo remove trunk`
+
+### Error: `Build service could not create build operation`
+This might also appear when trying to clean build folder.
+1. Manually clean `rm -rf ~/Library/Developer/Xcode/DerivedData`
+2. Quit XCode and macOS build services:
+    1. Close XCode
+    2. `sudo pkill -9 -f xcodebuild`
+    3. `sudo pkill -9 -f XCBBuildService`
+    4. `sudo pkill -9 -f com.apple.dt.Xcode`
+    5. Restart XCode
+3. Further cleaning:
+    1. `rm -rf ~/Library/Developer/Xcode/ModuleCache.noindex`
+    2. `rm -rf ~/Library/Caches/com.apple.dt.Xcode`
+    3. `rm -rf NewExpensify.xcodeproj/project.xcworkspace/xcuserdata`
+    4. `rm -rf NewExpensify.xcodeproj/project.xcworkspace/xcshareddata`
+4. Restart your Mac
 
 ### How to build a `release` iOS app?
 If you'd like to build HybridApp in `release` configuration, the best way to do it is to:

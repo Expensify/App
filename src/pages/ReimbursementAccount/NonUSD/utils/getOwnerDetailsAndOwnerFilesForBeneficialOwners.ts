@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {BeneficialOwnerDataKey, ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 
@@ -47,7 +47,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
             }
 
             if (fieldName === OWNERSHIP_PERCENTAGE) {
-                ownerDetails[ownerDetailsKey] = `${String(reimbursementAccountDraft?.[ownerDetailsKey])}%`;
+                ownerDetails[ownerDetailsKey] = String(reimbursementAccountDraft?.[ownerDetailsKey]);
                 return;
             }
 
@@ -75,8 +75,9 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 return;
             }
 
-            // TODO - We're returning only the first file for now. BE will be adjusted later to handle multiple files. I will update this in - https://github.com/Expensify/App/issues/50911
-            ownerFiles[ownerFilesKey] = reimbursementAccountDraft?.[ownerFilesKey][0];
+            // User can only upload one file per each field
+            const [uploadedFile] = reimbursementAccountDraft?.[ownerFilesKey] || [];
+            ownerFiles[ownerFilesKey] = uploadedFile;
         });
     });
 

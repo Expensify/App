@@ -9,7 +9,7 @@ function hasRTLCharacters(text: string): boolean {
 
 // Converts a given text to ensure it starts with the LTR (Left-to-Right) marker.
 const convertToLTRForComposer: ConvertToLTRForComposer = (text) => {
-    // Ensure that the text starts with RTL characters if not we return the same text to avoid concatination with special
+    // Ensure that the text starts with RTL characters if not we return the same text to avoid concatenation with special
     // character at the start which leads to unexpected behaviour for Emoji/Mention suggestions.
     if (!hasRTLCharacters(text)) {
         // If text is empty string return empty string to avoid an empty draft due to special character.

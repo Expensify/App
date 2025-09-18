@@ -9,33 +9,42 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type TaskViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
+
+    /** The parent report */
+    parentReport: OnyxEntry<Report>;
+
+    /** The task report action */
+    action: OnyxEntry<ReportAction>;
 };
 
-function TaskView({report}: TaskViewProps) {
+function TaskView({report, parentReport, action}: TaskViewProps) {
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -44,29 +53,35 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         setTaskReport(report);
     }, [report]);
-    const taskTitle = `<task-title>${convertToLTR(report?.reportName ?? '')}</task-title>`;
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
+
+    const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
+
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false, localeCompare);
 
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
-    const canModifyTask = canModifyTaskUtil(report, currentUserPersonalDetails.accountID);
-    const canActionTask = canActionTaskUtil(report, currentUserPersonalDetails.accountID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
-    const disableState = !canModifyTask;
-    const isDisableInteractive = !canModifyTask || !isOpen;
-    const {translate} = useLocalize();
+    const disableState = !isTaskModifiable;
+    const isDisableInteractive = disableState || !isOpen;
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const contextValue = useMemo(
         () => ({
             anchor: null,
             report,
-            reportNameValuePairs: undefined,
-            action: undefined,
+            isReportArchived: false,
+            action,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
             isDisabled: true,
+            onShowContextMenu: (callback: () => void) => callback(),
+            shouldDisplayContextMenu: false,
         }),
-        [report],
+        [report, action],
     );
 
     const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);
@@ -124,7 +139,7 @@ function TaskView({report}: TaskViewProps) {
                                                 containerBorderRadius={8}
                                                 caretSize={16}
                                                 accessibilityLabel={taskTitle || translate('task.task')}
-                                                disabled={!canActionTask}
+                                                disabled={!isTaskActionable}
                                             />
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <RenderHTML html={taskTitle} />
@@ -164,7 +179,7 @@ function TaskView({report}: TaskViewProps) {
                             <MenuItem
                                 label={translate('task.assignee')}
                                 title={getDisplayNameForParticipant({accountID: report.managerID})}
-                                icon={getAvatarsForAccountIDs([report?.managerID ?? CONST.DEFAULT_NUMBER_ID], personalDetails)}
+                                iconAccountID={report.managerID}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.SMALLER}
                                 titleStyle={styles.assigneeTextStyle}

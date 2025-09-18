@@ -32,9 +32,13 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           fetch-depth: 0
+
+      - name: Install pcregrep
+        run: sudo apt-get install -y pcregrep
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -47,6 +51,9 @@ jobs:
 
       - name: Enforce that a redirect link has been created
         run: ./.github/scripts/enforceRedirect.sh
+      
+      - name: Enforce iframe and Cloudflare CDN usage
+        run: ./.github/scripts/enforceVideoFormats.sh
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e
@@ -80,8 +87,3 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ format('A preview of your ExpensifyHelp changes have been deployed to {0} ⚡️', steps.deploy.outputs.alias) }}
-
-      - name: Reindex google search
-        if: ${{ github.event_name == 'push' }}
-        run : |
-          curl "https://www.google.com/ping?sitemap=https://help.expensify.com/sitemap.xml"

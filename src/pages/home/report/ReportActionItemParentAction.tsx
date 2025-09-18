@@ -1,25 +1,39 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import {isTripPreview, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isTripPreview} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
-import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, getAllAncestorReportActionIDs, getAllAncestorReportActions} from '@libs/ReportUtils';
+import {
+    canCurrentUserOpenReport,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getAllAncestorReportActionIDs,
+    getAllAncestorReportActions,
+    getOriginalReportID,
+    isArchivedReport,
+    navigateToLinkedReportAction,
+} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
+    /** All the data of the policy collection */
+    policies: OnyxCollection<OnyxTypes.Policy>;
+
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
@@ -36,6 +50,9 @@ type ReportActionItemParentActionProps = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
+    /** Array of report actions for this report */
+    reportActions: OnyxTypes.ReportAction[];
+
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -47,24 +64,76 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** User wallet tierName */
+    userWalletTierName: string | undefined;
+
+    /** Whether the user is validated */
+    isUserValidated: boolean | undefined;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** All draft messages collection */
+    allDraftMessages?: OnyxCollection<OnyxTypes.ReportActionsDrafts>;
+
+    /** All emoji reactions collection */
+    allEmojiReactions?: OnyxCollection<OnyxTypes.ReportActionReactions>;
+
+    /** Linked transaction route error */
+    linkedTransactionRouteError?: OnyxEntry<Errors>;
+
+    /** User billing fund ID */
+    userBillingFundID: number | undefined;
+
+    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
+    isTryNewDotNVPDismissed: boolean | undefined;
+
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
+    allReports,
+    policies,
     report,
     transactionThreadReport,
+    reportActions,
     parentReportAction,
     index = 0,
     shouldHideThreadDividerLine = false,
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    userWalletTierName,
+    isUserValidated,
+    personalDetails,
+    allDraftMessages,
+    allEmojiReactions,
+    linkedTransactionRouteError,
+    userBillingFundID,
+    isTryNewDotNVPDismissed = false,
+    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
+    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (allPairs) => {
+            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+
+            return Object.fromEntries(
+                Object.entries(allPairs ?? {}).filter(([key]) => {
+                    const id = key.split('_').at(1);
+                    return id && ancestorIDsToSelect.has(id);
+                }),
+            );
+        },
+    });
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -106,8 +175,17 @@ function ReportActionItemParentAction({
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {allAncestors.map((ancestor) => {
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
-                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
+                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
+                const reportNameValuePair =
+                    ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
+                const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
+
+                const originalReportID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction);
+                const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
+                const matchingDraftMessage = reportDraftMessages?.[ancestor.reportAction.reportActionID];
+                const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
+                const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestor.reportAction.reportActionID}`];
 
                 return (
                     <OfflineWithFeedback
@@ -121,25 +199,20 @@ function ReportActionItemParentAction({
                         {shouldDisplayThreadDivider && (
                             <ThreadDivider
                                 ancestor={ancestor}
-                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
+                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)}
                             />
                         )}
                         <ReportActionItem
+                            allReports={allReports}
+                            policies={policies}
                             onPress={
-                                canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
-                                    ? () => {
-                                          const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWriteAction);
-                                          // Pop the thread report screen before navigating to the chat report.
-                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
-                                          if (isVisibleAction && !isOffline) {
-                                              // Pop the chat report screen before navigating to the linked report action.
-                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
-                                          }
-                                      }
+                                canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)
+                                    ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                     : undefined
                             }
                             parentReportAction={parentReportAction}
                             report={ancestor.report}
+                            reportActions={reportActions}
                             transactionThreadReport={transactionThreadReport}
                             action={ancestor.reportAction}
                             displayAsGroup={false}
@@ -149,6 +222,14 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
+                            userWalletTierName={userWalletTierName}
+                            isUserValidated={isUserValidated}
+                            personalDetails={personalDetails}
+                            draftMessage={matchingDraftMessageString}
+                            emojiReactions={actionEmojiReactions}
+                            linkedTransactionRouteError={linkedTransactionRouteError}
+                            userBillingFundID={userBillingFundID}
+                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                         />
                     </OfflineWithFeedback>
                 );

@@ -1,26 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
+import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
 
+// eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
-}
-
-function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
-}
-
-function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    // Don't check for all betas or nobody can use test travel on dev
-    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
-}
-
-function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
 /**
@@ -30,35 +15,28 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+/**
+ * Temporary check for Unreported Expense Project - change to true for testing
+ */
+function canUseUnreportedExpense(): boolean {
+    return false;
 }
 
-function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
-}
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
+    const hasAllBetasEnabled = canUseAllBetas(betas);
+    const isFeatureEnabled = !!betas?.includes(beta);
 
-function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
-}
+    // Explicit only betas and exclusion betas are not enabled only by the 'all' beta. Explicit only betas must be set explicitly to enable the feature.
+    // Exclusion betas are designed to disable features, so being on the 'all' beta should not disable these features as that contradicts its purpose.
+    if (((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false)) && hasAllBetasEnabled && !isFeatureEnabled) {
+        return false;
+    }
 
-function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
-}
-
-function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
+    return isFeatureEnabled || hasAllBetasEnabled;
 }
 
 export default {
-    canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseSpotnanaTravel,
-    isBlockedFromSpotnanaTravel,
-    canUseNetSuiteUSATax,
-    canUseMergeAccounts,
-    canUseManagerMcTest,
-    canUseInternationalBankAccount,
-    canUseNSQS,
-    canUseCustomRules,
+    isBetaEnabled,
+    canUseUnreportedExpense,
 };

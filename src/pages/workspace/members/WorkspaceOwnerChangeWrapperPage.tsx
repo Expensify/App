@@ -1,11 +1,10 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
@@ -14,7 +13,7 @@ import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthentica
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import * as MemberActions from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,11 +26,12 @@ type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackS
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;
-    const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
+    const backTo = route.params.backTo;
+    const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
 
     useEffect(() => {
@@ -42,23 +42,23 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         if (!policy.errorFields && policy.isChangeOwnerFailed) {
             // there are some errors but not related to change owner flow - show an error page
             Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID));
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID, backTo));
             return;
         }
 
         if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
             // no errors - show a success page
             Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID));
+            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID, backTo));
             return;
         }
 
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors.at(0) as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            Navigation.setParams({error: changeOwnerErrors.at(0)});
         }
-    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
+    }, [accountID, backTo, policy, policy?.errorFields?.changeOwner, policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -69,9 +69,13 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={() => {
-                        MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
-                        Navigation.goBack();
-                        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+                        clearWorkspaceOwnerChangeFlow(policyID);
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                        } else {
+                            Navigation.goBack();
+                            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+                        }
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>

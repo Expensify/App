@@ -1,12 +1,12 @@
 import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,15 +21,21 @@ type IncorporationLocationProps = SubStepProps;
 const {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY_CODE, COMPANY_STATE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE];
 
-const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
-    acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
-    return acc;
-}, {} as Record<string, string>);
+const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
+    (acc, key) => {
+        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
+        return acc;
+    },
+    {} as Record<string, string>,
+);
 
-const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce((acc, key) => {
-    acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
-    return acc;
-}, {} as Record<string, string>);
+const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce(
+    (acc, key) => {
+        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
+        return acc;
+    },
+    {} as Record<string, string>,
+);
 
 const isCountryWithSelectableState = (countryCode: string) => countryCode === CONST.COUNTRY.US || countryCode === CONST.COUNTRY.CA;
 
@@ -54,6 +60,7 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     const incorporationStateInitialValue = onyxValues[FORMATION_INCORPORATION_STATE] !== '' ? onyxValues[FORMATION_INCORPORATION_STATE] : businessAddressStateDefaultValue;
 
     const [selectedCountry, setSelectedCountry] = useState<string>(incorporationCountryInitialValue);
+    const [selectedState, setSelectedState] = useState<string>(incorporationStateInitialValue);
     const shouldGatherState = isCountryWithSelectableState(selectedCountry);
 
     const validate = useCallback(
@@ -71,6 +78,11 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
 
     const handleSelectingCountry = (country: unknown) => {
         setSelectedCountry(typeof country === 'string' ? country : '');
+        setSelectedState('');
+    };
+
+    const handleSelectingState = (state: unknown) => {
+        setSelectedState(typeof state === 'string' ? state : '');
     };
 
     return (
@@ -81,6 +93,7 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
             validate={validate}
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5]}
+            shouldHideFixErrorsAlert={!shouldGatherState}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whereWasTheBusinessIncorporated')}</Text>
             {shouldGatherState && (
@@ -92,7 +105,8 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
                     searchInputTitle={translate('businessInfoStep.findIncorporationState')}
                     inputID={FORMATION_INCORPORATION_STATE}
                     shouldSaveDraft={!isEditing}
-                    defaultValue={incorporationStateInitialValue}
+                    value={selectedState}
+                    onValueChange={handleSelectingState}
                 />
             )}
             <InputWrapper

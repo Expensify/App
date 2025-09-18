@@ -1,9 +1,8 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import * as Localize from '@libs/Localize';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -12,27 +11,44 @@ import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
-    handlePushReportSplitAction,
-    handlePushSearchPageAction,
-    handleSwitchPolicyIDAction,
+    handlePushFullscreenAction,
+    handleReplaceReportsSplitNavigatorAction,
+    handleToggleSidePanelWithHistoryAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
+import type {
+    DismissModalActionType,
+    OpenWorkspaceSplitActionType,
+    PreloadActionType,
+    PushActionType,
+    ReplaceActionType,
+    RootStackNavigatorAction,
+    RootStackNavigatorRouterOptions,
+    ToggleSidePanelWithHistoryActionType,
+} from './types';
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-}
-
-function isSwitchPolicyIdAction(action: RootStackNavigatorAction): action is SwitchPolicyIdActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
 }
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
 }
 
+function isReplaceAction(action: RootStackNavigatorAction): action is ReplaceActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+}
+
 function isDismissModalAction(action: RootStackNavigatorAction): action is DismissModalActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
+}
+
+function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+}
+
+function isPreloadAction(action: RootStackNavigatorAction): action is PreloadActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
@@ -65,31 +81,35 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    const {setActiveWorkspaceID} = useActiveWorkspace();
 
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
-            if (isOpenWorkspaceSplitAction(action)) {
-                return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
+            if (isPreloadAction(action) && action.payload.name === state.routes.at(-1)?.name) {
+                return state;
             }
 
-            if (isSwitchPolicyIdAction(action)) {
-                return handleSwitchPolicyIDAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+            if (isToggleSidePanelWithHistoryAction(action)) {
+                return handleToggleSidePanelWithHistoryAction(state, action);
+            }
+
+            if (isOpenWorkspaceSplitAction(action)) {
+                return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
             }
 
             if (isDismissModalAction(action)) {
                 return handleDismissModalAction(state, configOptions, stackRouter);
             }
 
-            if (isPushAction(action)) {
-                if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
-                }
+            if (isReplaceAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
+            }
 
-                if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-                    return handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
-                }
+            // When navigating to a specific workspace from WorkspaceListPage there should be entering animation for its sidebar (only case where we want animation for sidebar)
+            // That's why we have a separate handler for opening it called handleOpenWorkspaceSplitAction
+            // options for WorkspaceSplitNavigator can be found in AuthScreens.tsx > getWorkspaceSplitNavigatorOptions
+            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                return handlePushFullscreenAction(state, action, configOptions, stackRouter);
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.

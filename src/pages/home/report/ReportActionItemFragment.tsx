@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import isReportMessageAttachment from '@libs/isReportMessageAttachment';
+import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -19,6 +19,9 @@ import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeader
 type ReportActionItemFragmentProps = {
     /** Users accountID */
     accountID: number;
+
+    /** The report action's id */
+    reportActionID?: string;
 
     /** The message fragment needing to be displayed */
     fragment: Message | undefined;
@@ -63,6 +66,9 @@ type ReportActionItemFragmentProps = {
     actionName?: ReportActionName;
 
     moderationDecision?: DecisionName;
+
+    /** Whether the fragment should show a tooltip */
+    shouldShowTooltip?: boolean;
 };
 
 const MUTED_ACTIONS = [
@@ -76,6 +82,7 @@ const MUTED_ACTIONS = [
 ] as ReportActionName[];
 
 function ReportActionItemFragment({
+    reportActionID,
     pendingAction,
     actionName,
     fragment,
@@ -92,6 +99,7 @@ function ReportActionItemFragment({
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     moderationDecision,
+    shouldShowTooltip = true,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -116,6 +124,7 @@ function ReportActionItemFragment({
             if (isReportMessageAttachment(fragment)) {
                 return (
                     <AttachmentCommentFragment
+                        reportActionID={reportActionID}
                         source={source}
                         html={fragment?.html ?? ''}
                         addExtraMargin={!displayAsGroup}
@@ -126,6 +135,7 @@ function ReportActionItemFragment({
 
             return (
                 <TextCommentFragment
+                    reportActionID={reportActionID}
                     source={source}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
@@ -166,6 +176,7 @@ function ReportActionItemFragment({
                     fragmentText={fragment.text}
                     actorIcon={actorIcon}
                     isSingleLine={isSingleLine}
+                    shouldShowTooltip={shouldShowTooltip}
                 />
             );
         }

@@ -1,8 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,28 +10,31 @@ import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import RecordTroubleshootDataToolMenu from '@components/RecordTroubleshootDataToolMenu';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
-import * as Report from '@userActions/Report';
+import CONFIG from '@src/CONFIG';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -48,18 +49,45 @@ function TroubleshootPage() {
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrationStyle = getLightbulbIllustrationStyle();
     const [isLoading, setIsLoading] = useState(false);
-    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
-    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
+    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
-
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
+    const {setShouldResetSearchQuery} = useSearchContext();
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);
+
+    const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
+        if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
+            return null;
+        }
+
+        return {
+            translationKey: 'exitSurvey.goToExpensifyClassic',
+            icon: Expensicons.ExpensifyLogoNew,
+            ...(CONFIG.IS_HYBRID_APP
+                ? {
+                      action: () => closeReactNativeApp({shouldSetNVP: true}),
+                  }
+                : {
+                      action() {
+                          resetExitSurveyForm(() => {
+                              if (shouldOpenSurveyReasonPage) {
+                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                          });
+                      },
+                  }),
+        };
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, shouldOpenSurveyReasonPage]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
@@ -85,7 +113,9 @@ function TroubleshootPage() {
             baseMenuItems.push(debugConsoleItem);
         }
 
-        return baseMenuItems
+        const finalMenuItems = classicRedirectMenuItem ? [classicRedirectMenuItem, ...baseMenuItems] : baseMenuItems;
+
+        return finalMenuItems
             .map((item) => ({
                 key: item.translationKey,
                 title: translate(item.translationKey),
@@ -94,7 +124,7 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription]);
+    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem]);
 
     return (
         <ScreenWrapper
@@ -106,7 +136,7 @@ function TroubleshootPage() {
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                onBackButtonPress={Navigation.popToSidebar}
                 icon={Illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
@@ -119,24 +149,16 @@ function TroubleshootPage() {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Desk}
-                        illustrationStyle={illustrationStyle}
                         titleStyles={styles.accountSettingsSectionTitle}
                         renderSubtitle={() => (
-                            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
-                                <TextLink
-                                    style={styles.link}
-                                    onPress={() => Report.navigateToConciergeChat()}
-                                >
-                                    {translate('initialSettingsPage.troubleshoot.submitBug')}
-                                </TextLink>
-                                .
-                            </Text>
+                            <View style={[styles.renderHTML, styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
+                                <RenderHTML html={translate('initialSettingsPage.troubleshoot.description')} />
+                            </View>
                         )}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
-                                <ClientSideLoggingToolMenu />
+                                <RecordTroubleshootDataToolMenu />
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
@@ -161,6 +183,7 @@ function TroubleshootPage() {
                                 onConfirm={() => {
                                     setIsConfirmationModalVisible(false);
                                     resetOptions();
+                                    setShouldResetSearchQuery(true);
                                     clearOnyxAndResetApp();
                                 }}
                                 onCancel={() => setIsConfirmationModalVisible(false)}

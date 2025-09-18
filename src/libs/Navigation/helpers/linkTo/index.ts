@@ -1,12 +1,13 @@
 import {getActionFromState} from '@react-navigation/core';
-import type {NavigationContainerRef, NavigationState, PartialState, StackActionType} from '@react-navigation/native';
+import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
-import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -19,23 +20,6 @@ const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
 };
 
-function createActionWithPolicyID(action: StackActionType, policyID: string): StackActionType | undefined {
-    if (action.type !== 'PUSH' && action.type !== 'REPLACE') {
-        return;
-    }
-
-    return {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                policyID,
-            },
-        },
-    };
-}
-
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
     const targetFocusedRoute = findFocusedRoute(stateFromPath);
@@ -44,6 +28,21 @@ function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParam
     const areParamsEqual = shallowCompare(currentFocusedRoute?.params as Record<string, unknown> | undefined, targetFocusedRoute?.params as Record<string, unknown> | undefined);
 
     return areNamesEqual && areParamsEqual;
+}
+
+function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+    const focusedRouteFromPath = findFocusedRoute(stateFromPath);
+    const params = focusedRouteFromPath?.params ?? {};
+
+    if (!focusedRouteFromPath?.path || !('backTo' in params) || !params.backTo || typeof params.backTo !== 'string') {
+        return false;
+    }
+    let cleanedPath = focusedRouteFromPath.path.replace(/\?.*/, '');
+    let cleanedBackTo = params.backTo.replace(/\?.*/, '');
+    cleanedPath = cleanedPath.endsWith('/') ? cleanedPath.slice(0, -1) : cleanedPath;
+    cleanedBackTo = cleanedBackTo.endsWith('/') ? cleanedBackTo.slice(0, -1) : cleanedBackTo;
+
+    return cleanedPath === cleanedBackTo;
 }
 
 function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
@@ -62,7 +61,7 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
     const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
-    return currentParams.reportID === newParams.reportID;
+    return currentParams?.reportID === newParams?.reportID;
 }
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
@@ -73,15 +72,14 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // We know that the options are always defined because we have default options.
     const {forceReplace} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
-    const normalizedPath = normalizePath(path);
-    const extractedPolicyID = extractPolicyIDFromPath(normalizedPath);
-    const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath) as Route;
+    const normalizedPath = normalizePath(path) as Route;
+    const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
 
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
-    const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootNavigatorParamList>>;
-    const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
+    const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const currentState = navigation.getRootState() as PlatformStackNavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -100,7 +98,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // We don't want to dispatch action to push/replace with exactly the same route that is already focused.
-    if (areNamesAndParamsEqual(currentState, stateFromPath)) {
+    if (areNamesAndParamsEqual(currentState, stateFromPath) || arePathAndBackToEqual(stateFromPath)) {
         return;
     }
 
@@ -121,17 +119,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
-    // Handle deep links including policyID as /w/:policyID.
-    if (extractedPolicyID) {
-        const actionWithPolicyID = createActionWithPolicyID(action as StackActionType, extractedPolicyID);
-        if (!actionWithPolicyID) {
-            return;
-        }
-
-        navigation.dispatch(actionWithPolicyID);
-        return;
-    }
-
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
     if (shouldCheckFullScreenRouteMatching(action)) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
@@ -140,12 +127,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
-                    screen: lastRouteInMatchingFullScreen?.name,
-                    params: lastRouteInMatchingFullScreen?.params,
-                });
-                navigation.dispatch(additionalAction);
+                const isMatchingRoutePreloaded = currentState.preloadedRoutes.some((preloadedRoute) => preloadedRoute.name === matchingFullScreenRoute.name);
+                if (isMatchingRoutePreloaded) {
+                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                } else {
+                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                        screen: lastRouteInMatchingFullScreen?.name,
+                        params: lastRouteInMatchingFullScreen?.params,
+                    });
+                    navigation.dispatch(additionalAction);
+                }
             }
         }
     }

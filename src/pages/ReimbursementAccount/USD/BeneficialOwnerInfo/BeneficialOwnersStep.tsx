@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,8 +33,8 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -58,10 +58,13 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const submit = () => {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
-            beneficialOwnerFields.reduce((acc, fieldName) => {
-                acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
-                return acc;
-            }, {} as Record<string, string | undefined>),
+            beneficialOwnerFields.reduce(
+                (acc, fieldName) => {
+                    acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
+                    return acc;
+                },
+                {} as Record<string, string | undefined>,
+            ),
         );
 
         updateBeneficialOwnersForBankAccount(
@@ -212,12 +215,12 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             shouldEnableMaxHeight
             headerTitle={translate('beneficialOwnerInfoStep.companyOwner')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={4}
+            startStepIndex={5}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.doYouOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isUserUBO}
@@ -227,7 +230,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isAnyoneElseUBO}
@@ -247,7 +250,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             {currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS && (
                 <YesNoStep
-                    title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
+                    title={translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent', {companyName})}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     onSelectedValue={handleNextUBOSubstep}

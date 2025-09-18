@@ -4,6 +4,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {DebugForms} from './const';
 import {DETAILS_CONSTANT_FIELDS} from './const';
 
@@ -43,9 +44,11 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                             keyForList: key,
                             isSelected: value === fieldValue,
                             searchText: value,
-                        } satisfies ListItem),
+                        }) satisfies ListItem,
                 )
-                .filter(({searchText}) => searchText.toLowerCase().includes(searchValue.toLowerCase())),
+                .filter(({searchText}) => {
+                    return tokenizedSearch([{searchText}], searchValue, (item) => [item.searchText]).length > 0;
+                }),
         [fieldName, fieldValue, formType, searchValue],
     );
     const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue).at(0)?.keyForList, [sections, fieldValue]);

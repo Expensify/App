@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TextSelectorModalProps} from './types';
@@ -26,6 +27,7 @@ function TextSelectorModal({
     onClose,
     shouldClearOnClose,
     maxLength = CONST.CATEGORY_NAME_LIMIT,
+    required = false,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
@@ -50,8 +52,12 @@ function TextSelectorModal({
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
+            let errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
             const formValue = values[rest.inputID];
+
+            if (required) {
+                errors = getFieldRequiredErrors(values, [rest.inputID]);
+            }
 
             if (formValue.length > maxLength) {
                 errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
@@ -59,7 +65,7 @@ function TextSelectorModal({
 
             return errors;
         },
-        [maxLength, rest.inputID, translate],
+        [maxLength, rest.inputID, required, translate],
     );
 
     // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.
@@ -93,19 +99,32 @@ function TextSelectorModal({
         }, [isVisible]),
     );
 
+    const handleSubmit = useCallback(
+        (data: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
+            const submittedValue = data[rest.inputID] ?? '';
+
+            if (required && !submittedValue.trim()) {
+                return;
+            }
+
+            Keyboard.dismiss();
+            onValueSelected?.(submittedValue);
+        },
+        [onValueSelected, rest.inputID, required],
+    );
+
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}
             onModalHide={hide}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldUseModalPaddingStyle={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop
-                includeSafeAreaPaddingBottom
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
             >
@@ -116,13 +135,13 @@ function TextSelectorModal({
                 <FormProvider
                     formID={ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM}
                     validate={validate}
-                    onSubmit={(data) => {
-                        Keyboard.dismiss();
-                        onValueSelected?.(data[rest.inputID] ?? '');
-                    }}
+                    onSubmit={handleSubmit}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
+                    enterKeyEventListenerPriority={0}
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
                     <InputWrapper

@@ -65,9 +65,6 @@ type SMSDeliveryFailureStatus = {
     /** The message associated with the SMS delivery failure */
     message: string;
 
-    /** Indicates whether the SMS delivery failure status has been reset by an API call */
-    isReset?: boolean;
-
     /** Whether a sign is loading */
     isLoading?: boolean;
 };
@@ -82,9 +79,6 @@ type Account = {
 
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
-
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink?: string;
 
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
@@ -176,6 +170,66 @@ type Account = {
         email: string;
         /** The calendar link of the guide details */
         calendarLink: string;
+    };
+
+    /** Model of the getValidateCodeForAccountMerge API call */
+    getValidateCodeForAccountMerge?: {
+        /** Whether the validation code was sent */
+        isLoading?: boolean;
+
+        /** Whether the user validation code was sent */
+        validateCodeSent?: boolean;
+
+        /** Whether the user validation code was re-sent */
+        validateCodeResent?: boolean;
+
+        /** Errors while requesting the validation code */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Model of the mergeWithValidateCode API call */
+    mergeWithValidateCode?: {
+        /** Whether the API call is loading */
+        isLoading?: boolean;
+
+        /** Whether the account was merged successfully */
+        isAccountMerged?: boolean;
+
+        /** Errors while merging the account */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Whether or not the user is subscribed to news updates */
+    isSubscribedToNewsletter?: boolean;
+
+    /** Whether we should block the transaction thread report creation */
+    shouldBlockTransactionThreadReportCreation?: boolean;
+
+    /** Whether or not the user is on a public domain email account or not */
+    isFromPublicDomain?: boolean;
+
+    /** Whether or not the user uses expensify card */
+    isUsingExpensifyCard?: boolean;
+
+    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
+    isCheckingDomain?: boolean;
+
+    /** Whether or not the user has lounge access */
+    hasLoungeAccess?: boolean;
+
+    /** error associated with adding a secondary login */
+    error?: string;
+
+    /** Whether the user is an Expensify Guide */
+    isGuide?: boolean;
+
+    /** If user has accessible policies on a private domain */
+    hasAccessibleDomainPolicies?: boolean;
+
+    /** Errors for lock account */
+    lockAccount?: {
+        /** API errors when locking an account */
+        errors: OnyxCommon.Errors;
     };
 };
 

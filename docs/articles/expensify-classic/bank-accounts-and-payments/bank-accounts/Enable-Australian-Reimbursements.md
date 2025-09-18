@@ -1,25 +1,48 @@
 ---
-title: Enable Australian reimbursements
-description: Reimburse AUD expenses using ABA files
+title: Enable-australian-reimbursements.md
+description: Learn how to set up direct reimbursements for Australian employees using ABA files in Expensify Classic.
+keywords: [Expensify, Australian reimbursements, AUD, direct reimbursement, ABA file, bank account, Expensify Classic]
 ---
-<div id="expensify-classic" markdown="1">
 
-{% include info.html %}
-AUD bank accounts do not rely on direct deposit or ACH.
+This article explains how to set up direct reimbursements in AUD for Australian employees using ABA files that can be uploaded to your bank.
 
-For businesses that will also be reimbursing employees in other countries outside of Australia, you’ll need to set up Global Reimbursement instead.
-{% include end-info.html %}
+# Enable Australian Reimbursements
 
-You can reimburse AUD expenses using indirect reimbursements. This allows your Australian employees to submit their personal bank account information to Expensify where it will be provided to you for payment via an .aba file. A Workspace Admin can then upload the .aba file to the bank to have payments issued. 
+You can reimburse AUD expenses using **Direct Reimbursement** in Expensify Classic. This method allows employees in Australia to enter their bank account details, which are exported into an `.aba` file. Workspace Admins can upload this file to their bank for reimbursement.
 
-To enable ABA payments,
+**Note:** An alternative to ABA reimbursement is to set up global reimbursements for AUD bank accounts to reimburse via ACH or wire. 
 
-1. Hover over **Settings**, then click **Workspaces**. 
-2. Select the desired workspace. 
-3. Click the **Reports** tab on the left. 
-4. Click the Report Currency dropdown and select **AUD A$**. 
-5. Click the **Reimbursement** tab on the left. 
-6. Select **Indirect** as the Reimbursement type.
-7. Enable the toggle.
+If you'd like to make direct international payments through Expensify, consider enabling **Global Reimbursements** instead.
 
-</div>
+---
+
+## Setting up ABA Reimbursements
+
+1. Go to `Settings > Workspaces > [Workspace Name] > Overview`.
+2. In the **Report currency** dropdown, select **AUD A$**.
+3. Navigate to `Settings > Workspaces > [Workspace Name] > Workflows`.
+4. Scroll to **Make or track payments**.
+5. Set **Reimbursement type** to **Direct**.
+6. Toggle **Collect bank account details** to **On**.
+7. Reach out to concierge@expensify.com so we can enable ABA reimbursement on our side. 
+
+---
+
+Once setup is complete:
+- Employees can submit expenses in AUD.
+- You can reimburse them by downloading and uploading the ABA file to your bank.
+
+# FAQ
+
+## What is an ABA file?
+
+An ABA file is a standardized bank file format used in Australia to process batch payments through online banking.
+
+## Why can't I use direct deposit in AUD?
+
+Australian banks do not support ACH (direct deposit) payments like U.S. accounts. Reimbursements must be processed manually via ABA.
+
+## Can I still reimburse employees internationally?
+
+Yes, you can set up **Global Reimbursements** if you want to process international payments directly through Expensify.
+

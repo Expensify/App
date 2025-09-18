@@ -1,10 +1,12 @@
 package com.expensify.chat.navbar
 
+import android.content.res.Resources
 import androidx.core.view.WindowInsetsControllerCompat
+import com.expensify.chat.R
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.bridge.UiThreadUtil
 
 class NavBarManagerModule(
     private val mReactContext: ReactApplicationContext,
@@ -23,5 +25,19 @@ class NavBarManagerModule(
                 }
             }
         }
+    }
+
+    @ReactMethod
+    fun getType(): String {
+        val resources = mReactContext.resources
+        val resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
+        if (resourceId > 0) {
+            val navBarInteractionMode = resources.getInteger(resourceId)
+            when (navBarInteractionMode) {
+                0, 1 -> return "soft-keys"
+                2 -> return "gesture-bar"
+            }
+        }
+        return "soft-keys";
     }
 }

@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import type {ImageSourcePropType} from 'react-native';
 import type ImageSVGProps from './types';
 
-function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style}: ImageSVGProps) {
+function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd}: ImageSVGProps) {
     const tintColorProp = fill ? {tintColor: fill} : {};
 
     // Clear memory cache when unmounting images to avoid memory overload
@@ -16,6 +16,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
 
     return (
         <Image
+            onLoadEnd={onLoadEnd}
             // Caching images to memory since some SVGs are being displayed with delay
             // See issue: https://github.com/Expensify/App/issues/34881
             cachePolicy="memory"

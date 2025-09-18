@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
@@ -15,6 +14,8 @@ import TextInput from '@components/TextInput';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
@@ -28,8 +29,10 @@ import {
     addPendingContactMethod,
     clearContactMethod,
     clearContactMethodErrors,
+    clearPendingContactActionErrors,
     clearUnvalidatedNewContactMethodAction,
     requestValidateCodeAction,
+    resetValidateActionCodeSent,
 } from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,24 +44,27 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function NewContactMethodPage({route}: NewContactMethodPageProps) {
-    const contactMethod = getContactMethod();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
 
-    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
+    const navigateBackTo = route?.params?.backTo;
 
     const hasFailedToSendVerificationCode = !!pendingContactAction?.errorFields?.actionVerified;
 
     const handleValidateMagicCode = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-        const validateIfnumber = validateNumber(phoneLogin);
-        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+        const validateIfNumber = validateNumber(phoneLogin);
+        const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
+        resetValidateActionCodeSent();
         addPendingContactMethod(submitDetail);
         setIsValidateCodeActionModalVisible(true);
     }, []);
@@ -69,22 +75,23 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         },
         [pendingContactAction?.contactMethod],
     );
+    const prevPendingContactAction = usePrevious(pendingContactAction);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!pendingContactAction?.actionVerified) {
+        if (!pendingContactAction?.actionVerified || !prevPendingContactAction?.contactMethod) {
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(prevPendingContactAction?.contactMethod ?? ''), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
-    }, [pendingContactAction?.actionVerified]);
+    }, [pendingContactAction?.actionVerified, prevPendingContactAction?.contactMethod, navigateBackTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
             const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-            const validateIfnumber = validateNumber(phoneLogin);
+            const validateIfNumber = validateNumber(phoneLogin);
 
             const errors = {};
 
@@ -101,12 +108,12 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 );
             }
 
-            if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!!values.phoneOrEmail && !(validateIfNumber || Str.isValidEmail(values.phoneOrEmail))) {
                 addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
-            if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
-                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
+            if (!!values.phoneOrEmail && loginList?.[validateIfNumber || values.phoneOrEmail.toLowerCase()]) {
+                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmitted'));
             }
 
             return errors;
@@ -119,10 +126,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     );
 
     const onBackButtonPress = useCallback(() => {
-        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
-            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
-            return;
-        }
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
@@ -144,6 +147,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     onSubmit={handleValidateMagicCode}
                     submitButtonText={translate('common.add')}
                     style={[styles.flexGrow1, styles.mh5]}
+                    shouldHideFixErrorsAlert
                 >
                     <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                     <View style={styles.mb6}>
@@ -167,7 +171,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     )}
                 </FormProvider>
                 <ValidateCodeActionModal
-                    validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
+                    validateCodeActionErrorField="addedLogin"
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
                     clearError={() => {
@@ -175,6 +179,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                             return;
                         }
                         clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
+                        clearPendingContactActionErrors();
                     }}
                     onClose={() => {
                         if (pendingContactAction?.contactMethod) {
@@ -184,7 +189,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     isVisible={isValidateCodeActionModalVisible}
-                    hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                     title={translate('delegate.makeSureItIsYou')}
                     sendValidateCode={() => requestValidateCodeAction()}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}

@@ -1,19 +1,25 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import CONST from '@src/CONST';
 import {createDraftWorkspace, createWorkspace} from '@src/libs/actions/Policy/Policy';
+import type SCREENS from '@src/SCREENS';
 
-function TravelUpgrade() {
+type TravelUpgradeProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.UPGRADE>;
+
+function TravelUpgrade({route}: TravelUpgradeProps) {
     const styles = useThemeStyles();
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
     const {translate} = useLocalize();
@@ -26,7 +32,15 @@ function TravelUpgrade() {
         createDraftWorkspace('', false, params.name, params.policyID, params.currency, params.avatarFile as File);
         setShouldShowConfirmation(false);
         setIsUpgraded(true);
-        createWorkspace('', false, params.name, params.policyID, undefined, params.currency, params.avatarFile as File);
+        createWorkspace({
+            policyOwnerEmail: '',
+            makeMeAdmin: false,
+            policyName: params.name,
+            policyID: params.policyID,
+            engagementChoice: undefined,
+            currency: params.currency,
+            file: params.avatarFile as File,
+        });
     };
 
     const onClose = () => {
@@ -41,21 +55,24 @@ function TravelUpgrade() {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
             />
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                 isVisible={shouldShowConfirmation}
                 onClose={onClose}
                 onModalHide={onClose}
-                hideModalContentWhileAnimating
-                useNativeDriver
-                onBackdropPress={Navigation.dismissModal}
+                onBackdropPress={() => {
+                    onClose();
+                    Navigation.dismissModal();
+                }}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldKeyboardOffsetBottomSafeAreaPadding
                     testID={TravelUpgrade.displayName}
                 >
                     <WorkspaceConfirmationForm
@@ -64,21 +81,23 @@ function TravelUpgrade() {
                     />
                 </ScreenWrapper>
             </Modal>
-            {isUpgraded ? (
-                <UpgradeConfirmation
-                    onConfirmUpgrade={() => Navigation.goBack()}
-                    policyName=""
-                    isTravelUpgrade
-                />
-            ) : (
-                <UpgradeIntro
-                    feature={feature}
-                    onUpgrade={() => setShouldShowConfirmation(true)}
-                    buttonDisabled={isOffline}
-                    loading={false}
-                    isCategorizing
-                />
-            )}
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                {isUpgraded ? (
+                    <UpgradeConfirmation
+                        afterUpgradeAcknowledged={() => Navigation.goBack()}
+                        policyName=""
+                        isTravelUpgrade
+                    />
+                ) : (
+                    <UpgradeIntro
+                        feature={feature}
+                        onUpgrade={() => setShouldShowConfirmation(true)}
+                        buttonDisabled={isOffline}
+                        loading={false}
+                        isCategorizing
+                    />
+                )}
+            </ScrollView>
         </ScreenWrapper>
     );
 }

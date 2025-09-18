@@ -1,5 +1,4 @@
 import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
@@ -10,11 +9,13 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
-import * as ReportActions from '@libs/actions/Report';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {canBeExported as canBeExportedUtil, getIntegrationIcon, isExported as isExportedUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,17 +37,18 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
+    const styles = useThemeStyles();
 
-    const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
-    const canBeExported = ReportUtils.canBeExported(report);
-    const isExported = ReportUtils.isExported(reportActions);
+    const iconToDisplay = getIntegrationIcon(connectionName);
+    const canBeExported = canBeExportedUtil(report);
+    const isExported = isExportedUtil(reportActions);
 
     const confirmExport = useCallback(
         (type = modalStatus) => {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                ReportActions.exportToIntegration(reportID, connectionName);
+                exportToIntegration(reportID, connectionName);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                ReportActions.markAsManuallyExported(reportID, connectionName);
+                markAsManuallyExported(reportID, connectionName);
             }
             setModalStatus(null);
             Navigation.dismissModal();
@@ -68,7 +70,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
         },
         {
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-            text: translate('workspace.common.markAsExported'),
+            text: translate('workspace.common.markAsEntered'),
             icons: [
                 {
                     source: iconToDisplay ?? '',
@@ -87,13 +89,14 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 />
                 <ConfirmationPage
-                    illustration={Illustrations.LaptopwithSecondScreenandHourglass}
+                    illustration={Illustrations.LaptopWithSecondScreenAndHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
@@ -102,7 +105,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     return (
         <>
             <SelectionScreen<ExportType>
-                policyID={policyID ?? ''}
+                policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
                 displayName={ReportDetailsExportPage.displayName}

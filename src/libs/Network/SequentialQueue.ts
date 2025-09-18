@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
@@ -18,6 +19,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
+
+let shouldFailAllRequests: boolean;
+// Use connectWithoutView since this is for network data and don't affect to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldFailAllRequests = !!network.shouldFailAllRequests;
+    },
+});
 
 type RequestError = Error & {
     name?: string;
@@ -61,7 +74,38 @@ function flushOnyxUpdatesQueue() {
         Log.info('[SequentialQueue] Queue already paused');
         return;
     }
-    flushQueue();
+    return flushQueue();
+}
+
+let queueFlushedDataToStore: OnyxUpdate[] = [];
+
+// Use connectWithoutView since this is for network queue and don't affect to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.QUEUE_FLUSHED_DATA,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        queueFlushedDataToStore = val;
+    },
+});
+
+function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
+    const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+    return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {
+        Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {newValue});
+    });
+}
+function clearQueueFlushedData() {
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+    return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, null).then(() => {
+        queueFlushedDataToStore.length = 0;
+        Log.info('[SequentialQueue] QueueFlushedData has been cleared.');
+    });
+}
+function getQueueFlushedData() {
+    return queueFlushedDataToStore;
 }
 
 /**
@@ -108,13 +152,22 @@ function process(): Promise<void> {
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
+            if (requestToProcess.queueFlushedData) {
+                Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData: requestToProcess.queueFlushedData});
+                saveQueueFlushedData(...requestToProcess.queueFlushedData);
+            }
+
             sequentialQueueRequestThrottle.clear();
             return process();
         })
         .catch((error: RequestError) => {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
-            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
+                if (shouldFailAllRequests) {
+                    Onyx.update(requestToProcess.failureData ?? []);
+                }
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
@@ -176,7 +229,8 @@ function flush(shouldResetPromise = true) {
     }
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connection = Onyx.connect({
+    // Use connectWithoutView since this is for network queue and don't affect to any UI
+    const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.PERSISTED_REQUESTS,
         // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
         // an existing connection already made in PersistedRequests.ts.
@@ -193,7 +247,17 @@ function flush(shouldResetPromise = true) {
 
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
                 if (getAllPersistedRequests().length === 0) {
-                    flushOnyxUpdatesQueue();
+                    flushOnyxUpdatesQueue()?.then(() => {
+                        const queueFlushedData = getQueueFlushedData();
+                        if (queueFlushedData.length === 0) {
+                            return;
+                        }
+                        Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData});
+                        Onyx.update(queueFlushedData).then(() => {
+                            Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {queueFlushedData});
+                            clearQueueFlushedData();
+                        });
+                    });
                 }
             });
         },
@@ -212,6 +276,11 @@ function unpause() {
     const numberOfPersistedRequests = getAllPersistedRequests().length || 0;
     Log.info(`[SequentialQueue] Unpausing the queue and flushing ${numberOfPersistedRequests} requests`);
     isQueuePaused = false;
+
+    // If there are no persisted requests, we need to flush the Onyx updates queue
+    if (numberOfPersistedRequests === 0) {
+        flushOnyxUpdatesQueue();
+    }
 
     // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
     // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
@@ -273,11 +342,11 @@ function push(newRequest: OnyxRequest) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        isReadyPromise.then(() => flush());
+        isReadyPromise.then(() => flush(true));
         return;
     }
 
-    flush();
+    flush(true);
 }
 
 function getCurrentRequest(): Promise<void> {
@@ -308,5 +377,20 @@ function resetQueue(): void {
     resolveIsReadyPromise?.();
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
+export {
+    flush,
+    getCurrentRequest,
+    isPaused,
+    isRunning,
+    pause,
+    process,
+    push,
+    resetQueue,
+    sequentialQueueRequestThrottle,
+    unpause,
+    waitForIdle,
+    getQueueFlushedData,
+    saveQueueFlushedData,
+    clearQueueFlushedData,
+};
 export type {RequestError};

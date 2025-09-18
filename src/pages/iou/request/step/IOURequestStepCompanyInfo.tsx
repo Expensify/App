@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,15 +8,15 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
-import * as Url from '@libs/Url';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {extractUrlDomain} from '@libs/Url';
+import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import * as IOU from '@userActions/IOU';
+import {getIOURequestPolicyID, sendInvoice} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -38,29 +37,31 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
 
-    const policy = usePolicy(IOU.getIOURequestPolicyID(transaction, report));
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`);
+    const policyID = getIOURequestPolicyID(transaction, report);
+    const policy = usePolicy(policyID);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
+    const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE]);
             if (values.companyWebsite) {
                 const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-                if (!ValidationUtils.isValidWebsite(companyWebsite)) {
+                if (!isValidWebsite(companyWebsite)) {
                     errors.companyWebsite = translate('bankAccount.error.website');
                 } else {
-                    const domain = Url.extractUrlDomain(companyWebsite);
+                    const domain = extractUrlDomain(companyWebsite);
 
                     if (!domain || !Str.isValidDomainName(domain)) {
                         errors.companyWebsite = translate('iou.invalidDomainError');
-                    } else if (ValidationUtils.isPublicDomain(domain)) {
+                    } else if (isPublicDomain(domain)) {
                         errors.companyWebsite = translate('iou.publicDomainError');
                     }
                 }
@@ -73,8 +74,18 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        playSound(SOUNDS.DONE);
-        IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, undefined, policy, policyTags, policyCategories, values.companyName, companyWebsite);
+        sendInvoice(
+            currentUserPersonalDetails.accountID,
+            transaction,
+            report,
+            undefined,
+            policy,
+            policyTags,
+            policyCategories,
+            values.companyName,
+            companyWebsite,
+            policyRecentlyUsedCategories,
+        );
     };
 
     return (

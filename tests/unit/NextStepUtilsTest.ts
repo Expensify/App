@@ -1,8 +1,6 @@
-import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
 import {buildNextStep} from '@libs/NextStepUtils';
-import {buildOptimisticExpenseReport} from '@libs/ReportUtils';
+import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
@@ -33,7 +31,7 @@ describe('libs/NextStepUtils', () => {
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
             isPolicyExpenseChatEnabled: true,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const optimisticNextStep: ReportNextStep = {
             type: 'neutral',
@@ -75,6 +73,42 @@ describe('libs/NextStepUtils', () => {
             optimisticNextStep.message = [];
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy).then(waitForBatchedUpdates);
+        });
+
+        describe('it generates and optimistic nextStep once a report has been created', () => {
+            test('Correct next steps message', () => {
+                const emptyReport = buildOptimisticEmptyReport(
+                    'fake-empty-report-id-2',
+                    currentUserAccountID,
+                    {reportID: 'fake-parent-report-id-3'},
+                    'fake-parent-report-action-id-4',
+                    policy,
+                    '2025-03-31 13:23:11',
+                );
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'add',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
@@ -297,7 +331,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the last day of the month`,
                         },
                     ];
 
@@ -309,14 +343,11 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
-
                         expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
                 test('monthly on the last business day', () => {
-                    const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(new Date());
-
                     // Waiting for userSubmitter's expense(s) to automatically submit on lastBusinessDayOfMonth of each month
                     optimisticNextStep.message = [
                         {
@@ -335,7 +366,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the last business day of the month`,
                         },
                     ];
 
@@ -578,11 +609,73 @@ describe('libs/NextStepUtils', () => {
                     expect(result).toMatchObject(optimisticNextStep);
                 });
             });
+
+            test('approval mode enabled', () => {
+                report.managerID = strangeAccountID;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: ownerEmail,
+                        type: 'strong',
+                        clickToCopyText: ownerEmail,
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'approve',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
+
+            test('advanced approval mode enabled', () => {
+                report.managerID = strangeAccountID;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: strangeEmail,
+                        type: 'strong',
+                        clickToCopyText: strangeEmail,
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'approve',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
             test('non-payer', () => {
-                report.managerID = strangeAccountID;
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
@@ -590,9 +683,14 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    role: 'user',
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
 
             test('payer', () => {

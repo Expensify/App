@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
@@ -86,7 +86,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         const {height, width} = event.nativeEvent.layout;
 
         // Even if the browser height is reduced too much, the relative height should not be negative
-        const relativeHeight = Math.max(height, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
+        const relativeHeight = Math.max(height - CONST.AVATAR_CROP_MODAL.CONTAINER_VERTICAL_MARGIN, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
     }, []);
 
@@ -120,9 +120,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             return;
         }
         // We need to have image sizes in shared values to properly calculate position/size/animation
-        ImageSize.getSize(imageUri).then(({width, height, rotation: orginalRotation}) => {
+        ImageSize.getSize(imageUri).then(({width, height, rotation: originalRotation}) => {
             // On Android devices ImageSize library returns also rotation parameter.
-            if (orginalRotation === 90 || orginalRotation === 270) {
+            if (originalRotation === 90 || originalRotation === 270) {
                 originalImageHeight.set(width);
                 originalImageWidth.set(height);
             } else {
@@ -316,7 +316,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
         cropOrRotateImage(imageUri, [{rotate: rotation.get() % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
-                onClose?.();
+                InteractionManager.runAfterInteractions(() => {
+                    onClose?.();
+                });
                 onSave?.(newImage);
             })
             .catch(() => {
@@ -351,11 +353,13 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             onModalHide={resetState}
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
+                shouldEnableKeyboardAvoidingView={false}
                 testID={AvatarCropModal.displayName}
             >
                 {shouldUseNarrowLayout && <HeaderGap />}

@@ -13,8 +13,8 @@ import TestNavigationContainer from '../utils/TestNavigationContainer';
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
-jest.mock('@pages/home/sidebar/BottomTabAvatar');
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar');
+jest.mock('@pages/home/sidebar/NavigationTabBarAvatar');
+jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -55,7 +55,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+                Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute());
             });
 
             // Then push a new page to the current split navigator
@@ -144,50 +144,6 @@ describe('Navigate', () => {
             const lastSplitAfterNavigate = rootStateAfterNavigate?.routes.at(-1);
             expect(rootStateAfterNavigate?.index).toBe(1);
             expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-        });
-
-        it('to the report split from the search page passing the active workspace id', () => {
-            // Given the initialized navigation on the narrow layout with the search page with the active workspace id
-            render(
-                <TestNavigationContainer
-                    initialState={{
-                        index: 0,
-                        routes: [
-                            {
-                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                state: {
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: SCREENS.SEARCH.ROOT,
-                                            params: {
-                                                q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
-                                            },
-                                        },
-                                    ],
-                                },
-                            },
-                        ],
-                    }}
-                />,
-            );
-
-            const rootStateBeforeNavigate = navigationRef.current?.getRootState();
-            const lastSplitBeforeNavigate = rootStateBeforeNavigate?.routes.at(-1);
-            expect(rootStateBeforeNavigate?.index).toBe(0);
-            expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-
-            // When navigate to the Home page when the active workspace is set
-            act(() => {
-                Navigation.navigate(ROUTES.HOME);
-            });
-
-            // Then push a new report split navigator with policyID in params
-            const rootStateAfterNavigate = navigationRef.current?.getRootState();
-            const lastSplitAfterNavigate = rootStateAfterNavigate?.routes.at(-1);
-            expect(rootStateAfterNavigate?.index).toBe(1);
-            expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-            expect(lastSplitAfterNavigate?.params).toMatchObject({policyID: '1'});
         });
     });
 });

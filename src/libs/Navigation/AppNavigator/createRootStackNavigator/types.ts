@@ -1,12 +1,12 @@
-import type {CommonActions, DefaultNavigatorOptions, ParamListBase, StackActionType, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
-import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
+import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import type CONST from '@src/CONST';
 
 type RootStackNavigatorActionType =
     | {
-          type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
           payload: {
-              policyID: string | undefined;
+              isVisible: boolean;
           };
       }
     | {
@@ -16,6 +16,17 @@ type RootStackNavigatorActionType =
           type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
           payload: {
               policyID: string;
+              screenName: WorkspaceScreenName;
+          };
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
+          payload: {
+              name: string;
+              params: {
+                  screen: string;
+                  params: Record<string, unknown>;
+              };
           };
       };
 
@@ -23,37 +34,31 @@ type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
 };
 
-type SwitchPolicyIdActionType = RootStackNavigatorActionType & {
-    type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
+type ToggleSidePanelWithHistoryActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
 };
 
+type PreloadActionType = RootStackNavigatorAction & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD};
+
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
+
+type ReplaceActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE};
 
 type DismissModalActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 };
 
-type RootStackNavigatorConfig = {
-    isSmallScreenWidth: boolean;
-};
-
 type RootStackNavigatorRouterOptions = StackRouterOptions;
-
-type SearchFullscreenNavigatorRouterOptions = StackRouterOptions;
-
-type RootStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & RootStackNavigatorConfig;
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
 export type {
     OpenWorkspaceSplitActionType,
-    SwitchPolicyIdActionType,
     PushActionType,
+    ReplaceActionType,
     DismissModalActionType,
+    PreloadActionType,
     RootStackNavigatorAction,
-    RootStackNavigatorActionType,
     RootStackNavigatorRouterOptions,
-    RootStackNavigatorProps,
-    RootStackNavigatorConfig,
-    SearchFullscreenNavigatorRouterOptions,
+    ToggleSidePanelWithHistoryActionType,
 };

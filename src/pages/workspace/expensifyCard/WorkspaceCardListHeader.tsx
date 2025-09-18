@@ -1,99 +1,32 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
+import type {ExpensifyCardSettings} from '@src/types/onyx';
 
 type WorkspaceCardListHeaderProps = {
-    /** ID of the current policy */
-    policyID: string;
+    /** Card settings */
+    cardSettings: ExpensifyCardSettings | undefined;
 };
 
-function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
+function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
-
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
 
     const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
 
-    const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
-
-    const getLabelsLayout = () => {
-        if (!isLessThanMediumScreen) {
-            return (
-                <>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                    />
-                </>
-            );
-        }
-        return shouldShowSettlementButtonOrDate ? (
-            <>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                />
-                <View style={[styles.flexRow, !isLessThanMediumScreen && styles.flex2, isLessThanMediumScreen && styles.mt5]}>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                    />
-                </View>
-            </>
-        ) : (
-            <>
-                <View style={[styles.flexRow, isLessThanMediumScreen && styles.mb5]}>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
-                    />
-                </View>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                />
-            </>
-        );
-    };
-
     return (
         <View style={styles.appBG}>
-            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, styles.mt5, styles.mh5, styles.ph4]}>{getLabelsLayout()}</View>
             {!!errorMessage && (
-                <View style={[styles.mh5, styles.ph4, styles.mt2]}>
+                <View style={[styles.mh5, styles.pr4, styles.mt2]}>
                     <FormHelpMessage
                         isError
                         message={errorMessage}
@@ -104,7 +37,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 <View style={[styles.flexRow, styles.flex4, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.name')}
                     </Text>
@@ -113,7 +46,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                     <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                         <Text
                             numberOfLines={1}
-                            style={[styles.textLabelSupporting, styles.lh16]}
+                            style={[styles.textMicroSupporting, styles.lh16]}
                         >
                             {translate('common.type')}
                         </Text>
@@ -130,7 +63,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 >
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.lastFour')}
                     </Text>
@@ -138,7 +71,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.limit')}
                     </Text>
