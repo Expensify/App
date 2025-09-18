@@ -5192,13 +5192,13 @@ function deleteAppReport(reportID: string | undefined) {
  * @param policyID - The ID of the policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(
-    iouReport: Report,
-    policy: Policy,
-    isFromSettlementButton?: boolean,
-): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID?: boolean} | undefined {
-    const reportID = iouReport.reportID;
-    const policyID = policy.id;
+function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlementButton?: boolean) {
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
+    const policy = getPolicy(policyID);
+
+    console.log('>>> gooooooooooop 2', {policy});
 
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
@@ -5233,7 +5233,7 @@ function moveIOUReportToPolicy(
     // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
-        chatReportID: policy.isPolicyExpenseChatEnabled ? optimisticExpenseChatReportID : undefined,
+        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
         policyID,
         policyName,
         parentReportID: iouReport.parentReportID,
@@ -5388,11 +5388,13 @@ function moveIOUReportToPolicy(
  */
 function moveIOUReportToPolicyAndInviteSubmitter(
     reportID: string,
-    policy: Policy,
+    policyID: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): {policyExpenseChatReportID?: string} | undefined {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const policyID = policy?.id;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
+    const policy = getPolicy(policyID);
 
     if (!policy || !iouReport) {
         return;

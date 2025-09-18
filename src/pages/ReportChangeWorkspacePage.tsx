@@ -49,12 +49,11 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line deprecation/deprecation
-            if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
-                moveIOUReportToPolicyAndInviteSubmitter(report?.reportID, policy, formatPhoneNumber);
-            } else if (isIOUReport(reportID) && isPolicyMember(policy, session?.email)) {
-                moveIOUReportToPolicy(report, policy);
+            if (isIOUReport(reportID)) {
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy?.id, formatPhoneNumber);
+                if (!invite?.policyExpenseChatReportID) {
+                    moveIOUReportToPolicy(reportID, policy?.id);
+                }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
@@ -64,7 +63,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 changeReportPolicy(report, policy, reportNextStep, isReportArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
+        [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
