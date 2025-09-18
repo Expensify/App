@@ -113,11 +113,12 @@ jobs:
 
           readonly PARROT_HEADER="## 🦜 Polyglot Parrot! 🦜"
           readonly PARROT_INTRO="_Squawk!_ Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
-          readonly PARROT_FOOTER="$(cat <<'EOF'
+          PARROT_FOOTER="$(cat <<'EOF'
           > [!NOTE]
           > You can apply these changes to your branch by copying the patch to your clipboard, then running `pbpaste | git apply` 😉
           EOF
           )"
+          readonly PARROT_FOOTER
 
           if [ "$PATCH_SIZE" -le "$MAX_COMMENT_SIZE" ]; then
             # Small diff - include in comment
