@@ -42,7 +42,7 @@ import {
     isFilterSupported,
     isSearchDatePreset,
 } from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,6 +141,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         ].flat();
         return [options, value];
     }, [unsafeStatus, type, groupBy]);
+
+    const [hasOptions, has] = useMemo(() => {
+        const hasFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)?.filters?.map((filter) => filter.value);
+        const options = getHasOptions(type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
+        const value = hasFilterValues ? options.filter((option) => hasFilterValues.includes(option.value)) : [];
+        return [options, value];
+    }, [flatFilters, type]);
 
     const createDateDisplayValue = useCallback(
         (filterValues: {on?: string; after?: string; before?: string}): [SearchDateValues, string[]] => {
@@ -337,10 +344,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     );
 
     const feedComponent = useMemo(() => {
-        const onChangeCallback = (items: Array<MultiSelectItem<string>>) => {
+        const updateFeedFilterForm = (items: Array<MultiSelectItem<string>>) => {
             updateFilterForm({feed: items.map((item) => item.value)});
         };
-        return createMultiSelectComponent('search.filters.feed', feedOptions, feed, onChangeCallback);
+        return createMultiSelectComponent('search.filters.feed', feedOptions, feed, updateFeedFilterForm);
     }, [createMultiSelectComponent, feedOptions, feed, updateFilterForm]);
 
     const datePickerComponent = useMemo(() => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, date, 'common.date'), [createDatePickerComponent, date]);
@@ -368,12 +375,19 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     );
 
     const statusComponent = useMemo(() => {
-        const onChangeCallback = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
+        const updateStatusFilterForm = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
             const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
             updateFilterForm({status: newStatus});
         };
-        return createMultiSelectComponent('common.status', statusOptions, status, onChangeCallback);
+        return createMultiSelectComponent('common.status', statusOptions, status, updateStatusFilterForm);
     }, [createMultiSelectComponent, statusOptions, status, updateFilterForm]);
+
+    const hasComponent = useMemo(() => {
+        const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+            updateFilterForm({has: selectedItems.map((item) => item.value)});
+        };
+        return createMultiSelectComponent('search.has', hasOptions, has, updateHasFilterForm);
+    }, [createMultiSelectComponent, hasOptions, has, updateFilterForm]);
 
     const userPickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
@@ -479,6 +493,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 value: status.map((option) => option.text),
                 filterKey: FILTER_KEYS.STATUS,
             },
+            ...(type?.value === CONST.SEARCH.DATA_TYPES.CHAT ? 
+                [{
+                    label: translate('search.has'),
+                    PopoverComponent: hasComponent,
+                    value: has.map((option) => option.text),
+                    filterKey: FILTER_KEYS.HAS,
+                    },
+                  ]
+                : []),
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
