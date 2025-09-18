@@ -10,7 +10,6 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -149,14 +148,6 @@ describe('actions/PersonalDetails', () => {
 
     describe('updateLegalName', () => {
         const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => phoneNumber);
-
-        beforeEach(() => {
-            return Onyx.set(ONYXKEYS.SESSION, {
-                email: 'test@example.com',
-                accountID: 123,
-            }).then(waitForBatchedUpdates);
-        });
-
         it('should call API.write with correct parameters and optimistic data', async () => {
             const legalFirstName = 'John';
             const legalLastName = 'Doe';
@@ -382,44 +373,6 @@ describe('actions/PersonalDetails', () => {
             );
         });
 
-        it('should handle null/undefined currentUserPersonalDetail', async () => {
-            const legalFirstName = 'Eve';
-            const legalLastName = 'Davis';
-            const currentUserPersonalDetail = null as unknown as Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>;
-
-            PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
-            await waitForBatchedUpdates();
-
-            expect(mockAPI.write).toHaveBeenCalledWith(
-                WRITE_COMMANDS.UPDATE_LEGAL_NAME,
-                {legalFirstName, legalLastName},
-                {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                            value: {
-                                legalFirstName,
-                                legalLastName,
-                            },
-                        },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    displayName: expect.any(String) as string,
-                                    firstName: legalFirstName,
-                                    lastName: legalLastName,
-                                },
-                            },
-                        },
-                    ],
-                },
-            );
-        });
-
         it('should use currentUserAccountID from session for personal details update', async () => {
             const legalFirstName = 'Frank';
             const legalLastName = 'Garcia';
@@ -467,13 +420,6 @@ describe('actions/PersonalDetails', () => {
     });
 
     describe('updateAvatar', () => {
-        beforeEach(() => {
-            return Onyx.set(ONYXKEYS.SESSION, {
-                email: 'test@example.com',
-                accountID: 123,
-            }).then(waitForBatchedUpdates);
-        });
-
         it('should call API.write with correct parameters and optimistic data for File', async () => {
             const mockFile = {
                 uri: 'file://test-avatar.jpg',
@@ -663,10 +609,6 @@ describe('actions/PersonalDetails', () => {
         });
 
         it('should return early when currentUserAccountID is not set', async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: 'test@example.com',
-                accountID: undefined,
-            });
             await waitForBatchedUpdates();
 
             const mockFile = {
@@ -676,7 +618,7 @@ describe('actions/PersonalDetails', () => {
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'avatarThumbnail' | 'avatar' | 'accountID'> = {
                 avatar: 'old-avatar.jpg',
                 avatarThumbnail: 'old-avatar-thumb.jpg',
-                accountID: 123,
+                accountID: CONST.DEFAULT_NUMBER_ID,
             };
 
             PersonalDetailsActions.updateAvatar(mockFile, currentUserPersonalDetail);
@@ -687,13 +629,6 @@ describe('actions/PersonalDetails', () => {
     });
 
     describe('deleteAvatar', () => {
-        beforeEach(() => {
-            return Onyx.set(ONYXKEYS.SESSION, {
-                email: 'test@example.com',
-                accountID: 123,
-            }).then(waitForBatchedUpdates);
-        });
-
         it('should call API.write with correct parameters and optimistic data', async () => {
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
                 avatar: 'current-avatar.jpg',
@@ -773,16 +708,11 @@ describe('actions/PersonalDetails', () => {
         });
 
         it('should return early when currentUserAccountID is not set', async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: 'test@example.com',
-                accountID: undefined,
-            });
             await waitForBatchedUpdates();
-
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
-                accountID: 123,
+                accountID: CONST.DEFAULT_NUMBER_ID,
             };
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
@@ -793,16 +723,12 @@ describe('actions/PersonalDetails', () => {
         });
 
         it('should use different accountID from session', async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: 'test@example.com',
-                accountID: 456,
-            });
             await waitForBatchedUpdates();
 
             const currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'fallbackIcon' | 'avatar' | 'accountID'> = {
                 avatar: 'current-avatar.jpg',
                 fallbackIcon: 'fallback-icon.jpg',
-                accountID: 123,
+                accountID: 456,
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
 
