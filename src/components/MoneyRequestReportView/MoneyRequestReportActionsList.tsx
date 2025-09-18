@@ -171,6 +171,8 @@ function MoneyRequestReportActionsList({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
+    const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
@@ -490,9 +492,15 @@ function MoneyRequestReportActionsList({
 
                 // We want to scroll to the end of the list where the newest message is
                 // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
-                setTimeout(() => {
-                    reportScrollManager.scrollToEnd();
-                }, DELAY_FOR_SCROLLING_TO_END);
+                const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
+                if (index !== -1) {
+                    setTimeout(() => {
+                        reportScrollManager.scrollToEnd();
+                    }, DELAY_FOR_SCROLLING_TO_END);
+                } else {
+                    setEnableScrollToEnd(true);
+                    setLastActionEventId(reportAction?.reportActionID);
+                }
             });
         },
         [reportScrollManager, setIsFloatingMessageCounterVisible],
@@ -513,6 +521,16 @@ function MoneyRequestReportActionsList({
         // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
+
+    useEffect(() => {
+        const index = visibleReportActions.findIndex((item) => item.reportActionID === lastActionEventId);
+        if (enableScrollToEnd && index !== -1) {
+            setTimeout(() => {
+                reportScrollManager.scrollToEnd();
+            }, DELAY_FOR_SCROLLING_TO_END);
+            setEnableScrollToEnd(false);
+        }
+    }, [visibleReportActions, lastActionEventId, enableScrollToEnd, reportScrollManager]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -591,6 +609,8 @@ function MoneyRequestReportActionsList({
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
+
+    const reportHasComments = visibleReportActions.length > 0;
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -727,8 +747,9 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     violations={violations}
+                                    hasComments={reportHasComments}
+                                    isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
-                                    policy={policy}
                                 />
                             </>
                         }
