@@ -34,10 +34,7 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
             .map((transaction) => transaction.transactionID);
         return getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
     }, [allReportTransactions, reportActions, report, chatReport, isOffline]);
-    // console.log('useOriginalReportID uniqueTransactionThreadReportID', uniqueTransactionThreadReportID);
-    // console.log('useOriginalReportID reportID', reportID);
     const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`, {canBeMissing: true});
-    // console.log('useOriginalReportID uniqueTransactionThreadReportActions', uniqueTransactionThreadReportActions);
 
     if (!reportID) {
         return undefined;
