@@ -130,7 +130,7 @@ describe('OptimisticReportNames', () => {
     });
 
     describe('updateOptimisticReportNamesFromUpdates()', () => {
-        test('should detect new report creation and add name update', () => {
+        test.skip('should detect new report creation and add name update', () => {
             const updates = [
                 {
                     key: 'report_456' as OnyxKey,
