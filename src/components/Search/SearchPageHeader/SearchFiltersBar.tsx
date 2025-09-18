@@ -287,21 +287,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate, groupCurrencyOptions, groupCurrency, updateFilterForm],
     );
 
-    const feedComponent = useCallback(
-        ({closeOverlay}: PopoverComponentProps) => {
-            return (
-                <MultiSelectPopup
-                    label={translate('search.filters.feed')}
-                    items={feedOptions}
-                    value={feed}
-                    closeOverlay={closeOverlay}
-                    onChange={(items) => updateFilterForm({feed: items.map((item) => item.value)})}
-                />
-            );
-        },
-        [translate, feedOptions, feed, updateFilterForm],
-    );
-
     const createDatePickerComponent = useCallback(
         (filterKey: SearchDateFilterKeys, value: SearchDateValues, translationKey: TranslationPaths) => {
             return ({closeOverlay}: PopoverComponentProps) => {
@@ -329,6 +314,35 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate, updateFilterForm],
     );
 
+    const createMultiSelectComponent = useCallback(
+        <T extends string>(
+            translationKey: TranslationPaths,
+            items: Array<MultiSelectItem<T>>,
+            value: Array<MultiSelectItem<T>>,
+            onChangeCallback: (selectedItems: Array<MultiSelectItem<T>>) => void,
+        ) => {
+            return ({closeOverlay}: PopoverComponentProps) => {
+                return (
+                    <MultiSelectPopup
+                        label={translate(translationKey)}
+                        items={items}
+                        value={value}
+                        closeOverlay={closeOverlay}
+                        onChange={onChangeCallback}
+                    />
+                );
+            };
+        },
+        [translate],
+    );
+
+    const feedComponent = useMemo(() => {
+        const onChangeCallback = (items: Array<MultiSelectItem<string>>) => {
+            updateFilterForm({feed: items.map((item) => item.value)});
+        };
+        return createMultiSelectComponent('search.filters.feed', feedOptions, feed, onChangeCallback);
+    }, [createMultiSelectComponent, feedOptions, feed, updateFilterForm]);
+
     const datePickerComponent = useMemo(() => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, date, 'common.date'), [createDatePickerComponent, date]);
 
     const postedPickerComponent = useMemo(() => createDatePickerComponent(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, posted, 'search.filters.posted'), [createDatePickerComponent, posted]);
@@ -353,25 +367,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [translate, withdrawalTypeOptions, withdrawalType, updateFilterForm],
     );
 
-    const statusComponent = useCallback(
-        ({closeOverlay}: PopoverComponentProps) => {
-            const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
-                const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
-                updateFilterForm({status: newStatus});
-            };
-
-            return (
-                <MultiSelectPopup
-                    label={translate('common.status')}
-                    items={statusOptions}
-                    value={status}
-                    closeOverlay={closeOverlay}
-                    onChange={onChange}
-                />
-            );
-        },
-        [statusOptions, status, translate, updateFilterForm],
-    );
+    const statusComponent = useMemo(() => {
+        const onChangeCallback = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
+            const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
+            updateFilterForm({status: newStatus});
+        };
+        return createMultiSelectComponent('common.status', statusOptions, status, onChangeCallback);
+    }, [createMultiSelectComponent, statusOptions, status, updateFilterForm]);
 
     const userPickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
