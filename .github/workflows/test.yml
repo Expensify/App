@@ -46,7 +46,7 @@ jobs:
         run: NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }} --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && github.ref != 'refs/heads/main' }}
         # v5
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
         with:
@@ -59,7 +59,7 @@ jobs:
       - name: Load Codecov token from 1Password
         id: load-codecov-token
         # Codecov needs a token to be run on the default branch (which happens in preDeploy.yml after a PR is merged to main)
-        if: ${{ github.event_name == 'workflow_call' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         # v2
         uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
         with:
@@ -69,7 +69,7 @@ jobs:
           CODECOV_TOKEN: op://${{ vars.OP_VAULT }}//CodeCov-API/key
 
       - name: Upload coverage to Codecov (token required)
-        if: ${{ github.event_name == 'workflow_call' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         # v5
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
         with:
