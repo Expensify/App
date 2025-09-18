@@ -38,6 +38,7 @@ import {
     exportSearchItemsToCSV,
     getLastPolicyPaymentMethod,
     getPayOption,
+    isCurrencySupportWalletBulkPay,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -101,7 +102,7 @@ function SearchPage({route}: SearchPageProps) {
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
-
+    const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
         () => [
@@ -118,6 +119,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         activeAdminPolicies,
+        isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
     });
 
     useEffect(() => {

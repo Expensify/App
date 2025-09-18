@@ -58,6 +58,7 @@ type SelectedReports = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
+    currency?: string;
 };
 
 /** Model of payment data used by Search bulk actions */

@@ -731,6 +731,15 @@ function handleBulkPayItemSelected(
     confirmPayment?.(paymentType as PaymentMethodType);
 }
 
+/**
+ * Return true if selected reports/transactions have the same USD currency.
+ */
+function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions) {
+    return selectedReports?.length > 0
+        ? Object.values(selectedReports).every((report) => report?.currency === CONST.CURRENCY.USD)
+        : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
+}
+
 export {
     saveSearch,
     search,
@@ -757,4 +766,5 @@ export {
     getFormattedAmount,
     isValidBulkPayOption,
     handleBulkPayItemSelected,
+    isCurrencySupportWalletBulkPay,
 };
