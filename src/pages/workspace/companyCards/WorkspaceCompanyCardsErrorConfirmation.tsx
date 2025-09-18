@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import {BrokenHumptyDumpty} from '@components/Icon/Illustrations';
+import {BrokenCompanyCardBankConnection} from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -99,7 +99,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
                     </TextLink>
                 </Text>
             }
-            illustration={BrokenHumptyDumpty}
+            illustration={BrokenCompanyCardBankConnection}
             shouldShowButton
             illustrationStyle={styles.errorStateCardIllustration}
             onButtonPress={onButtonPress}
