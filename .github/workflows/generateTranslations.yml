@@ -99,9 +99,6 @@ jobs:
       - name: Post diff in PR as a comment
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
         run: |
-          # Re-authenticate gh CLI with the OS_BOTIFY token for gist creation
-          gh auth switch --user OSBotify
-
           # Create temp files and set up cleanup
           TEMP_COMMENT_FILE=$(mktemp)
           TEMP_PATCH_FILE=$(mktemp --suffix=.patch)
