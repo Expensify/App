@@ -80,6 +80,38 @@ describe('getPrimaryAction', () => {
         );
     });
 
+    it('should return SUBMIT for open report in instant submit policy with no approvers', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN, // Report is OPEN
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit & Close
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, // Instant submit
+        };
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
     it('should not return SUBMIT option for admin with only pending/incomplete transactions', async () => {
         const report = {
             reportID: REPORT_ID,
