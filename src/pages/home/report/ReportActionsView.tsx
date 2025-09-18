@@ -31,7 +31,7 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -130,7 +130,10 @@ function ReportActionsView({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, reportActionID]);
 
-    const shouldBuildOptimisticCreatedReportAction = useMemo(() => isReportTransactionThread && !allReportActions?.findLast(isCreatedAction), [allReportActions]);
+    const shouldBuildOptimisticCreatedReportAction = useMemo(
+        () => (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread) && !allReportActions?.findLast(isCreatedAction),
+        [allReportActions, isReportTransactionThread, report],
+    );
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -138,13 +141,13 @@ function ReportActionsView({
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
-        if (!isMoneyRequestReport(report) || !allReportActions?.length) {
-            if (shouldBuildOptimisticCreatedReportAction) {
-                const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
-                optimisticCreatedReportAction.pendingAction = null;
-                return [...(allReportActions ?? []), optimisticCreatedReportAction];
-            }
+        if (shouldBuildOptimisticCreatedReportAction) {
+            const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+            optimisticCreatedReportAction.pendingAction = null;
+            return [...(allReportActions ?? []), optimisticCreatedReportAction];
+        }
 
+        if (!isMoneyRequestReport(report) || !allReportActions?.length) {
             return allReportActions;
         }
 
@@ -191,7 +194,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [report, allReportActions, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport, isReportTransactionThread, shouldBuildOptimisticCreatedReportAction]);
+    }, [shouldBuildOptimisticCreatedReportAction, report, allReportActions, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -300,7 +303,7 @@ function ReportActionsView({
         return <ReportActionsSkeletonView />;
     }
 
-    if (isMissingReportActions) {
+    if (!isReportTransactionThread && isMissingReportActions) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 

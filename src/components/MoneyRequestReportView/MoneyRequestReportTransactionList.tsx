@@ -212,7 +212,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                 }
             }
 
-            setOptimisticTransactionThread(reportIDToNavigate, iouAction?.parentReportID, iouAction?.reportActionID);
+            setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation

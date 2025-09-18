@@ -843,8 +843,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!report && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList ? (
+                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}

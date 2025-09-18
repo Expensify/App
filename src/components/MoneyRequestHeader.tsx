@@ -361,6 +361,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     <MoneyRequestReportTransactionsNavigation
                         currentReportID={reportID}
                         parentReportID={parentReport?.reportID}
+                        policyID={parentReport?.policyID}
                     />
                 )}
             </HeaderWithBackButton>

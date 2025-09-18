@@ -14,9 +14,10 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentReportID: string;
     parentReportID?: string;
+    policyID?: string;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
+function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID, policyID}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [reportIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
@@ -79,13 +80,13 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
             onNext={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                setOptimisticTransactionThread(nextReportID, parentReportID, nextParentReportActionID);
+                setOptimisticTransactionThread(nextReportID, parentReportID, nextParentReportActionID, policyID);
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
             }}
             onPrevious={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                setOptimisticTransactionThread(prevReportID, parentReportID, prevParentReportActionID);
+                setOptimisticTransactionThread(prevReportID, parentReportID, prevParentReportActionID, policyID);
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
             }}
         />

@@ -6071,14 +6071,17 @@ function resolveConciergeCategoryOptions(
     } as Partial<ReportActions>);
 }
 
-function setOptimisticTransactionThread(reportID?: string, parentReportID?: string, parentReportActionID?: string) {
+function setOptimisticTransactionThread(reportID?: string, parentReportID?: string, parentReportActionID?: string, policyID?: string) {
     if (!reportID) {
         return;
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        reportID,
+        policyID,
         parentReportID,
         parentReportActionID,
+        type: CONST.REPORT.TYPE.CHAT,
     });
 }
 
