@@ -5307,7 +5307,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     }
 
     // Create MOVED report action and add it to the expense report which indicates to the user where the report has been moved
-    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId, iouReportID, policyName, true);
+    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId ?? '', iouReportID, policyName, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
