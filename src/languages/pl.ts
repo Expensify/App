@@ -1307,6 +1307,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Brak niezgłoszonych wydatków',
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
+        newReport: 'Nowy raport',
         explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
         retracted: 'wycofany',
         retract: 'Wycofać',
@@ -6182,9 +6183,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
-            },
-            has: {
-                receipt: 'Paragon',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Prześlij',

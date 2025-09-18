@@ -1242,8 +1242,9 @@ function getTaskSections(
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
     // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
-    if (!iouReportAction) {
-        openReport(item.report.reportID);
+    const iouReportID = item.report?.reportID ?? item.reportID;
+    if (!iouReportAction && iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+        openReport(iouReportID);
     }
     const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
     if (transactionThreadReport?.reportID) {
@@ -1700,15 +1701,13 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
     for (const report of data) {
         report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
-    return data.sort((a, b) => {
-        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
-        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated ? b.transactions?.at(0)?.modifiedCreated : b.transactions?.at(0)?.created;
 
-        if (!aNewestTransaction || !bNewestTransaction) {
+    return data.sort((a, b) => {
+        if (!a.created || !b.created) {
             return 0;
         }
 
-        return localeCompare(bNewestTransaction.toLowerCase(), aNewestTransaction.toLowerCase());
+        return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
     });
 }
 
@@ -2071,7 +2070,12 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 function getHasOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return [{text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT}];
+            return [
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+            ];
         default:
             return [];
     }
