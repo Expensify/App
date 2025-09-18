@@ -77,6 +77,7 @@ function SidebarOrderedReportsContextProvider({
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${derivedCurrentReportID}`, {canBeMissing: true});
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -155,7 +156,7 @@ function SidebarOrderedReportsContextProvider({
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
-                reportsDrafts,
+                reportDraftComment: draftComment,
             });
         } else {
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
@@ -164,7 +165,7 @@ function SidebarOrderedReportsContextProvider({
                 betas,
                 policies,
                 priorityMode,
-                reportsDrafts,
+                draftComment,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
@@ -173,7 +174,7 @@ function SidebarOrderedReportsContextProvider({
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, draftComment]);
 
     const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
 

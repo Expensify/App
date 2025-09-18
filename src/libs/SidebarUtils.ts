@@ -168,7 +168,7 @@ function shouldDisplayReportInLHN(
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    reportsDrafts: OnyxCollection<string> | undefined,
+    draftComment: OnyxEntry<string>,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -200,7 +200,6 @@ function shouldDisplayReportInLHN(
 
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
-    const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
     const shouldOverrideHidden =
         !!draftComment || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
 
@@ -231,7 +230,7 @@ function getReportsToDisplayInLHN(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
-    reportsDrafts: OnyxCollection<string> | undefined,
+    reportDraft: OnyxEntry<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
@@ -252,7 +251,7 @@ function getReportsToDisplayInLHN(
             isInFocusMode,
             betas,
             transactionViolations,
-            reportsDrafts,
+            reportDraft,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
         );
@@ -275,7 +274,7 @@ type UpdateReportsToDisplayInLHNProps = {
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
-    reportsDrafts: OnyxCollection<string> | undefined;
+    reportDraftComment: OnyxEntry<string>;
 };
 
 function updateReportsToDisplayInLHN({
@@ -288,7 +287,7 @@ function updateReportsToDisplayInLHN({
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
-    reportsDrafts,
+    reportDraftComment,
 }: UpdateReportsToDisplayInLHNProps) {
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
@@ -304,7 +303,7 @@ function updateReportsToDisplayInLHN({
             isInFocusMode,
             betas,
             transactionViolations,
-            reportsDrafts,
+            reportDraftComment,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
             reportAttributes,
         );
