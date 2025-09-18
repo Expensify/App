@@ -1,4 +1,5 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -60,7 +61,7 @@ const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUN
 function AccountDetailsPage() {
     const formRef = useRef<FormRef>(null);
     const navigation = useNavigation();
-    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge, canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

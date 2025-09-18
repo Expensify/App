@@ -312,12 +312,12 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  * @param sourceTransaction - The second transaction in the merge operation
  * @returns An object containing the determined targetTransactionID and sourceTransactionID
  */
-function selectTargetAndSourceTransactionIDsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
+function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
     if (isCardTransaction(originalSourceTransaction)) {
-        return {targetTransactionID: originalSourceTransaction?.transactionID, sourceTransactionID: originalTargetTransaction?.transactionID};
+        return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
     }
 
-    return {targetTransactionID: originalTargetTransaction?.transactionID, sourceTransactionID: originalSourceTransaction?.transactionID};
+    return {targetTransaction: originalTargetTransaction, sourceTransaction: originalSourceTransaction};
 }
 
 /**
@@ -404,7 +404,7 @@ export {
     getMergeFieldValue,
     getMergeFieldTranslationKey,
     buildMergedTransactionData,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,

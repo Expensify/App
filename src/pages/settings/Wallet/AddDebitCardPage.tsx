@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef} from 'react';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,7 +10,8 @@ import usePrevious from '@hooks/usePrevious';
 import type {PaymentCardParams} from '@libs/API/parameters';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {addPaymentCard as addPaymentCardAction, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function DebitCardPage() {
@@ -17,19 +19,19 @@ function DebitCardPage() {
     return <NotFoundPage />;
 
     const {translate} = useLocalize();
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: false});
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
      */
     useEffect(() => {
-        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+        clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+            clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 
@@ -38,12 +40,12 @@ function DebitCardPage() {
             return;
         }
 
-        PaymentMethods.continueSetup();
+        continueSetup();
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     const addPaymentCard = useCallback(
         (params: PaymentCardParams) => {
-            PaymentMethods.addPaymentCard(accountID ?? 0, params);
+            addPaymentCardAction(accountID ?? CONST.DEFAULT_NUMBER_ID, params);
         },
         [accountID],
     );

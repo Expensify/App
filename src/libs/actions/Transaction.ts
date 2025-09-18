@@ -797,7 +797,7 @@ function changeTransactionsReport(
         if (isPaidGroupPolicy(policy) && policy?.id) {
             const violationData = ViolationsUtils.getViolationsOnyxData(
                 transaction,
-                currentTransactionViolations[transaction.transactionID],
+                currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
                 policyTagList,
                 policyCategories,
@@ -1132,7 +1132,7 @@ function changeTransactionsReport(
         }
         const violationData = ViolationsUtils.getViolationsOnyxData(
             transaction,
-            currentTransactionViolations[transaction.transactionID],
+            currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
             policyTagList,
             policyCategories,
