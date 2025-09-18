@@ -1,6 +1,5 @@
 import CONST from '@src/CONST';
 import type {HeicConverterFunction} from './types';
-import {verifyHeicFormat, verifyJpegFormat, verifyPngFormat} from './utils';
 
 const MAX_CANVAS_SIZE = 4096;
 const JPEG_QUALITY = 0.85;
@@ -94,36 +93,7 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
             const fileName = file.name ?? 'temp-file.heic';
             const fileFromBlob = new File([blob], fileName, {type: blob.type});
 
-            // Verify actual format based on file signatures
-            return verifyHeicFormat(fileFromBlob).then((isHeicBasedOnSignatures) => {
-                if (needsConversion && !isHeicBasedOnSignatures) {
-                    return verifyJpegFormat(fileFromBlob).then((isJpg) => {
-                        if (isJpg) {
-                            const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.jpg'), {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {
-                                uri: URL.createObjectURL(blob),
-                            });
-                            onSuccess(correctedFile);
-                            return;
-                        }
-
-                        return verifyPngFormat(fileFromBlob).then((isPng) => {
-                            if (isPng) {
-                                const correctedFile = Object.assign(new File([blob], fileName.replace(/\.(heic|heif)$/i, '.png'), {type: CONST.IMAGE_FILE_FORMAT.PNG}), {
-                                    uri: URL.createObjectURL(blob),
-                                });
-                                onSuccess(correctedFile);
-                                return;
-                            }
-
-                            // Proceed with conversion strategies
-                            return processConversion(heicConverter, blob, fileFromBlob, fileName);
-                        });
-                    });
-                }
-
-                // Proceed with conversion strategies
-                return processConversion(heicConverter, blob, fileFromBlob, fileName);
-            });
+            return processConversion(heicConverter, blob, fileFromBlob, fileName);
 
             function processConversion(converter: HeicConverter | null, blobData: Blob, fileData: File, name: string) {
                 // Strategy 1: Try heic-to library

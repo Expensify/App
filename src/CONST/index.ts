@@ -7238,10 +7238,6 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
     },
-
-    JPEG_SIGNATURES: ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe8', 'ffd8ffdb', 'ffd8ffe3'],
-
-    PNG_SIGNATURE: '89504e470d0a1a0a',
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
