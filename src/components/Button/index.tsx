@@ -330,6 +330,7 @@ function Button({
                         styles.textWhite,
                         styles.textBold,
                     ]}
+                    numberOfLines={1}
                 >
                     {secondLineText}
                 </Text>
