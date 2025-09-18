@@ -128,7 +128,7 @@ function AttachmentView({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError, onAttachmentLoaded} = attachmentCarouselPagerContext ?? {};
+    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -245,7 +245,7 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !hasReceiptSource(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
@@ -318,7 +318,6 @@ function AttachmentView({
                         loadComplete={loadComplete}
                         isImage={isImage}
                         onPress={onPress}
-                        onLoad={() => onAttachmentLoaded?.(source, true)}
                         onError={() => {
                             if (isOffline) {
                                 return;
