@@ -2,7 +2,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {clearPolicyTagErrors, createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
@@ -820,6 +820,130 @@ describe('actions/Policy', () => {
             tagsToDelete.forEach((tagName) => {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
             });
+        });
+    });
+
+    describe('ClearPolicyTagErrors', () => {
+        it('should clear errors for a tag', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagNames = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
+            const tagToClear = tagNames.at(0) ?? '';
+            const tagToKeep = tagNames.at(1) ?? '';
+
+            // Add errors to both tags
+            fakePolicyTags[tagListName].tags[tagToClear] = {
+                ...fakePolicyTags[tagListName].tags[tagToClear],
+                errors: {field: 'Error on first tag'},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            };
+            fakePolicyTags[tagListName].tags[tagToKeep] = {
+                ...fakePolicyTags[tagListName].tags[tagToKeep],
+                errors: {field: 'Error on second tag'},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            // Clear errors only for the first tag
+            clearPolicyTagErrors({policyID: fakePolicy.id, tagName: tagToClear, tagListIndex: 0, policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            // Verify that the first tag has errors cleared
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToClear]).toBeDefined();
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToClear].name).toBe(tagToClear);
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToClear].enabled).toBe(true);
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToClear].errors).toBeUndefined();
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToClear].pendingAction).toBeUndefined();
+
+            // Verify that the second tag still has errors
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToKeep]).toBeDefined();
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToKeep].name).toBe(tagToKeep);
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToKeep].enabled).toBe(true);
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToKeep].errors).toEqual({field: 'Error on second tag'});
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagToKeep].pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        });
+
+        it('should delete tag when pendingAction is ADD', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+            const tagName = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {}).at(0) ?? '';
+
+            fakePolicyTags[tagListName].tags[tagName] = {
+                ...fakePolicyTags[tagListName].tags[tagName],
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            clearPolicyTagErrors({policyID: fakePolicy.id, tagName, tagListIndex: 0, policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagName]).toBeUndefined();
+        });
+
+        it('should return early if tag does not exist', () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+
+            const nonExistentTagName = 'nonExistentTag';
+            clearPolicyTagErrors({policyID: fakePolicy.id, tagName: nonExistentTagName, tagListIndex: 0, policyTags: fakePolicyTags});
+
+            const existingTagNames = Object.keys(fakePolicyTags[tagListName].tags);
+            expect(existingTagNames).toHaveLength(2);
+            expect(fakePolicyTags[tagListName].tags[nonExistentTagName]).toBeUndefined();
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Test tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+            const tagName = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {}).at(0) ?? '';
+
+            fakePolicyTags[tagListName].tags[tagName] = {
+                ...fakePolicyTags[tagListName].tags[tagName],
+                errors: {field: 'Test error'},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
+
+            await waitFor(() => {
+                expect(result.current[0]).toBeDefined();
+            });
+
+            clearPolicyTagErrors({policyID: fakePolicy.id, tagName, tagListIndex: 0, policyTags: result.current[0]});
+            await waitForBatchedUpdates();
+
+            // Verify errors are cleared
+            let updatedPolicyTags: PolicyTagLists | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicyTags = val),
+            });
+
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagName]).toBeDefined();
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagName].name).toBe(tagName);
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagName].enabled).toBe(true);
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagName].errors).toBeUndefined();
+            expect(updatedPolicyTags?.[tagListName]?.tags[tagName].pendingAction).toBeUndefined();
         });
     });
 });
