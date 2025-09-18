@@ -135,8 +135,7 @@ function ReportActionItemMessageEdit(
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
     const originalReportID = getOriginalReportID(reportID, action);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);

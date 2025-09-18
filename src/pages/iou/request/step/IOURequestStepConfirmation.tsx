@@ -198,11 +198,9 @@ function IOURequestStepConfirmation({
                 return ids;
             }
 
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
             for (const [key, value] of Object.entries(all)) {
                 if (isArchivedReport(value)) {
-                    const reportId = key.slice(prefixLength);
-                    ids.add(reportId);
+                    ids.add(key);
                 }
             }
             return ids;
@@ -496,7 +494,8 @@ function IOURequestStepConfirmation({
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
-                const isLinkedTrackedExpenseReportArchived = !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(item.linkedTrackedExpenseReportID);
+                const isLinkedTrackedExpenseReportArchived =
+                    !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
 
                 if (isTestDriveReceipt) {
                     completeTestDriveTask();
@@ -621,7 +620,8 @@ function IOURequestStepConfirmation({
                 return;
             }
             transactions.forEach((item, index) => {
-                const isLinkedTrackedExpenseReportArchived = !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(item.linkedTrackedExpenseReportID);
+                const isLinkedTrackedExpenseReportArchived =
+                    !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
 
                 trackExpenseIOUActions({
                     report,

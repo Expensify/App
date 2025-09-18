@@ -53,7 +53,6 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     let reportID: string | undefined = getReportID(route);
 
     // Handle threads if needed
@@ -61,7 +60,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         reportID = parentReport?.reportID;
     }
     const originalReportID = getOriginalReportID(reportID, reportAction);
-    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     const severities: SeverityItemList = [
