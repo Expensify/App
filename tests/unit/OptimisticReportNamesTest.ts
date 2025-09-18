@@ -4,7 +4,7 @@ import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReport
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
