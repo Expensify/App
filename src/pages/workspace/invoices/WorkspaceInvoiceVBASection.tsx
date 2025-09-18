@@ -23,7 +23,7 @@ import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isUserValidatedSelector} from '@src/selectors/Account';
+import {isUserValidatedSelector} from '@selectors/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceInvoiceVBASectionProps = {

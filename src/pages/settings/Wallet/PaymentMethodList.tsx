@@ -26,7 +26,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isUserValidatedSelector} from '@src/selectors/Account';
+import {isUserValidatedSelector} from '@selectors/Account';
 import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';

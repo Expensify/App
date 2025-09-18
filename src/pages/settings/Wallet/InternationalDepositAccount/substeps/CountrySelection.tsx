@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isUserValidatedSelector} from '@src/selectors/Account';
+import {isUserValidatedSelector} from '@selectors/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fieldsMap}: CustomSubStepProps) {

@@ -18,7 +18,7 @@ import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isActingAsDelegateSelector} from '@src/selectors/Account';
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import createPressHandler from './createPressHandler';

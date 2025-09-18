@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isUserValidatedSelector} from '@src/selectors/Account';
+import {isUserValidatedSelector} from '@selectors/Account';
 
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();

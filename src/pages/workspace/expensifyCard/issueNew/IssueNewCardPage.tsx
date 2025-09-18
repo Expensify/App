@@ -14,7 +14,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {isActingAsDelegateSelector} from '@src/selectors/Account';
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import type {IssueNewCard, IssueNewCardStep} from '@src/types/onyx/Card';
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';

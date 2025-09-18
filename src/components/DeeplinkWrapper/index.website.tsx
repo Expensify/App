@@ -15,7 +15,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isActingAsDelegateSelector} from '@src/selectors/Account';
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import type DeeplinkWrapperProps from './types';
 
 function isMacOSWeb(): boolean {

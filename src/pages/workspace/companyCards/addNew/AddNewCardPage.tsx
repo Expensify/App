@@ -13,7 +13,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isActingAsDelegateSelector} from '@src/selectors/Account';
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';

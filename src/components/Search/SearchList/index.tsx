@@ -40,7 +40,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isUserValidatedSelector} from '@src/selectors/Account';
+import {isUserValidatedSelector} from '@selectors/Account';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 
