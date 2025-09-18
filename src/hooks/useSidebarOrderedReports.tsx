@@ -88,7 +88,7 @@ function SidebarOrderedReportsContextProvider({
     const perfRef = useRef<{hookDuration: number}>({
         hookDuration: 0,
     });
-    const hookStartTime = useRef<number>(0);
+    const hookStartTime = useRef<number>(performance.now());
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -335,7 +335,7 @@ function useSidebarOrderedReportsPerformance(componentName?: string) {
                 });
             }
         };
-    });
+    }, [componentName]);
 }
 
 export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
