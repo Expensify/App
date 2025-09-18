@@ -468,7 +468,7 @@ jobs:
           ad-hoc: true
           scheme: 'Expensify AdHoc'
           configuration: 'DebugAdHoc'
-          certificate-base64: ${{ steps.load-certificate.outputs.APPLE_CERTIFICATE_BASE64}}
+          certificate-base64: ${{ steps.load-credentials.outputs.APPLE_CERTIFICATE_BASE64}}
           # NEED to take it from load-credentials
           # provisioning-profile-base64: ${{ steps.load-provisioning-profile.outputs.APPLE_PROVISIONING_PROFILE_BASE64}}
           # not sure if we have in the secrets on gh
