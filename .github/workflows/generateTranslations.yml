@@ -104,10 +104,11 @@ jobs:
           TEMP_PATCH_FILE=$(mktemp --suffix=.patch)
           trap 'rm -f "$TEMP_COMMENT_FILE" "$TEMP_PATCH_FILE"' EXIT
 
-          # Ensure consistent UTF-8 encoding and generate the diff
-          export LC_ALL=C.UTF-8
-          export LANG=C.UTF-8
-          git -c core.quotePath=false diff --no-color --unified=3 HEAD > "$TEMP_PATCH_FILE"
+          # Generate the diff and save to patch file
+          git diff HEAD > "$TEMP_PATCH_FILE"
+
+          # Ensure the patch ends with a newline to prevent "corrupt patch" errors
+          echo "" >> "$TEMP_PATCH_FILE"
 
           # Check file size (65536 chars is ~64KB, let's use 60KB as safety margin)
           PATCH_SIZE=$(wc -c < "$TEMP_PATCH_FILE")
