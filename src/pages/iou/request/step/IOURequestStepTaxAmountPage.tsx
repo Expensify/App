@@ -49,8 +49,13 @@ function IOURequestStepTaxAmountPage({
     report,
 }: IOURequestStepTaxAmountPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const taxPolicy = report?.policyID === CONST.POLICY.ID_FAKE ? activePolicy : policy;
+    const taxPolicyID = report?.policyID === CONST.POLICY.ID_FAKE ? activePolicyID : report?.policyID;
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${taxPolicyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${taxPolicyID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -109,7 +114,7 @@ function IOURequestStepTaxAmountPage({
                 navigateBack();
                 return;
             }
-            updateMoneyRequestTaxAmount(transactionID, report?.reportID, taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+            updateMoneyRequestTaxAmount(transactionID, report?.reportID, taxAmountInSmallestCurrencyUnits, taxPolicy, policyTags, policyCategories);
             navigateBack();
             return;
         }
@@ -151,7 +156,7 @@ function IOURequestStepTaxAmountPage({
                 isEditing={!!(backTo || isEditing)}
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(currentTransaction, policy, currency, !!(backTo || isEditing))}
+                taxAmount={getTaxAmount(currentTransaction, taxPolicy, currency, !!(backTo || isEditing))}
                 ref={(e) => {
                     textInput.current = e;
                 }}
