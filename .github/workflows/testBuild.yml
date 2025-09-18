@@ -333,11 +333,7 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
-
-      - name: Convert keystore to base64
-        id: keystore-base64
-        run: |
-          echo "keystore_content=$(base64 -w 0 Mobile-Expensify/Android/upload-key.keystore)" >> "$GITHUB_OUTPUT" 
+          ANDROID_UPLOAD_KEYSTORE_BASE64: op://${{ vars.OP_VAULT }}/upload-key.keystore/base64
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
@@ -350,7 +346,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           re-sign: true
           ad-hoc: true
-          keystore-base64: ${{ steps.keystore-base64.outputs.keystore_content }}
+          keystore-base64: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
           keystore-store-file: 'upload-key.keystore'
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
@@ -441,10 +437,18 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
-      - name: Load certificate and convert to base64
-        id: load-certificate
-        run: |
-          echo "certificate-base64=$(base64 -i ./Certificates.p12)" >> "$GITHUB_OUTPUT"
+      - name: Load iOS credentials from 1Password
+        id: load-credentials
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          APPLE_CERTIFICATE_BASE64: op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/base64
+          # We need to add the provisioning profile to the 1Password vault
+          # APPLE_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/base64
+      
       - name: Load provisioning profile and convert to base64
         id: load-provisioning-profile
         run: |
@@ -464,10 +468,11 @@ jobs:
           ad-hoc: true
           scheme: 'Expensify AdHoc'
           configuration: 'DebugAdHoc'
-          certificate-base64: ${{ steps.load-certificate.outputs.certificate-base64}}
+          certificate-base64: ${{ steps.load-certificate.outputs.APPLE_CERTIFICATE_BASE64}}
+          # NEED to take it from load-credentials
+          # provisioning-profile-base64: ${{ steps.load-provisioning-profile.outputs.APPLE_PROVISIONING_PROFILE_BASE64}}
           # not sure if we have in the secrets on gh
           certificate-password: ${{ secrets.CERTIFICATE_PASSWORD || '' }}
-          provisioning-profile-base64: ${{ steps.load-provisioning-profile.outputs.profile-base64}}
           # not sure if we have in the secrets on gh
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD || '' }}
           provisioning-profile-name: '(OldApp) AdHoc'
