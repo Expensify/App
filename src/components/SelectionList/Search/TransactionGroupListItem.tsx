@@ -37,6 +37,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {canAddTransaction as canAddTransactionUtil, getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
+import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -171,7 +172,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
+                const iouAction = getReportAction(transactionItem.report?.reportID, transactionItem.moneyRequestReportActionID);
                 createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
@@ -399,7 +400,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         <TransactionItemRow
                                             report={transaction.report}
                                             transactionItem={transaction}
-                                            violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                                            violations={getTransactionViolations(transaction, violations)}
                                             isSelected={!!transaction.isSelected}
                                             dateColumnSize={dateColumnSize}
                                             amountColumnSize={amountColumnSize}
