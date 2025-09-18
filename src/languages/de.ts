@@ -4968,6 +4968,7 @@ const translations = {
             welcomeNote: 'Bitte beginnen Sie mit der Nutzung meines neuen Arbeitsbereichs',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Sie sind dabei, ${newWorkspaceName ?? ''} zu erstellen und mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Arbeitsbereich zu teilen.`,
+            error: 'Beim Duplizieren Ihres neuen Arbeitsbereichs ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         },
         emptyWorkspace: {
             title: 'Sie haben keine Arbeitsbereiche',

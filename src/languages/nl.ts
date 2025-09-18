@@ -4981,6 +4981,7 @@ const translations = {
             welcomeNote: 'Ga aan de slag met mijn nieuwe werkruimte',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Je staat op het punt om ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden uit de oorspronkelijke werkruimte.`,
+            error: 'Er is een fout opgetreden bij het dupliceren van uw nieuwe werkruimte. Probeer het opnieuw.',
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
