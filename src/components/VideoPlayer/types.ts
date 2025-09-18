@@ -31,8 +31,7 @@ type VideoPlayerProps = {
     videoPlayerStyle?: StyleProp<ViewStyle>;
 
     /**
-     * Style for the video element inside the VideoView
-     * NOT USED NOW, LEFT FROM EXPO-AV: An optional property to pass custom styles to the internal video component.
+     * An optional property to pass custom styles to the internal video component.
      */
     videoStyle?: StyleProp<ViewStyle>;
 
