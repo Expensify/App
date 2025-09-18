@@ -467,6 +467,10 @@ function formatType(type: string | undefined): string {
     return typeMapping[type.toLowerCase()] || type;
 }
 
+/**
+ * Get all transactions for a report, including any context transaction.
+ * Updates an existing transaction if it matches the context or adds it if new.
+ */
 function getAllReportTransactionsWithContext(reportID: string, context?: FormulaContext): Transaction[] {
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
