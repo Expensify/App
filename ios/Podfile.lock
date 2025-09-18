@@ -32,7 +32,7 @@ PODS:
   - EXAV (15.1.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (17.1.7):
+  - EXConstants (17.1.5):
     - ExpoModulesCore
   - EXImageLoader (5.1.0):
     - ExpoModulesCore
@@ -86,7 +86,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Expo (53.0.11):
+  - Expo (53.0.7):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -128,7 +128,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.4.0):
+  - ExpoModulesCore (2.3.12):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1871,7 +1871,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blob-util (0.22.2):
+  - react-native-blob-util (0.19.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3766,16 +3766,16 @@ SPEC CHECKSUMS:
   boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
-  EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
+  EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
   ExpensifyNitroUtils: e23437311e907914fc58da92569b5f9805b724f3
-  Expo: 63b9951a116c03a63215ae0a116e52b50107cecd
+  Expo: a02b1eb4c08689dc866eabf48e2eefee712ded6b
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
   ExpoImage: 306dd755c842dba9f3ee654c51834a9cc657e6ca
   ExpoImageManipulator: 7096d6bf874c0a0a649f60733fef8a99c4ad0fe2
-  ExpoModulesCore: 4f1efd2360fd016b3ab7f13c9983320412208976
+  ExpoModulesCore: 5411340438617e068df45f70127ff34640f3f337
   ExpoSecureStore: 833b24a0d7feffef4505184910c058221066011e
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 84b955f7b4da8b895faf5946f73748267347c975
@@ -3816,7 +3816,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroModules: faec300c5f7074ec6d3255b2f6aedb94ac8a2d3d
+  NitroModules: 058e64fb28102fadd1105e5530fdfa1ff93db7ac
   NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 0245dba46f3e3a10bbaf3969fc7c947a22fb46fa
@@ -3860,7 +3860,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: d247018c1658160139c72dd3a44a1054f9ec00e5
   react-native-airship: ff2599900d29e0e64ff2b2dd9f897c0c220a9163
   react-native-app-logs: 6540c5f6f66f33cb52d0bb62f0a10131ff3a9589
-  react-native-blob-util: 68f288ed8fd64a191a4d83ffa5a1dd375dc786d2
+  react-native-blob-util: a013bd1bb12de304a726c2308cc0e219f34ab66c
   react-native-cameraroll: d98f8a64b53620754864c33a034e054ca4a3b360
   react-native-config: ab9f9cc16883aed5355ca43478fe39e6aec5ebb9
   react-native-document-picker: 06ad77eb1650e628def114ff74f9f767f1888edd
@@ -3944,6 +3944,6 @@ SPEC CHECKSUMS:
   VisionCamera: 2230ecfd78a1f6cddd8be0fe4e6589f21a6385e1
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
-PODFILE CHECKSUM: ac0fca1ad1665b0f9a24b6b00b34d7d4e3879ec1
+PODFILE CHECKSUM: 94a51eec89bb8279467c6b11f974ad6af2e4b74c
 
 COCOAPODS: 1.15.2
