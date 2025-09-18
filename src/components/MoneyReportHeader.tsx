@@ -823,21 +823,10 @@ function MoneyReportHeader({
                             success
                             options={approvalOptions.options}
                             menuHeaderText={approvalOptions.menuHeaderText}
-                            onPress={() => {
-                                // Default action is to approve the full amount
-                                setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-                                startApprovedAnimation();
-                                approveMoneyRequest(moneyRequestReport, true);
-                                if (currentSearchQueryJSON) {
-                                    search({
-                                        searchKey: currentSearchKey,
-                                        shouldCalculateTotals: true,
-                                        offset: 0,
-                                        queryJSON: currentSearchQueryJSON,
-                                    });
-                                }
-                            }}
+                            onPress={() => {}}
                             customText={translate('iou.approve')}
+                            shouldAlwaysShowDropdownMenu
+                            isSplitButton={false}
                         />
                     );
                 }

@@ -547,13 +547,10 @@ function MoneyRequestReportPreviewContent({
                             success
                             options={approvalOptions.options}
                             menuHeaderText={approvalOptions.menuHeaderText}
-                            onPress={() => {
-                                // Default action is to approve the full amount
-                                setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-                                startApprovedAnimation();
-                                approveMoneyRequest(iouReport, true);
-                            }}
+                            onPress={() => {}}
                             customText={translate('iou.approve')}
+                            shouldAlwaysShowDropdownMenu
+                            isSplitButton={false}
                         />
                     );
                 }
