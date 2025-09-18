@@ -396,7 +396,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroModules (0.26.2):
+  - NitroModules (0.29.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2934,7 +2934,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Turf
     - Yoga
-  - RNNitroSQLite (9.1.10):
+  - RNNitroSQLite (9.1.11):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3274,11 +3274,11 @@ PODS:
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
-  - VisionCamera (4.7.0):
-    - VisionCamera/Core (= 4.7.0)
-    - VisionCamera/React (= 4.7.0)
-  - VisionCamera/Core (4.7.0)
-  - VisionCamera/React (4.7.0):
+  - VisionCamera (4.7.2):
+    - VisionCamera/Core (= 4.7.2)
+    - VisionCamera/React (= 4.7.2)
+  - VisionCamera/Core (4.7.2)
+  - VisionCamera/React (4.7.2):
     - React-Core
   - Yoga (0.0.0)
 
@@ -3769,7 +3769,7 @@ SPEC CHECKSUMS:
   EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
-  ExpensifyNitroUtils: e0db1bd03c2ee179bdca45c57bf0497e626b18cd
+  ExpensifyNitroUtils: e23437311e907914fc58da92569b5f9805b724f3
   Expo: 63b9951a116c03a63215ae0a116e52b50107cecd
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
@@ -3816,7 +3816,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroModules: faec300c5f7074ec6d3255b2f6aedb94ac8a2d3d
+  NitroModules: 058e64fb28102fadd1105e5530fdfa1ff93db7ac
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 0245dba46f3e3a10bbaf3969fc7c947a22fb46fa
@@ -3926,7 +3926,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 33974079f2be0b5c5e6032582c265494f00a8ce4
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: f3875edd847c82d770d1b57852b36d45b3ea8a01
-  RNNitroSQLite: a1b0f1a665c54fc0f2510a292c1bf8ac4d44231b
+  RNNitroSQLite: e36968e81bbcab6c9e97a35e74ae34c7420d734c
   RNPermissions: fd6b2676e74ecb6d2dec0a6168502ab7af733e34
   RNReactNativeHapticFeedback: 85c0a6ff490d52f5e8073040296fefe5945ebbfa
   RNReanimated: 0692f0b36f15b83a7936c3611cab923e1396eeb9
@@ -3941,7 +3941,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
-  VisionCamera: b3c0cf261b9ad1ac7d60ec292d252cf3368b801e
+  VisionCamera: 2230ecfd78a1f6cddd8be0fe4e6589f21a6385e1
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
 PODFILE CHECKSUM: 145b53efc0407146c2decf14202d64f78e7dbd96
