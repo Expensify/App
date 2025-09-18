@@ -243,7 +243,7 @@ function MoneyRequestReceiptView({
             {shouldShowReceiptEmptyState && (
                 <OfflineWithFeedback
                     pendingAction={getPendingFieldAction('receipt')}
-                    style={[styles.mt3, styles.mb5, styles.flex1]}
+                    style={[styles.mv3, styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >
                     <ReceiptEmptyState
@@ -283,7 +283,7 @@ function MoneyRequestReceiptView({
                         }
                     }}
                     dismissError={dismissReceiptError}
-                    style={[styles.mb5, styles.flex1, styles.mt3]}
+                    style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
