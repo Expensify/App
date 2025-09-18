@@ -131,6 +131,24 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         setSelectedModifier(modifier);
     };
 
+    const modifierConfig = [
+        {
+            modifier: CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO,
+            titleKey: 'search.filters.amount.equalTo' as const,
+            description: equalToFormattedAmount,
+        },
+        {
+            modifier: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
+            titleKey: 'search.filters.amount.greaterThan' as const,
+            description: greaterThanFormattedAmount,
+        },
+        {
+            modifier: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN,
+            titleKey: 'search.filters.amount.lessThan' as const,
+            description: lessThanFormattedAmount,
+        },
+    ];
+
     if (!selectedModifier) {
         return (
             <ScreenWrapper testID={testID}>
@@ -139,27 +157,16 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
                 />
                 <View style={styles.flex1}>
-                    <MenuItem
-                        title={translate('search.filters.amount.equalTo')}
-                        description={equalToFormattedAmount}
-                        onPress={() => handleModifierSelect(CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO)}
-                        shouldShowRightIcon
-                        viewMode={CONST.OPTION_MODE.COMPACT}
-                    />
-                    <MenuItem
-                        title={translate('search.filters.amount.greaterThan')}
-                        description={greaterThanFormattedAmount}
-                        onPress={() => handleModifierSelect(CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN)}
-                        shouldShowRightIcon
-                        viewMode={CONST.OPTION_MODE.COMPACT}
-                    />
-                    <MenuItem
-                        title={translate('search.filters.amount.lessThan')}
-                        description={lessThanFormattedAmount}
-                        onPress={() => handleModifierSelect(CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN)}
-                        shouldShowRightIcon
-                        viewMode={CONST.OPTION_MODE.COMPACT}
-                    />
+                    {modifierConfig.map(({modifier, titleKey, description}) => (
+                        <MenuItem
+                            key={modifier}
+                            title={translate(titleKey)}
+                            description={description}
+                            onPress={() => handleModifierSelect(modifier)}
+                            shouldShowRightIcon
+                            viewMode={CONST.OPTION_MODE.COMPACT}
+                        />
+                    ))}
                     <View style={styles.flexGrow1} />
                     <Button
                         text={translate('common.reset')}
