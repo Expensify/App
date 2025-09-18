@@ -1,9 +1,7 @@
-import { CONST } from "expensify-common";
-import { TextInput } from "react-native";
-import { ValueOf } from "type-fest";
+import CONST from "@src/CONST";
 
 
-type SearchDataTypes = ValueOf<typeof [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.CHAT]>;
+type SearchDataTypes = typeof CONST.SEARCH.DATA_TYPES.EXPENSE | typeof CONST.SEARCH.DATA_TYPES.CHAT;
 
 type FilterConfig = {
     value: string;
@@ -20,7 +18,7 @@ type FilterConfig = {
 const FilterConfig: FilterConfig[] = [
     {
         key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.TYPE,
-        displayText: 'common.type' as TranslationPath,
+        displayText: 'common.type',
         component: RadioButtons,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
@@ -30,7 +28,7 @@ const FilterConfig: FilterConfig[] = [
     },
     {
         key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.STATUS,
-        displayText: 'common.status' as TranslationPath,
+        displayText: 'common.status',
         component: CheckboxList,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
@@ -40,7 +38,7 @@ const FilterConfig: FilterConfig[] = [
     },
     {
         key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.DATE,
-        displayText: 'common.date' as TranslationPath,
+        displayText: 'common.date',
         component: DatePicker,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
@@ -51,7 +49,7 @@ const FilterConfig: FilterConfig[] = [
     },
     {
         key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.KEYWORD,
-        displayText: 'common.keyword' as TranslationPath,
+        displayText: 'common.keyword',
         component: TextInput,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
@@ -61,7 +59,7 @@ const FilterConfig: FilterConfig[] = [
     },
     {
         key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.AMOUNT,
-        displayText: 'common.amount' as TranslationPath,
+        displayText: 'common.amount',
         component: TextInput,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE],
         validate: () => true,
@@ -71,7 +69,7 @@ const FilterConfig: FilterConfig[] = [
     },
     {
         key: CONST.SEARCH.NEW_SEARCH.FILTERS.VALUES.REIMBURSABLE,
-        displayText: 'common.reimbursable' as TranslationPath,
+        displayText: 'common.reimbursable',
         component: RadioButtons,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE],
         validate: () => true,
