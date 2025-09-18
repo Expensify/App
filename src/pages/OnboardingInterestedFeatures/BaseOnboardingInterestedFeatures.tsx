@@ -36,6 +36,7 @@ import CONFIG from '@src/CONFIG';
 import CONST, {FEATURE_IDS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
@@ -212,6 +213,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             firstName: currentUserPersonalDetails?.firstName,
             lastName: currentUserPersonalDetails?.lastName,
             selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
+            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
@@ -349,7 +351,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={90}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
