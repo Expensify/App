@@ -41,7 +41,7 @@ function getApprovalDropdownOptions(
     options.push({
         value: 'approve_full',
         text: `${translate('iou.approve')} ${fullAmount}`,
-        icon: Expensicons.DocumentMerge,
+        icon: Expensicons.DocumentCheck,
         onSelected: onApproveFull,
     });
 
