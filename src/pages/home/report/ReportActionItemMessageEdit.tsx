@@ -513,7 +513,12 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
-                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
+                            onLayout={(event) => {
+                                if (!isFocused) {
+                                    return;
+                                }
+                                reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)(event);
+                            }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}

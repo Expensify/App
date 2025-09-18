@@ -5507,7 +5507,7 @@ const translations = {
             },
             categories: {
                 title: 'Kategorie',
-                description: `Kategorie pomagają lepiej organizować wydatki, aby śledzić, na co wydajesz swoje pieniądze. Skorzystaj z naszej sugerowanej listy kategorii lub stwórz własne.`,
+                description: 'Kategorie pozwalają śledzić i organizować wydatki. Użyj naszych domyślnych kategorii lub dodaj własne.',
                 onlyAvailableOnPlan: 'Kategorie są dostępne w planie Collect, zaczynając od',
             },
             glCodes: {
@@ -5579,6 +5579,7 @@ const translations = {
                 travelMessage: `Pomyślnie zaktualizowano do planu Collect. Teraz możesz zacząć rezerwować i zarządzać podróżami!`,
                 distanceRateMessage: `Pomyślnie zaktualizowano do planu Collect. Teraz możesz zmienić stawkę za odległość!`,
                 gotIt: 'Zrozumiałem, dzięki',
+                createdWorkspace: 'Utworzyłeś przestrzeń roboczą!',
             },
             commonFeatures: {
                 title: 'Ulepsz do planu Control',
