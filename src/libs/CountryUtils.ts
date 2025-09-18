@@ -7,10 +7,6 @@ import CONST from '@src/CONST';
 function getCountryCode(countryValue: string | undefined): string {
     if (!countryValue) return '';
 
-    if (countryValue in CONST.ALL_COUNTRIES) {
-        return countryValue;
-    }
-
     for (const [code, name] of Object.entries(CONST.ALL_COUNTRIES)) {
         if (name === countryValue) {
             return code;
