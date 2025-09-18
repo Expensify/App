@@ -2,6 +2,7 @@ import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {useState} from 'react';
 import {SectionList} from 'react-native';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
@@ -58,18 +59,20 @@ describe('BaseSelectionList', () => {
         const {sections, canSelectMultiple, initialNumToRender, setSearchText, searchText} = props;
         const focusedKey = sections[0].data.find((item) => item.isSelected)?.keyForList;
         return (
-            <BaseSelectionList
-                sections={sections}
-                textInputLabel="common.search"
-                ListItem={RadioListItem}
-                onSelectRow={onSelectRowMock}
-                shouldSingleExecuteRowSelect
-                canSelectMultiple={canSelectMultiple}
-                initiallyFocusedOptionKey={focusedKey}
-                initialNumToRender={initialNumToRender}
-                onChangeText={setSearchText}
-                textInputValue={searchText}
-            />
+            <OnyxListItemProvider>
+                <BaseSelectionList
+                    sections={sections}
+                    textInputLabel="common.search"
+                    ListItem={RadioListItem}
+                    onSelectRow={onSelectRowMock}
+                    shouldSingleExecuteRowSelect
+                    canSelectMultiple={canSelectMultiple}
+                    initiallyFocusedOptionKey={focusedKey}
+                    initialNumToRender={initialNumToRender}
+                    onChangeText={setSearchText}
+                    textInputValue={searchText}
+                />
+            </OnyxListItemProvider>
         );
     }
 

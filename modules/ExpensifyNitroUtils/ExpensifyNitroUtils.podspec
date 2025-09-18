@@ -22,6 +22,13 @@ Pod::Spec.new do |s|
     "cpp/**/*.{hpp,cpp}",
   ]
 
+  s.pod_target_xcconfig = {
+    "HEADER_SEARCH_PATHS" => [
+      "${PODS_ROOT}/RCT-Folly",
+    ],
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES",
+  }
+
   load 'nitrogen/generated/ios/ExpensifyNitroUtils+autolinking.rb'
   add_nitrogen_files(s)
 

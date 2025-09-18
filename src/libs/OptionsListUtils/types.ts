@@ -153,6 +153,25 @@ type GetValidReportsConfig = {
     shouldShowGBR?: boolean;
 } & GetValidOptionsSharedConfig;
 
+type IsValidReportsConfig = Pick<
+    GetValidReportsConfig,
+    | 'betas'
+    | 'includeMultipleParticipantReports'
+    | 'includeOwnedWorkspaceChats'
+    | 'includeThreads'
+    | 'includeTasks'
+    | 'includeMoneyRequests'
+    | 'includeReadOnly'
+    | 'transactionViolations'
+    | 'includeSelfDM'
+    | 'includeInvoiceRooms'
+    | 'action'
+    | 'includeP2P'
+    | 'includeDomainEmail'
+    | 'loginsToExclude'
+    | 'excludeNonAdminWorkspaces'
+>;
+
 type GetValidReportsReturnTypeCombined = {
     selfDMOption: SearchOptionData | undefined;
     workspaceOptions: SearchOptionData[];
@@ -267,4 +286,5 @@ export type {
     Section,
     SectionBase,
     SectionForSearchTerm,
+    IsValidReportsConfig,
 };

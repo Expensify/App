@@ -1308,6 +1308,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Nessuna spesa non segnalata',
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
         addUnreportedExpenseConfirm: 'Aggiungi al report',
+        newReport: 'Nuovo rapporto',
         explainHold: 'Spiega perché stai trattenendo questa spesa.',
         retracted: 'retratato',
         retract: 'Ritirare',
@@ -1402,9 +1403,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Le spese trattenute vengono lasciate indietro quando approvi un intero report.',
             rejectExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
             reasonPageTitle: 'Rifiuta spesa',
-            reasonPageDescription1:
-                'Rifiuta una spesa se non hai intenzione di approvarla o pagarla mai. Altrimenti, utilizza "Trattenere" per metterla in pausa e chiedere maggior contesto.',
-            reasonPageDescription2: 'Se stai per rifiutare la spesa, aggiungi per favore un commento per spiegare il motivo:',
+            reasonPageDescription: 'Spiega perché rifiuti questa spesa.',
             rejectReason: 'Motivo del rifiuto',
             markAsResolved: 'Segna come risolto',
             rejectedStatus: 'Questa spesa è stata rifiutata. In attesa che tu risolva il/i problema/i e la segni come risolta per abilitare l’invio.',
@@ -5565,6 +5564,11 @@ const translations = {
                     'I tag multilivello ti aiutano a monitorare le spese con maggiore precisione. Assegna più tag a ciascuna voce, come reparto, cliente o centro di costo, per catturare il contesto completo di ogni spesa. Questo consente report più dettagliati, flussi di lavoro di approvazione ed esportazioni contabili.',
                 onlyAvailableOnPlan: 'I tag multilivello sono disponibili solo nel piano Control, a partire da',
             },
+            distanceRates: {
+                title: 'Tariffe a distanza',
+                description: 'Crea e gestisci le tue tariffe, traccia in miglia o chilometri e imposta categorie predefinite per le spese di distanza.',
+                onlyAvailableOnPlan: 'Le tariffe a distanza sono disponibili con il piano Collect, a partire da',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Livelli di approvazione multipli',
                 description:
@@ -5576,14 +5580,15 @@ const translations = {
                 perMember: 'per membro al mese.',
             },
             note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>Aggiorna il tuo spazio di lavoro per accedere a questa funzione oppure <a href="${subscriptionLink}">scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
+                `<muted-text>Aggiorna per accedere a questa funzione oppure <a href="${subscriptionLink}">scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
             upgradeToUnlock: 'Sblocca questa funzione',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Hai aggiornato con successo ${policyName} al piano Control! <a href="${subscriptionLink}">Visualizza il tuo abbonamento</a> per maggiori dettagli.</centered-text>`,
-                categorizeMessage: `Hai effettuato con successo l'upgrade a un workspace con il piano Collect. Ora puoi categorizzare le tue spese!`,
-                travelMessage: `Hai eseguito con successo l'upgrade a un workspace con il piano Collect. Ora puoi iniziare a prenotare e gestire i viaggi!`,
+                categorizeMessage: `Hai effettuato con successo l'upgrade al piano Collect. Ora puoi categorizzare le tue spese!`,
+                travelMessage: `Hai effettuato con successo l'upgrade al piano Collect. Ora puoi iniziare a prenotare e gestire i viaggi!`,
+                distanceRateMessage: `Hai eseguito con successo l'upgrade al piano Collect. Ora puoi modificare la tariffa chilometrica!`,
                 gotIt: 'Ricevuto, grazie',
             },
             commonFeatures: {
@@ -6196,9 +6201,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rimborso',
-            },
-            has: {
-                receipt: 'Ricevuta',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Inviare',

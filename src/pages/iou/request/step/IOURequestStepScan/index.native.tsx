@@ -24,6 +24,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
@@ -112,8 +113,7 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const defaultExpensePolicy = useDefaultExpensePolicy();
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -387,13 +387,11 @@ function IOURequestStepScan({
                 return;
             }
 
-            // If a reportID exists in the report object, it's because either:
-            // - The user started this flow from using the + button in the composer inside a report.
-            // - The user started this flow from using the global create menu by selecting the Track expense option.
-            // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-            // to the confirm step.
+            // If the user started this flow from using the + button in the composer inside a report
+            // the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+            // to the confirmation step.
             // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-            if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            if (initialTransaction?.isFromGlobalCreate && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -459,8 +457,13 @@ function IOURequestStepScan({
 
             // If there was no reportID, then that means the user started this flow from the global + menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            if (
+                iouType === CONST.IOU.TYPE.CREATE &&
+                isPaidGroupPolicy(defaultExpensePolicy) &&
+                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
+            ) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
                 // If the initial transaction has different participants selected that means that the user has changed the participant in the confirmation step
                 if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== activePolicyExpenseChat?.reportID) {
@@ -494,10 +497,14 @@ function IOURequestStepScan({
         },
         [
             backTo,
-            report,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.currency,
+            initialTransaction?.participants,
+            initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
-            activePolicy,
+            defaultExpensePolicy,
+            report,
             initialTransactionID,
             navigateToConfirmationPage,
             shouldSkipConfirmation,
@@ -507,9 +514,6 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
-            initialTransaction?.currency,
-            initialTransaction?.participants,
-            initialTransaction?.reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,

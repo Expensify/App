@@ -475,6 +475,10 @@ export default {
         paddingVertical: 16,
     },
 
+    pv4Half: {
+        paddingVertical: 18,
+    },
+
     pv5: {
         paddingVertical: 20,
     },
@@ -565,6 +569,10 @@ export default {
 
     pr5: {
         paddingRight: 20,
+    },
+
+    pr7: {
+        paddingRight: 28,
     },
 
     pr8: {
@@ -773,6 +781,10 @@ export default {
 
     minHeight5: {
         minHeight: 20,
+    },
+
+    minHeight7: {
+        minHeight: 28,
     },
 
     minHeight22: {

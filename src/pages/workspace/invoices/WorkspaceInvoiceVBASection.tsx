@@ -158,6 +158,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                policyID={policyID}
             />
             <Popover
                 isVisible={shouldShowDefaultDeleteMenu}

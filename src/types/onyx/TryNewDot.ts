@@ -3,7 +3,7 @@
  */
 type TryNewDot = {
     /**
-     * This key is mostly used on OldDot. In NewDot, we only use `completedHybridAppOnboarding`.
+     * This key is mostly used on OldDot. In NewDot, we only use `completedHybridAppOnboarding` and `isLockedToNewDot`.
      */
     classicRedirect?: {
         /**
@@ -19,6 +19,11 @@ type TryNewDot = {
          * Indicates if explanation modal on NewDot was dismissed.
          */
         completedHybridAppOnboarding: boolean;
+
+        /**
+         * Indicates whether the user has access to the OldDot transition.
+         */
+        isLockedToNewDot?: boolean;
     };
     /**
      * This key is added when user is migrated from OldDot to NewDot with nudge migration as part of a cohort.
