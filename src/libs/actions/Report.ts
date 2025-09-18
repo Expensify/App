@@ -5198,8 +5198,6 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
-    console.log('>>> gooooooooooop 2', {policy});
-
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
         return;
