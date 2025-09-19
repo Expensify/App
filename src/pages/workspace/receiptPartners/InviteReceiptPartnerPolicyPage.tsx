@@ -194,14 +194,9 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
     // Check if we should skip to "All set" page immediately
     const shouldSkipToAllSet = useMemo(() => {
-        // Skip if employeeList has only owner or doesn't exist
-        if (!policy?.employeeList || Object.keys(policy.employeeList).length <= 0) {
-            return true;
-        }
-
-        // Skip if all workspace members are already in the connected U4B org
+        // Skip if no workspace members can be invited (covers all cases: no employees, only owner, already linked)
         return workspaceMembers.length === 0;
-    }, [policy?.employeeList, workspaceMembers]);
+    }, [workspaceMembers]);
 
     if (isInvitationSent || shouldSkipToAllSet) {
         return (

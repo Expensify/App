@@ -140,13 +140,13 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             const isInvite = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
             if (isResend || isInvite) {
                 const text = isResend ? translate('workspace.receiptPartners.uber.status.resend') : translate('workspace.receiptPartners.uber.status.invite');
-                const textChecked = isResend ? translate('workspace.receiptPartners.uber.status.resend') : translate('workspace.receiptPartners.uber.status.resend');
+                const textChecked = translate('workspace.receiptPartners.uber.status.resend');
                 rightElement = (
                     <PressableWithDelayToggle
                         text={text}
                         textChecked={textChecked}
-                        tooltipText={text}
-                        tooltipTextChecked={textChecked}
+                        tooltipText=""
+                        tooltipTextChecked=""
                         onPress={() => inviteOrResend(email)}
                         styles={[...buttonStyles, isInvite ? styles.buttonSuccess : undefined]}
                         textStyles={[...buttonTextStyles, isInvite ? styles.buttonSuccessText : undefined]}
