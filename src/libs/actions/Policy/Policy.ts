@@ -665,7 +665,10 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+    if (!policyID) {
+        return;
+    }
     const value = JSON.stringify({autoReportingOffset});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -2980,12 +2983,12 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
 
     const params: InviteWorkspaceEmployeesToUberParams = {
         policyID,
-        emails,
+        emailList: emails.join(','),
     };
 
     // Build optimistic employees mapping: mark invited emails as invited
     const invitedEmployees = emails.reduce<Record<string, {status: string}>>((acc, email) => {
-        acc[email] = {status: 'invited'};
+        acc[email] = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED};
         return acc;
     }, {});
 
@@ -3762,9 +3765,11 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: enabled,
-                    pendingFields: {
-                        areReceiptPartnersEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    receiptPartners: {
+                        enabled,
+                        pendingFields: {
+                            enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -3774,8 +3779,10 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                    receiptPartners: {
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },
@@ -3785,9 +3792,11 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: !enabled,
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                    receiptPartners: {
+                        enabled: !enabled,
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },

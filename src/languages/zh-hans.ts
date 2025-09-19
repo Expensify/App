@@ -1294,6 +1294,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: '没有未报告的费用',
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
         addUnreportedExpenseConfirm: '添加到报告',
+        newReport: '新报告',
         explainHold: '请解释您为何保留此费用。',
         retracted: '撤回',
         retract: '撤回',
@@ -5419,7 +5420,7 @@ const translations = {
             },
             categories: {
                 title: '类别',
-                description: `类别帮助您更好地组织费用，以跟踪您的资金去向。使用我们建议的类别列表或创建您自己的类别。`,
+                description: '类别允许您跟踪和整理支出。使用我们的默认类别或添加您自己的类别。',
                 onlyAvailableOnPlan: '类别在 Collect 计划中可用，起价为',
             },
             glCodes: {
@@ -5486,6 +5487,7 @@ const translations = {
                 travelMessage: `您已成功升级到 Collect 计划。现在您可以开始预订和管理旅行了！`,
                 distanceRateMessage: `您已成功升级到 Collect 计划。现在您可以更改距离费率了！`,
                 gotIt: '知道了，谢谢',
+                createdWorkspace: '您已创建工作区！',
             },
             commonFeatures: {
                 title: '升级到Control计划',
@@ -6072,9 +6074,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
-            },
-            has: {
-                receipt: '收据',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
