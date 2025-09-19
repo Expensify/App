@@ -43,6 +43,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {reportsSelector} from '@src/selectors/Attributes';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
@@ -172,7 +173,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     const {singleExecution} = useSingleExecution();
