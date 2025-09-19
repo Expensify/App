@@ -6128,6 +6128,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''}未満`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} より大きい`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `${greaterThan} と ${lessThan} の間`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `等しい ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',

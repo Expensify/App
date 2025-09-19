@@ -112,6 +112,7 @@ function initializePusher() {
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
+let isLoadingApp = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -160,7 +161,14 @@ Onyx.connect({
     },
 });
 
-function handleNetworkReconnect(isLoadingApp: boolean) {
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = !!value;
+    },
+});
+
+function handleNetworkReconnect() {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -212,7 +220,6 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
@@ -289,7 +296,7 @@ function AuthScreens() {
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp));
+        NetworkConnection.onReconnect(() => handleNetworkReconnect());
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader

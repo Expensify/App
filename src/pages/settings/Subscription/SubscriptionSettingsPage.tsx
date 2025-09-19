@@ -18,7 +18,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
-import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
 import SubscriptionPlan from './SubscriptionPlan';
 
 type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
@@ -63,7 +62,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
             />
             <ScrollView style={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <ReducedFunctionalityMessage />
                     <CardSection />
                     <SubscriptionPlan />
                 </View>
