@@ -257,10 +257,10 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
-        case 'autoreporting':
+        case 'autoreporting': {
             // Handle {report:autoreporting:start} and {report:autoreporting:end}
-            const subField = part.fieldPath[1];
-            const dateFormat = part.fieldPath[2] || format;
+            const subField = part.fieldPath.at(1);
+            const dateFormat = part.fieldPath.at(2) || format;
             const {startDate, endDate} = getAutoReportingDates(policy, report);
 
             if (subField === 'start') {
@@ -270,6 +270,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
                 return formatDate(endDate?.toISOString(), dateFormat);
             }
             return part.definition;
+        }
         default:
             return part.definition;
     }
@@ -515,13 +516,69 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 }
 
 /**
+ * Calculate monthly reporting period for a specific day offset
+ */
+function getMonthlyReportingPeriod(currentDate: Date, offsetDay: number): {startDate: Date; endDate: Date} {
+    const currentDay = currentDate.getDate();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+
+    if (currentDay <= offsetDay) {
+        // We haven't reached the reporting day yet - period is from last month's offset+1 to this month's offset
+        const prevMonth = currentMonth - 1;
+        const prevYear = prevMonth < 0 ? currentYear - 1 : currentYear;
+        const adjustedPrevMonth = prevMonth < 0 ? 11 : prevMonth;
+
+        const prevMonthDays = lastDayOfMonth(new Date(prevYear, adjustedPrevMonth, 1)).getDate();
+        const prevOffsetDay = Math.min(offsetDay, prevMonthDays);
+
+        const currentMonthDays = lastDayOfMonth(currentDate).getDate();
+        const currentOffsetDay = Math.min(offsetDay, currentMonthDays);
+
+        return {
+            startDate: new Date(prevYear, adjustedPrevMonth, prevOffsetDay + 1, 0, 0, 0, 0),
+            endDate: new Date(currentYear, currentMonth, currentOffsetDay, 23, 59, 59, 999),
+        };
+    }
+
+    // We've passed the reporting day - period is from this month's offset+1 to next month's offset
+    const nextMonth = currentMonth + 1;
+    const nextYear = nextMonth > 11 ? currentYear + 1 : currentYear;
+    const adjustedNextMonth = nextMonth > 11 ? 0 : nextMonth;
+
+    const currentMonthDays = lastDayOfMonth(currentDate).getDate();
+    const currentOffsetDay = Math.min(offsetDay, currentMonthDays);
+
+    const nextMonthDays = lastDayOfMonth(new Date(nextYear, adjustedNextMonth, 1)).getDate();
+    const nextOffsetDay = Math.min(offsetDay, nextMonthDays);
+
+    return {
+        startDate: new Date(currentYear, currentMonth, currentOffsetDay + 1, 0, 0, 0, 0),
+        endDate: new Date(nextYear, adjustedNextMonth, nextOffsetDay, 23, 59, 59, 999),
+    };
+}
+
+/**
+ * Calculate monthly reporting period for last business day
+ */
+function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; endDate: Date} {
+    let endDate = endOfMonth(currentDate);
+
+    // Move backward to find last business day (Mon-Fri)
+    while (getDay(endDate) === 0 || getDay(endDate) === 6) {
+        endDate = subDays(endDate, 1);
+    }
+
+    return {
+        startDate: startOfMonth(currentDate),
+        endDate: endOfDay(endDate),
+    };
+}
+
+/**
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
-function getAutoReportingDates(
-    policy: OnyxEntry<Policy>,
-    report: Report,
-    currentDate = new Date(),
-): {startDate: Date | undefined; endDate: Date | undefined} {
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
@@ -540,13 +597,15 @@ function getAutoReportingDates(
             endDate = endOfDay(currentDate);
             break;
 
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
-            // Weekly: from Sunday to Saturday (US convention)
-            startDate = startOfWeek(currentDate, {weekStartsOn: 0}); // Sunday
-            endDate = endOfWeek(currentDate, {weekStartsOn: 0});
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY: {
+            // Weekly: use the app's configured week start convention (Monday)
+            const weekStartsOn = CONST.WEEK_STARTS_ON;
+            startDate = startOfWeek(currentDate, {weekStartsOn});
+            endDate = endOfWeek(currentDate, {weekStartsOn});
             break;
+        }
 
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
             // Semi-monthly: 1st-15th or 16th-end of month
             const dayOfMonth = currentDate.getDate();
             if (dayOfMonth <= 15) {
@@ -557,67 +616,33 @@ function getAutoReportingDates(
                 endDate = endOfMonth(currentDate);
             }
             break;
+        }
 
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
-            // Monthly with offset handling
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
+            // Monthly reporting with different offset configurations
             if (offset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                // Always report from start to end of month
-                startDate = startOfMonth(currentDate);
-
-                // Find last business day of month
-                endDate = endOfMonth(currentDate);
-
-                // Move backward to find last business day (Mon-Fri)
-                while (getDay(endDate) === 0 || getDay(endDate) === 6) {
-                    endDate = subDays(endDate, 1);
-                }
-                endDate = endOfDay(endDate);
+                const period = getMonthlyLastBusinessDayPeriod(currentDate);
+                startDate = period.startDate;
+                endDate = period.endDate;
             } else if (typeof offset === 'number') {
-                // Specific day of month for reporting
-                const currentDay = currentDate.getDate();
-
-                // Determine which period we're in
-                if (currentDay <= offset) {
-                    // We haven't reached the reporting day yet, so we're in the period from last month
-                    // Period: previous month day after offset -> this month offset
-                    const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-                    const prevMonthDays = lastDayOfMonth(prevMonth).getDate();
-                    const prevOffsetDay = Math.min(offset, prevMonthDays);
-
-                    startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), prevOffsetDay + 1, 0, 0, 0, 0);
-
-                    const currentMonthDays = lastDayOfMonth(currentDate).getDate();
-                    const currentOffsetDay = Math.min(offset, currentMonthDays);
-
-                    endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentOffsetDay, 23, 59, 59, 999);
-                } else {
-                    // We've passed the reporting day, so we're in the next period
-                    // Period: this month day after offset -> next month offset
-                    const currentMonthDays = lastDayOfMonth(currentDate).getDate();
-                    const currentOffsetDay = Math.min(offset, currentMonthDays);
-
-                    startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentOffsetDay + 1, 0, 0, 0, 0);
-
-                    // Use a safe way to get next month to avoid date overflow issues
-                    const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-                    const nextMonthDays = lastDayOfMonth(nextMonth).getDate();
-                    const nextOffsetDay = Math.min(offset, nextMonthDays);
-
-                    endDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), nextOffsetDay, 23, 59, 59, 999);
-                }
+                const period = getMonthlyReportingPeriod(currentDate, offset);
+                startDate = period.startDate;
+                endDate = period.endDate;
             } else {
                 // Default to full month
                 startDate = startOfMonth(currentDate);
                 endDate = endOfMonth(currentDate);
             }
             break;
+        }
 
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
             // For trip-based, use oldest transaction as start
             const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
             endDate = currentDate;
             break;
+        }
 
         default:
             // For any other frequency, use current date as both start and end

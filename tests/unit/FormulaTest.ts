@@ -279,14 +279,14 @@ describe('CustomFormula', () => {
 
             const {startDate, endDate} = getAutoReportingDates(policy, mockReport);
 
-            // January 19, 2025 is a Sunday
-            expect(startDate?.toISOString()).toBe('2025-01-19T00:00:00.000Z'); // Sunday (start of week)
-            expect(endDate?.toISOString()).toBe('2025-01-25T23:59:59.999Z'); // Saturday (end of week)
+            // January 19, 2025 is a Sunday, but with Monday start, the week is Jan 13-19
+            expect(startDate?.toISOString()).toBe('2025-01-13T00:00:00.000Z'); // Monday (start of week)
+            expect(endDate?.toISOString()).toBe('2025-01-19T23:59:59.999Z'); // Sunday (end of week)
 
             // Test formula computation
             const context: FormulaContext = {report: mockReport, policy};
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-25');
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-13');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
         });
 
         test('should compute auto-reporting dates for semi-monthly frequency (first half)', () => {
