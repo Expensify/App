@@ -55,6 +55,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {reportsSelector} from '@src/selectors/Attributes';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -100,7 +101,7 @@ function IOURequestStepDistance({
             },
         [optimisticWaypoints, transaction],
     );
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
     // When online, fetch the backup route to ensure the map is populated even if the user does not save the transaction.

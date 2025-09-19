@@ -6,6 +6,7 @@ import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportsSelector} from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
@@ -72,7 +73,7 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();

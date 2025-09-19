@@ -43,6 +43,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {reportsSelector} from '@src/selectors/Attributes';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -95,7 +96,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         [navigationState],
     );
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);

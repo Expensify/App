@@ -23,6 +23,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import {reportsSelector} from '@src/selectors/Attributes';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
@@ -104,7 +105,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReportIDs} = useSidebarOrderedReports();
 

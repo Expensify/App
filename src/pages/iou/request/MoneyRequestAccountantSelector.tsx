@@ -29,6 +29,7 @@ import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportsSelector} from '@src/selectors/Attributes';
 import type {Accountant} from '@src/types/onyx/IOU';
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});
@@ -60,7 +61,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         shouldInitialize: didScreenTransitionEnd,
     });
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());

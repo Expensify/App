@@ -16,6 +16,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {reportsSelector} from '@src/selectors/Attributes';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {
@@ -46,7 +47,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         shouldInitialize: didScreenTransitionEnd,
     });
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');

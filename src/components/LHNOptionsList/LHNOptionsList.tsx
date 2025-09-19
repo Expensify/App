@@ -30,6 +30,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportsSelector} from '@src/selectors/Attributes';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -47,7 +48,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const isScreenFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -223,7 +224,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
             });
 
-            const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+            const shouldShowRBRorGBRTooltip = true; // firstReportIDWithGBRorRBR === reportID;
 
             return (
                 <OptionRowLHNData
