@@ -31,6 +31,10 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         [videoPopoverMenuPlayerRef],
     );
 
+    const updateVideoPopoverMenuPlayerRef = (videoPlayer: VideoPlayer | null) => {
+        videoPopoverMenuPlayerRef.current = videoPlayer;
+    };
+
     const downloadAttachment = useCallback(() => {
         if (typeof source === 'number' || !source) {
             return;
@@ -68,10 +72,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(
-        () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setSource}),
-        [menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setSource],
-    );
+    const contextValue = useMemo(() => ({menuItems, updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: setSource}), [menuItems, updatePlaybackSpeed, setSource]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

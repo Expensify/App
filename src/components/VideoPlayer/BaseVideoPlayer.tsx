@@ -116,7 +116,7 @@ function BaseVideoPlayer({
         isOffline,
         isLocalFile: isUploading,
     });
-    const {videoPopoverMenuPlayerRef, updatePlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
+    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -181,14 +181,14 @@ function BaseVideoPlayer({
     }, [controlStatusState, controlsOpacity, hideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
+        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
         if (!videoPlayerRef.current?.playbackRate) {
             return;
         }
         updatePlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
         setIsPopoverVisible(true);
 
-        setPopoverMenuSource(url);
+        updatePopoverMenuSource(url);
         if (!event || !('nativeEvent' in event)) {
             return;
         }

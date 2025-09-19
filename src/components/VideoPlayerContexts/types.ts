@@ -1,11 +1,10 @@
-import type { VideoPlayer } from 'expo-video';
-import type { RefObject } from 'react';
-import type { SharedValue } from 'react-native-reanimated';
-import type { TupleToUnion } from 'type-fest';
-import type { PopoverMenuItem } from '@components/PopoverMenu';
+import type {VideoPlayer} from 'expo-video';
+import type {RefObject} from 'react';
+import type {SharedValue} from 'react-native-reanimated';
+import type {TupleToUnion} from 'type-fest';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
-import type { ResponsiveLayoutProperties } from './FullScreenContext';
-
+import type {ResponsiveLayoutProperties} from './FullScreenContext';
 
 type VolumeContext = {
     /**
@@ -38,15 +37,10 @@ type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
 
     /**
-     * Reference to the video player popover menu is linked to.
+     * Updates the video player reference used by the popover menu.
+     * @param ref The video player ref.
      */
-    videoPopoverMenuPlayerRef: RefObject<VideoPlayer | null>;
-
-    /**
-     * The current playback speed selected in the popover menu.
-     * ISN'T USED OUTSIDE
-     */
-    currentPlaybackSpeed: PlaybackSpeed;
+    updateVideoPopoverMenuPlayerRef: (videoPlayer: VideoPlayer | null) => void;
 
     /**
      * Updates the playback speed inside VideoPopoverMenuContext.
@@ -58,7 +52,7 @@ type VideoPopoverMenuContext = {
      * Updates the video source URL inside VideoPopoverMenuContext.
      * @param source The new source URL.
      */
-    setSource: (source: string) => void;
+    updateSource: (source: string) => void;
 };
 
 type FullScreenContext = {
