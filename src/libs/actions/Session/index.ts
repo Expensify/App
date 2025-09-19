@@ -209,7 +209,6 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
 function signInWithSupportAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams(true);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
-    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.START_SUPPORT_SESSION);
 }
 
 /**
@@ -339,6 +338,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     return signOutPromise
         .then((response) => {
             if (isSupportal) {
+                // Send event to Fraud Protection backend, otherwise it might consider the user as being suspicious
                 FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);
             }
             if (response?.hasOldDotAuthCookies) {
