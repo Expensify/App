@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -43,13 +43,11 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const renderContent = () => {
         if (!!isLoading && !paymentBankAccountID) {
             return (
-                <View style={[styles.flex1, styles.appBG]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.flex1}
-                        color={theme.spinner}
-                    />
-                </View>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={styles.flex1}
+                    color={theme.spinner}
+                />
             );
         }
         if (paymentBankAccountID) {

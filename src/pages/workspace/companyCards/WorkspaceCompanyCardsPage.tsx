@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -164,13 +164,11 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             {!!isLoading && (
-                <View style={[styles.flex1, styles.appBG]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.flex1}
-                        color={theme.spinner}
-                    />
-                </View>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={styles.flex1}
+                    color={theme.spinner}
+                />
             )}
             {!isLoading && (
                 <WorkspacePageWithSections
