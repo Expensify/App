@@ -140,7 +140,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 customText={translate('common.more')}
                 options={secondaryActions}
                 isSplitButton={false}
-                wrapperStyle={styles.flexGrow1}
+                wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
             />
         </View>
     );
