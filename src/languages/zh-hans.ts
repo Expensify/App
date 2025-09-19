@@ -667,7 +667,7 @@ const translations = {
         purchaseAmount: '购买金额',
         link: '链接',
         pinned: '已固定',
-        read: '阅读',
+        read: '已读',
     },
     supportalNoAccess: {
         title: '慢一点',

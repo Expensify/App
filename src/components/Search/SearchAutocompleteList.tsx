@@ -517,7 +517,7 @@ function SearchAutocompleteList({
                     return isValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(isValue.toLowerCase());
                 });
 
-                return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS, text: isValue}));
+                return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IS, text: isValue}));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:

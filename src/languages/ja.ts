@@ -668,7 +668,7 @@ const translations = {
         purchaseAmount: '購入金額',
         link: 'リンク',
         pinned: '固定済み',
-        read: '読む',
+        read: '既読',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6148,7 +6148,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
             },
-            is: 'は',
+            is: '状態',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',

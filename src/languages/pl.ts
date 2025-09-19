@@ -668,7 +668,7 @@ const translations = {
         purchaseAmount: 'Kwota zakupu',
         link: 'Link',
         pinned: 'Przypięte',
-        read: 'Czytaj',
+        read: 'Przeczytane',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
