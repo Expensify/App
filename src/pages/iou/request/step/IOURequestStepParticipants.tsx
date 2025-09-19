@@ -276,11 +276,9 @@ function IOURequestStepParticipants({
             return;
         }
 
-        // If coming from the combined submit/track flow and the user proceeds to submit the expense
-        // we will use the submit IOU type in the confirmation flow.
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
-            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+            iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
             initialTransactionID,
             newReportID,
             undefined,
@@ -342,7 +340,7 @@ function IOURequestStepParticipants({
             )}
             {transactions.length > 0 && (
                 <MoneyRequestParticipantsSelector
-                    participants={isSplitRequest ? participants : []}
+                    participants={participants}
                     onParticipantsAdded={addParticipant}
                     onFinish={goToNextStep}
                     iouType={iouType}

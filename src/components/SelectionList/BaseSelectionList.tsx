@@ -37,12 +37,27 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
-const getDefaultItemHeight = () => variables.optionRowHeight;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getDefaultItemHeight = (ListItem: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    switch (ListItem?.displayName) {
+        case 'SingleSelectListItem':
+        case 'MultiSelectListItem':
+        case 'UserSelectionListItem':
+            return variables.optionRowHeightCompact;
+        case 'UserListItem':
+        case 'NewChatListItem':
+        case 'InviteMemberListItem':
+        default:
+            return variables.optionRowHeight;
+    }
+};
 
 function BaseSelectionList<TItem extends ListItem>({
     sections,
@@ -54,7 +69,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onCheckboxPress,
     onSelectAll,
     onDismissError,
-    getItemHeight = getDefaultItemHeight,
+    getItemHeight,
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
@@ -144,7 +159,7 @@ function BaseSelectionList<TItem extends ListItem>({
     loaderSpeed,
     errorText,
     shouldUseDefaultRightHandSideCheckmark,
-    selectedItems = [],
+    selectedItems = getEmptyArray<string>(),
     isSelected,
     canShowProductTrainingTooltip,
     renderScrollComponent,
@@ -191,7 +206,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const [currentPage, setCurrentPage] = useState(() => calculateInitialCurrentPage());
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
-    const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const itemHeights = useRef<Record<string, number>>({});
     const pendingScrollIndexRef = useRef<number | null>(null);
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
@@ -200,11 +215,10 @@ function BaseSelectionList<TItem extends ListItem>({
         }
 
         const {height} = event.nativeEvent.layout;
-
-        setItemHeights((prevHeights) => ({
-            ...prevHeights,
+        itemHeights.current = {
+            ...itemHeights.current,
             [itemKey]: height,
-        }));
+        };
     };
 
     const canShowProductTrainingTooltipMemo = useMemo(() => {
@@ -256,8 +270,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 }
                 disabledIndex += 1;
 
+                const defaultItemHeight = getItemHeight ? getItemHeight(item) : getDefaultItemHeight(ListItem);
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : getItemHeight(item);
+                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : defaultItemHeight;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -281,7 +296,6 @@ function BaseSelectionList<TItem extends ListItem>({
             );
         }
         const totalSelectable = allOptions.length - disabledOptionsIndexes.length;
-
         return {
             allOptions,
             selectedOptions,
@@ -290,8 +304,9 @@ function BaseSelectionList<TItem extends ListItem>({
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
+            ListItem,
         };
-    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
@@ -352,9 +367,9 @@ function BaseSelectionList<TItem extends ListItem>({
             // the top of the viewable area at all times by adjusting the viewOffset.
             if (shouldKeepFocusedItemAtTopOfViewableArea) {
                 const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
-                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
+                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights.current[firstPreviousItem.keyForList] : 0;
                 const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
-                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights[secondPreviousItem.keyForList] : 0;
+                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights.current[secondPreviousItem.keyForList] : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
@@ -644,9 +659,9 @@ function BaseSelectionList<TItem extends ListItem>({
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
-        const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
+        const isItemFocused = (selected ? hasKeyBeenPressed.current : !isDisabled) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
-
+        const accessibilityState = {selected: hasKeyBeenPressed.current ? isItemFocused : selected};
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
@@ -681,6 +696,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    accessibilityState={accessibilityState}
                 />
             </View>
         );
@@ -982,6 +998,11 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const shouldHideContentBottomSafeAreaPadding = showConfirmButton || !!footerContent;
 
+    const handleOnEndReached = useCallback(() => {
+        onEndReached?.();
+        incrementPage();
+    }, [onEndReached, incrementPage]);
+
     // TODO: test _every_ component that uses SelectionList
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
@@ -1044,7 +1065,7 @@ function BaseSelectionList<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
-                        onEndReached={onEndReached ?? incrementPage}
+                        onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
                         addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
