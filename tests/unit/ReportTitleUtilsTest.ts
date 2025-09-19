@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
