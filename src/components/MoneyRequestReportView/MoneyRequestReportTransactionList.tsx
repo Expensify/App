@@ -203,21 +203,22 @@ function MoneyRequestReportTransactionList({
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
             const backTo = Navigation.getActiveRoute();
-            const reportIDToNavigate = iouAction?.childReportID;
+            let reportIDToNavigate = iouAction?.childReportID;
 
             const routeParams = {
                 reportID: reportIDToNavigate,
                 backTo,
             } as ReportScreenNavigationProps;
 
-            if (!iouAction?.childReportID) {
+            if (!reportIDToNavigate) {
                 const transactionThreadReport = createTransactionThreadReport(report, iouAction);
                 if (transactionThreadReport) {
-                    routeParams.reportID = transactionThreadReport.reportID;
+                    reportIDToNavigate = transactionThreadReport.reportID;
+                    routeParams.reportID = reportIDToNavigate;
                 }
+            } else {
+                setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
             }
-
-            setOptimisticTransactionThread(reportIDToNavigate, report?.reportID, iouAction?.reportActionID, report?.policyID);
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
