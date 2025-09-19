@@ -1,3 +1,4 @@
+import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -142,6 +143,10 @@ function getOptimisticTargetTransactionData(targetTransaction: Transaction, merg
                 return mergeValue !== targetTransaction.comment?.comment;
             }
 
+            if (key === 'attendees') {
+                return !deepEqual(mergeValue, targetTransaction.comment?.attendees);
+            }
+
             // For all other fields, compare directly
             const targetValue = targetTransaction[key as keyof Transaction];
             return mergeValue !== targetValue;
@@ -154,7 +159,38 @@ function getOptimisticTargetTransactionData(targetTransaction: Transaction, merg
         isFromExpenseReport: isExpenseReport(mergeTransaction.reportID),
     });
 
-    return targetTransactionUpdated;
+    const clearedPendingFields = Object.fromEntries(Object.keys(filteredTransactionChanges).map((key) => [key, null]));
+
+    const optimisticTargetTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: {
+            ...targetTransactionUpdated,
+            // Update receipt if receiptID is provided
+            ...(mergeTransaction.receipt?.receiptID && {
+                receipt: {
+                    source: mergeTransaction.receipt?.source ?? targetTransaction.receipt?.source,
+                    receiptID: mergeTransaction.receipt.receiptID,
+                },
+            }),
+        },
+    };
+
+    const failureTargetTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: targetTransaction,
+    };
+    const successTargetTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
+        value: {
+            pendingFields: clearedPendingFields,
+            modifiedAttendees: null,
+        },
+    };
+
+    return {optimisticTargetTransactionData, failureTargetTransactionData, successTargetTransactionData};
 }
 
 /**
@@ -175,7 +211,11 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         amount: finalAmount,
         currency: mergeTransaction.currency,
         category: mergeTransaction.category,
-        comment: mergeTransaction.description,
+        comment: JSON.stringify({
+            ...targetTransaction.comment,
+            comment: mergeTransaction.description,
+            attendees: mergeTransaction.attendees,
+        }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
@@ -183,28 +223,7 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         reportID: mergeTransaction.reportID,
     };
 
-    const targetTransactionUpdated = getOptimisticTargetTransactionData(targetTransaction, mergeTransaction);
-
-    // Optimistic update the target transaction with the new values
-    const optimisticTargetTransactionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
-        value: {
-            ...targetTransactionUpdated,
-            // Update receipt if receiptID is provided
-            ...(params.receiptID && {
-                receipt: {
-                    source: mergeTransaction.receipt?.source ?? targetTransaction.receipt?.source,
-                    receiptID: params.receiptID,
-                },
-            }),
-        },
-    };
-    const failureTargetTransactionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
-        value: targetTransaction,
-    };
+    const {optimisticTargetTransactionData, failureTargetTransactionData, successTargetTransactionData} = getOptimisticTargetTransactionData(targetTransaction, mergeTransaction);
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
     const optimisticSourceTransactionData: OnyxUpdate = {
@@ -310,8 +329,9 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         ...failureTransactionViolations,
         ...failureSourceReportActionData,
     ];
+    const successData: OnyxUpdate[] = [successTargetTransactionData];
 
-    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
 export {setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
