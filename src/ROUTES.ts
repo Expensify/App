@@ -779,10 +779,20 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_UPGRADE: {
-        route: ':action/:iouType/upgrade/:transactionID/:reportID/:featureName?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, featureName?: string, backTo = '') =>
+        route: ':action/:iouType/upgrade/:transactionID/:reportID/:upgradePath?',
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; backTo?: string; shouldSubmitExpense?: boolean; upgradePath?: string}) => {
+            const {action, iouType, transactionID, reportID, backTo = '', shouldSubmitExpense = false, upgradePath} = params;
+            const upgradePathParam = upgradePath ? `/${upgradePath}` : '';
+            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}${upgradePathParam}` as const;
+
+            if (shouldSubmitExpense) {
+                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+                return getUrlWithBackToParam(`${baseURL}?shouldSubmitExpense=${shouldSubmitExpense}` as const, backTo);
+            }
+
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}/${encodeURIComponent(featureName ?? '')}`, backTo),
+            return getUrlWithBackToParam(baseURL, backTo);
+        },
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         route: ':action/:iouType/destination/:transactionID/:reportID',
