@@ -5,12 +5,12 @@ import * as API from '@libs/API';
 import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import FraudProtection, {EVENTS} from '@libs/FraudProtection';
+import FraudProtection from '@libs/FraudProtection';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
+import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -208,7 +208,7 @@ function connect({email, delegatedAccess, isFromOldDot = false}: ConnectParams) 
                     updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
-                    FraudProtection.sendEvent(EVENTS.START_COPILOT_SESSION);
+                    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.START_COPILOT_SESSION);
                     confirmReadyToOpenApp();
                     return openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
@@ -304,7 +304,7 @@ function disconnect() {
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
                     NetworkStore.setAuthToken(response?.authToken ?? null);
-                    FraudProtection.sendEvent(EVENTS.STOP_COPILOT_SESSION);
+                    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_COPILOT_SESSION);
                     confirmReadyToOpenApp();
                     openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP) {

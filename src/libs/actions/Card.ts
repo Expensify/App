@@ -16,12 +16,12 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import FraudProtection, {EVENTS} from '@libs/FraudProtection';
+import FraudProtection from '@libs/FraudProtection';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getReportActionFromExpensifyCard} from '@libs/ReportActionsUtils';
 import {findReportIDForAction} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeed} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
@@ -85,7 +85,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
         validateCode,
     };
 
-    FraudProtection.sendEvent(EVENTS.REQUEST_NEW_VIRTUAL_EXPENSIFY_CARD);
+    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.REQUEST_NEW_VIRTUAL_EXPENSIFY_CARD);
     API.write(WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD, parameters, {
         optimisticData,
         successData,
@@ -143,7 +143,7 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         validateCode,
     };
 
-    FraudProtection.sendEvent(EVENTS.REQUEST_NEW_PHYSICAL_EXPENSIFY_CARD);
+    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.REQUEST_NEW_PHYSICAL_EXPENSIFY_CARD);
     API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {
         optimisticData,
         successData,
@@ -494,10 +494,10 @@ function updateExpensifyCardLimit(
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
 
     if (isVirtualCard) {
-        FraudProtection.sendEvent(EVENTS.EDIT_LIMIT_ADMIN_ISSUE_VIRTUAL_CARD);
+        FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.EDIT_LIMIT_ADMIN_ISSUE_VIRTUAL_CARD);
         return;
     }
-    FraudProtection.sendEvent(EVENTS.EDIT_EXPENSIFY_CARD_LIMIT);
+    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.EDIT_EXPENSIFY_CARD_LIMIT);
 }
 
 function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, newCardTitle: string, oldCardTitle?: string) {
@@ -852,7 +852,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
-        FraudProtection.sendEvent(EVENTS.ISSUE_EXPENSIFY_CARD);
+        FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.ISSUE_EXPENSIFY_CARD);
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
             {...parameters, feedCountry},
@@ -865,7 +865,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         return;
     }
 
-    FraudProtection.sendEvent(EVENTS.ISSUE_ADMIN_ISSUED_VIRTUAL_CARD);
+    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.ISSUE_ADMIN_ISSUED_VIRTUAL_CARD);
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,

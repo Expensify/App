@@ -28,7 +28,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import FraudProtection, {EVENTS} from '@libs/FraudProtection';
+import FraudProtection from '@libs/FraudProtection';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import {translateLocal} from '@libs/Localize';
@@ -56,7 +56,7 @@ import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
+import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -209,7 +209,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
 function signInWithSupportAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams(true);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
-    FraudProtection.sendEvent(EVENTS.START_SUPPORT_SESSION);
+    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.START_SUPPORT_SESSION);
 }
 
 /**
@@ -336,7 +336,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     if (isSupportal) {
-        FraudProtection.sendEvent(EVENTS.STOP_SUPPORT_SESSION);
+        FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);
     }
     // Wait for signOut (if called), then redirect and update Onyx.
     return signOutPromise
@@ -1084,7 +1084,7 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
         },
     ];
 
-    FraudProtection.sendEvent(EVENTS.TOGGLE_TWO_FACTOR_AUTH);
+    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.TOGGLE_TWO_FACTOR_AUTH);
 
     if (enable) {
         API.write(WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH, null, {optimisticData, successData, failureData});
