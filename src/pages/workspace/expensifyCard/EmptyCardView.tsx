@@ -39,7 +39,7 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
             contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             addBottomSafeAreaPadding
         >
-            <View style={[{height: windowHeight - headerHeight}, styles.pt5]}>
+            <View style={[{minHeight: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
