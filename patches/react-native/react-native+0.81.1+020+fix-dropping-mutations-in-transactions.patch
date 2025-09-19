@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-index 6d781dc..21d4845 100644
+index 3ccff28..3cc20c3 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-@@ -511,7 +511,7 @@ void FabricUIManagerBinding::schedulerDidFinishTransaction(
+@@ -611,7 +611,7 @@ void FabricUIManagerBinding::schedulerDidFinishTransaction(
                mountingTransaction->getSurfaceId();
          });
  
