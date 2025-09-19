@@ -12,6 +12,9 @@ jest.mock('@libs/ReportUtils', () => ({
     getTitleReportField: jest.fn(),
     isChatReport: jest.fn(),
 }));
+jest.mock('@libs/Permissions', () => ({
+    isBetaEnabled: jest.fn().mockReturnValue(true),
+}));
 
 const mockedReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 

@@ -90,7 +90,6 @@ import {rand64} from '@libs/NumberUtils';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
@@ -183,8 +182,6 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     Account,
-    Beta,
-    BetaConfiguration,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -229,8 +226,8 @@ import {
 } from './RequestConflictUtils';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
-import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
+import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -2702,15 +2699,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function buildNewReportOptimisticData(
-    policy: OnyxEntry<Policy>,
-    reportID: string,
-    reportActionID: string,
-    creatorPersonalDetails: PersonalDetails,
-    reportPreviewReportActionID: string,
-    betas: Beta[] = [],
-    betaConfiguration?: BetaConfiguration,
-) {
+function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: string, reportActionID: string, creatorPersonalDetails: PersonalDetails, reportPreviewReportActionID: string) {
     const {accountID, login} = creatorPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
@@ -2764,7 +2753,7 @@ function buildNewReportOptimisticData(
     const optimisticNextStep = buildNextStep(optimisticReportData, CONST.REPORT.STATUS_NUM.OPEN);
     const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
-    let optimisticData: OnyxUpdate[] = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2798,9 +2787,7 @@ function buildNewReportOptimisticData(
             value: optimisticNextStep,
         },
     ];
-    if (Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
-        optimisticData = optimisticData.concat(updateTitleFieldToMatchPolicy(reportID, policy));
-    }
+    optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2866,7 +2853,7 @@ function buildNewReportOptimisticData(
     };
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false, betas: Beta[] = [], betaConfiguration?: BetaConfiguration) {
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldNotifyNewAction = false) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -2880,8 +2867,6 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         reportActionID,
         creatorPersonalDetails,
         reportPreviewReportActionID,
-        betas,
-        betaConfiguration,
     );
 
     API.write(
@@ -6088,7 +6073,7 @@ function resolveConciergeCategoryOptions(
     } as Partial<ReportActions>);
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
+export type {GuidedSetupData, IntroSelected, TaskForParameters, Video};
 
 export {
     addAttachment,
@@ -6096,23 +6081,29 @@ export {
     addPolicyReport,
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
+    buildInviteToRoomOnyxData,
     buildOptimisticChangePolicyData,
+    changeReportPolicy,
+    changeReportPolicyAndInviteSubmitter,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    clearCreateChatError,
     clearDeleteTransactionNavigateBackUrl,
     clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
-    setNewRoomFormLoading,
     clearPolicyRoomNameErrors,
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
     completeOnboarding,
     createNewReport,
+    createTransactionThreadReport,
+    deleteAppReport,
     deleteReport,
     deleteReportActionDraft,
     deleteReportComment,
     deleteReportField,
+    dismissChangePolicyModal,
     dismissTrackExpenseActionableWhisper,
     doneCheckingPublicRoom,
     downloadReportPDF,
@@ -6128,43 +6119,48 @@ export {
     getMostRecentReportID,
     getNewerActions,
     getOlderActions,
+    getOptimisticChatReport,
     getReportPrivateNote,
     handleReportChanged,
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
-    buildInviteToRoomOnyxData,
     inviteToRoom,
     joinRoom,
     leaveGroupChat,
     leaveRoom,
+    markAllMessagesAsRead,
     markAsManuallyExported,
     markCommentAsUnread,
+    moveIOUReportToPolicy,
+    moveIOUReportToPolicyAndInviteSubmitter,
     navigateToAndOpenChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
-    clearCreateChatError,
     notifyNewAction,
     openReport,
     openReportFromDeepLink,
     openRoomMembersPage,
+    openUnreportedExpense,
     readNewestAction,
-    markAllMessagesAsRead,
+    removeFailedReport,
     removeFromGroupChat,
     removeFromRoom,
-    resolveActionableMentionWhisper,
     resolveActionableMentionConfirmWhisper,
+    resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     savePrivateNotesDraft,
     saveReportActionDraft,
+    saveReportDraft,
     saveReportDraftComment,
     searchInServer,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
+    setNewRoomFormLoading,
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,
@@ -6176,10 +6172,10 @@ export {
     toggleSubscribeToChildReport,
     unsubscribeFromLeavingRoomReportChannel,
     unsubscribeFromReportChannel,
+    updateChatName,
     updateDescription,
     updateGroupChatAvatar,
     updateGroupChatMemberRoles,
-    updateChatName,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
     updateNotificationPreference,
@@ -6189,15 +6185,4 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
-    deleteAppReport,
-    getOptimisticChatReport,
-    saveReportDraft,
-    moveIOUReportToPolicy,
-    moveIOUReportToPolicyAndInviteSubmitter,
-    dismissChangePolicyModal,
-    changeReportPolicy,
-    changeReportPolicyAndInviteSubmitter,
-    removeFailedReport,
-    createTransactionThreadReport,
-    openUnreportedExpense,
 };

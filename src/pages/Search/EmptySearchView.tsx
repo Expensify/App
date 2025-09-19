@@ -156,8 +156,6 @@ function EmptySearchViewContent({
         selector: (transactions) => Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -304,7 +302,7 @@ function EmptySearchViewContent({
                                           }
 
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                              const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation, false, betas, betaConfiguration);
+                                              const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation, false);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                   Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                               });
@@ -430,8 +428,6 @@ function EmptySearchViewContent({
         hasTransactions,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
-        betas,
-        betaConfiguration,
     ]);
 
     return (

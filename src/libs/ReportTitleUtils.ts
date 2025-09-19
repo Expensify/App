@@ -4,11 +4,15 @@
  */
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Beta, BetaConfiguration, Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import Permissions from './Permissions';
 import {getTitleReportField, isChatReport} from './ReportUtils';
 
 let allReportNameValuePairs: Record<string, ReportNameValuePairs> = {};
+let betas: Beta[] = [];
+let betaConfiguration: BetaConfiguration = {};
 
 /**
  * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied directly to the UI.
@@ -20,6 +24,18 @@ Onyx.connectWithoutView({
     waitForCollectionCallback: true,
     callback: (val) => {
         allReportNameValuePairs = (val as Record<string, ReportNameValuePairs>) ?? {};
+    },
+});
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (val) => {
+        betas = val ?? [];
+    },
+});
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_CONFIGURATION,
+    callback: (val) => {
+        betaConfiguration = val ?? {};
     },
 });
 
@@ -37,6 +53,9 @@ function getTitleFieldFromRNVP(reportID: string) {
  * This is the JavaScript equivalent of the backend updateTitleFieldToMatchPolicy function
  */
 function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxUpdate[] {
+    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+        return [];
+    }
     if (!reportID || !policy) {
         return [];
     }
@@ -69,6 +88,9 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
  * This indicates the report should preserve its custom name
  */
 function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
+    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
+        return [];
+    }
     if (!reportID) {
         return [];
     }
