@@ -5,7 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
@@ -82,7 +82,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         setIsValidateCodeActionModalVisible(true);
                     }}
                     sections={[{data: roleOptions}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
                 {!!newRole && (
                     <UpdateDelegateMagicCodeModal

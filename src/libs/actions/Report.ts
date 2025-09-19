@@ -84,6 +84,7 @@ import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoo
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
+import NetworkConnection from '@libs/NetworkConnection';
 import {buildNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
@@ -223,7 +224,7 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
 } from './RequestConflictUtils';
-import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
@@ -701,7 +702,7 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
-    const currentTime = DateUtils.getDBTimeWithSkew();
+    const currentTime = NetworkConnection.getDBTimeWithSkew();
     const lastComment = ReportActionsUtils.getReportActionMessage(lastAction);
     const lastCommentText = formatReportLastMessageText(lastComment?.text ?? '');
 
@@ -1606,7 +1607,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         return;
     }
 
-    const lastReadTime = DateUtils.getDBTimeWithSkew();
+    const lastReadTime = NetworkConnection.getDBTimeWithSkew();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1640,7 +1641,7 @@ function markAllMessagesAsRead() {
         return;
     }
 
-    const newLastReadTime = DateUtils.getDBTimeWithSkew();
+    const newLastReadTime = NetworkConnection.getDBTimeWithSkew();
 
     type PartialReport = {
         lastReadTime: Report['lastReadTime'] | null;
@@ -3398,9 +3399,9 @@ function openReportFromDeepLink(
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
+    isAuthenticated: boolean,
 ) {
     const reportID = getReportIDFromLink(url);
-    const isAuthenticated = hasAuthToken();
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
@@ -5310,19 +5311,19 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         });
     }
 
-    // Create the CHANGE_POLICY report action and add it to the expense report which indicates to the user where the report has been moved
-    const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, true);
+    // Create MOVED report action and add it to the expense report which indicates to the user where the report has been moved
+    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId, iouReportID, policyName, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
+        value: {[movedExpenseReportAction.reportActionID]: movedExpenseReportAction},
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {
-            [changePolicyReportAction.reportActionID]: {
-                ...changePolicyReportAction,
+            [movedExpenseReportAction.reportActionID]: {
+                ...movedExpenseReportAction,
                 pendingAction: null,
             },
         },
@@ -5330,7 +5331,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {[changePolicyReportAction.reportActionID]: null},
+        value: {[movedExpenseReportAction.reportActionID]: null},
     });
 
     // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
@@ -5367,7 +5368,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
         policyID,
-        changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        changePolicyReportActionID: movedExpenseReportAction.reportActionID,
         dmMovedReportActionID: movedReportAction.reportActionID,
         optimisticReportID: expenseChatReportId,
     };
@@ -5568,19 +5569,19 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         });
     }
 
-    // Create the CHANGE_POLICY report action and add it to the expense report which indicates to the user where the report has been moved
-    const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, true);
+    // Create MOVED report action and add it to the expense report which indicates to the user where the report has been moved
+    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID, iouReportID, policy.name, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
+        value: {[movedExpenseReportAction.reportActionID]: movedExpenseReportAction},
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {
-            [changePolicyReportAction.reportActionID]: {
-                ...changePolicyReportAction,
+            [movedExpenseReportAction.reportActionID]: {
+                ...movedExpenseReportAction,
                 pendingAction: null,
             },
         },
@@ -5588,7 +5589,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {[changePolicyReportAction.reportActionID]: null},
+        value: {[movedExpenseReportAction.reportActionID]: null},
     });
 
     // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
@@ -5627,7 +5628,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         policyID,
         policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
         policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
-        changePolicyReportActionID: changePolicyReportAction.reportActionID,
+        changePolicyReportActionID: movedExpenseReportAction.reportActionID,
         dmMovedReportActionID: movedReportAction.reportActionID,
     };
 
