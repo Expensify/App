@@ -156,8 +156,8 @@ function EmptySearchViewContent({
         selector: (transactions) => Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -430,6 +430,8 @@ function EmptySearchViewContent({
         hasTransactions,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
+        betas,
+        betaConfiguration,
     ]);
 
     return (

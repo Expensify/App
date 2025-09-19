@@ -136,8 +136,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);

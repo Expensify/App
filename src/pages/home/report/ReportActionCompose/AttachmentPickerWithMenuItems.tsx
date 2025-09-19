@@ -134,8 +134,8 @@ function AttachmentPickerWithMenuItems({
     const {isBetaEnabled} = usePermissions();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
 
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
