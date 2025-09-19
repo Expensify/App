@@ -15,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import FraudProtection from '@libs/FraudProtection';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -25,7 +24,7 @@ import {
     mergeWithValidateCode as mergeWithValidateCodeAction,
     requestValidationCodeForAccountMerge,
 } from '@userActions/MergeAccounts';
-import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

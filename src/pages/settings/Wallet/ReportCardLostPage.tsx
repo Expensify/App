@@ -91,7 +91,6 @@ function ReportCardLostPage({
         if (!newID || physicalCard?.cardID) {
             return;
         }
-
         setNewCardID(newID);
     }, [cardList, physicalCard, previousCardList]);
 

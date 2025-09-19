@@ -70,7 +70,6 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         if (!isSuccessful) {
             return;
         }
-
         if (backTo) {
             Navigation.goBack(backTo);
         } else {

@@ -18,7 +18,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
-import FraudProtection from '@libs/FraudProtection';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -35,7 +34,7 @@ import {
     requestValidateCodeAction,
     resetValidateActionCodeSent,
 } from '@userActions/User';
-import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
