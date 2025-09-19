@@ -10,7 +10,7 @@ The Expensify Card is now available for companies in the United Kingdom and Euro
 
 <!-- Can only be requested through New Expensify. Expensify Classic customers need to navigate to New Expensify and follow these instructions -->
 
-# Expensify Card (UK/EU) setup
+# UK/EU Expensify Card setup
 
 To get started with the UK/EU Expensify Card, you'll need to meet a few eligibility requirements and connect a business bank account in GBP or EUR.
 
