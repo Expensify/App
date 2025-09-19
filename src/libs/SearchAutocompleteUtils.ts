@@ -188,9 +188,21 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return datePresetList.includes(range.value);
+            return datePresetList.includes(range.value) || !Number.isNaN(new Date(range.value).getTime());
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
             return hasList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+            return range.value.length > 0;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+            return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+            // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
+            return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,3})?$/.test(range.value);
         default:
             return false;
     }

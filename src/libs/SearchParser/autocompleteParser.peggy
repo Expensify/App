@@ -60,6 +60,7 @@ autocompleteKey "key"
       in
       / currency
       / groupCurrency
+      / total
       / tag
       / category
       / to
@@ -91,6 +92,12 @@ autocompleteKey "key"
       / has
       / purchaseCurrency
       / purchaseAmount
+      / amount
+      / merchant
+      / description
+      / reportID
+      / withdrawalID
+      / title
     )
 
 filterKey
