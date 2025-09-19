@@ -109,6 +109,23 @@ function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
     return optimisticData;
 }
 
+function updateTitleFieldWithExactValue(reportID: string, policyTitleField: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expensify_text_title: {
+                    defaultValue: policyTitleField,
+                },
+            },
+        },
+    ];
+
+    return optimisticData;
+}
+
 /**
  * Check if a report should have its title field updated based on conditions
  */
@@ -133,4 +150,4 @@ function shouldUpdateTitleField(report: Report): boolean {
     return true;
 }
 
-export {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy};
+export {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy, updateTitleFieldWithExactValue};
