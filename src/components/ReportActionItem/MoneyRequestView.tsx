@@ -78,6 +78,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {activePolicySelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
@@ -146,7 +147,7 @@ function MoneyRequestView({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+        selector: activePolicySelector,
     });
     // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
     const policy = isExpenseUnreported ? activePolicy : expensePolicy;

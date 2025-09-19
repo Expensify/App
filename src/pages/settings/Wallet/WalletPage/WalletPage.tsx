@@ -4,6 +4,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -56,12 +57,15 @@ type WalletPageProps = {
     shouldListenForResize?: boolean;
 };
 
+const fundListSelector = (allFunds: OnyxCollection<OnyxTypes.Fund>) =>
+    Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
+
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
-        selector: (allFunds) => Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true)),
+        selector: fundListSelector,
     });
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});

@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -17,6 +18,7 @@ import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -38,6 +40,10 @@ type Props = {
     shouldShowNotFoundPage?: boolean;
 };
 
+const policySelector = (policy: OnyxEntry<Policy>) => policy?.id;
+
+const policiesSelector = (policies: OnyxCollection<Policy>) => mapOnyxCollectionItems(policies, policySelector);
+
 function IOURequestEditReportCommon({
     backTo,
     transactionIDs,
@@ -57,7 +63,7 @@ function IOURequestEditReportCommon({
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
+    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
