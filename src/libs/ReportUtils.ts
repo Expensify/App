@@ -13,9 +13,7 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -73,20 +71,11 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {
-    canApproveIOU,
-    canIOUBePaid,
-    canSubmitReport,
-    createDraftTransaction,
-    getIOUReportActionToApproveOrPay,
-    setMoneyRequestParticipants,
-    startMoneyRequest,
-    unholdRequest,
-} from './actions/IOU';
+import {canApproveIOU, canIOUBePaid, canSubmitReport, createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged, openUnreportedExpense} from './actions/Report';
+import {handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactions} from './actions/TransactionEdit';
@@ -114,6 +103,7 @@ import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
+import NetworkConnection from './NetworkConnection';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
@@ -1214,6 +1204,7 @@ function isDraftReport(reportID: string | undefined): boolean {
 
     return !!draftReport;
 }
+
 /**
  * @private
  */
@@ -1407,6 +1398,7 @@ function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | SearchReport | strin
 function isIOUReportUsingReport(report: OnyxEntry<Report>): report is Report {
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
+
 /**
  * Checks if a report is a task report.
  */
@@ -2130,6 +2122,7 @@ function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isR
 function isClosedReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
+
 /**
  * Whether the provided report is the admin's room
  */
@@ -2379,6 +2372,7 @@ function isPayAtEndExpenseReport(report: OnyxEntry<Report>, transactions: Transa
 
     return isPayAtEndExpense(transactions?.[0] ?? getReportTransactions(report?.reportID).at(0));
 }
+
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
  */
@@ -2595,50 +2589,6 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
             canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
         );
     });
-}
-
-/**
- * Returns the dropdown options for the add expense button
- * @param iouReport - The IOU report to add an expense to
- * @param policy - The policy of the IOU report
- * @param backToReport - The report to return to after adding an expense
- * @returns The dropdown options for the add expense button
- */
-function getAddExpenseDropdownOptions(
-    iouReportID: string | undefined,
-    policy: OnyxEntry<Policy>,
-    iouRequestBackToReport?: string,
-    unreportedExpenseBackToReport?: string,
-): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    return [
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translateLocal('iou.createExpense'),
-            icon: Expensicons.Plus,
-            onSelected: () => {
-                if (!iouReportID) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, undefined, false, iouRequestBackToReport);
-            },
-        },
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-            text: translateLocal('iou.addUnreportedExpense'),
-            icon: Expensicons.ReceiptPlus,
-            onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                openUnreportedExpense(iouReportID, unreportedExpenseBackToReport);
-            },
-        },
-    ];
 }
 
 /**
@@ -2974,6 +2924,42 @@ function getDisplayNameForParticipant({
     return shouldUseShortForm ? shortName : longName;
 }
 
+function excludeParticipantsForDisplay(
+    participantsIDs: number[],
+    allReportParticipants: Participants,
+    reportMetadata?: OnyxEntry<ReportMetadata>,
+    excludeOptions?: {
+        shouldExcludeHidden?: boolean;
+        shouldExcludeDeleted?: boolean;
+        shouldExcludeCurrentUser?: boolean;
+    },
+): number[] {
+    if (!excludeOptions) {
+        return participantsIDs;
+    }
+
+    const {shouldExcludeHidden = false, shouldExcludeDeleted = false, shouldExcludeCurrentUser = false} = excludeOptions;
+
+    return participantsIDs.filter((accountID) => {
+        if (shouldExcludeCurrentUser && accountID === currentUserAccountID) {
+            return false;
+        }
+
+        if (shouldExcludeHidden && isHiddenForCurrentUser(allReportParticipants[accountID]?.notificationPreference)) {
+            return false;
+        }
+
+        if (
+            shouldExcludeDeleted &&
+            reportMetadata?.pendingChatMembers?.findLast((member) => Number(member.accountID) === accountID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
 function getParticipantsAccountIDsForDisplay(
     report: OnyxEntry<Report>,
     shouldExcludeHidden = false,
@@ -3011,24 +2997,7 @@ function getParticipantsAccountIDsForDisplay(
     const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report) || shouldForceExcludeCurrentUser;
 
     if (shouldExcludeCurrentUser || shouldExcludeHidden || shouldExcludeDeleted) {
-        participantsIds = participantsIds.filter((accountID) => {
-            if (shouldExcludeCurrentUser && accountID === currentUserAccountID) {
-                return false;
-            }
-
-            if (shouldExcludeHidden && isHiddenForCurrentUser(reportParticipants[accountID]?.notificationPreference)) {
-                return false;
-            }
-
-            if (
-                shouldExcludeDeleted &&
-                reportMetadata?.pendingChatMembers?.findLast((member) => Number(member.accountID) === accountID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            ) {
-                return false;
-            }
-
-            return true;
-        });
+        participantsIds = excludeParticipantsForDisplay(participantsIds, reportParticipants, reportMetadata, {shouldExcludeHidden, shouldExcludeDeleted, shouldExcludeCurrentUser});
     }
 
     return participantsIds.filter((accountID) => isNumber(accountID));
@@ -4180,13 +4149,13 @@ function canEditMoneyRequest(
     }
 
     const moneyRequestReportID = originalMessage?.IOUReportID;
+    const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
     if (!moneyRequestReportID) {
-        return actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+        return actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK && isRequestor;
     }
 
     const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
-    const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
     const isSubmitted = isProcessingReport(moneyRequestReport);
     if (isIOUReport(moneyRequestReport)) {
@@ -4406,6 +4375,11 @@ function canEditFieldOfMoneyRequest(
                   getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 1 ||
                   (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
+    }
+
+    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (isUnreportedExpense && !isRequestor) {
+        return false;
     }
 
     return true;
@@ -5909,7 +5883,7 @@ function buildOptimisticAddCommentReportAction(
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID]?.avatar,
-            created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
+            created: NetworkConnection.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -7174,7 +7148,7 @@ function buildOptimisticTaskReportAction(
         ],
         reportActionID: rand64(),
         shouldShow: true,
-        created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
+        created: NetworkConnection.getDBTimeWithSkew(Date.now() + createdOffset),
         isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         delegateAccountID: delegateAccountDetails?.accountID,
@@ -10215,7 +10189,17 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             return;
         }
         if (filteredPolicies.length === 0 || filteredPolicies.length > 1) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_UPGRADE.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    backTo: '',
+                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                    shouldSubmitExpense: true,
+                }),
+            );
             return;
         }
 
@@ -11848,7 +11832,6 @@ export {
     getRootParentReport,
     getRouteFromLink,
     canDeleteCardTransactionByLiabilityType,
-    getAddExpenseDropdownOptions,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
@@ -12087,6 +12070,7 @@ export {
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
     getMovedActionMessage,
+    excludeParticipantsForDisplay,
     getReportName,
 };
 export type {

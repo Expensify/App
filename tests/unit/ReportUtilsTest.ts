@@ -34,6 +34,7 @@ import {
     canLeaveChat,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
+    excludeParticipantsForDisplay,
     findLastAccessedReport,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
@@ -85,10 +86,22 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    OnyxInputOrEntry,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployeeList,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportMetadata,
+    ReportNameValuePairs,
+    Transaction,
+} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount} from '@src/types/onyx/Policy';
-import type {Participant} from '@src/types/onyx/Report';
+import type {Participant, Participants} from '@src/types/onyx/Report';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
@@ -6820,6 +6833,129 @@ describe('ReportUtils', () => {
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
             expect(Object.keys(errors)).toHaveLength(0);
             expect(reportAction).toBeUndefined();
+        });
+    });
+
+    describe('excludeParticipantsForDisplay', () => {
+        const mockParticipants = {
+            1: {notificationPreference: 'always'},
+            2: {notificationPreference: 'hidden'},
+            3: {notificationPreference: 'daily'},
+            4: {notificationPreference: 'always'},
+        } as Participants;
+
+        const mockReportMetadata = {
+            pendingChatMembers: [
+                {accountID: '3', pendingAction: 'delete'},
+                {accountID: '4', pendingAction: 'add'},
+            ],
+        } as OnyxEntry<ReportMetadata>;
+
+        it('should return original array when no exclude options provided', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants);
+            expect(result).toEqual(participantsIDs);
+        });
+
+        it('should return original array when excludeOptions is undefined', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, undefined);
+            expect(result).toEqual(participantsIDs);
+        });
+
+        it('should exclude current user when shouldExcludeCurrentUser is true', () => {
+            const participantsIDs = [1, 2, currentUserAccountID, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeCurrentUser: true,
+            });
+            expect(result).toEqual([1, 2, 4]);
+            expect(result).not.toContain(currentUserAccountID);
+        });
+
+        it('should exclude hidden participants when shouldExcludeHidden is true', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: true,
+            });
+            expect(result).toEqual([1, 3, 4]);
+            expect(result).not.toContain(2); // participant 2 has 'hidden' notification preference
+        });
+
+        it('should exclude deleted participants when shouldExcludeDeleted is true', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1, 2, 4]);
+            expect(result).not.toContain(3); // participant 3 has pending delete action
+        });
+
+        it('should apply multiple exclusions when multiple options are true', () => {
+            const participantsIDs = [1, 2, 3, currentUserAccountID];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeCurrentUser: true,
+                shouldExcludeHidden: true,
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1]);
+        });
+
+        it('should handle empty participants array', () => {
+            const participantsIDs: number[] = [];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeCurrentUser: true,
+                shouldExcludeHidden: true,
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([]);
+        });
+
+        it('should exclude participants not in the participants object when shouldExcludeHidden is true', () => {
+            const participantsIDs = [99, 100];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: true,
+            });
+            expect(result).toEqual([]); // Should exclude unknown participants because they have undefined notification preference (treated as hidden)
+        });
+
+        it('should not exclude participants not in the participants object when shouldExcludeHidden is false', () => {
+            const participantsIDs = [99, 100];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: false,
+            });
+            expect(result).toEqual([99, 100]); // Should not exclude unknown participants when not excluding hidden
+        });
+
+        it('should handle report metadata without pending chat members', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const emptyMetadata = {};
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, emptyMetadata, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual(participantsIDs); // Should not exclude any when no pending members
+        });
+
+        it('should only exclude based on last pending action when multiple actions for same user', () => {
+            const participantsIDs = [1, 2, 3];
+            const metadataWithMultipleActions = {
+                pendingChatMembers: [
+                    {accountID: '3', pendingAction: 'add'},
+                    {accountID: '3', pendingAction: 'delete'},
+                ],
+            } as OnyxEntry<ReportMetadata>;
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, metadataWithMultipleActions, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1, 2]);
+            expect(result).not.toContain(3); // Should be excluded based on last action (delete)
+        });
+
+        it('should not exclude when pending action is not delete', () => {
+            const participantsIDs = [1, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1, 4]); // participant 4 has 'add' action, should not be excluded
         });
     });
 
