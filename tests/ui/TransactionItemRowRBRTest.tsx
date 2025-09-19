@@ -123,6 +123,83 @@ describe('TransactionItemRowRBR', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
         });
         await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+        });
+
+        // When rendering the transaction item row
+        renderTransactionItemRow(mockTransaction);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the RBR message should be displayed
+        expect(screen.getByText('Missing category.')).toBeOnTheScreen();
+    });
+
+    it('should display RBR message for transaction with multiple violations', async () => {
+        // Given a transaction with two violations
+        const mockViolations: TransactionViolations = [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+            {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ];
+        const mockTransaction = createBaseTransaction({violations: mockViolations});
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+        });
+
+        // When rendering the transaction item row
+        renderTransactionItemRow(mockTransaction);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the RBR message should be displayed with both violations
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
+    });
+
+    it('should display RBR message for transaction with report action errors', async () => {
+        // Given a transaction with report action errors
+        const mockTransaction = createBaseTransaction();
+        const mockReportActionIOU = createIOUReportAction();
+        const mockReportActionErrors = createErrorReportAction();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_TRANSACTION_ID}`, {
+            [mockReportActionIOU.reportActionID]: mockReportActionIOU,
+            [mockReportActionErrors.reportActionID]: mockReportActionErrors,
+        });
+
+        // When rendering the transaction item row
+        renderTransactionItemRow(mockTransaction);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the RBR message should be displayed for report action errors
+        expect(screen.getByText('Unexpected error posting the comment. Please try again later.')).toBeOnTheScreen();
+    });
+
+    it('should display RBR message for transaction with missing merchant error', async () => {
+        // Given a transaction with a missing merchant error
+        const mockReport = {
+            ...createRandomReport(1),
+            pendingAction: null,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const mockTransaction = createBaseTransaction({
+            modifiedMerchant: '',
+            merchant: '',
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
         });
 
