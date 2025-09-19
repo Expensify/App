@@ -201,6 +201,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+            // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,3})?$/.test(range.value);
         default:
             return false;

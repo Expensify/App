@@ -177,7 +177,7 @@ describe('SearchAutocompleteUtils', () => {
         });
 
         it('should handle amount filters with invalid formats', () => {
-            const invalidAmounts = ['100.123', 'abc', '100.50.25', ''];
+            const invalidAmounts = ['100.1234', 'abc', '100.50.25', ''];
 
             invalidAmounts.forEach((amount) => {
                 const input = `purchaseAmount:${amount}`;
