@@ -235,7 +235,7 @@ type ListItem<K extends string | number = string> = {
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** Report to which the transaction belongs */
-        report: Report;
+        report: Report | undefined;
 
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
@@ -516,6 +516,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     accountID?: number;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
+    newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
@@ -600,9 +601,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
-
-    /** Whether selected items should be shown at the top within each section */
-    shouldPrioritizeSelectedItems?: boolean;
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;

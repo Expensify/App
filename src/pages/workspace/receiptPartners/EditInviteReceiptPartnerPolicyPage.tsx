@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -16,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -54,6 +56,16 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+
+    const inviteOrResend = useCallback(
+        (email: string) => {
+            if (!policyID) {
+                return;
+            }
+            inviteWorkspaceEmployeesToUber(policyID, [email]);
+        },
+        [policyID],
+    );
 
     // Maintain independent search state per tab to avoid carryover across tabs
     const [allSearchTerm, allDebouncedSearchTerm, setAllSearchTerm] = useDebouncedState('');
@@ -123,7 +135,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     <Button
                         small
                         text={translate('workspace.receiptPartners.uber.status.resend')}
-                        onPress={() => {}}
+                        onPress={() => inviteOrResend(email)}
                         style={[styles.ml3]}
                     />
                 );
@@ -134,7 +146,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     <Button
                         small
                         text={translate('workspace.receiptPartners.uber.status.invite')}
-                        onPress={() => {}}
+                        onPress={() => inviteOrResend(email)}
                         success
                         style={[styles.ml3]}
                     />
@@ -169,10 +181,12 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 isDisabled: true,
             });
 
-            list.push({...option, rightElement} as MemberForList & ListItem);
+            const rightElementWithOfflineFeedback = <OfflineWithFeedback pendingAction={policy?.receiptPartners?.uber?.pendingFields?.employees}>{rightElement}</OfflineWithFeedback>;
+
+            list.push({...option, rightElement: rightElementWithOfflineFeedback} as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3]);
+    }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3, inviteOrResend, policy?.receiptPartners?.uber?.pendingFields?.employees]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {

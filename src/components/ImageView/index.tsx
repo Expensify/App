@@ -1,9 +1,8 @@
 import type {SyntheticEvent} from 'react';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
@@ -80,13 +79,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         setIsZoomed(false);
     };
 
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentLoaded} = attachmentCarouselPagerContext ?? {};
-
     const imageLoad = ({nativeEvent}: ImageOnLoadEvent) => {
         setImageRegion(nativeEvent.width, nativeEvent.height);
         setIsLoading(false);
-        onAttachmentLoaded?.(url, true);
     };
 
     const onContainerPressIn = (e: GestureResponderEvent) => {
@@ -214,7 +209,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 uri={url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 onError={onError}
-                onLoad={() => onAttachmentLoaded?.(url, true)}
             />
         );
     }

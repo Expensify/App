@@ -87,7 +87,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues) && onboardingValues?.testDriveModalDismissed !== false;
 
             if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
