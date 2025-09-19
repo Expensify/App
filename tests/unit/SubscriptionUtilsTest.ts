@@ -5,7 +5,6 @@ import {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
     getEarlyDiscountInfo,
-    getFreeTrialText,
     getSubscriptionStatus,
     hasUserFreeTrialEnded,
     isUserOnFreeTrial,
