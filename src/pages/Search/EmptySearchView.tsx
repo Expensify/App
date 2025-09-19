@@ -338,7 +338,7 @@ function EmptySearchViewContent({
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
-                };
+                }
                 if (!hasResults || !hasTransactions) {
                     return {
                         ...defaultViewItemHeader,
