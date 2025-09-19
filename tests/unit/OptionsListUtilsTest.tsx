@@ -581,8 +581,6 @@ let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
 let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
 
 describe('OptionsListUtils', () => {
-   
-
     // Set the currently logged in user, report data, and personal details
     beforeAll(async () => {
         IntlStore.load(CONST.LOCALES.EN);
@@ -617,7 +615,7 @@ describe('OptionsListUtils', () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         });
-        
+
         await waitForBatchedUpdatesWithAct();
         OPTIONS = createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
