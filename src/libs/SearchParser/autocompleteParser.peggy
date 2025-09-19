@@ -89,6 +89,7 @@ autocompleteKey "key"
       / withdrawn
       / posted
       / has
+      / is
       / purchaseCurrency
       / purchaseAmount
     )
