@@ -358,43 +358,6 @@ describe('CustomFormula', () => {
         });
     });
 
-    describe('leftpad function', () => {
-        const mockContextForFunctions: FormulaContext = {
-            report: {
-                reportID: '123',
-                reportName: '',
-                type: 'expense',
-                total: -10000, // -$100.00
-                currency: 'USD',
-                lastVisibleActionCreated: '2025-01-15T10:30:00Z',
-                policyID: 'policy1',
-            } as Report,
-            policy: {
-                name: 'Test Policy',
-            } as Policy,
-        };
-
-        test('should left pad with spaces by default', () => {
-            const result = compute('{report:type|leftpad: :15}', mockContextForFunctions);
-            expect(result).toBe(' Expense Report'); // 1 space + "Expense Report" (14 chars) = 15 chars
-        });
-
-        test('should left pad with specified character', () => {
-            const result = compute('{report:type|leftpad:0:20}', mockContextForFunctions);
-            expect(result).toBe('000000Expense Report'); // 6 zeros + "Expense Report" (14 chars) = 20 chars
-        });
-
-        test('should not pad if string is already long enough', () => {
-            const result = compute('{report:type|leftpad:0:5}', mockContextForFunctions);
-            expect(result).toBe('Expense Report'); // Original string (14 chars) is longer than 5
-        });
-
-        test('should handle single character padding', () => {
-            const result = compute('{report:type|leftpad:X:16}', mockContextForFunctions);
-            expect(result).toBe('XXExpense Report'); // 2 X's + "Expense Report" (14 chars) = 16 chars
-        });
-    });
-
     describe('Advanced Date Formatting', () => {
         const testDate = '2025-01-08T15:30:45.123Z'; // Wednesday, January 8, 2025, 3:30:45.123 PM UTC
         const mockContextWithDate: FormulaContext = {

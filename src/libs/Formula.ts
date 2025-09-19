@@ -296,9 +296,6 @@ function applyFunctions(value: string, functions: string[]): string {
             case 'domain':
                 result = getDomainName(result);
                 break;
-            case 'leftpad':
-                result = getLeftPadded(result, args);
-                break;
             default:
                 // Unknown function, leave value as is
                 break;
@@ -349,16 +346,6 @@ function getSubstring(value: string, args: string[]): string {
     }
 
     return value.substring(start);
-}
-
-/**
- * Left pad a value with a character to a specific length
- */
-function getLeftPadded(value: string, args: string[]): string {
-    const padChar = args.at(0) ?? ' ';
-    const targetLength = parseInt(args.at(1) ?? '', 10) || value.length;
-
-    return value.padStart(targetLength, padChar);
 }
 
 /**
