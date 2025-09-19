@@ -200,6 +200,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 small
+                                isLoading={!policy?.receiptPartners?.uber}
                                 isDisabled={isOffline}
                             />
                         ),
@@ -217,7 +218,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         styles.sectionMenuItemTopDescription,
         styles.pr2,
         styles.justifyContentCenter,
-        policy?.receiptPartners?.uber?.errorFields,
+        policy?.receiptPartners?.uber,
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         isOffline,

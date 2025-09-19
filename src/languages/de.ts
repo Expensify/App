@@ -1315,6 +1315,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Keine nicht gemeldeten Ausgaben',
         emptyStateUnreportedExpenseSubtitle: 'Es sieht so aus, als hätten Sie keine nicht gemeldeten Ausgaben. Versuchen Sie, unten eine zu erstellen.',
         addUnreportedExpenseConfirm: 'Zum Bericht hinzufügen',
+        newReport: 'Neuer Bericht',
         explainHold: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
         retracted: 'zurückgezogen',
         retract: 'Zurückziehen',
@@ -5509,7 +5510,7 @@ const translations = {
             },
             categories: {
                 title: 'Kategorien',
-                description: `Kategorien helfen Ihnen, Ausgaben besser zu organisieren, um den Überblick darüber zu behalten, wo Sie Ihr Geld ausgeben. Verwenden Sie unsere vorgeschlagene Kategorienliste oder erstellen Sie Ihre eigene.`,
+                description: 'Kategorien ermöglichen es dir, Ausgaben zu verfolgen und zu organisieren. Verwende unsere Standardkategorien oder füge deine eigenen hinzu.',
                 onlyAvailableOnPlan: 'Kategorien sind im Collect-Plan verfügbar, beginnend bei',
             },
             glCodes: {
@@ -5581,6 +5582,7 @@ const translations = {
                 travelMessage: `Sie haben erfolgreich auf den Collect-Plan umgestellt. Jetzt können Sie mit der Buchung und Verwaltung von Reisen beginnen!`,
                 distanceRateMessage: `Sie haben erfolgreich auf den Collect-Plan umgestellt. Jetzt können Sie den Distanzsatz ändern!`,
                 gotIt: 'Verstanden, danke',
+                createdWorkspace: 'Sie haben einen Arbeitsbereich erstellt!',
             },
             commonFeatures: {
                 title: 'Zum Control-Plan upgraden',
