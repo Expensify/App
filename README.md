@@ -16,7 +16,6 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [HybridApp](#HybridApp)
-* [Philosophy](#Philosophy)
 * [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
