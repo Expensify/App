@@ -6073,11 +6073,11 @@ function resolveConciergeCategoryOptions(
 
 /**
  * Enhances existing transaction thread reports with additional context for navigation
- * 
+ *
  * This is NOT the same as createTransactionThreadReport - this function only adds missing
  * context fields to existing transaction threads, while createTransactionThreadReport
  * creates entirely new transaction threads with comprehensive data.
- * 
+ *
  * Use this when navigating to existing transaction threads that need additional context
  * like policyID, parentReportID, etc. for proper threading and navigation.
  */
