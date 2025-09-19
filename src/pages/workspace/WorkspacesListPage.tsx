@@ -120,6 +120,7 @@ function WorkspacesListPage() {
     const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
     const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
     const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -169,7 +170,7 @@ function WorkspacesListPage() {
         setIsDeleteModalOpen(false);
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
 
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);

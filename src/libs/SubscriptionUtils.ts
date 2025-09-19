@@ -166,15 +166,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-// Indicates if downgrading the current subscription plan is allowed for the user.
-let canDowngrade = false;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (val) => {
-        canDowngrade = val?.canDowngrade ?? false;
-    },
-});
-
 /**
  * @returns The date when the grace period ends.
  */
@@ -575,7 +566,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
-function shouldCalculateBillNewDot(): boolean {
+function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): boolean {
     return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
 }
 
