@@ -60,6 +60,7 @@ autocompleteKey "key"
       in
       / currency
       / groupCurrency
+      / total
       / tag
       / category
       / to
@@ -92,7 +93,6 @@ autocompleteKey "key"
       / purchaseCurrency
       / purchaseAmount
       / amount
-      / total
       / merchant
       / description
       / reportID

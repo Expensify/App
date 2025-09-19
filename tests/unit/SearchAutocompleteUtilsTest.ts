@@ -85,7 +85,9 @@ describe('SearchAutocompleteUtils', () => {
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             // withdrawalID is not in the autocomplete parser grammar
-            expect(result).toEqual([]);
+            expect(result).toEqual([
+                {start: 13, type: 'mention-user', length: 5}, // withdrawalID:12345
+            ]);
         });
 
         it('should not highlight WITHDRAWAL_ID filter because it is not supported in autocomplete parser', () => {
@@ -94,7 +96,9 @@ describe('SearchAutocompleteUtils', () => {
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
             // withdrawalID is not in the autocomplete parser grammar, so it won't be highlighted
-            expect(result).toEqual([]);
+            expect(result).toEqual([
+                {start: 13, type: 'mention-user', length: 5}, // withdrawalID:12345
+            ]);
         });
 
         it('should highlight new TITLE filter with non-empty value', () => {
