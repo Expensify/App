@@ -8645,6 +8645,9 @@ function getSendMoneyParams(
             ...optimisticIOUReport,
             lastMessageText: getReportActionText(optimisticIOUReportAction),
             lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
+            pendingFields: {
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
         },
     };
     const optimisticTransactionThreadData: OnyxUpdate = {
