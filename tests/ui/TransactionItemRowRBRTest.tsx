@@ -119,13 +119,12 @@ describe('TransactionItemRowRBRWithOnyx', () => {
             },
         ];
         const mockTransaction = createBaseTransaction({violations: mockViolations});
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
         });
 
         // When rendering the transaction item row
@@ -150,12 +149,10 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         ];
         const mockTransaction = createBaseTransaction({violations: mockViolations});
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
         });
 
         // When rendering the transaction item row
@@ -200,13 +197,12 @@ describe('TransactionItemRowRBRWithOnyx', () => {
             modifiedMerchant: '',
             merchant: '',
         });
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
         });
 
         // When rendering the transaction item row
@@ -228,14 +224,14 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         const mockTransaction = createBaseTransaction({violations: mockViolations});
         const mockReportActionIOU = createIOUReportAction();
         const mockReportActionErrors = createErrorReportAction();
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
         });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+        });
+
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_TRANSACTION_ID}`, {
                 [mockReportActionIOU.reportActionID]: mockReportActionIOU,
@@ -271,14 +267,14 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         });
         const mockReportActionIOU = createIOUReportAction();
         const mockReportActionErrors = createErrorReportAction();
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
         });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
+        });
+
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
         });
@@ -339,13 +335,12 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockTransaction = createBaseTransaction({violations: mockViolations});
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
         });
 
         // When rendering the transaction item row
@@ -369,13 +364,12 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockTransaction = createBaseTransaction({violations: mockViolations});
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
         });
 
         // When rendering the transaction item row
@@ -404,14 +398,14 @@ describe('TransactionItemRowRBR', () => {
             modifiedMerchant: '',
             merchant: '',
         });
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
         });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
+        });
+
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
         });
@@ -435,13 +429,12 @@ describe('TransactionItemRowRBR', () => {
             modifiedMerchant: '',
             merchant: '',
         });
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
         });
 
         // When rendering the transaction item row
