@@ -371,6 +371,9 @@ type PureReportActionItemProps = {
     /** Whether to highlight the action for a few seconds */
     shouldHighlight?: boolean;
 
+    /** Policy tags for the current report's policy */
+    policyTags?: OnyxTypes.PolicyTagLists;
+
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed?: boolean;
 
@@ -440,6 +443,7 @@ function PureReportActionItem({
     userBillingFundID,
     shouldShowBorder,
     shouldHighlight = false,
+    policyTags,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
 }: PureReportActionItemProps) {
@@ -669,21 +673,24 @@ function PureReportActionItem({
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
                     disabledOptions: disabledActions,
+                    policyTags,
                 });
             });
         },
         [
             draftMessage,
-            action,
-            reportID,
-            toggleContextMenuFromActiveReportAction,
-            originalReportID,
+            action.errors,
+            action.reportActionID,
             shouldDisplayContextMenu,
-            disabledActions,
+            handleShowContextMenu,
+            reportID,
+            originalReportID,
             isArchivedRoom,
             isChronosReport,
-            handleShowContextMenu,
             isThreadReportParentAction,
+            toggleContextMenuFromActiveReportAction,
+            disabledActions,
+            policyTags,
         ],
     );
 
@@ -1177,7 +1184,7 @@ function PureReportActionItem({
             } else {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport, policyTags)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             }
@@ -1560,7 +1567,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {getChatListItemReportName(action, report as SearchReport)}
+                            {getChatListItemReportName(action, report as SearchReport, policyTags)}
                         </TextLink>
                     </View>
                     {children}
