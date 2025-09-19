@@ -71,7 +71,7 @@ function NewReportWorkspaceSelectionPage() {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
                 return;
             }
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID, false);
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
             navigateToNewReport(optimisticReportID);
         },
         [currentUserPersonalDetails, navigateToNewReport],

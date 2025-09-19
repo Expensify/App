@@ -226,8 +226,8 @@ import {
 } from './RequestConflictUtils';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
-import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
 import {getOnboardingMessages, startOnboardingFlow} from './Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -2787,6 +2787,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             value: optimisticNextStep,
         },
     ];
+
     optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
     const failureData: OnyxUpdate[] = [
@@ -6073,7 +6074,7 @@ function resolveConciergeCategoryOptions(
     } as Partial<ReportActions>);
 }
 
-export type {GuidedSetupData, IntroSelected, TaskForParameters, Video};
+export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
     addAttachment,
@@ -6081,29 +6082,23 @@ export {
     addPolicyReport,
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
-    buildInviteToRoomOnyxData,
     buildOptimisticChangePolicyData,
-    changeReportPolicy,
-    changeReportPolicyAndInviteSubmitter,
     clearAddRoomMemberError,
     clearAvatarErrors,
-    clearCreateChatError,
     clearDeleteTransactionNavigateBackUrl,
     clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
+    setNewRoomFormLoading,
     clearPolicyRoomNameErrors,
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
     completeOnboarding,
     createNewReport,
-    createTransactionThreadReport,
-    deleteAppReport,
     deleteReport,
     deleteReportActionDraft,
     deleteReportComment,
     deleteReportField,
-    dismissChangePolicyModal,
     dismissTrackExpenseActionableWhisper,
     doneCheckingPublicRoom,
     downloadReportPDF,
@@ -6119,48 +6114,43 @@ export {
     getMostRecentReportID,
     getNewerActions,
     getOlderActions,
-    getOptimisticChatReport,
     getReportPrivateNote,
     handleReportChanged,
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
+    buildInviteToRoomOnyxData,
     inviteToRoom,
     joinRoom,
     leaveGroupChat,
     leaveRoom,
-    markAllMessagesAsRead,
     markAsManuallyExported,
     markCommentAsUnread,
-    moveIOUReportToPolicy,
-    moveIOUReportToPolicyAndInviteSubmitter,
     navigateToAndOpenChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
+    clearCreateChatError,
     notifyNewAction,
     openReport,
     openReportFromDeepLink,
     openRoomMembersPage,
-    openUnreportedExpense,
     readNewestAction,
-    removeFailedReport,
+    markAllMessagesAsRead,
     removeFromGroupChat,
     removeFromRoom,
-    resolveActionableMentionConfirmWhisper,
     resolveActionableMentionWhisper,
+    resolveActionableMentionConfirmWhisper,
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     savePrivateNotesDraft,
     saveReportActionDraft,
-    saveReportDraft,
     saveReportDraftComment,
     searchInServer,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
-    setNewRoomFormLoading,
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,
@@ -6172,10 +6162,10 @@ export {
     toggleSubscribeToChildReport,
     unsubscribeFromLeavingRoomReportChannel,
     unsubscribeFromReportChannel,
-    updateChatName,
     updateDescription,
     updateGroupChatAvatar,
     updateGroupChatMemberRoles,
+    updateChatName,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
     updateNotificationPreference,
@@ -6185,4 +6175,15 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    deleteAppReport,
+    getOptimisticChatReport,
+    saveReportDraft,
+    moveIOUReportToPolicy,
+    moveIOUReportToPolicyAndInviteSubmitter,
+    dismissChangePolicyModal,
+    changeReportPolicy,
+    changeReportPolicyAndInviteSubmitter,
+    removeFailedReport,
+    createTransactionThreadReport,
+    openUnreportedExpense,
 };

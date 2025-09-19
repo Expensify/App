@@ -488,7 +488,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                               }
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation, false);
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                       Navigation.navigate(
                                           isSearchTopmostFullScreenRoute()
