@@ -8,6 +8,8 @@ keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursements, GBP, EUR
 
 The Expensify Card is now available for companies in the United Kingdom and Europe! This guide walks you through eligibility and how to set up and start using the card in GBP or EUR. We are currently issuing virtual cards only, but will be releasing physical cards very soon!
 
+<!-- Can only be requested through New Expensify. Expensify Classic customers need to navigate to New Expensify and follow these instructions -->
+
 # Expensify Card (UK/EU) setup
 
 To get started with the UK/EU Expensify Card, you'll need to meet a few eligibility requirements and connect a business bank account in GBP or EUR.
