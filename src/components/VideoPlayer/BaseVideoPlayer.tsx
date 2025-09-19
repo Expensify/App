@@ -34,7 +34,6 @@ function BaseVideoPlayer({
     onSourceLoaded,
     isLooping = false,
     style,
-    videoStyle,
     videoPlayerStyle,
     videoControlsStyle,
     videoDuration = 0,
@@ -397,7 +396,7 @@ function BaseVideoPlayer({
                                         <VideoView
                                             allowsFullscreen
                                             player={videoPlayerRef.current}
-                                            style={[styles.w100, styles.h100, videoPlayerStyle, videoStyle]}
+                                            style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             nativeControls={isFullScreenRef.current}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}

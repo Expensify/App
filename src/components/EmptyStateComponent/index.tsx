@@ -55,8 +55,7 @@ function EmptyStateComponent({
                 return (
                     <VideoPlayer
                         url={headerMedia}
-                        videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
-                        videoStyle={styles.emptyStateVideo}
+                        videoPlayerStyle={[headerContentStyles, styles.emptyStateVideo, {aspectRatio: videoAspectRatio}]}
                         onSourceLoaded={setAspectRatio}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
                         shouldUseControlsBottomMargin={false}

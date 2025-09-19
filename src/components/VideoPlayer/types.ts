@@ -31,11 +31,6 @@ type VideoPlayerProps = {
     videoPlayerStyle?: StyleProp<ViewStyle>;
 
     /**
-     * An optional property to pass custom styles to the internal video component.
-     */
-    videoStyle?: StyleProp<ViewStyle>;
-
-    /**
      * Style applied to the video player controls.
      */
     videoControlsStyle?: StyleProp<ViewStyle>;
