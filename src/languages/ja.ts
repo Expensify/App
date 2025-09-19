@@ -1328,6 +1328,7 @@ const translations = {
         keepAll: 'すべて保持',
         confirmApprove: '承認金額を確認',
         confirmApprovalAmount: '準拠している経費のみを承認するか、レポート全体を承認します。',
+        confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
         confirmApprovalAllHoldAmount: () => ({
             one: 'この経費は保留中です。それでも承認しますか？',
             other: 'これらの経費は保留中です。それでも承認しますか？',

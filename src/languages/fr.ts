@@ -1334,6 +1334,7 @@ const translations = {
         keepAll: 'Garder tout',
         confirmApprove: 'Confirmer le montant approuvé',
         confirmApprovalAmount: "Approuvez uniquement les dépenses conformes, ou approuvez l'ensemble du rapport.",
+        confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
         confirmApprovalAllHoldAmount: () => ({
             one: 'Cette dépense est en attente. Voulez-vous approuver quand même ?',
             other: 'Ces dépenses sont en attente. Voulez-vous approuver quand même ?',

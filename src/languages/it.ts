@@ -1327,6 +1327,7 @@ const translations = {
         keepAll: 'Tieni tutto',
         confirmApprove: "Conferma l'importo approvato",
         confirmApprovalAmount: "Approva solo le spese conformi o approva l'intero rapporto.",
+        confirmApprovalWithHeldAmount: "Il rapporto contiene spese in sospeso. Approvare solo le spese conformi o approvare l'intero rapporto?",
         confirmApprovalAllHoldAmount: () => ({
             one: 'Questa spesa è in sospeso. Vuoi approvarla comunque?',
             other: 'Queste spese sono in sospeso. Vuoi approvarle comunque?',

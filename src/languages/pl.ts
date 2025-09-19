@@ -1326,6 +1326,7 @@ const translations = {
         keepAll: 'Zachowaj wszystkie',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
         confirmApprovalAmount: 'Zatwierdź tylko zgodne wydatki lub zatwierdź cały raport.',
+        confirmApprovalWithHeldAmount: 'Raport zawiera wstrzymane wydatki. Zatwierdzić tylko zgodne wydatki, czy zatwierdzić cały raport?',
         confirmApprovalAllHoldAmount: () => ({
             one: 'Ten wydatek jest wstrzymany. Czy mimo to chcesz zatwierdzić?',
             other: 'Te wydatki są wstrzymane. Czy mimo to chcesz je zatwierdzić?',

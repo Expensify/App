@@ -1327,6 +1327,7 @@ const translations = {
         keepAll: 'Manter tudo',
         confirmApprove: 'Confirmar valor de aprovação',
         confirmApprovalAmount: 'Aprovar apenas despesas em conformidade, ou aprovar o relatório inteiro.',
+        confirmApprovalWithHeldAmount: 'O relatório contém despesas em espera. Aprovar apenas despesas em conformidade, ou aprovar o relatório inteiro?',
         confirmApprovalAllHoldAmount: () => ({
             one: 'Esta despesa está em espera. Você quer aprovar mesmo assim?',
             other: 'Essas despesas estão em espera. Você quer aprovar mesmo assim?',

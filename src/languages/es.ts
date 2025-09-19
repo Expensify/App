@@ -1310,6 +1310,7 @@ const translations = {
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
+        confirmApprovalWithHeldAmount: 'El informe contiene gastos retenidos. ¿Aprobar sólo los gastos conformes, o aprobar todo el informe?',
         confirmApprovalAllHoldAmount: () => ({
             one: 'Este gasto está retenido. ¿Quieres aprobarlo de todos modos?',
             other: 'Estos gastos están retenidos. ¿Quieres aprobarlos de todos modos?',
