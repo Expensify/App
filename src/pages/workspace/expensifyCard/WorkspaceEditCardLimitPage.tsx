@@ -81,15 +81,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
         setIsConfirmModalVisible(false);
 
-        updateExpensifyCardLimit(
-            workspaceAccountID,
-            Number(cardID),
-            newLimit,
-            newAvailableSpend,
-            card?.nameValuePairs?.unapprovedExpenseLimit,
-            card?.availableSpend,
-            card?.nameValuePairs?.isVirtual,
-        );
+        updateExpensifyCardLimit(workspaceAccountID, Number(cardID), newLimit, newAvailableSpend, card?.nameValuePairs?.unapprovedExpenseLimit, card?.availableSpend);
 
         goBack();
     };

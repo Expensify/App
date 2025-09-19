@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setErrors} from '@libs/actions/FormActions';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import FraudProtection from '@libs/FraudProtection';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -23,6 +24,7 @@ import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@userActions/Card';
 import type {ReplacementReason} from '@userActions/Card';
+import {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -91,6 +93,10 @@ function ReportCardLostPage({
         if (!newID || physicalCard?.cardID) {
             return;
         }
+
+        // Send to Fraud Protection the successful request of a new physical card
+        FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.REQUEST_NEW_PHYSICAL_EXPENSIFY_CARD);
+
         setNewCardID(newID);
     }, [cardList, physicalCard, previousCardList]);
 

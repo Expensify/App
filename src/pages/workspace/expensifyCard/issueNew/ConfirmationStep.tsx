@@ -18,9 +18,10 @@ import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/acti
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import FraudProtection from '@libs/FraudProtection';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import CONST from '@src/CONST';
+import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -69,6 +70,13 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     useEffect(() => {
         if (!isSuccessful) {
             return;
+        }
+
+        // Send to Fraud Protection the successful issue of a new expensify card
+        if (data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
+            FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.ISSUE_EXPENSIFY_CARD);
+        } else {
+            FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.ISSUE_ADMIN_ISSUED_VIRTUAL_CARD);
         }
         if (backTo) {
             Navigation.goBack(backTo);
