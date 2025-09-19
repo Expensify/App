@@ -458,7 +458,7 @@ function SearchPage({route}: SearchPageProps) {
 
         // TODO: change this condition after the feature is ready to be deployed
         const canAllTransactionsBeMoved = Permissions.canUseUnreportedExpense()
-            ? selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport) && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL
+            ? selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport) && !!activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL
             : selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
