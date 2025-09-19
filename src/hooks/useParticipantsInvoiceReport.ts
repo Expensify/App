@@ -1,30 +1,12 @@
+import {invoiceReportNameValuePairsSelector} from '@selectors/ReportNameValuePairs';
 import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isArchivedNonExpenseReport, isArchivedReport, isInvoiceRoom} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {InvoiceReceiverType} from '@src/types/onyx/Report';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useOnyx from './useOnyx';
-
-type ReportNameValuePairsSelector = Pick<ReportNameValuePairs, 'private_isArchived'>;
-
-/*
- Since invoice chat rooms have `type === CONST.REPORT.TYPE.CHAT`,
- we filter on that value to minimize the number of rNVPs being subscribed to.
-*/
-const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): ReportNameValuePairsSelector | undefined => {
-    if (reportNameValuePairs && 'type' in reportNameValuePairs && reportNameValuePairs?.type !== CONST.REPORT.TYPE.CHAT) {
-        return;
-    }
-    return (
-        reportNameValuePairs &&
-        ({
-            private_isArchived: reportNameValuePairs.private_isArchived,
-        } as ReportNameValuePairsSelector)
-    );
-};
 
 const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
     if (!report || !isInvoiceRoom(report)) {
@@ -38,7 +20,7 @@ function useParticipantsInvoiceReport(receiverID: string | number | undefined, r
     const [allInvoiceReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {
         canBeMissing: true,
-        selector: (c) => mapOnyxCollectionItems(c, reportNameValuePairsSelector),
+        selector: (c) => mapOnyxCollectionItems(c, invoiceReportNameValuePairsSelector),
     });
 
     const invoiceReport = useMemo(() => {

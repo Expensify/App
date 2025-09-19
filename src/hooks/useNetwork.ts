@@ -1,5 +1,5 @@
+import {networkStatusSelector} from '@selectors/Network';
 import {useEffect, useRef} from 'react';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
@@ -15,17 +15,7 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
     callback.current = onReconnect;
 
     const [network] = useOnyx(ONYXKEYS.NETWORK, {
-        selector: (networkData) => {
-            if (!networkData) {
-                return {...CONST.DEFAULT_NETWORK_DATA, networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN};
-            }
-
-            return {
-                isOffline: networkData.isOffline,
-                networkStatus: networkData.networkStatus,
-                lastOfflineAt: networkData.lastOfflineAt,
-            };
-        },
+        selector: networkStatusSelector,
         canBeMissing: true,
     });
 
