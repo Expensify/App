@@ -1130,4 +1130,32 @@ describe('actions/Policy', () => {
             });
         });
     });
+
+    describe('buildPolicyData', () => {
+        it('should set eReceipts to true when creating a new workspace', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: 'Test eReceipts Workspace',
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            });
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(policy?.eReceipts).toBe(true);
+        });
+    });
 });
