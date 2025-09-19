@@ -33,6 +33,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type EditInviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT>;
 
@@ -103,11 +104,11 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         ],
     );
 
-    const uberEmployeesByEmail = useMemo<Record<string, {status?: string}>>(() => {
+    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
             receiptPartners?: {
                 uber?: {
-                    employees?: Record<string, {status?: string}>;
+                    employees?: Record<string, {status?: string; pendingAction?: PendingAction}>;
                 };
             };
         };
@@ -186,17 +187,17 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 isDisabled: true,
             });
 
-            const rightElementWithOfflineFeedback = <OfflineWithFeedback pendingAction={policy?.receiptPartners?.uber?.pendingFields?.employees}>{rightElement}</OfflineWithFeedback>;
+            const rightElementWithOfflineFeedback = <OfflineWithFeedback pendingAction={uberEmployeesByEmail[email]?.pendingAction}>{rightElement}</OfflineWithFeedback>;
 
             list.push({...option, rightElement: rightElementWithOfflineFeedback} as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
     }, [
         policy?.employeeList,
-        policy?.receiptPartners?.uber?.pendingFields?.employees,
         localeCompare,
         isOffline,
         deriveStatus,
+        uberEmployeesByEmail,
         translate,
         buttonStyles,
         styles.buttonSuccess,
