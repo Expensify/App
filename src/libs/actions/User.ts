@@ -29,7 +29,6 @@ import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import FraudProtection from '@libs/FraudProtection';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,7 +44,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
@@ -417,8 +416,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     ];
 
     const parameters: AddNewContactMethodParams = {partnerUserID: contactMethod, validateCode};
-
-    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.ADD_SECONDARY_LOGIN);
     API.write(WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
 }
 
