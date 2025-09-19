@@ -168,14 +168,13 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         const mockTransaction = createBaseTransaction();
         const mockReportActionIOU = createIOUReportAction();
         const mockReportActionErrors = createErrorReportAction();
+
         await act(async () => {
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_TRANSACTION_ID}`, {
-                [mockReportActionIOU.reportActionID]: mockReportActionIOU,
-                [mockReportActionErrors.reportActionID]: mockReportActionErrors,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_TRANSACTION_ID}`, {
+            [mockReportActionIOU.reportActionID]: mockReportActionIOU,
+            [mockReportActionErrors.reportActionID]: mockReportActionErrors,
         });
 
         // When rendering the transaction item row
