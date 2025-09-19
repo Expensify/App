@@ -1,4 +1,7 @@
-import {execSync} from 'child_process';
+import {execSync, exec as execWithCallback} from 'child_process';
+import {promisify} from 'util';
+
+const exec = promisify(execWithCallback);
 
 /**
  * Represents a single changed line in a git diff.
@@ -260,6 +263,34 @@ class Git {
             return execSync(`git show ${ref}:${filePath}`, {encoding: 'utf8'});
         } catch (error) {
             throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    /**
+     * Ensure a git reference is available locally, fetching it if necessary.
+     *
+     * @param ref - The git reference to ensure is available (commit hash, branch, tag, etc.)
+     * @param remote - The remote to fetch from (defaults to 'origin')
+     * @throws Error when the reference cannot be fetched or is invalid
+     */
+    static async ensureRef(ref: string, remote = 'origin'): Promise<void> {
+        if (this.isValidRef(ref)) {
+            return; // Reference is already available locally
+        }
+
+        try {
+            console.log(`🔄 Fetching missing ref: ${ref}`);
+            await exec(`git fetch --no-tags --depth=1 ${remote} ${ref}`, {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            });
+
+            // Verify the ref is now available
+            if (!this.isValidRef(ref)) {
+                throw new Error(`Reference ${ref} is still not valid after fetching`);
+            }
+        } catch (error) {
+            throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }
