@@ -214,7 +214,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.HYBRID_APP,
             value: {
-                signingInWithSAML: false,
+                signingInWithSAML: null,
             },
         });
     }
@@ -857,6 +857,7 @@ function clearSignInData() {
         [ONYXKEYS.ACCOUNT]: null,
         [ONYXKEYS.CREDENTIALS]: null,
     });
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {signingInWithSAML: null});
 }
 
 /**
