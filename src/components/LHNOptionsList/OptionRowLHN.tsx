@@ -23,7 +23,6 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {
@@ -316,12 +315,12 @@ function OptionRowLHN({
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
-                                                            message={Parser.htmlToText(optionItem.alternateText)}
+                                                            message={optionItem.alternateText}
                                                             style={[alternateTextStyle, styles.mh0]}
                                                             alignCustomEmoji
                                                         />
                                                     ) : (
-                                                        Parser.htmlToText(optionItem.alternateText)
+                                                        optionItem.alternateText
                                                     )}
                                                 </Text>
                                             )}
