@@ -26,6 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -57,7 +58,6 @@ import {
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
-    checkIfScanFileCanBeRead,
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
     getReceiverType,
@@ -91,10 +91,10 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import type {WithFullTransactionOrNotFoundProps} from '../withFullTransactionOrNotFound';
+import withFullTransactionOrNotFound from '../withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from '../withWritableReportOrNotFound';
+import withWritableReportOrNotFound from '../withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
@@ -406,9 +406,7 @@ function IOURequestStepConfirmation({
 
         Promise.all(
             transactions.map((item) => {
-                const itemReceiptFilename = item.filename;
                 const itemReceiptPath = item.receipt?.source;
-                const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
 
                 if (!isLocalFile) {
@@ -418,19 +416,29 @@ function IOURequestStepConfirmation({
                     return;
                 }
 
-                const onSuccess = (file: File) => {
-                    const receipt: Receipt = file;
+                const onSuccess = (receipt: Receipt) => {
+                    let processedReceipt: Receipt;
+
                     if (item?.receipt?.isTestReceipt) {
-                        receipt.isTestReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+                        processedReceipt = {
+                            ...receipt,
+                            isTestReceipt: true,
+                            state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                        };
                     } else if (item?.receipt?.isTestDriveReceipt) {
-                        receipt.isTestDriveReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+                        processedReceipt = {
+                            ...receipt,
+                            isTestDriveReceipt: true,
+                            state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                        };
                     } else {
-                        receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+                        processedReceipt = {
+                            ...receipt,
+                            state: receipt && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                        };
                     }
 
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
+                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: processedReceipt};
                 };
 
                 const onFailure = () => {
@@ -440,7 +448,22 @@ function IOURequestStepConfirmation({
                     }
                 };
 
-                return checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure);
+                // Native optimization: Use checkFileExists instead of readFileAsync for memory efficiency
+                return checkFileExists(item.receipt?.source).then((exists) => {
+                    if (!exists || !item.receipt) {
+                        onFailure();
+                        return;
+                    }
+
+                    const receipt = {
+                        ...item.receipt,
+                        uri: item.receipt.source, // Add uri property for isFileUploadable compatibility
+                        filename: item.filename,
+                        name: item.receipt.name ?? item.filename,
+                    };
+
+                    onSuccess(receipt);
+                });
             }),
         ).then(() => {
             if (isScanFilesCanBeRead) {

@@ -1,5 +1,7 @@
+import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import type PrepareRequestPayload from './types';
 
 /**
@@ -18,19 +20,42 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
-            if ((key === 'receipt' || key === 'file') && initiatedOffline) {
-                const {uri: path = '', source} = value as File;
+            if (key === 'receipt') {
+                const receipt = value as Receipt;
+                const {source} = receipt;
+
+                if (source) {
+                    return checkFileExists(source).then((exists) => {
+                        if (!exists) {
+                            return;
+                        }
+
+                        const receiptFormData = {
+                            uri: source,
+                            name: receipt.name,
+                            type: receipt.type,
+                        };
+
+                        validateFormDataParameter(command, key, receiptFormData);
+                        formData.append(key, receiptFormData as File);
+                    });
+                }
+            }
+
+            if (key === 'file' && initiatedOffline) {
+                const fileValue = value as File;
+                const {uri: path = '', source} = fileValue;
+
                 if (!source) {
                     validateFormDataParameter(command, key, value);
                     formData.append(key, value as string | Blob);
-
                     return Promise.resolve();
                 }
+
                 return readFileAsync(source, path, () => {}).then((file) => {
                     if (!file) {
                         return;
                     }
-
                     validateFormDataParameter(command, key, file);
                     formData.append(key, file);
                 });
