@@ -24,7 +24,7 @@ function getTitleFieldFromRNVP(reportID: string, context: UpdateContext) {
 /**
  * Get the object type from an Onyx key
  */
-function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transaction' | 'unknown' {
+function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transaction' | 'reportNameValuePairs' | 'unknown' {
     if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
         return 'report';
     }
@@ -34,6 +34,10 @@ function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transacti
     if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
         return 'transaction';
     }
+    if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
+        return 'reportNameValuePairs';
+    }
+
     return 'unknown';
 }
 
@@ -41,7 +45,7 @@ function determineObjectTypeByKey(key: string): 'report' | 'policy' | 'transacti
  * Extract report ID from an Onyx key
  */
 function getReportIDFromKey(key: string): string {
-    return key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+    return key.replace(ONYXKEYS.COLLECTION.REPORT, '').replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
 }
 
 /**
@@ -326,6 +330,24 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
                 }
 
+                if (report) {
+                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+
+                    if (reportNameUpdate) {
+                        additionalUpdates.push({
+                            key: getReportKey(report.reportID),
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            value: {
+                                reportName: reportNameUpdate,
+                            },
+                        });
+                    }
+                }
+                break;
+            }
+            case 'reportNameValuePairs': {
+                const reportID = getReportIDFromKey(update.key);
+                const report = getReportByID(reportID, allReports);
                 if (report) {
                     const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
 
