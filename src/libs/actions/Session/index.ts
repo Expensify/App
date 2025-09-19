@@ -1084,8 +1084,6 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
         },
     ];
 
-    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.TOGGLE_TWO_FACTOR_AUTH);
-
     if (enable) {
         API.write(WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH, null, {optimisticData, successData, failureData});
         return;
