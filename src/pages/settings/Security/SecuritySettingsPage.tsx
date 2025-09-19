@@ -134,6 +134,10 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
+                    if (!isUserValidated) {
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+                        return;
+                    }
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
@@ -203,6 +207,7 @@ function SecuritySettingsPage() {
     }, [
         isAccountLocked,
         isDelegateAccessRestricted,
+        isUserValidated,
         showDelegateNoAccessModal,
         showLockedAccountModal,
         privateSubscription?.type,
