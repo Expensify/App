@@ -383,7 +383,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         openSearch();
     }, []);
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+    const {newSearchResultKey, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -922,6 +922,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    newTransactions={newTransactions}
                 />
             </Animated.View>
         </SearchScopeProvider>

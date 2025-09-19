@@ -1,8 +1,10 @@
 import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
@@ -46,6 +48,16 @@ Onyx.connectWithoutView({
             id: value?.accountID,
             email: value?.email,
         });
+    },
+});
+
+let account: OnyxEntry<Account>;
+// Authentication lib is not connected to any changes on the UI
+// So it is okay to use connectWithoutView here.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
     },
 });
 
@@ -160,7 +172,7 @@ function reauthenticate(command = ''): Promise<boolean> {
 
                 // If we reauthenticate due to an expired delegate token, restore the delegate's original account.
                 // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
-                if (isConnectedAsDelegate()) {
+                if (isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})) {
                     Log.info('Reauthenticate while connected as a delegate. Restoring original account.');
                     restoreDelegateSession(response);
                     return true;
