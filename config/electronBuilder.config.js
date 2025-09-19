@@ -48,6 +48,10 @@ module.exports = {
                 arch: ['universal'],
             },
         ],
+        extendInfo: {
+            NSLocationWhenInUseUsageDescription: 'This app uses location to help you track distance expenses.',
+            NSLocationUsageDescription: 'This app uses location to help you track distance expenses.',
+        },
     },
     dmg: {
         title: 'New Expensify',
