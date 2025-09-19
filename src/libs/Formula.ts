@@ -386,6 +386,21 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
         const day = date.getDate();
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const shortDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        // Calculate additional date values
+        const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+        const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Monday, 7 = Sunday
+        const dayOfYear = Math.floor((date.getTime() - new Date(year, 0, 1).getTime()) / (1000 * 60 * 60 * 24));
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        // Calculate ISO week number
+        const januaryFirst = new Date(year, 0, 1);
+        const daysSinceJanuary = Math.floor((date.getTime() - januaryFirst.getTime()) / (1000 * 60 * 60 * 24));
+        const januaryFirstDayOfWeek = januaryFirst.getDay();
+        const daysToMonday = januaryFirstDayOfWeek === 0 ? -6 : 1 - januaryFirstDayOfWeek;
+        const weekNumber = Math.ceil((daysSinceJanuary - daysToMonday + 1) / 7);
 
         // Use a two-phase placeholder system to prevent token conflicts
         let result = format;
@@ -422,11 +437,20 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
             {token: 'M', value: month.toString()},
             {token: 'F', value: monthNames.at(month - 1) ?? ''},
             {token: 'n', value: month.toString()},
+            {token: 't', value: daysInMonth.toString()},
 
             // Day formats (longest to shortest)
+            {token: 'dddd', value: dayNames.at(dayOfWeek) ?? ''},
+            {token: 'ddd', value: shortDayNames.at(dayOfWeek) ?? ''},
             {token: 'dd', value: day.toString().padStart(2, '0')},
             {token: 'd', value: day.toString().padStart(2, '0')},
             {token: 'j', value: day.toString()},
+            {token: 'l', value: dayNames.at(dayOfWeek) ?? ''},
+            {token: 'D', value: shortDayNames.at(dayOfWeek) ?? ''},
+            {token: 'w', value: dayOfWeek.toString()},
+            {token: 'N', value: isoDayOfWeek.toString()},
+            {token: 'z', value: dayOfYear.toString()},
+            {token: 'W', value: weekNumber.toString().padStart(2, '0')},
             {token: 'S', value: getOrdinalSuffix(day)},
 
             // Time formats (longest to shortest)

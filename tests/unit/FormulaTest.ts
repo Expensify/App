@@ -387,8 +387,18 @@ describe('CustomFormula', () => {
                 expect(result).toBe('2025');
             });
 
+            test('should format year as 4-digit alternative (YYYY)', () => {
+                const result = compute('{report:startdate:YYYY}', mockContextWithDate);
+                expect(result).toBe('2025');
+            });
+
             test('should format year as 2-digit (yy)', () => {
                 const result = compute('{report:startdate:yy}', mockContextWithDate);
+                expect(result).toBe('25');
+            });
+
+            test('should format year as 2-digit alternative (y)', () => {
+                const result = compute('{report:startdate:y}', mockContextWithDate);
                 expect(result).toBe('25');
             });
 
@@ -418,11 +428,31 @@ describe('CustomFormula', () => {
                 const result = compute('{report:startdate:M}', mockContextWithDate);
                 expect(result).toBe('1');
             });
+
+            test('should format full month name alternative (F)', () => {
+                const result = compute('{report:startdate:F}', mockContextWithDate);
+                expect(result).toBe('January');
+            });
+
+            test('should format month without leading zero using n', () => {
+                const result = compute('{report:startdate:n}', mockContextWithDate);
+                expect(result).toBe('1');
+            });
+
+            test('should format number of days in month (t)', () => {
+                const result = compute('{report:startdate:t}', mockContextWithDate);
+                expect(result).toBe('31'); // January has 31 days
+            });
         });
 
         describe('Day Formats', () => {
             test('should format day with leading zero (dd)', () => {
                 const result = compute('{report:startdate:dd}', mockContextWithDate);
+                expect(result).toBe('08');
+            });
+
+            test('should format day with leading zero (d)', () => {
+                const result = compute('{report:startdate:d}', mockContextWithDate);
                 expect(result).toBe('08');
             });
 
@@ -434,6 +464,46 @@ describe('CustomFormula', () => {
             test('should format ordinal suffix (S)', () => {
                 const result = compute('{report:startdate:S}', mockContextWithDate);
                 expect(result).toBe('th');
+            });
+
+            test('should format three letter day name (D)', () => {
+                const result = compute('{report:startdate:D}', mockContextWithDate);
+                expect(result).toBe('Wed'); // Wednesday
+            });
+
+            test('should format abbreviated day name (ddd)', () => {
+                const result = compute('{report:startdate:ddd}', mockContextWithDate);
+                expect(result).toBe('Wed');
+            });
+
+            test('should format full day name (dddd)', () => {
+                const result = compute('{report:startdate:dddd}', mockContextWithDate);
+                expect(result).toBe('Wednesday');
+            });
+
+            test('should format full day name with l (lowercase L)', () => {
+                const result = compute('{report:startdate:l}', mockContextWithDate);
+                expect(result).toBe('Wednesday');
+            });
+
+            test('should format numeric day of week (w)', () => {
+                const result = compute('{report:startdate:w}', mockContextWithDate);
+                expect(result).toBe('3'); // Wednesday = 3 (Sunday = 0)
+            });
+
+            test('should format ISO day of week (N)', () => {
+                const result = compute('{report:startdate:N}', mockContextWithDate);
+                expect(result).toBe('3'); // Wednesday = 3 (Monday = 1)
+            });
+
+            test('should format day of year (z)', () => {
+                const result = compute('{report:startdate:z}', mockContextWithDate);
+                expect(result).toBe('7'); // January 8 = day 7 (0-indexed)
+            });
+
+            test('should format ISO week number (W)', () => {
+                const result = compute('{report:startdate:W}', mockContextWithDate);
+                expect(result).toBe('02'); // Second week of January
             });
         });
 
@@ -451,6 +521,91 @@ describe('CustomFormula', () => {
             test('should handle ordinal suffix combinations (jS)', () => {
                 const result = compute('{report:startdate:jS}', mockContextWithDate);
                 expect(result).toBe('8th');
+            });
+        });
+
+        describe('Time Formats', () => {
+            // testDate = '2025-01-08T15:30:45.123Z' = 3:30:45 PM UTC
+
+            test('should format 12-hour without leading zero (g)', () => {
+                const result = compute('{report:startdate:g}', mockContextWithDate);
+                expect(result).toBe('3'); // 3 PM
+            });
+
+            test('should format 24-hour without leading zero (G)', () => {
+                const result = compute('{report:startdate:G}', mockContextWithDate);
+                expect(result).toBe('15'); // 15:30
+            });
+
+            test('should format 12-hour with leading zero (h)', () => {
+                const result = compute('{report:startdate:h}', mockContextWithDate);
+                expect(result).toBe('3'); // 03 PM
+            });
+
+            test('should format 12-hour with leading zero (hh)', () => {
+                const result = compute('{report:startdate:hh}', mockContextWithDate);
+                expect(result).toBe('03'); // 03 PM
+            });
+
+            test('should format 24-hour with leading zero (H)', () => {
+                const result = compute('{report:startdate:H}', mockContextWithDate);
+                expect(result).toBe('15'); // 15:30
+            });
+
+            test('should format 24-hour with leading zero (HH)', () => {
+                const result = compute('{report:startdate:HH}', mockContextWithDate);
+                expect(result).toBe('15'); // 15:30
+            });
+
+            test('should format minutes (i)', () => {
+                const result = compute('{report:startdate:i}', mockContextWithDate);
+                expect(result).toBe('30');
+            });
+
+            test('should format minutes (mm)', () => {
+                const result = compute('{report:startdate:mm}', mockContextWithDate);
+                expect(result).toBe('30');
+            });
+
+            test('should format seconds (s)', () => {
+                const result = compute('{report:startdate:s}', mockContextWithDate);
+                expect(result).toBe('45');
+            });
+
+            test('should format seconds (ss)', () => {
+                const result = compute('{report:startdate:ss}', mockContextWithDate);
+                expect(result).toBe('45');
+            });
+
+            test('should format lowercase am/pm (a)', () => {
+                const result = compute('{report:startdate:a}', mockContextWithDate);
+                expect(result).toBe('pm');
+            });
+
+            test('should format uppercase AM/PM (A)', () => {
+                const result = compute('{report:startdate:A}', mockContextWithDate);
+                expect(result).toBe('PM');
+            });
+
+            test('should format AM/PM designator (tt)', () => {
+                const result = compute('{report:startdate:tt}', mockContextWithDate);
+                expect(result).toBe('PM');
+            });
+
+            test('should format morning time correctly', () => {
+                // Create a morning date
+                const morningDate = '2025-01-08T09:30:45.123Z'; // 9:30:45 AM UTC
+                const mockTransaction = {
+                    transactionID: 'trans1',
+                    created: morningDate,
+                    amount: -5000,
+                    merchant: 'Test Store',
+                } as Transaction;
+                mockReportUtils.getReportTransactions.mockReturnValue([mockTransaction]);
+
+                // Format: hour without leading zero : minutes with space and am/pm
+                const result = compute('{report:startdate:g}:{report:startdate:i} {report:startdate:a}', mockContextWithDate);
+                expect(result).toBe('9:30 am');
             });
         });
     });
