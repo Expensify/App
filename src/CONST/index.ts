@@ -6732,6 +6732,7 @@ const CONST = {
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
             GREATER_THAN: 'GreaterThan',
+            EQUAL_TO: 'EqualTo',
         },
         DATE_PRESETS: {
             NEVER: 'never',
