@@ -116,6 +116,7 @@ function ProfilePage() {
                 }
                 Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
             },
+            brickRoadIndicator: privatePersonalDetails?.errorFields?.dob ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('common.phoneNumber'),
@@ -139,6 +140,7 @@ function ProfilePage() {
                 }
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
             },
+            brickRoadIndicator: privatePersonalDetails?.errorFields?.addressStreet ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 

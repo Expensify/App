@@ -525,6 +525,22 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     });
 }
 
+function clearDateOfBirthError() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errorFields: {
+            dob: null,
+        },
+    });
+}
+
+function clearAddressStreetError() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errorFields: {
+            addressStreet: null,
+        },
+    });
+}
+
 export {
     clearAvatarErrors,
     deleteAvatar,
@@ -542,4 +558,6 @@ export {
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
     clearPersonalDetailsErrors,
+    clearDateOfBirthError,
+    clearAddressStreetError,
 };
