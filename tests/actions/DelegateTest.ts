@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {addDelegate, clearDelegateErrorsByField, clearDelegatorErrors, isConnectedAsDelegate, removeDelegate, updateDelegateRole} from '@libs/actions/Delegate';
+import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +108,8 @@ describe('actions/Delegate', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
             await waitForBatchedUpdates();
 
+            pause();
+
             removeDelegate({email: 'test@test.com', delegatedAccess});
             await waitForBatchedUpdates();
 
@@ -121,6 +124,7 @@ describe('actions/Delegate', () => {
                 });
             });
         });
+        resetQueue();
     });
     describe('clearDelegateErrorsByField', () => {
         it('should clear a delegate error by field', async () => {
@@ -185,6 +189,8 @@ describe('actions/Delegate', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
             await waitForBatchedUpdates();
 
+            pause();
+
             updateDelegateRole({email: 'test@test.com', role: CONST.DELEGATE_ROLE.SUBMITTER, validateCode: '123456', delegatedAccess});
             await waitForBatchedUpdates();
 
@@ -192,13 +198,16 @@ describe('actions/Delegate', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
-                        expect(account?.delegatedAccess?.delegates?.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                        expect(account?.delegatedAccess?.delegates?.at(0)?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        const firstDelegate = account?.delegatedAccess?.delegates?.at(0);
+                        expect(firstDelegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        expect(firstDelegate?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         Onyx.disconnect(connection);
                         resolve();
                     },
                 });
             });
+
+            resetQueue();
         });
     });
     describe('isConnectedAsDelegate', () => {
