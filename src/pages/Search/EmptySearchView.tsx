@@ -332,6 +332,13 @@ function EmptySearchViewContent({
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
+                if (hasResults) {
+                    return {
+                        ...defaultViewItemHeader,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                };
                 if (!hasResults || !hasTransactions) {
                     return {
                         ...defaultViewItemHeader,
