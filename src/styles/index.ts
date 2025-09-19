@@ -5220,7 +5220,7 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: '100%',
         },
         wideRHPMoneyRequestReceiptViewScrollView: {
-            scrollbarGutter: 'stable both-edges'
+            scrollbarGutter: 'stable both-edges',
         },
     }) satisfies StaticStyles;
 
