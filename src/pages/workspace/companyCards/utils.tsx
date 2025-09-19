@@ -40,7 +40,7 @@ function getExportMenuItem(
         value: defaultVendor,
         id: defaultVendor,
         currency: '',
-    }
+    };
 
     const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount, reimbursableExpensesExportDestination, reimbursableExpensesAccount} =
         policy?.connections?.quickbooksOnline?.config ?? {};
@@ -240,8 +240,7 @@ function getExportMenuItem(
                 case CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL: {
                     const defaultAccount = isNonReimbursable ? getSageIntacctNonReimbursableActiveDefaultVendor(policy) : exportConfig?.reimbursableExpenseReportDefaultVendor;
                     isDefaultTitle = !!(
-                        companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
-                        !companyCard?.nameValuePairs?.intacct_export_vendor
+                        companyCard?.nameValuePairs?.intacct_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_vendor
                     );
                     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
                     const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_vendor ?? defaultAccount;
