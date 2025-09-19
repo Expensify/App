@@ -132,11 +132,12 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     };
 
     const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             convertHeicImage(file, {
                 onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (nonConvertedFile) => {
-                    reject(nonConvertedFile);
+                onError: () => {
+                    // Don't reject, just resolve with the original file
+                    resolve(file);
                 },
             });
         });
@@ -197,26 +198,48 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 if (otherFiles.some((file) => isHeicOrHeifImage(file))) {
                     setIsLoaderVisible(true);
 
-                    return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
-                        convertedImages.forEach((convertedFile, index) => {
-                            updateFileOrderMapping(otherFiles.at(index), convertedFile);
-                        });
+                    return Promise.all(
+                        otherFiles.map((file) =>
+                            isHeicOrHeifImage(file)
+                                ? convertHeicImageToJpegPromise(file).catch(() => {
+                                      // Always return the original file when conversion fails
+                                      // The backend should handle HEIC files appropriately
+                                      return file;
+                                  })
+                                : Promise.resolve(file),
+                        ),
+                    )
+                        .then((convertedImages) => {
+                            const validConvertedImages = convertedImages.filter((file): file is FileObject => file !== null);
 
-                        // Check if we need to resize images
-                        if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
-                                processedFiles.forEach((resizedFile, index) => {
-                                    updateFileOrderMapping(convertedImages.at(index), resizedFile);
-                                });
-                                setIsLoaderVisible(false);
-                                return Promise.resolve({processedFiles, pdfsToLoad});
+                            validConvertedImages.forEach((convertedFile, index) => {
+                                const originalFile = otherFiles.at(index);
+                                if (originalFile) {
+                                    updateFileOrderMapping(originalFile, convertedFile);
+                                }
                             });
-                        }
 
-                        // No resizing needed, just return the converted images
-                        setIsLoaderVisible(false);
-                        return Promise.resolve({processedFiles: convertedImages, pdfsToLoad});
-                    });
+                            // Check if we need to resize images
+                            if (validConvertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
+                                return Promise.all(validConvertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
+                                    processedFiles.forEach((resizedFile, index) => {
+                                        updateFileOrderMapping(validConvertedImages.at(index), resizedFile);
+                                    });
+                                    setIsLoaderVisible(false);
+                                    return Promise.resolve({processedFiles, pdfsToLoad});
+                                });
+                            }
+
+                            // No resizing needed, just return the converted images
+                            setIsLoaderVisible(false);
+                            return Promise.resolve({processedFiles: validConvertedImages, pdfsToLoad});
+                        })
+                        .catch(() => {
+                            setIsLoaderVisible(false);
+                            // Return the original files if something goes wrong with conversion
+                            // This allows users to continue with their original files
+                            return Promise.resolve({processedFiles: otherFiles, pdfsToLoad});
+                        });
                 }
 
                 // No conversion needed, but check if we need to resize images
