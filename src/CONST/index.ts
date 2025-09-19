@@ -6455,7 +6455,10 @@ const CONST = {
         DEV: ' Dev',
         ADHOC: ' AdHoc',
     },
-    NEW_SEARCH: {
+    SEARCH: {
+        RESULTS_PAGE_SIZE: 50,
+        EXITING_ANIMATION_DURATION: 200,
+        ME: 'me',
         FILTERS: {
             KEYS: {
                 TYPE: 'type',
@@ -6481,11 +6484,6 @@ const CONST = {
                 BEFORE: 'before',
             },
         },
-    },
-    SEARCH: {
-        RESULTS_PAGE_SIZE: 50,
-        EXITING_ANIMATION_DURATION: 200,
-        ME: 'me',
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
