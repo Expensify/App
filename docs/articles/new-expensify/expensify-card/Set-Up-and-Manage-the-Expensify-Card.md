@@ -14,7 +14,10 @@ Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manag
 - Spend restrictions by employee and merchant
 - Real-time visibility and cash back rewards
 
-**Prerequisites:** You must be a workspace admin and have a U.S. business bank account connected to Expensify. See this guide on [connecting a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
+**Prerequisites:** You must be a workspace admin and have a US, UK or EU business bank account connected to Expensify. See this guide on [connecting a US business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account) and this guide on [connecting a UK or EU business bank account](link-to-ND-GR-process).
+
+NOTE: Only virtual cards are available in the UK and EU at this time, but physical cards will be released very soon. Please see this article for more information about Expensify Card availability in the UK and EU:
+- [UK and EU Expensify Card](https://help.expensify.com/articles/new-expensify/expensify-card/UK-and-EU-Expensify-Card)
 
 ---
 
@@ -31,11 +34,11 @@ To turn on Expensify Cards for your workspace:
 
 # Step 2: Select a Bank Account
 
-Link a U.S. business bank account to pay the card balance:
+Link a U.S, UK or EU business bank account to pay the card balance:
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**
-3. Choose an existing account or [add a new bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) as the settlement account.
+3. Choose an existing account or add a new bank account as the settlement account.
 
 ![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceFeeds_02.png){:width="100%"}
 
@@ -48,7 +51,7 @@ You can issue virtual or physical cards to employees:
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), head to **Workspaces > [Workspace Name] > Expensify Cards**
 2. Click **Issue new card**
 3. Select the employee
-4. Choose **Virtual** or **Physical**
+4. Choose **Virtual** or **Physical** (US Only)
 5. Pick a limit type:
    - **Smart limit**: Spend up to a threshold before needing approval
    - **Monthly limit**: Capped monthly spend
@@ -86,7 +89,7 @@ You can issue virtual or physical cards to employees:
 
 ## What kind of bank account is required?
 
-You’ll need a U.S. business bank account registered to a U.S.-incorporated business.
+You’ll need a US, UK or EU business bank account registered to an incorporated business in the applicable country
 
 ## Can I use Expensify Cards across multiple workspaces?
 
@@ -95,7 +98,7 @@ Yes, but each workspace must have its **own settlement account**. For example, u
 ## Can an employee have multiple cards?
 
 - **Yes**: Employees can have unlimited **virtual cards** (e.g. for trips or subscriptions).
-- **No**: Only **one active, physical card** is allowed per employee.
+- **No**: Only **one active, physical card** is allowed per employee (US Only)
 
 ## How is the Expensify Card limit determined?
 
@@ -103,7 +106,7 @@ The limit is the maximum combined spending limit for all Expensify Cards in your
 
 - **Available balance** in the verified bank account set as your **settlement account**
 - **Pending expenses** and **unsettled transactions**
-- **Funds availability** tracked via **Plaid**
+- **Funds availability** tracked via **Plaid** (US only) OR by prooviding statements to Expensify at the time of set up and every 90 days after that (don't worry, we'll let you know when you need to provide statements)
 - **Settlement cycle timing**, which usually takes **three business days**
 
 ## What affects the Expensify Card limit?
