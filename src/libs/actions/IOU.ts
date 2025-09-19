@@ -8792,6 +8792,15 @@ function getSendMoneyParams(
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+            },
+        },
     );
 
     const failureData: OnyxUpdate[] = [
