@@ -5,9 +5,6 @@ import type {TransactionViolations} from '@src/types/onyx';
 
 /**
  * Selects violations related to provided transaction IDs and if present, the violations of their duplicates.
- * @param transactionIDs - An array of transaction IDs to fetch their violations for.
- * @param allTransactionsViolations - A collection of all transaction violations currently in the onyx db.
- * @returns - A collection of violations related to the transaction IDs and if present, the violations of their duplicates.
  */
 function selectViolationsWithDuplicates(transactionIDs: string[], allTransactionsViolations: OnyxCollection<TransactionViolations>): OnyxCollection<TransactionViolations> {
     if (!allTransactionsViolations || !transactionIDs?.length) {
