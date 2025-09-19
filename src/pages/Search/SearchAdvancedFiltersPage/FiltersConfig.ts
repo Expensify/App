@@ -1,7 +1,10 @@
 import CONST from "@src/CONST";
 import type {ValueOf} from "type-fest";
 import type {TranslationPaths} from '@src/languages/types';
-
+import RadioButtons from '@components/RadioButtons';
+import DatePicker from '@components/DatePicker';
+import TextInput from '@components/TextInput';
+import Checkbox from '@components/Checkbox';
 
 type SearchDataTypes = typeof CONST.SEARCH.FILTERS.VALUES.EXPENSE | typeof CONST.SEARCH.FILTERS.VALUES.CHAT;
 type SearchFilterModifiers = typeof CONST.SEARCH.FILTERS.MODIFIERS.ON | typeof CONST.SEARCH.FILTERS.MODIFIERS.AFTER | typeof CONST.SEARCH.FILTERS.MODIFIERS.BEFORE;
@@ -10,7 +13,7 @@ type FilterConfig = {
     key: ValueOf<typeof CONST.SEARCH.FILTERS.KEYS>;
     displayText: TranslationPaths;
     component: React.ComponentType<any>;
-    dataTypes: SearchDataTypes[]; // Which data types this filter applies to
+    dataTypes: SearchDataTypes[];
     validate?: (values) => boolean;
     getOptions?: (values) => SelectItem[];
     modifiers: SearchFilterModifiers[];
@@ -33,7 +36,7 @@ const filterConfig: FilterConfig[] = [
     {
         key: CONST.SEARCH.FILTERS.KEYS.STATUS,
         displayText: 'common.status',
-        component: CheckboxList,
+        component: Checkbox,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
         getOptions: () => [CONST.SEARCH.FILTERS.VALUES.ALL, CONST.SEARCH.FILTERS.VALUES.DRAFTS],
@@ -54,7 +57,7 @@ const filterConfig: FilterConfig[] = [
     },
     {
         key: CONST.SEARCH.FILTERS.KEYS.KEYWORD,
-        displayText: 'common.keyword',
+        displayText: 'search.filters.keyword',
         component: TextInput,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE, CONST.SEARCH.FILTERS.VALUES.CHAT],
         validate: () => true,
@@ -65,7 +68,7 @@ const filterConfig: FilterConfig[] = [
     },
     {
         key: CONST.SEARCH.FILTERS.KEYS.AMOUNT,
-        displayText: 'common.amount',
+        displayText: 'iou.amount',
         component: TextInput,
         dataTypes: [CONST.SEARCH.FILTERS.VALUES.EXPENSE],
         validate: () => true,
@@ -85,4 +88,6 @@ const filterConfig: FilterConfig[] = [
         routeKey: CONST.SEARCH.FILTERS.KEYS.REIMBURSABLE,
         isExposed: (context) => false,
     },
-]
+];
+
+export default filterConfig;
