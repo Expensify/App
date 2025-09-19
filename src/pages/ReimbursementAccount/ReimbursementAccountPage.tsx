@@ -25,7 +25,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {
+    getCurrentStepFromBankAccount,
+    getRouteForCurrentStep,
+    hasInProgressUSDVBBA,
+    hasInProgressVBBA,
+    mapBankAccountToACHData,
+    mapBankAccountToReimbursementAccountDraft,
+} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -40,7 +47,7 @@ import {
     updateReimbursementAccountDraft,
 } from '@userActions/BankAccounts';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {clearReimbursementAccountDraft, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,6 +71,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
@@ -81,7 +89,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const requestorStepRef = useRef<View>(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
-    const policyCurrency = policy?.outputCurrency ?? '';
+    const policyCurrency = policy ? policy?.outputCurrency : CONST.CURRENCY.USD;
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
@@ -127,8 +135,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     const shouldShowContinueSetupButtonValue = useMemo(() => {
+        if (!policy) {
+            return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP);
+        }
         return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
-    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+    }, [achData, bankAccountList, isNonUSDWorkspace, nonUSDCountryDraftValue, policy]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -140,6 +151,24 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (policyIDParam ?? !bankAccountList) {
+            return;
+        }
+
+        const achDataFromBankAccount = mapBankAccountToACHData(bankAccountList);
+        const step = getCurrentStepFromBankAccount(bankAccountList);
+        if (achDataFromBankAccount) {
+            updateReimbursementAccount({...achDataFromBankAccount, currentStep: step});
+            setHasACHDataBeenLoaded(true);
+        }
+
+        const draftDataFromBankAccount = mapBankAccountToReimbursementAccountDraft(bankAccountList);
+        if (draftDataFromBankAccount) {
+            updateReimbursementAccountDraft(draftDataFromBankAccount);
+        }
+    }, [policyIDParam, bankAccountList]);
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -318,6 +347,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 }
                 setUSDBankAccountStep(null);
                 setBankAccountSubStep(null);
+                if (!policyIDParam) {
+                    clearReimbursementAccountDraft();
+                }
                 break;
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 setPlaidEvent(null);
@@ -358,7 +390,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             default:
                 Navigation.dismissModal();
         }
-    }, [achData, currentStep, isOffline, onfidoToken]);
+    }, [achData, currentStep, isOffline, onfidoToken, policyIDParam]);
 
     const isLoading =
         (isLoadingApp || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
@@ -393,7 +425,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
-    if ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy)) {
+    if (!!policyIDParam && ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy))) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
@@ -480,7 +512,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             policyName={policyName}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
-            onBackButtonPress={Navigation.goBack}
+            onBackButtonPress={() => Navigation.goBack(backTo)}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
             isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}

@@ -322,9 +322,8 @@ function PaymentMethodList({
             );
         }
 
-        if (filterType) {
-            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => (paymentMethod as BankAccount).accountData?.type === filterType);
-        }
+        // TODO: temporarily do not show partially set-up bank accounts, we'll add it in https://github.com/Expensify/App/pull/67326
+        combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => (paymentMethod.accountData as AccountData).state !== CONST.BANK_ACCOUNT.STATE.SETUP);
 
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const pressHandler = onPress as PaymentMethodPressHandler;
