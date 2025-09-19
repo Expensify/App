@@ -1,7 +1,7 @@
 import isObject from 'lodash/isObject';
 import React, {useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -60,7 +60,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
             textInputLabel={translate('common.search')}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
         />

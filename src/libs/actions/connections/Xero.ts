@@ -356,7 +356,10 @@ function updateXeroImportTaxRates(
     API.write(WRITE_COMMANDS.UPDATE_XERO_IMPORT_TAX_RATES, parameters, {optimisticData, failureData, successData});
 }
 
-function updateXeroTenantID(policyID: string, settingValue: string, oldSettingValue?: string) {
+function updateXeroTenantID(policyID: string | undefined, settingValue: string, oldSettingValue?: string) {
+    if (!policyID) {
+        return;
+    }
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(settingValue),
@@ -498,10 +501,13 @@ function updateXeroExportNonReimbursableAccount(
 }
 
 function updateXeroSyncInvoiceCollectionsAccountID(
-    policyID: string,
+    policyID: string | undefined,
     invoiceCollectionsAccountID: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
     oldInvoiceCollectionsAccountID?: Partial<Connections['xero']['config']['sync']['invoiceCollectionsAccountID']>,
 ) {
+    if (!policyID) {
+        return;
+    }
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: invoiceCollectionsAccountID,
@@ -519,10 +525,13 @@ function updateXeroSyncInvoiceCollectionsAccountID(
 }
 
 function updateXeroSyncReimbursementAccountID(
-    policyID: string,
+    policyID: string | undefined,
     reimbursementAccountID: Partial<Connections['xero']['config']['sync']['reimbursementAccountID']>,
     oldReimbursementAccountID?: Partial<Connections['xero']['config']['sync']['reimbursementAccountID']>,
 ) {
+    if (!policyID) {
+        return;
+    }
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: reimbursementAccountID,

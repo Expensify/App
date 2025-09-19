@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -17,8 +17,7 @@ import {assignReportToMe} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy, isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -79,8 +78,8 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             },
         ];
 
-        // Only show the bypass option if current approver is not a policy admin and prevent self-approval is not enabled
-        if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID)) && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+        const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
+        if (!isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
@@ -110,7 +109,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 sections={sections}
                 isAlternateTextMultilineSupported
                 onSelectRow={(option) => {

@@ -59,6 +59,25 @@ function useSearchHighlightAndScroll({
         return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
     }, [searchResults?.data, isChat]);
 
+    const newTransactions = useMemo(() => {
+        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+
+        if (previousTransactionsIDs.length === 0) {
+            return [];
+        }
+
+        const previousIDs = new Set(previousTransactionsIDs);
+        const result: Transaction[] = [];
+
+        for (const [id, transaction] of Object.entries(transactions ?? {})) {
+            if (!previousIDs.has(id) && transaction) {
+                result.push(transaction);
+            }
+        }
+
+        return result;
+    }, [previousTransactions, transactions]);
+
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
@@ -247,7 +266,7 @@ function useSearchHighlightAndScroll({
         [newSearchResultKey, isChat],
     );
 
-    return {newSearchResultKey, handleSelectionListScroll};
+    return {newSearchResultKey, handleSelectionListScroll, newTransactions};
 }
 
 /**

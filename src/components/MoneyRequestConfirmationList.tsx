@@ -71,8 +71,8 @@ import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFo
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import SelectionList from './SelectionList';
+import NewChatListItem from './SelectionList/NewChatListItem';
 import type {SectionListDataType} from './SelectionList/types';
-import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -243,7 +243,11 @@ function MoneyRequestConfirmationList({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
-    const [defaultMileageRate] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
+    const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
+        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        canBeMissing: true,
+    });
+    const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
         canBeMissing: true,
     });
@@ -272,6 +276,7 @@ function MoneyRequestConfirmationList({
 
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -1124,6 +1129,7 @@ function MoneyRequestConfirmationList({
             currency={currency}
             didConfirm={!!didConfirm}
             distance={distance}
+            rawAmount={amountToBeUsed}
             formattedAmount={formattedAmount}
             formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}
@@ -1177,7 +1183,7 @@ function MoneyRequestConfirmationList({
         <MouseProvider>
             <SelectionList<MoneyRequestConfirmationListItem>
                 sections={sections}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}

@@ -1,19 +1,19 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import {TeleScope} from '@components/Icon/Illustrations';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {updateSageIntacctSyncReimbursementAccountID} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,7 +21,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const {config} = policy?.connections?.intacct ?? {};
 
@@ -40,7 +40,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.sageIntacct.noAccountsFound')}
@@ -56,7 +56,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={SageIntacctPaymentAccountPage.displayName}
             sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID))}
@@ -64,9 +64,9 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
         />
     );
 }
