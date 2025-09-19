@@ -4,7 +4,8 @@ import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
 export default function createRandomPolicyTags(tagListName: string, numberOfTags = 0): PolicyTagLists {
     const tags: PolicyTags = {};
     for (let i = 0; i < numberOfTags; i++) {
-        const tagName = randWord();
+        // prevent the tagName can be duplicated
+        const tagName = `${randWord()}${i}`;
         tags[tagName] = {
             name: tagName,
             enabled: true,
