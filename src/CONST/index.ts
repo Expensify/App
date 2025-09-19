@@ -6460,6 +6460,11 @@ const CONST = {
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         FILTERS: {
+            SECTIONS: {
+                GENERAL: 'general',
+                EXPENSES: 'expenses',
+                REPORTS: 'reports',
+            },
             KEYS: {
                 TYPE: 'type',
                 STATUS: 'status',
