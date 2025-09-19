@@ -98,6 +98,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
@@ -2330,6 +2331,7 @@ function toggleSubscribeToChildReport(
 
 function updateReportName(reportID: string, value: string, previousValue: string) {
     const optimisticData: OnyxUpdate[] = [
+        ...removeTitleFieldFromReport(reportID),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2787,6 +2789,8 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             value: optimisticNextStep,
         },
     ];
+
+    optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
     const failureData: OnyxUpdate[] = [
         {
@@ -5239,6 +5243,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     if (!!titleReportField && isPaidGroupPolicy(policy)) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
+    optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -5767,6 +5772,10 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: reportNextStep,
         });
+    }
+
+    if (shouldUpdateTitleField(report)) {
+        optimisticData.push(...updateTitleFieldToMatchPolicy(report.reportID, policy));
     }
 
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI
