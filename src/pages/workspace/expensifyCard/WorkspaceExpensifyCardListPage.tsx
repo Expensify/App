@@ -238,17 +238,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView
                     isBankAccountVerified={isBankAccountVerified}
                     policyID={policyID}
-                    buttons={
-                        isBankAccountVerified
-                            ? [
-                                  {
-                                      buttonText: translate('workspace.expensifyCard.issueCard'),
-                                      buttonAction: handleIssueCardPress,
-                                      success: true,
-                                  },
-                              ]
-                            : undefined
-                    }
+                    buttons={[
+                        {
+                            buttonText: translate('workspace.expensifyCard.issueCard'),
+                            buttonAction: handleIssueCardPress,
+                            success: true,
+                        },
+                    ]}
                 />
             ) : (
                 <ScrollView
