@@ -134,6 +134,8 @@ function AttachmentPickerWithMenuItems({
     const {isBetaEnabled} = usePermissions();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
 
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
@@ -255,10 +257,10 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true),
+                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true, betas, betaConfiguration), true),
             },
         ];
-    }, [currentUserPersonalDetails, report, selectOption, translate]);
+    }, [currentUserPersonalDetails, report, selectOption, translate, betaConfiguration, betas]);
 
     /**
      * Determines if we can show the task option
