@@ -435,7 +435,9 @@ function SettlementButton({
             return lastPaymentPolicy.name;
         }
 
-        const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
+        const bankAccountToDisplay = hasIntentToPay
+            ? ((formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) ?? formattedPaymentMethods.at(0)) as BankAccount)
+            : bankAccount;
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReportUtil(iouReport))) {
             if (!personalBankAccountList.length) {
                 return;
@@ -451,6 +453,13 @@ function SettlementButton({
 
             if (!bankAccountToDisplay?.accountData?.accountNumber) {
                 return;
+            }
+
+            const bankAccountConnectedToPolicy = (formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) as BankAccount)?.accountData?.accountNumber;
+            if (bankAccountConnectedToPolicy) {
+                return translate('paymentMethodList.bankAccountLastFour', {
+                    lastFour: bankAccountConnectedToPolicy.slice(-4),
+                });
             }
 
             return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
