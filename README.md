@@ -663,14 +663,15 @@ Updated rules for managing members across all types of chats in New Expensify.
        - No one can leave or be removed from the #announce room
 
     3. #### Workspace #admin room
-        |                    | Admin |
-        | :----------------: | :---: |
-        |     **Invite**     |   ❌   |
-        |     **Remove**     |   ❌   |
-        |     **Leave**      |   ❌   |
-        | **Can be removed** |   ❌   |
+        |                    | Admin | Auditor |
+        | :----------------: | :---: | :-----: |
+        |     **Invite**     |   ❌   |    ❌     |
+        |     **Remove**     |   ❌   |    ❌     |
+        |     **Leave**      |   ❌   |    ❌     |
+        | **Can be removed** |   ❌   |    ✅     |
 
         - Admins can't leave or be removed from #admins
+        - Auditors have a view-only #admins room access and they can be removed from the room
 
     4. #### Workspace rooms
         |                    | Creator | Member | Guest(outside of the workspace) |
