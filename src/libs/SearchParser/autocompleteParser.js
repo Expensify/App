@@ -841,7 +841,10 @@ function peg$parse(input, options) {
                                                                               if (s1 === peg$FAILED) {
                                                                                 s1 = peg$parsereportID();
                                                                                 if (s1 === peg$FAILED) {
-                                                                                  s1 = peg$parsetitle();
+                                                                                  s1 = peg$parsewithdrawalID();
+                                                                                  if (s1 === peg$FAILED) {
+                                                                                    s1 = peg$parsetitle();
+                                                                                  }
                                                                                 }
                                                                               }
                                                                             }

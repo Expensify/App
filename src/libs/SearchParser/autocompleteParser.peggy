@@ -96,6 +96,7 @@ autocompleteKey "key"
       / merchant
       / description
       / reportID
+      / withdrawalID
       / title
     )
 
