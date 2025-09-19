@@ -9,10 +9,10 @@ import {
     hasUserFreeTrialEnded,
     isUserOnFreeTrial,
     PAYMENT_STATUS,
+    shouldCalculateBillNewDot,
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
-    shouldCalculateBillNewDot,
 } from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -724,7 +724,8 @@ describe('SubscriptionUtils', () => {
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: { // Include a free policy to confirm it's correctly ignored
+                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: {
+                    // Include a free policy to confirm it's correctly ignored
                     ...createRandomPolicy(Number(freePolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.PERSONAL,
