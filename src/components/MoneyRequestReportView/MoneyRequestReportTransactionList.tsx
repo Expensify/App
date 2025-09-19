@@ -117,6 +117,7 @@ const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableCo
             return transaction[key];
     }
 };
+
 function MoneyRequestReportTransactionList({
     report,
     transactions,
@@ -377,7 +378,7 @@ function MoneyRequestReportTransactionList({
                                 style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
                             >
                                 {value}
-                            </Text>
+                            </Text>{' '}
                         </View>
                     ))}
                 </View>
