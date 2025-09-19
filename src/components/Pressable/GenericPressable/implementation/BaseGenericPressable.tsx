@@ -38,6 +38,7 @@ function GenericPressable({
     isNested = false,
     ref,
     dataSet,
+    forwardedFSClass,
     ...rest
 }: PressableProps) {
     const styles = useThemeStyles();
@@ -176,6 +177,7 @@ function GenericPressable({
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
+            fsClass={forwardedFSClass}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onHoverOut={(event) => {
