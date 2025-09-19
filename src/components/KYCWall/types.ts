@@ -70,7 +70,7 @@ type KYCWallProps = {
     onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: (params: ContinueActionParams) => void, anchorRef: RefObject<View | null>) => void;
+    children: (continueAction: (params?: ContinueActionParams) => void, anchorRef: RefObject<View | null>) => void;
 
     /** The policy used for payment */
     policy?: Policy;
