@@ -76,7 +76,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleValidateCodeEntered}
-            validateError={cardError}
+            validateError={{...cardError, ...codeError}}
             clearError={handleClearError}
             onClose={() => {
                 resetValidateActionCodeSent();
