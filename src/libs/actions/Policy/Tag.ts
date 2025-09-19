@@ -1,5 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
@@ -474,9 +474,16 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
 }
 
-function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: number) {
-    const tagListName = PolicyUtils.getTagListName(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`], tagListIndex);
-    const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
+type ClearPolicyTagErrorsProps = {
+    policyID: string;
+    tagName: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagErrors({policyID, tagName, tagListIndex, policyTags}: ClearPolicyTagErrorsProps) {
+    const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
+    const tag = policyTags?.[tagListName]?.tags?.[tagName];
     if (!tag) {
         return;
     }
