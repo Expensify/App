@@ -749,7 +749,10 @@
         "zxldvw",
         "inputmethod",
         "copyable",
-        "مثال"
+        "مثال",
+        "moveElemsAttrsToGroup",
+        "removeHiddenElems",
+        "moveGroupAttrsToElems"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
