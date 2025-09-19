@@ -335,12 +335,12 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         Log.info('No stashed session found, clearing the session');
     }
 
-    if (isSupportal) {
-        FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);
-    }
     // Wait for signOut (if called), then redirect and update Onyx.
     return signOutPromise
         .then((response) => {
+            if (isSupportal) {
+                FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);
+            }
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
                 asyncOpenURL(
