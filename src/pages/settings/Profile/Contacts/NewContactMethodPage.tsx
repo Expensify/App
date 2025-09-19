@@ -85,9 +85,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             return;
         }
 
-        // Send to Fraud Protection the successful addition of a new contact method
-        FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.ADD_SECONDARY_LOGIN);
-
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(prevPendingContactAction?.contactMethod ?? ''), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
     }, [pendingContactAction?.actionVerified, prevPendingContactAction?.contactMethod, navigateBackTo]);
