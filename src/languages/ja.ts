@@ -1309,6 +1309,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: '未報告の経費はありません',
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
+        newReport: '新しいレポート',
         explainHold: 'この経費を保留している理由を説明してください。',
         retracted: '撤回されました',
         retract: '取り消す',
@@ -1403,8 +1404,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
             rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
-            reasonPageDescription1: '経費を承認または支払う予定がない場合は却下してください。そうでない場合は「保留」を使って一時停止し、追加の文脈を求めてください。',
-            reasonPageDescription2: '経費を却下する場合は、その理由を説明するコメントを追加してください：',
+            reasonPageDescription: 'この経費を拒否する理由を説明してください。',
             rejectReason: '却下の理由',
             markAsResolved: '解決済みにする',
             rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
@@ -5489,7 +5489,7 @@ const translations = {
             },
             categories: {
                 title: 'カテゴリ',
-                description: `カテゴリは、支出をより良く整理し、お金をどこに使っているかを把握するのに役立ちます。提案されたカテゴリリストを使用するか、自分で作成してください。`,
+                description: 'カテゴリを使用すると、支出を追跡し整理できます。デフォルトのカテゴリを使用するか、独自のカテゴリを追加してください。',
                 onlyAvailableOnPlan: 'カテゴリは、Collectプランで利用可能です。料金は',
             },
             glCodes: {
@@ -5559,6 +5559,7 @@ const translations = {
                 travelMessage: `Collectプランへのアップグレードが成功しました。これで旅行の予約と管理を開始できます！`,
                 distanceRateMessage: `Collectプランへのアップグレードが成功しました。これで距離レートを変更できます！`,
                 gotIt: '了解しました、ありがとうございます。',
+                createdWorkspace: 'ワークスペースを作成しました！',
             },
             commonFeatures: {
                 title: 'Controlプランにアップグレード',
@@ -6158,9 +6159,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
-            },
-            has: {
-                receipt: '領収書',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',

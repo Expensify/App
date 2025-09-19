@@ -1307,6 +1307,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Brak niezgłoszonych wydatków',
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
+        newReport: 'Nowy raport',
         explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
         retracted: 'wycofany',
         retract: 'Wycofać',
@@ -1401,9 +1402,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
             rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
-            reasonPageDescription1:
-                'Odrzuć wydatek, jeśli nigdy nie planujesz go zatwierdzić ani opłacić. W przeciwnym razie użyj „Wstrzymaj”, aby zatrzymać wydatek i poprosić o dodatkowy kontekst.',
-            reasonPageDescription2: 'Jeśli zamierzasz odrzucić wydatek, dodaj komentarz wyjaśniający powód:',
+            reasonPageDescription: 'Wyjaśnij, dlaczego odrzucasz ten wydatek.',
             rejectReason: 'Powód odrzucenia',
             markAsResolved: 'Oznacz jako rozwiązane',
             rejectedStatus: 'Ten wydatek został odrzucony. Oczekiwanie, aż rozwiążesz problem(y) i oznaczysz jako rozwiązane, aby umożliwić przesłanie.',
@@ -5505,7 +5504,7 @@ const translations = {
             },
             categories: {
                 title: 'Kategorie',
-                description: `Kategorie pomagają lepiej organizować wydatki, aby śledzić, na co wydajesz swoje pieniądze. Skorzystaj z naszej sugerowanej listy kategorii lub stwórz własne.`,
+                description: 'Kategorie pozwalają śledzić i organizować wydatki. Użyj naszych domyślnych kategorii lub dodaj własne.',
                 onlyAvailableOnPlan: 'Kategorie są dostępne w planie Collect, zaczynając od',
             },
             glCodes: {
@@ -5577,6 +5576,7 @@ const translations = {
                 travelMessage: `Pomyślnie zaktualizowano do planu Collect. Teraz możesz zacząć rezerwować i zarządzać podróżami!`,
                 distanceRateMessage: `Pomyślnie zaktualizowano do planu Collect. Teraz możesz zmienić stawkę za odległość!`,
                 gotIt: 'Zrozumiałem, dzięki',
+                createdWorkspace: 'Utworzyłeś przestrzeń roboczą!',
             },
             commonFeatures: {
                 title: 'Ulepsz do planu Control',
@@ -6180,9 +6180,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
-            },
-            has: {
-                receipt: 'Paragon',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Prześlij',
