@@ -59,7 +59,7 @@ function toggleTestToolsModal() {
     throttledToggle();
 }
 
-function shouldShowProfileTool() {
+function getShouldShowProfileTool() {
     const browser = getBrowser();
     const isSafariOrFirefox = browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX;
 
@@ -68,6 +68,8 @@ function shouldShowProfileTool() {
     }
     return true;
 }
+
+const shouldShowProfileTool = getShouldShowProfileTool();
 
 export {shouldShowProfileTool};
 export default toggleTestToolsModal;
