@@ -3,8 +3,16 @@ import FraudProtection from '@libs/FraudProtection';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import type Middleware from './types';
 
-const apiCommandToFraudEventMap: Record<string, string> = {
-    [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: FRAUD_PROTECTION_EVENT.TOGGLE_TWO_FACTOR_AUTH,
+const apiCommandToFraudTagSupplierMap: Record<string, (data?: Record<string, unknown>) => string> = {
+    [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: () => FRAUD_PROTECTION_EVENT.ISSUE_EXPENSIFY_CARD,
+    [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: () => FRAUD_PROTECTION_EVENT.ISSUE_ADMIN_ISSUED_VIRTUAL_CARD,
+    [WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD]: () => FRAUD_PROTECTION_EVENT.REQUEST_NEW_PHYSICAL_EXPENSIFY_CARD,
+    [WRITE_COMMANDS.REPORT_VIRTUAL_EXPENSIFY_CARD_FRAUD]: () => FRAUD_PROTECTION_EVENT.REQUEST_NEW_VIRTUAL_EXPENSIFY_CARD,
+    [WRITE_COMMANDS.MERGE_WITH_VALIDATE_CODE]: () => FRAUD_PROTECTION_EVENT.MERGE_ACCOUNT,
+    [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: () => FRAUD_PROTECTION_EVENT.TOGGLE_TWO_FACTOR_AUTH,
+    [WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD]: () => FRAUD_PROTECTION_EVENT.ADD_SECONDARY_LOGIN,
+    [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT]: (data) =>
+        data?.isVirtualCard === true ? FRAUD_PROTECTION_EVENT.EDIT_LIMIT_ADMIN_ISSUE_VIRTUAL_CARD : FRAUD_PROTECTION_EVENT.EDIT_EXPENSIFY_CARD_LIMIT,
 };
 
 const FraudMonitoring: Middleware = (response, request) =>
@@ -13,11 +21,14 @@ const FraudMonitoring: Middleware = (response, request) =>
             return data;
         }
 
-        const fraudEvent = apiCommandToFraudEventMap[request.command];
-        // If the request is tracked in the Fraud Protection backend, we send the its event
-        if (fraudEvent) {
-            FraudProtection.sendEvent(fraudEvent);
+        const fraudTagSupplier = apiCommandToFraudTagSupplierMap[request.command];
+        if (!fraudTagSupplier) {
+            return data;
         }
+
+        // If the request is tracked in the Fraud Protection backend, we send its event tag
+        FraudProtection.sendEvent(fraudTagSupplier(request.data));
+
         return data;
     });
 
