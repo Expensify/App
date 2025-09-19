@@ -104,7 +104,7 @@ function AddPersonalBankAccountPage() {
                         scrollContextEnabled
                         onSubmit={submitBankAccountForm}
                         validate={validatePlaidSelection}
-                        style={[styles.mh5, styles.flex1]}
+                        style={[styles.flex1]}
                         shouldHideFixErrorsAlert
                     >
                         <InputWrapper
