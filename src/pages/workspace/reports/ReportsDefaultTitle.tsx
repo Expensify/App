@@ -66,9 +66,6 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         clearPolicyTitleFieldError(policyID);
     };
 
-    // Get pending action for loading state
-    const isLoading = !!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue;
-
     // Clear errors when modal is dismissed
     useBeforeRemove(() => {
         clearTitleFieldError();
@@ -107,7 +104,6 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
-                    isLoading={isLoading}
                     addBottomSafeAreaPadding
                 >
                     <OfflineWithFeedback

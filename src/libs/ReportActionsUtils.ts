@@ -2146,11 +2146,13 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
+
     if (reimbursableUrls.length === 1) {
         const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        const reimbursableUrl = reimbursableUrls.at(0) ?? '';
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
-            url: reimbursableUrls.at(0) ?? '',
+            url: reimbursableUrl.startsWith('https://') ? reimbursableUrl : '',
         });
     }
     if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
@@ -2164,7 +2166,8 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = nonReimbursableUrls.at(0) ?? '';
+            const nonReimbursableUrl = nonReimbursableUrls.at(0) ?? '';
+            url = nonReimbursableUrl.startsWith('https://') ? nonReimbursableUrl : '';
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
@@ -2937,6 +2940,13 @@ function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.AC
     const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : (userDetail?.login ?? getOriginalMessage(reportAction)?.email);
     return translateLocal('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
 }
+function isCardActive(card?: Card): boolean {
+    if (!card) {
+        return false;
+    }
+    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
+    return !closedStates.has(card.state);
+}
 
 function getCardIssuedMessage({
     reportAction,
@@ -2960,8 +2970,10 @@ function getCardIssuedMessage({
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
+
+    const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink =
-        shouldRenderHTML && !!expensifyCard ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
+        shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard

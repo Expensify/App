@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -73,7 +72,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
 
@@ -215,10 +213,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const addBankAccountPressed = () => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
-            return;
-        }
-        if (isActingAsDelegate) {
-            showDelegateNoAccessModal();
             return;
         }
         if (isAccountLocked) {
@@ -402,7 +396,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         contentContainerStyle={styles.flex1}
                         onClose={clearWalletError}
                         errors={userWallet?.errors}
-                        errorRowStyles={[styles.ph6]}
+                        errorRowStyles={styles.ph6}
                     >
                         <Section
                             subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
@@ -555,19 +549,13 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     icon={Expensicons.Wallet}
                                                     ref={buttonRef as ForwardedRef<View>}
                                                     onPress={() => {
-                                                        if (isActingAsDelegate) {
-                                                            showDelegateNoAccessModal();
-                                                            return;
-                                                        }
                                                         if (isAccountLocked) {
                                                             showLockedAccountModal();
                                                             return;
                                                         }
 
                                                         if (!isUserValidated) {
-                                                            Navigation.navigate(
-                                                                ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
-                                                            );
+                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
                                                             return;
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
@@ -626,12 +614,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 title={translate('walletPage.setDefaultConfirmation')}
                                 icon={Expensicons.Star}
                                 onPress={() => {
-                                    if (isActingAsDelegate) {
-                                        closeModal(() => {
-                                            showDelegateNoAccessModal();
-                                        });
-                                        return;
-                                    }
                                     if (isAccountLocked) {
                                         closeModal(() => showLockedAccountModal());
                                         return;
@@ -647,12 +629,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             title={translate('common.delete')}
                             icon={Expensicons.Trashcan}
                             onPress={() => {
-                                if (isActingAsDelegate) {
-                                    closeModal(() => {
-                                        showDelegateNoAccessModal();
-                                    });
-                                    return;
-                                }
                                 if (isAccountLocked) {
                                     closeModal(() => showLockedAccountModal());
                                     return;
@@ -666,12 +642,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 title={translate('common.enableGlobalReimbursements')}
                                 icon={Expensicons.Globe}
                                 onPress={() => {
-                                    if (isActingAsDelegate) {
-                                        closeModal(() => {
-                                            showDelegateNoAccessModal();
-                                        });
-                                        return;
-                                    }
                                     if (isAccountLocked) {
                                         closeModal(() => showLockedAccountModal());
                                         return;

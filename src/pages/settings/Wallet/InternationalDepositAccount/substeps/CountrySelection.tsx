@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,10 +11,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fieldsMap}: CustomSubStepProps) {
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.validated,
-        canBeMissing: false,
-    });
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
 
     const onCountrySelected = useCallback(
         (country: string) => {

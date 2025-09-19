@@ -328,7 +328,7 @@ const translations = {
         dismiss: 'Ignorer',
         proceed: 'Procéder',
         yes: 'Oui',
-        no: 'No',
+        no: 'Non',
         ok: "D'accord",
         notNow: 'Pas maintenant',
         learnMore: 'En savoir plus',
@@ -362,7 +362,7 @@ const translations = {
         rotate: 'Pivoter',
         zoom: 'Zoom',
         password: 'Mot de passe',
-        magicCode: 'Magic code',
+        magicCode: 'Code de vérification',
         twoFactorCode: 'Code à deux facteurs',
         workspaces: 'Espaces de travail',
         success: 'Succ\u00E8s',
@@ -375,7 +375,7 @@ const translations = {
         wallet: 'Portefeuille',
         preferences: 'Préférences',
         view: 'Voir',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Réviser${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Pas',
         signIn: 'Se connecter',
         signInWithGoogle: 'Se connecter avec Google',
@@ -605,7 +605,7 @@ const translations = {
         chooseFiles: 'Choisir des fichiers',
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
-        ignore: 'Ignore',
+        ignore: 'Ignorer',
         enabled: 'Activé',
         disabled: 'Désactivé',
         import: 'Importation',
@@ -1315,6 +1315,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Aucune dépense non déclarée',
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
+        newReport: 'Nouveau rapport',
         explainHold: 'Expliquez pourquoi vous retenez cette dépense.',
         retracted: 'retraité',
         retract: 'Retirer',
@@ -1409,9 +1410,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Les dépenses mises en attente sont laissées de côté lorsque vous approuvez un rapport complet.',
             rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
             reasonPageTitle: 'Rejeter la dépense',
-            reasonPageDescription1:
-                'Rejetez une dépense si vous ne prévoyez jamais de l’approuver ou de la payer. Sinon, utilisez "Mettre en attente" pour la suspendre et demander plus de contexte.',
-            reasonPageDescription2: 'Si vous allez rejeter la dépense, veuillez ajouter un commentaire pour expliquer la raison :',
+            reasonPageDescription: 'Expliquez pourquoi vous rejetez cette dépense.',
             rejectReason: 'Raison du rejet',
             markAsResolved: 'Marquer comme résolu',
             rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
@@ -3356,7 +3355,7 @@ const translations = {
             class: 'Classe Cabine',
             recordLocator: "Localisateur d'enregistrement",
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Inconnu',
                 economy: 'Économie',
                 premiumEconomy: 'Premium Economy',
                 business: 'Entreprise',
@@ -3373,7 +3372,7 @@ const translations = {
             cancellationUntil: "Annulation gratuite jusqu'à",
             confirmation: 'Numéro de confirmation',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Inconnu',
                 nonRefundable: 'Non remboursable',
                 freeCancellationUntil: "Annulation gratuite jusqu'à",
                 partiallyRefundable: 'Partiellement remboursable',
@@ -3475,7 +3474,7 @@ const translations = {
             card: 'Cartes',
             expensifyCard: 'Expensify Card',
             companyCards: "Cartes d'entreprise",
-            workflows: 'Workflows',
+            workflows: 'Flux de travail',
             workspace: 'Espace de travail',
             findWorkspace: "Trouver l'espace de travail",
             edit: "Modifier l'espace de travail",
@@ -3486,7 +3485,7 @@ const translations = {
             settings: 'Paramètres',
             reimburse: 'Remboursements',
             categories: 'Catégories',
-            tags: 'Tags',
+            tags: 'Étiquettes',
             customField1: 'Champ personnalisé 1',
             customField2: 'Champ personnalisé 2',
             customFieldHint: "Ajoutez un codage personnalisé qui s'applique à toutes les dépenses de ce membre.",
@@ -3494,7 +3493,7 @@ const translations = {
             reportFields: 'Champs de rapport',
             reportTitle: 'Titre du rapport',
             reportField: 'Champ de rapport',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             bills: 'Bills',
             invoices: 'Factures',
             perDiem: 'Per diem',
@@ -4740,7 +4739,7 @@ const translations = {
                 statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify.',
             },
             workflows: {
-                title: 'Workflows',
+                title: 'Flux de travail',
                 subtitle: 'Configurez comment les dépenses sont approuvées et payées.',
                 disableApprovalPrompt:
                     "Les cartes Expensify de cet espace de travail dépendent actuellement de l'approbation pour définir leurs limites intelligentes. Veuillez modifier les types de limites de toute carte Expensify avec des limites intelligentes avant de désactiver les approbations.",
@@ -4754,11 +4753,11 @@ const translations = {
                 subtitle: 'Suivre et organiser les dépenses.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Étiquettes',
                 subtitle: 'Classifiez les coûts et suivez les dépenses facturables.',
             },
             taxes: {
-                title: 'Taxes',
+                title: 'Impôts',
                 subtitle: 'Documentez et récupérez les taxes éligibles.',
             },
             reportFields: {
@@ -5146,7 +5145,7 @@ const translations = {
                 }
             },
             accounts: 'Plan comptable',
-            taxes: 'Taxes',
+            taxes: 'Impôts',
             imported: 'Importé',
             notImported: 'Non importé',
             importAsCategory: 'Importé en tant que catégories',
@@ -5527,7 +5526,7 @@ const translations = {
             },
             categories: {
                 title: 'Catégories',
-                description: `Les catégories vous aident à mieux organiser vos dépenses pour suivre où vous dépensez votre argent. Utilisez notre liste de catégories suggérées ou créez les vôtres.`,
+                description: "Les catégories vous permettent de suivre et d'organiser les dépenses. Utilisez nos catégories par défaut ou ajoutez les vôtres.",
                 onlyAvailableOnPlan: 'Les catégories sont disponibles sur le plan Collect, à partir de',
             },
             glCodes: {
@@ -5573,6 +5572,11 @@ const translations = {
                     "Les balises multi-niveaux vous aident à suivre les dépenses avec plus de précision. Assignez plusieurs balises à chaque poste—comme le département, le client ou le centre de coût—pour capturer le contexte complet de chaque dépense. Cela permet des rapports plus détaillés, des flux de travail d'approbation et des exportations comptables.",
                 onlyAvailableOnPlan: 'Les balises multi-niveaux sont uniquement disponibles sur le plan Control, à partir de',
             },
+            distanceRates: {
+                title: 'Tarifs de distance',
+                description: 'Créez et gérez vos propres tarifs, suivez en miles ou en kilomètres, et définissez des catégories par défaut pour les frais de distance.',
+                onlyAvailableOnPlan: 'Les tarifs de distance sont disponibles sur le plan Collect, à partir de',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: "Niveaux d'approbation multiples",
                 description:
@@ -5584,15 +5588,17 @@ const translations = {
                 perMember: 'par membre par mois.',
             },
             note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>Mettez à niveau votre espace de travail pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus sur</a> nos offres et tarifs.</muted-text>`,
+                `<muted-text>Mettez à niveau pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus sur</a> nos offres et tarifs.</muted-text>`,
             upgradeToUnlock: 'Débloquez cette fonctionnalité',
             completed: {
                 headline: `Vous avez amélioré votre espace de travail !`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Vous avez réussi à passer de ${policyName} au forfait Control ! <a href="${subscriptionLink}">Consultez votre abonnement</a> pour plus de détails.</centered-text>`,
-                categorizeMessage: `Vous avez réussi à passer à un espace de travail sur le plan Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
-                travelMessage: `Vous avez réussi à passer à un espace de travail sur le plan Collect. Vous pouvez maintenant commencer à réserver et gérer vos voyages !`,
+                categorizeMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
+                travelMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant commencer à réserver et à gérer vos voyages !`,
+                distanceRateMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant modifier le taux de distance !`,
                 gotIt: 'Compris, merci',
+                createdWorkspace: 'Vous avez créé un espace de travail !',
             },
             commonFeatures: {
                 title: 'Passez au plan Control',
@@ -6200,9 +6206,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
-            },
-            has: {
-                receipt: 'Reçu',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
@@ -7119,8 +7122,8 @@ const translations = {
         visibleInLHN: 'Visible dans le LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'vrai',
+        false: 'faux',
         viewReport: 'Voir le rapport',
         viewTransaction: 'Voir la transaction',
         createTransactionViolation: 'Créer une violation de transaction',
