@@ -420,8 +420,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroModules (0.29.2):
-    - boost
+  - NitroModules (0.29.4):
     - DoubleConversion
     - fast_float
     - fmt
@@ -450,36 +449,10 @@ PODS:
     - SocketRocket
     - Yoga
   - NWWebSocket (0.5.4)
-  - Onfido (29.7.2)
-  - onfido-react-native-sdk (10.6.0):
-    - boost
-    - DoubleConversion
-    - fast_float
-    - fmt
-    - glog
-    - hermes-engine
-    - Onfido (~> 29.7.0)
-    - RCT-Folly
-    - RCT-Folly/Fabric
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - SocketRocket
-    - Yoga
+  - Onfido (32.6.0)
+  - onfido-react-native-sdk (15.1.0):
+    - Onfido (~> 32.6.0)
+    - React
   - Plaid (6.4.0)
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
@@ -2676,7 +2649,6 @@ PODS:
     - SocketRocket
     - Yoga
   - react-native-pdf (6.7.3):
-    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -3594,6 +3566,30 @@ PODS:
     - Firebase/Performance (= 11.13.0)
     - React-Core
     - RNFBApp
+  - RNFlashList (1.8.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.28.0):
@@ -3629,7 +3625,6 @@ PODS:
     - GoogleSignIn (~> 7.0)
     - React-Core
   - RNLiveMarkdown (0.1.304):
-    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -3694,7 +3689,6 @@ PODS:
     - Turf
     - Yoga
   - RNNitroSQLite (9.1.11):
-    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -4020,7 +4014,6 @@ PODS:
   - RNSound/Core (0.11.2):
     - React-Core
   - RNSVG (15.12.1):
-    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -4046,10 +4039,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - RNSVG/common (= 15.12.1)
-    - SocketRocket
     - Yoga
   - RNSVG/common (15.12.1):
-    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -4224,6 +4215,7 @@ DEPENDENCIES:
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
+  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
@@ -4539,6 +4531,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/crashlytics"
   RNFBPerf:
     :path: "../node_modules/@react-native-firebase/perf"
+  RNFlashList:
+    :path: "../node_modules/@shopify/flash-list"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -4635,10 +4629,10 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroModules: 3f959ee203a140338297844743ebb85c37c6ddb1
+  NitroModules: 058e64fb28102fadd1105e5530fdfa1ff93db7ac
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
-  Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
-  onfido-react-native-sdk: deadb0383c54a76a273bfc6a9e8de78555c6d6e5
+  Onfido: 25d7d29890ca96e7faf79c84e2d3a33cd8fb8631
+  onfido-react-native-sdk: 1cdc60cfc65e996d7544e1db1201a52cd0af4047
   Plaid: 252a1910d0ad030f27043925236be14a852c9bb2
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
@@ -4761,7 +4755,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
-  VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
+  VisionCamera: 2230ecfd78a1f6cddd8be0fe4e6589f21a6385e1
   Yoga: f95f7e60346fa6828def95fbe5017346ccc8940e
 
 PODFILE CHECKSUM: 145b53efc0407146c2decf14202d64f78e7dbd96
