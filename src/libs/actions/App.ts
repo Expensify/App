@@ -221,7 +221,10 @@ AppState.addEventListener('change', (nextAppState) => {
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
-            const connection = Onyx.connect({
+            // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
+            // and each time the getPolicyParamsForOpenOrReconnect function is called,
+            // connectWithoutView will fetch the latest data from Onyx.
+            const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (policies) => {
