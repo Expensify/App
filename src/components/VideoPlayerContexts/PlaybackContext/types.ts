@@ -153,6 +153,7 @@ type PlaybackContext = PlaybackContextValues & {
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
     currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'];
     currentVideoViewRef: PlaybackContextVideoRefs['viewRef'];
+    mountedVideoPlayersRef: RefObject<string[]>;
 };
 
 export type {PlaybackContextVideoRefs, StopVideo, PlaybackContextValues, PlaybackContext, OriginalParent};

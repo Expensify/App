@@ -63,6 +63,7 @@ function BaseVideoPlayer({
         currentVideoViewRef,
         updateCurrentURLAndReportID,
         setCurrentlyPlayingURL,
+        mountedVideoPlayersRef,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -244,6 +245,14 @@ function BaseVideoPlayer({
     // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
     // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
 
+    useEffect(() => {
+        mountedVideoPlayersRef.current.push(url);
+        return () => {
+            const urlIndex = mountedVideoPlayersRef.current.indexOf(url);
+            mountedVideoPlayersRef.current.splice(urlIndex, 1);
+        };
+    }, [mountedVideoPlayersRef, url]);
+
     useLayoutEffect(
         () => () => {
             if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
@@ -256,7 +265,7 @@ function BaseVideoPlayer({
                 currentVideoPlayerRef.current = null;
             }
         },
-        [currentVideoPlayerRef, shouldUseSharedVideoElement],
+        [currentVideoPlayerRef, mountedVideoPlayersRef, shouldUseSharedVideoElement, url],
     );
 
     useEffect(() => {
@@ -319,7 +328,11 @@ function BaseVideoPlayer({
             videoViewRef.current = currentVideoViewRef.current;
         }
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
-            newParentRef.appendChild(sharedElement as HTMLDivElement);
+            if (newParentRef.hasChildNodes()) {
+                newParentRef.firstElementChild?.replaceWith(sharedElement as HTMLDivElement);
+            } else {
+                newParentRef.appendChild(sharedElement as HTMLDivElement);
+            }
         }
         return () => {
             if (!originalParent || !('appendChild' in originalParent)) {
@@ -330,9 +343,12 @@ function BaseVideoPlayer({
             if (!newParentRef || !('childNodes' in newParentRef)) {
                 return;
             }
+            if (mountedVideoPlayersRef.current.filter((u) => u === url).length > 0) {
+                return;
+            }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {

@@ -1,5 +1,5 @@
 import type {VideoPlayer, VideoView} from 'expo-video';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -16,6 +16,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [sharedElement, setSharedElement] = useState<PlaybackContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
+    const mountedVideoPlayersRef = useRef([]);
 
     const resetContextProperties = () => {
         setSharedElement(null);
@@ -121,6 +122,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             replayVideo: video.replay,
             checkIfVideoIsPlaying: video.isPlaying,
             resetVideoPlayerData: video.resetPlayerData,
+            mountedVideoPlayersRef,
         }),
         [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
     );
