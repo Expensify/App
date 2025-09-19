@@ -1308,6 +1308,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Nenhuma despesa não relatada',
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
         addUnreportedExpenseConfirm: 'Adicionar ao relatório',
+        newReport: 'Novo relatório',
         explainHold: 'Explique por que você está retendo esta despesa.',
         retracted: 'retraído',
         retract: 'Retrair',
@@ -6199,9 +6200,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-            },
-            has: {
-                receipt: 'Recibo',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',

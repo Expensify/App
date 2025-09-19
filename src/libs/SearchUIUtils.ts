@@ -759,31 +759,6 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
     return isAmountTooLong(taxAmount);
 }
 
-/**
- * Determines if a report can be submitted in search.
- * Similar to `ReportUtils.canSubmitReport` but only allows submission for single-transaction reports.
- *
- * @param currentUserAccountID - Current user's account ID
- * @param report - Report to whether it is eligible can be submitted for submission
- * @param reportActions - Reports actions associated with the report
- * @param policy - Policy associated with the report
- * @param transactions - Transactions within the report
- * @param transactionViolations - Transaction violations associated with the report's transactions
- * @param isReportArchived - Whether the report is archived
- *
- */
-function canSubmitReportInSearch(
-    currentUserAccountID: number | undefined,
-    report: OnyxTypes.Report,
-    reportActions: OnyxTypes.ReportAction[],
-    policy: OnyxTypes.Policy,
-    transactions: SearchTransaction[],
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    isReportArchived = false,
-) {
-    return canSubmitReport(currentUserAccountID, report, reportActions, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
-}
-
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
@@ -1186,10 +1161,7 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (
-        canSubmitReportInSearch(currentAccountID, report, reportActions, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) &&
-        isAllowedToApproveExpenseReport
-    ) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -1270,8 +1242,9 @@ function getTaskSections(
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
     // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
-    if (!iouReportAction) {
-        openReport(item.report.reportID);
+    const iouReportID = item.report?.reportID ?? item.reportID;
+    if (!iouReportAction && iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+        openReport(iouReportID);
     }
     const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
     if (transactionThreadReport?.reportID) {
@@ -1728,15 +1701,13 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
     for (const report of data) {
         report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
-    return data.sort((a, b) => {
-        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
-        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated ? b.transactions?.at(0)?.modifiedCreated : b.transactions?.at(0)?.created;
 
-        if (!aNewestTransaction || !bNewestTransaction) {
+    return data.sort((a, b) => {
+        if (!a.created || !b.created) {
             return 0;
         }
 
-        return localeCompare(bNewestTransaction.toLowerCase(), aNewestTransaction.toLowerCase());
+        return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
     });
 }
 
@@ -2099,7 +2070,12 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 function getHasOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return [{text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT}];
+            return [
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+            ];
         default:
             return [];
     }
@@ -2144,13 +2120,13 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
-    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH] as SearchDatePreset[];
+    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.NEVER] as SearchDatePreset[];
 
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return [...defaultPresets, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
-            return [...defaultPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
+            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
         default:
             return defaultPresets;
     }
@@ -2279,7 +2255,6 @@ function getColumnsToShow(
 }
 
 export {
-    canSubmitReportInSearch,
     getSuggestedSearches,
     getListItem,
     getSections,
@@ -2320,5 +2295,4 @@ export {
     getColumnsToShow,
     getHasOptions,
 };
-
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
