@@ -105,7 +105,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <MoneyRequestView
                             allReports={allReports}
-                            policy={policy}
+                            expensePolicy={policy}
                             report={targetTransactionThreadReport}
                             shouldShowAnimatedBackground={false}
                             readonly
