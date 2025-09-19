@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -164,7 +164,7 @@ function StatusClearAfterPage() {
         () => (
             <SelectionList
                 sections={[{data: statusType}]}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={updateMode}
                 initiallyFocusedOptionKey={statusType.find((status) => status.isSelected)?.keyForList}
                 listFooterContent={listFooterContent}

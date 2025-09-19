@@ -77,6 +77,7 @@ import {
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
+    excludeParticipantsForDisplay,
     formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getChatRoomSubtitle,
@@ -86,6 +87,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportDescription,
+    getReportMetadata,
     getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -128,14 +130,6 @@ import {getTaskReportActionMessage} from './TaskUtils';
 import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
-    },
-});
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -603,6 +597,8 @@ function getOptionData({
     lastAction,
     localeCompare,
     isReportArchived = false,
+    movedFromReport,
+    movedToReport,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -617,6 +613,8 @@ function getOptionData({
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived?: boolean;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -657,9 +655,12 @@ function getOptionData({
         isDeletedParentAction: false,
         isConciergeChat: false,
     };
-
+    const reportMetadata = getReportMetadata(report?.reportID);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
-    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
+    const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
+    const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
+
+    const visibleParticipantAccountIDs = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeHidden: true});
 
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
@@ -737,7 +738,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, isReportArchived);
+        lastMessageTextFromReport = getLastMessageTextForReport({report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived});
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -878,7 +879,7 @@ function getOptionData({
             result.alternateText = getReopenedMessage();
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             result.alternateText = getTravelUpdateMessage(lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             result.alternateText = getChangedApproverActionMessage(lastAction);
         } else {
             result.alternateText =
@@ -887,7 +888,9 @@ function getOptionData({
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
 
             if (!result.alternateText) {
-                result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'));
+                result.alternateText = formatReportLastMessageText(
+                    getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'),
+                );
             }
         }
         result.alternateText = prefix + result.alternateText;
@@ -895,7 +898,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
+                getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isReportArchived) {
@@ -917,7 +920,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -946,6 +949,7 @@ function getOptionData({
 function getWelcomeMessage(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    participantPersonalDetailList: PersonalDetails[],
     localeCompare: LocaleContextProps['localeCompare'],
     isReportArchived = false,
     reportDetailsLink = '',
@@ -984,9 +988,8 @@ function getWelcomeMessage(
     }
 
     welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
-    const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant, localeCompare);
+    const isMultipleParticipant = participantPersonalDetailList.length > 1;
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare);
     const displayNamesWithTooltipsText = displayNamesWithTooltips
         .map(({displayName}, index) => {
             if (index === displayNamesWithTooltips.length - 1) {

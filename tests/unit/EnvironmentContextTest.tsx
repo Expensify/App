@@ -146,5 +146,18 @@ describe('EnvironmentProvider', () => {
             const expectedOutput = 'Link: <a href="https://staging.new.expensify.com/help">Help</a> and <a>broken link</a>.';
             expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(expectedOutput);
         });
+
+        it('should not modify custom tags like <mention-user /> or <emoji>', async () => {
+            await setupTest(CONST.ENVIRONMENT.STAGING, 'https://staging.new.expensify.com');
+            const inputHtml = '<mention-user accountID="20565304"/><emoji ismedium>😃</emoji><a href="https://new.expensify.com/help">Help</a>';
+            const expectedOutput = '<mention-user accountID="20565304"/><emoji ismedium>😃</emoji><a href="https://staging.new.expensify.com/help">Help</a>';
+            expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(expectedOutput);
+        });
+
+        it('should not modify HTML without any href attributes', async () => {
+            await setupTest(CONST.ENVIRONMENT.DEV, 'https://dev.new.expensify.com');
+            const inputHtml = '<p>No links here</p><div><span>Just text</span></div>';
+            expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(inputHtml);
+        });
     });
 });

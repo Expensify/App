@@ -2,11 +2,15 @@ import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import {getSortedReportActions, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
+import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -59,6 +63,12 @@ function OptionRowLHNData({
         return reportActionsForDisplay.at(-1);
     }, [reportActions, fullReport, isReportArchived]);
 
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
+    // Check the report errors equality to avoid re-rendering when there are no changes
+    const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
+    const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
+
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -76,6 +86,8 @@ function OptionRowLHNData({
             lastAction,
             localeCompare,
             isReportArchived,
+            movedFromReport,
+            movedToReport,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -94,6 +106,7 @@ function OptionRowLHNData({
         fullReport,
         reportAttributes?.brickRoadStatus,
         reportAttributes?.reportName,
+        areReportErrorsEqual,
         oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
@@ -107,10 +120,11 @@ function OptionRowLHNData({
         receiptTransactions,
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
-        reportAttributes,
         card,
         localeCompare,
         isReportArchived,
+        movedFromReport,
+        movedToReport,
     ]);
 
     return (

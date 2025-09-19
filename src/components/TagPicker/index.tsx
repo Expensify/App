@@ -1,11 +1,11 @@
 import React, {useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
+import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
@@ -64,10 +64,6 @@ function TagPicker({
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
-    const policyTagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
-    const isTagsCountBelowThreshold = policyTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
-
-    const shouldShowTextInput = !isTagsCountBelowThreshold;
 
     const selectedOptions: SelectedTagOption[] = useMemo(() => {
         if (!selectedTag) {
@@ -110,6 +106,11 @@ function TagPicker({
         return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
     }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
 
+    const availableTagsCount = Array.isArray(enabledTags) ? enabledTags.length : Object.keys(enabledTags).length;
+    const isTagsCountBelowThreshold = availableTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const shouldShowTextInput = !isTagsCountBelowThreshold;
+
     const sections = useMemo(() => {
         const tagSections = getTagListSections({
             searchValue,
@@ -132,7 +133,7 @@ function TagPicker({
 
     return (
         <SelectionList
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             sectionTitleStyles={styles.mt5}
             listItemTitleStyles={styles.breakAll}
             sections={sections}

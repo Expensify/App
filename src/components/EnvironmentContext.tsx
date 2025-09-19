@@ -1,4 +1,3 @@
-import render from 'dom-serializer';
 import {DomUtils, parseDocument} from 'htmlparser2';
 import type {ReactElement, ReactNode} from 'react';
 import React, {createContext, useCallback, useEffect, useMemo, useState} from 'react';
@@ -52,16 +51,25 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
 
             try {
                 const dom = parseDocument(html);
-                const anchorTags = DomUtils.findAll((element) => element.name.toLowerCase() === 'a', dom);
+                const anchorTags = DomUtils.findAll((el) => el.name?.toLowerCase() === 'a', dom);
+
+                let adjustedHtml = html;
+
                 for (const anchorTag of anchorTags) {
-                    const href = anchorTag.attribs.href;
+                    const href = anchorTag.attribs?.href;
                     if (href?.startsWith('https://new.expensify.com')) {
-                        anchorTag.attribs.href = href.replace('https://new.expensify.com', environmentURLWithoutTrailingSlash);
+                        const newHref = href.replace('https://new.expensify.com', environmentURLWithoutTrailingSlash);
+
+                        const oldSnippet = `href="${href}"`;
+                        const newSnippet = `href="${newHref}"`;
+
+                        adjustedHtml = adjustedHtml.replace(oldSnippet, newSnippet);
                     }
                 }
-                return render(dom);
-            } catch (error) {
-                return html; // Return original HTML if parsing fails
+
+                return adjustedHtml;
+            } catch {
+                return html;
             }
         },
         [environmentURLWithoutTrailingSlash],
