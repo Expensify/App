@@ -22,38 +22,38 @@ The card is currently available for:
 - Companies with a **GBP or EUR business bank account** connected
 - Businesses located in supported **UK or EEA countries**
 
-If your company hasn’t yet connected a GBP or EUR business bank account, follow [this guide](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#connect-a-verified-business-bank-account) to get started.
+If your company hasn’t yet connected a GBP or EUR business bank account, [follow this process](link-to-ND-GR-process) to get started.
 
 ## Supported countries
 
 The Expensify Card is supported in **27 countries** across the EU and UK:
 
-Belgium  
-Cyprus  
-Czech Republic  
-Denmark  
-Estonia  
-Finland  
-Gibraltar  
-Germany  
-Greece  
-Hungary  
-Ireland  
-Latvia  
-Liechtenstein  
-Lithuania  
-Luxembourg  
-Malta  
-Netherlands  
-Norway  
-Poland  
-Portugal  
-Romania  
-Slovakia  
-Slovenia  
-Spain  
-Sweden  
-United Kingdom
+- Belgium  
+- Cyprus  
+- Czech Republic  
+- Denmark  
+- Estonia  
+- Finland  
+- Gibraltar  
+- Germany  
+- Greece  
+- Hungary  
+- Ireland  
+- Latvia  
+- Liechtenstein  
+- Lithuania  
+- Luxembourg  
+- Malta  
+- Netherlands  
+- Norway  
+- Poland  
+- Portugal  
+- Romania  
+- Slovakia  
+- Slovenia  
+- Spain  
+- Sweden  
+- United Kingdom
 
 **Note:** Companies in France, Italy, Austria, Iceland, Croatia, or Bulgaria can’t currently sign up for the card. However, businesses elsewhere can issue cards to employees in those countries.
 
@@ -80,16 +80,16 @@ United Kingdom
 3. Select the employee.
 4. Choose **Virtual**.
 5. Pick a limit type:
-   - **Smart limit** – Spend up to a threshold before needing approval.
-   - **Monthly limit** – Capped monthly spend.
-   - **Fixed limit** – One-time spend cap (card closes once reached).
+   - **Smart limit** – Spend up to a threshold before needing approval
+   - **Monthly limit** – Capped monthly spend
+   - **Fixed limit** – One-time spend cap (card closes once reached)
 6. Enter the **spending limit**.
 7. Name the card to help with tracking.
 8. Click **Issue card** to confirm.
 
 ### 4. Begin using your cards
 
-That’s it! Employees can now spend using their Expensify Cards in **GBP or EUR**. All transactions will automatically appear in the **Workspace Feed**.
+That’s it! Employees can now spend using their Expensify Cards in **GBP or EUR**. All transactions will automatically appear using the Report filters
 
 # FAQ
 
@@ -99,6 +99,6 @@ We use the [Visa FX calculator](https://www.visa.co.uk/support/consumer/travel-s
 
 ## Need help?
 
-If you’re unsure about eligibility or need help activating a card, message **Concierge** directly from the app—we're happy to help!
+If you’re unsure about eligibility or need help activating a card, message **Concierge** directly from the app — we're happy to help!
 
 </div>
