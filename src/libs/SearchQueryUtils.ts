@@ -152,12 +152,12 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
         amountStrings.push(`${filterKey}:${equalTo}`);
     }
 
-    if (lessThan) {
-        amountStrings.push(`${filterKey}<${lessThan}`);
-    }
-
     if (greaterThan) {
         amountStrings.push(`${filterKey}>${greaterThan}`);
+    }
+
+    if (lessThan) {
+        amountStrings.push(`${filterKey}<${lessThan}`);
     }
 
     return amountStrings.join(' ');
