@@ -74,6 +74,7 @@ import {
     setMoneyRequestReimbursable,
     splitBill,
     splitBillAndOpenReport,
+    startMoneyRequest,
     startSplitBill,
     submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
@@ -296,6 +297,35 @@ function IOURequestStepConfirmation({
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         });
     }, [transactionIDs, policy, isPolicyExpenseChat]);
+
+    useEffect(() => {
+        // Exit early if the transaction is still loading
+        if (isLoadingTransaction) {
+            return;
+        }
+
+        // Check if the transaction belongs to the current report
+        const isCurrentReportID = transaction?.isFromGlobalCreate
+            ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
+            : transaction?.reportID === reportID;
+
+        // Exit if the transaction already exists and is associated with the current report
+        if (
+            transaction?.transactionID &&
+            (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) &&
+            (isCurrentReportID || isMovingTransactionFromTrackExpense || iouType === CONST.IOU.TYPE.INVOICE)
+        ) {
+            return;
+        }
+
+        startMoneyRequest(
+            CONST.IOU.TYPE.CREATE,
+            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+            // for all of the routes in the creation flow.
+            generateReportID(),
+        );
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         transactions.forEach((item) => {
