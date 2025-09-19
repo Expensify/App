@@ -65,7 +65,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 
 ## Enabling prebuilt `react-native` artifacts
 
-To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
+To use prebuilt artifacts for mobile applications, you need to have GitHub CLI installed and configured:
 
 1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
 
@@ -89,6 +89,8 @@ To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
    ```
    You should see a message confirming you are authenticated with your GitHub account.
 
+5. Add `GITHUB_TOKEN` to `.env` file with your generated token
+
 After completing these steps, you should be able to build both mobile platform apps using the prebuilt react-native artifacts.
 
 ### Troubleshooting
@@ -99,9 +101,6 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
     * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
-* Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
-    * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
-    * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
 * Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions.
     * For help with MapBox token, you can see [this Slack thread](https://expensify.slack.com/archives/C01GTK53T8Q/p1692740856745279?thread_ts=1692322511.804599&cid=C01GTK53T8Q)
 * To install the dependencies, run: `npm install`
@@ -114,6 +113,7 @@ If you want to run the app on an actual physical iOS device, please follow the i
 ## Running the Android app 🤖
 * Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
 * Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
+* To install dependencies, run `npm install` if you haven’t already done so during the iOS setup process.
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
