@@ -76,6 +76,7 @@ import {
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
+    excludeParticipantsForDisplay,
     formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getChatRoomSubtitle,
@@ -85,6 +86,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportDescription,
+    getReportMetadata,
     getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -645,12 +647,12 @@ function getOptionData({
         isDeletedParentAction: false,
         isConciergeChat: false,
     };
-
+    const reportMetadata = getReportMetadata(report?.reportID);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
-    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
 
-    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
+    const visibleParticipantAccountIDs = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeHidden: true});
 
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
@@ -910,7 +912,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
 
     result.text = reportName;
     result.subtitle = subtitle;
