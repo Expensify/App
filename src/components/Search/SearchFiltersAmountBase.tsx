@@ -28,7 +28,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [selectedModifier, setSelectedModifier] = useState<(typeof CONST.SEARCH.AMOUNT_MODIFIERS)[keyof typeof CONST.SEARCH.AMOUNT_MODIFIERS] | null>(null);
+    const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
@@ -58,9 +58,9 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         const fieldKey = `${filterKey}${selectedModifier}` as keyof SearchAdvancedFiltersForm;
         const fieldValue = values[fieldKey as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>];
         const rawAmount = String(fieldValue ?? '');
-        const isEmpty = rawAmount.trim() === '';
+        const isAmountEmpty = rawAmount.trim() === '';
 
-        if (isEmpty) {
+        if (isAmountEmpty) {
             updateAdvancedFilters({[fieldKey]: null});
             goBack();
             return;
@@ -151,23 +151,30 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
 
     if (!selectedModifier) {
         return (
-            <ScreenWrapper testID={testID}>
+            <ScreenWrapper
+                testID={testID}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+                shouldEnableMaxHeight
+            >
                 <HeaderWithBackButton
                     title={fieldTitle}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
                 />
                 <View style={styles.flex1}>
-                    {modifierConfig.map(({modifier, titleKey, description}) => (
-                        <MenuItem
-                            key={modifier}
-                            title={translate(titleKey)}
-                            description={description}
-                            onPress={() => handleModifierSelect(modifier)}
-                            shouldShowRightIcon
-                            viewMode={CONST.OPTION_MODE.COMPACT}
-                        />
-                    ))}
-                    <View style={styles.flexGrow1} />
+                    <View style={styles.flexGrow1}>
+                        {modifierConfig.map(({modifier, titleKey, description}) => (
+                            <MenuItem
+                                key={modifier}
+                                title={translate(titleKey)}
+                                description={description}
+                                onPress={() => handleModifierSelect(modifier)}
+                                shouldShowRightIcon
+                                viewMode={CONST.OPTION_MODE.COMPACT}
+                            />
+                        ))}
+                    </View>
                     <Button
                         text={translate('common.reset')}
                         onPress={reset}
@@ -186,7 +193,13 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     }
 
     return (
-        <ScreenWrapper testID={testID}>
+        <ScreenWrapper
+            testID={testID}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 onBackButtonPress={goBack}
                 title={fieldTitle}
@@ -198,7 +211,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={[styles.mb5]}>
+                <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={AmountWithoutCurrencyInput}
                         inputID={`${filterKey}${selectedModifier}`}
