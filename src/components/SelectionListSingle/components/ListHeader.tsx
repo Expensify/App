@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type HeaderProps<TItem extends ListItem> = {
+type ListHeaderProps<TItem extends ListItem> = {
     /** Data details containing selection state and items info */
     dataDetails: DataDetailsType<TItem>;
 
@@ -28,14 +28,14 @@ type HeaderProps<TItem extends ListItem> = {
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 };
 
-function SelectionListHeader<TItem extends ListItem>({
+function ListHeader<TItem extends ListItem>({
     dataDetails,
     aboveListHeaderMessage,
     customListHeader,
     canSelectMultiple,
     onSelectAll,
     shouldPreventDefaultFocusOnSelectRow,
-}: HeaderProps<TItem>) {
+}: ListHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -90,4 +90,4 @@ function SelectionListHeader<TItem extends ListItem>({
     );
 }
 
-export default React.memo(SelectionListHeader);
+export default React.memo(ListHeader);

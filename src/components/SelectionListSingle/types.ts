@@ -1,5 +1,6 @@
 import type {ReactElement, RefObject} from 'react';
-import type {GestureResponderEvent, InputModeOptions, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {ListItem, ValidListItem} from './ListItem/types';
 
 type SelectionListProps<TItem extends ListItem> = {
@@ -39,11 +40,11 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Configuration for the confirm button */
     confirmButtonConfig?: ConfirmButtonOptions<TItem>;
 
-    /** Message to display in a header above the list */
-    aboveListHeaderMessage?: string;
-
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
+
+    /** Custom content to display in the header of list component. */
+    customListHeaderContent?: React.JSX.Element | null;
 
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
@@ -99,17 +100,20 @@ type SelectionListProps<TItem extends ListItem> = {
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 
+    /** Whether keyboard shortcuts should be disabled */
+    disableKeyboardShortcuts?: boolean;
+
     /** Whether to use the user skeleton view */
     shouldUseUserSkeletonView?: boolean;
-
-    /** Whether to clear the input when an item is selected */
-    shouldClearInputOnSelect?: boolean;
 
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
     /** Whether to ignore focus events */
     shouldIgnoreFocus?: boolean;
+
+    /** Whether to stop automatic propagation on pressing enter key */
+    shouldStopPropagation?: boolean;
 
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
@@ -135,28 +139,34 @@ type TextInputOptions = {
     onChangeText?: (text: string) => void;
 
     /** Label */
-    textInputLabel?: string;
+    label?: string;
 
     /** Current value */
-    textInputValue?: string;
+    value?: string;
 
     /** Hint text to display below */
-    textInputHint?: string;
+    hint?: string;
+
+    /** Header displayed with text input */
+    headerMessage?: string;
 
     /** Placeholder text */
-    textInputPlaceholder?: string;
+    placeholder?: string;
 
     /** Maximum number of characters allowed */
-    textInputMaxLength?: number;
+    maxLength?: number;
 
     /** Input mode e.g., 'text', 'email', 'numeric') */
     inputMode?: InputModeOptions;
 
     /** Error text to display below */
-    textInputErrorText?: string;
+    errorText?: string;
+
+    /** Whether the text input should be shown as a header inside list */
+    shouldBeInsideList?: boolean;
 
     /** Reference to the text input component */
-    textInputRef?: RefObject<TextInput | null> | ((ref: TextInput | null) => void);
+    ref?: RefObject<BaseTextInputRef | null> | ((ref: BaseTextInputRef | null) => void);
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
@@ -175,6 +185,8 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     /** Whether the button is disabled */
     isDisabled?: boolean;
 };
+
+type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
 type SelectionListHandle = {
     /** Scrolls to and highlights the specified items */
@@ -204,4 +216,4 @@ type DataDetailsType<TItem extends ListItem> = {
     disabledArrowKeyIndexes: number[];
 };
 
-export type {DataDetailsType, SelectionListHandle, SelectionListProps, TextInputOptions, ConfirmButtonOptions, ListItem};
+export type {DataDetailsType, SelectionListHandle, SelectionListProps, TextInputOptions, ConfirmButtonOptions, ListItem, ButtonOrCheckBoxRoles};
