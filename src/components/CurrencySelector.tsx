@@ -35,6 +35,9 @@ type CurrencySelectorProps = {
 
     /** Whether to show currency symbol in the title */
     shouldShowCurrencySymbol?: boolean;
+
+    /** Reference to the outer element */
+    ref: ForwardedRef<View>,
 };
 
 function CurrencySelector(
@@ -46,8 +49,8 @@ function CurrencySelector(
         currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
         label,
         shouldShowCurrencySymbol = false,
+        ref,
     }: CurrencySelectorProps,
-    ref: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -94,4 +97,4 @@ function CurrencySelector(
 
 CurrencySelector.displayName = 'CurrencySelector';
 
-export default forwardRef(CurrencySelector);
+export default CurrencySelector;
