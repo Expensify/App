@@ -24,7 +24,7 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 // Used to mock the Octokit GithubAPI
 const mockGetInput = jest.fn<string | undefined, [string]>();
 
-const isVerbose = process.argv.includes('--verbose') || process.env.JEST_VERBOSE === 'true';
+const isVerbose = process.env.JEST_VERBOSE === 'true';
 
 type ExecSyncError = {stderr: Buffer};
 
