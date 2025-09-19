@@ -242,14 +242,6 @@ describe('CustomFormula', () => {
             jest.useFakeTimers();
             // Set a fixed date for consistent testing
             jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
-
-            // Set up mock for CurrencyUtils if needed
-            mockCurrencyUtils.getCurrencySymbol.mockImplementation((currency: string) => {
-                if (currency === 'USD') {
-                    return '$';
-                }
-                return currency;
-            });
         });
 
         afterEach(() => {
