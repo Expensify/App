@@ -13,13 +13,12 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
-import FraudProtection from '@libs/FraudProtection';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {clearCardListErrors, clearReportVirtualCardFraudForm, reportVirtualExpensifyCardFraud} from '@userActions/Card';
-import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -62,9 +61,6 @@ function ReportVirtualCardFraudPage({
         if (!isEmptyObject(virtualCard?.errors) || !isEmptyObject(validateCodeAction?.errorFields?.reportVirtualCard)) {
             return;
         }
-
-        // Send to Fraud Protection the successful request of a new virtual card
-        FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.REQUEST_NEW_VIRTUAL_EXPENSIFY_CARD);
 
         if (latestIssuedVirtualCardID) {
             Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.WALLET.DOMAIN_CARD);
