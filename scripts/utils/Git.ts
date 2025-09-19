@@ -68,18 +68,20 @@ class Git {
      *
      * @param fromRef - The starting reference (commit, branch, tag, etc.)
      * @param toRef - The ending reference (defaults to working directory if not provided)
-     * @param filePath - Optional specific file path to diff (relative to git repo root)
+     * @param filePaths - Optional specific file path(s) to diff (relative to git repo root)
      * @returns Structured diff result with line numbers and change information
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
-    static diff(fromRef: string, toRef?: string, filePath?: string): DiffResult {
+    static diff(fromRef: string, toRef?: string, filePaths?: string | string[]): DiffResult {
         // Build git diff command (with 0 context lines for easier parsing)
         let command = `git diff -U0 ${fromRef}`;
         if (toRef) {
             command += ` ${toRef}`;
         }
-        if (filePath) {
-            command += ` -- "${filePath}"`;
+        if (filePaths) {
+            const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
+            const quotedPaths = pathsArray.map((path) => `"${path}"`).join(' ');
+            command += ` -- ${quotedPaths}`;
         }
 
         // Execute git diff with unified format - let errors bubble up
