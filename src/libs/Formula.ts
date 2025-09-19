@@ -260,7 +260,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'autoreporting': {
             // Handle {report:autoreporting:start} and {report:autoreporting:end}
             const subField = part.fieldPath.at(1);
-            const dateFormat = part.fieldPath.at(2) || format;
+            const dateFormat = part.fieldPath.at(2) ?? format;
             const {startDate, endDate} = getAutoReportingDates(policy, report);
 
             if (subField === 'start') {
