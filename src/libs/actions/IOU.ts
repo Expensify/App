@@ -8793,7 +8793,7 @@ function getSendMoneyParams(
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
             value: {
                 pendingFields: {
