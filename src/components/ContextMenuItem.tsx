@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle} from 'react';
+import React, {useImperativeHandle} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,6 +61,9 @@ type ContextMenuItemProps = {
 
     /** Whether the menu item should show loading icon */
     shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ContextMenuItemHandle>;
 };
 
 type ContextMenuItemHandle = {
@@ -86,8 +89,8 @@ function ContextMenuItem(
         onBlur = () => {},
         disabled = false,
         shouldShowLoadingSpinnerIcon = false,
+        ref,
     }: ContextMenuItemProps,
-    ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -151,5 +154,5 @@ function ContextMenuItem(
 
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default forwardRef(ContextMenuItem);
+export default ContextMenuItem;
 export type {ContextMenuItemHandle};
