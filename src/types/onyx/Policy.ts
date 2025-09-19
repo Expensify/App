@@ -150,12 +150,12 @@ type UberReceiptPartner = {
      */
     employees?: Record<
         string,
-        {
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
             /**
              * status of the employee
              */
             status?: string;
-        }
+        }>
     >;
     /**
      * Collection of errors coming from BE

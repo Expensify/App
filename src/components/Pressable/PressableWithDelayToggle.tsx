@@ -67,6 +67,9 @@ type PressableWithDelayToggleProps = PressableProps & {
 
     /** Icon height */
     iconHeight?: number;
+
+    /** Whether to add non-breaking space after text */
+    shouldAddNonBreakingSpace?: boolean;
 };
 
 function PressableWithDelayToggle({
@@ -87,6 +90,7 @@ function PressableWithDelayToggle({
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
+    shouldAddNonBreakingSpace = true,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -113,9 +117,13 @@ function PressableWithDelayToggle({
                 style={textStyles}
             >
                 {!isActive && textChecked ? textChecked : text}
-                &nbsp;
+                {shouldAddNonBreakingSpace && <>&nbsp;</>}
             </Text>
         ) : null;
+
+    // Hide text when showing iconChecked and no icon prop is provided
+    const shouldShowText = !(iconChecked && !icon && !isActive);
+    const displayLabelText = shouldShowText ? labelText : null;
 
     return (
         <PressableView
@@ -128,7 +136,7 @@ function PressableWithDelayToggle({
             accessibilityRole={accessibilityRole}
         >
             <>
-                {inline && labelText}
+                {inline && displayLabelText}
                 <Tooltip
                     text={tooltipTexts}
                     shouldRender
@@ -150,10 +158,10 @@ function PressableWithDelayToggle({
                     >
                         {({hovered, pressed}) => (
                             <>
-                                {!inline && labelText}
-                                {!!icon && (
+                                {!inline && displayLabelText}
+                                {(!!icon || (!isActive && !!iconChecked)) && (
                                     <Icon
-                                        src={!isActive ? iconChecked : icon}
+                                        src={!isActive ? iconChecked : (icon ?? iconChecked)}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
                                         width={iconWidth}
