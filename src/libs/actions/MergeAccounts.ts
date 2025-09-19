@@ -3,8 +3,6 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetValidateCodeForAccountMergeParams, MergeWithValidateCodeParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import FraudProtection from '@libs/FraudProtection';
-import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false) {
@@ -117,7 +115,6 @@ function mergeWithValidateCode(email: string, validateCode: string) {
         validateCode,
     };
 
-    FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.MERGE_ACCOUNT);
     API.write(WRITE_COMMANDS.MERGE_WITH_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
 }
 
