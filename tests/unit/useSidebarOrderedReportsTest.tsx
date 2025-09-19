@@ -110,7 +110,7 @@ describe('useSidebarOrderedReports', () => {
         );
     }
 
-    it('should prevent unnecessary re-renders when reports have same content but different references',async () => {
+    it('should prevent unnecessary re-renders when reports have same content but different references', async () => {
         // Given reports with same content but different object references
         const reportsContent = {
             report1: {reportName: 'Chat 1', lastVisibleActionCreated: '2024-01-01 10:00:00'},
@@ -229,7 +229,7 @@ describe('useSidebarOrderedReports', () => {
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
     });
 
-    it('should maintain referential stability across multiple renders with same content',async () => {
+    it('should maintain referential stability across multiple renders with same content', async () => {
         // Given the initial reports are set
         const reportsContent = {
             report1: {reportName: 'Stable Chat'},
