@@ -1,6 +1,7 @@
 import {createViolationsWithDuplicatesSelector} from '@selectors/TransactionViolations';
 import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
