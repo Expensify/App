@@ -38,6 +38,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -122,6 +123,7 @@ function IOURequestStepParticipants({
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
+    const isPerDiem = isPerDiemRequest(initialTransaction);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
@@ -206,9 +208,17 @@ function IOURequestStepParticipants({
             const firstParticipantReportID = val.at(0)?.reportID;
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
-            transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction.transactionID, val);
-            });
+
+            // Use transactions array if available, otherwise use initialTransactionID directly
+            // This handles the case where initialTransaction hasn't loaded yet but we still need to set participants
+            if (transactions.length > 0) {
+                transactions.forEach((transaction) => {
+                    setMoneyRequestParticipants(transaction.transactionID, val);
+                });
+            } else {
+                // Fallback to using initialTransactionID directly when transaction object isn't loaded yet
+                setMoneyRequestParticipants(initialTransactionID, val);
+            }
 
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
@@ -216,9 +226,15 @@ function IOURequestStepParticipants({
                 const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
                 const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
-                transactions.forEach((transaction) => {
-                    setCustomUnitRateID(transaction.transactionID, rateID);
-                });
+
+                if (transactions.length > 0) {
+                    transactions.forEach((transaction) => {
+                        setCustomUnitRateID(transaction.transactionID, rateID);
+                    });
+                } else {
+                    // Fallback to using initialTransactionID directly
+                    setCustomUnitRateID(initialTransactionID, rateID);
+                }
             }
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -233,7 +249,7 @@ function IOURequestStepParticipants({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates],
+        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates, initialTransactionID],
     );
 
     const goToNextStep = useCallback(() => {
@@ -338,16 +354,14 @@ function IOURequestStepParticipants({
                     message={translate('quickAction.noLongerHaveReportAccess')}
                 />
             )}
-            {transactions.length > 0 && (
-                <MoneyRequestParticipantsSelector
-                    participants={isSplitRequest ? participants : []}
-                    onParticipantsAdded={addParticipant}
-                    onFinish={goToNextStep}
-                    iouType={iouType}
-                    action={action}
-                    isPerDiemRequest={isPerDiemRequest(initialTransaction)}
-                />
-            )}
+            <MoneyRequestParticipantsSelector
+                participants={isSplitRequest ? participants : getEmptyArray()}
+                onParticipantsAdded={addParticipant}
+                onFinish={goToNextStep}
+                iouType={iouType}
+                action={action}
+                isPerDiemRequest={isPerDiem}
+            />
         </StepScreenWrapper>
     );
 }
