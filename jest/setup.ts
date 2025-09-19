@@ -41,18 +41,23 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-const isVerbose = process.argv.includes('verbose') || process.env.JEST_VERBOSE === 'true';
+const isVerbose = process.env.JEST_VERBOSE === 'true';
 
 if (!isVerbose) {
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'info').mockImplementation(() => {});
-    jest.spyOn(console, 'debug').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(core, 'startGroup').mockImplementation(() => {});
     jest.spyOn(core, 'endGroup').mockImplementation(() => {});
     jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
     jest.spyOn(core, 'info').mockImplementation(() => {});
     jest.spyOn(core, 'setOutput').mockImplementation(() => {});
+
+    // Make them global to override module-level console calls
+    global.console = {
+        ...console,
+        log: jest.fn(),
+        info: jest.fn(),
+        debug: jest.fn(),
+        warn: jest.fn(),
+    } as Console;
 }
 
 // This mock is required for mocking file systems when running tests
