@@ -8743,6 +8743,9 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
             value: {
                 participants: redundantParticipants,
+                pendingFields: {
+                    createChat: null,
+                },
             },
         },
         {
@@ -8789,15 +8792,6 @@ function getSendMoneyParams(
                     isOptimisticAction: null,
                     pendingAction: null,
                     childLastActorAccountID: reportPreviewAction.childLastActorAccountID,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
-            value: {
-                pendingFields: {
-                    createChat: null,
                 },
             },
         },
