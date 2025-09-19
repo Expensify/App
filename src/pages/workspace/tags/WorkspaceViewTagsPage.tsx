@@ -212,7 +212,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags);
+        deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -425,7 +425,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         addBottomSafeAreaPadding
                         onDismissError={(item) => {
-                            clearPolicyTagErrors(policyID, item.value, route.params.orderWeight);
+                            clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: route.params.orderWeight, policyTags});
                         }}
                     />
                 )}

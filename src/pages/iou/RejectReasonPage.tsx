@@ -25,7 +25,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment);
         Navigation.dismissModal();
         if (urlToNavigateBack) {
-            Navigation.goBack(urlToNavigateBack);
+            Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack));
         }
     };
 

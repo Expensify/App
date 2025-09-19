@@ -213,6 +213,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             firstName: currentUserPersonalDetails?.firstName,
             lastName: currentUserPersonalDetails?.lastName,
             selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
+            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
@@ -303,7 +304,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
+                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}]}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <Icon

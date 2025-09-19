@@ -51,28 +51,29 @@ function RadioButtonWithLabel({labelElement, style, label = '', hasError = false
     }
     return (
         <>
-            <View style={[defaultStyles, style]}>
+            <PressableWithFeedback
+                tabIndex={-1}
+                accessible={false}
+                style={[defaultStyles, styles.flexRow, styles.alignItemsCenter, style]}
+                wrapperStyle={[wrapperStyle]}
+                hoverDimmingValue={1}
+                hoverStyle={styles.hoveredComponentBG}
+                shouldBlendOpacity={shouldBlendOpacity}
+                isNested
+                onPress={onPress}
+            >
+                <View style={[styles.flex1]}>
+                    {!!label && <Text style={[styles.ml1]}>{label}</Text>}
+                    {!!labelElement && labelElement}
+                </View>
                 <RadioButton
                     isChecked={isChecked}
                     onPress={onPress}
                     accessibilityLabel={label}
                     hasError={hasError}
+                    shouldUseNewStyle
                 />
-                <PressableWithFeedback
-                    tabIndex={-1}
-                    accessible={false}
-                    onPress={onPress}
-                    style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
-                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2, wrapperStyle]}
-                    // disable hover style when disabled
-                    hoverDimmingValue={0.8}
-                    pressDimmingValue={0.5}
-                    shouldBlendOpacity={shouldBlendOpacity}
-                >
-                    {!!label && <Text style={[styles.ml1]}>{label}</Text>}
-                    {!!labelElement && labelElement}
-                </PressableWithFeedback>
-            </View>
+            </PressableWithFeedback>
             <FormHelpMessage message={errorText} />
         </>
     );
