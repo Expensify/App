@@ -2,7 +2,7 @@ import type {PropsWithChildren} from 'react';
 import React, {createContext, useMemo, useState} from 'react';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 
-type ExpensifyCardContextProviderPropsProps = {
+type ExpensifyCardContextProviderProps = {
     cardsDetails: Record<number, ExpensifyCardDetails | null>;
     setCardsDetails: React.Dispatch<React.SetStateAction<Record<number, ExpensifyCardDetails | null>>>;
     isCardDetailsLoading: Record<number, boolean>;
@@ -11,7 +11,7 @@ type ExpensifyCardContextProviderPropsProps = {
     setCardsDetailsErrors: React.Dispatch<React.SetStateAction<Record<number, string>>>;
 };
 
-const ExpensifyCardContext = createContext<ExpensifyCardContextProviderPropsProps>({
+const ExpensifyCardContext = createContext<ExpensifyCardContextProviderProps>({
     cardsDetails: {},
     setCardsDetails: () => {},
     isCardDetailsLoading: {},

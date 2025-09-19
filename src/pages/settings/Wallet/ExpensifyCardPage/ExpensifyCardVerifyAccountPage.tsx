@@ -14,13 +14,13 @@ import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import useExpensifyCardContext from './useExpensifyCardContext';
 
-type ExpensifyCardPageVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>;
+type ExpensifyCardVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE>;
 
-function ExpensifyCardPageVerifyAccountPage({
+function ExpensifyCardVerifyAccountPage({
     route: {
         params: {cardID = ''},
     },
-}: ExpensifyCardPageVerifyAccountPageProps) {
+}: ExpensifyCardVerifyAccountPageProps) {
     const {translate} = useLocalize();
     const [validateError, setValidateError] = useState<Errors>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -74,6 +74,6 @@ function ExpensifyCardPageVerifyAccountPage({
     );
 }
 
-ExpensifyCardPageVerifyAccountPage.displayName = 'ExpensifyCardPageVerifyAccountPage';
+ExpensifyCardVerifyAccountPage.displayName = 'ExpensifyCardVerifyAccountPage';
 
-export default ExpensifyCardPageVerifyAccountPage;
+export default ExpensifyCardVerifyAccountPage;
