@@ -5,6 +5,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
+import {waitForWrites} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -28,6 +29,15 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import {saveLastSearchParams} from './ReportNavigation';
+
+type OnyxSearchResponse = {
+    data: [];
+    search: {
+        offset: number;
+        hasMoreResults: boolean;
+    };
+};
 
 function handleActionButtonPress(
     hash: number,
@@ -299,11 +309,13 @@ function search({
     searchKey,
     offset,
     shouldCalculateTotals = false,
+    prevReportsLength,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
+    prevReportsLength?: number;
 }) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -311,11 +323,47 @@ function search({
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
     };
     const jsonQuery = JSON.stringify(query);
+    saveLastSearchParams({
+        queryJSON,
+        offset,
+        allowPostSearchRecount: false,
+    });
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+            const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+            const reports = Object.keys(response?.data ?? {})
+                .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+            if (response?.search?.offset) {
+                // Indicates that search results are extended from the Report view (with navigation between reports),
+                // using previous results to enable correct counter behavior.
+                if (prevReportsLength) {
+                    saveLastSearchParams({
+                        queryJSON,
+                        offset,
+                        hasMoreResults: !!response?.search?.hasMoreResults,
+                        previousLengthOfResults: prevReportsLength,
+                        allowPostSearchRecount: false,
+                    });
+                }
+            } else {
+                // Applies to all searches from the Search View
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    hasMoreResults: !!response?.search?.hasMoreResults,
+                    previousLengthOfResults: reports.length,
+                    allowPostSearchRecount: true,
+                });
+            }
+        });
+    });
 }
 
 /**
