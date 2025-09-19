@@ -863,7 +863,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             <View style={[styles.flex1, styles.flexRow]}>
                                 {shouldShowWideRHP && (
                                     <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
-                                        <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollView}>
+                                        <ScrollView
+                                            contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollViewContainer}
+                                            style={styles.wideRHPMoneyRequestReceiptViewScrollView}
+                                        >
                                             <MoneyRequestReceiptView
                                                 allReports={allReports}
                                                 report={transactionThreadReport ?? report}

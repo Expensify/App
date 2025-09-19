@@ -5214,9 +5214,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        wideRHPMoneyRequestReceiptViewScrollView: {
+        wideRHPMoneyRequestReceiptViewScrollViewContainer: {
             paddingTop: 12,
             minHeight: '100%',
+        },
+        wideRHPMoneyRequestReceiptViewScrollView: {
+            scrollbarGutter: 'stable both-edges'
         },
     }) satisfies StaticStyles;
 
