@@ -318,7 +318,7 @@ function Button({
         );
 
         const textComponent = secondLineText ? (
-            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
+            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
                 {primaryText}
                 <Text
                     style={[
@@ -330,6 +330,7 @@ function Button({
                         styles.textWhite,
                         styles.textBold,
                     ]}
+                    numberOfLines={1}
                 >
                     {secondLineText}
                 </Text>
