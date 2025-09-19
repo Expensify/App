@@ -63,39 +63,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 * To run the **development web app**: `npm run web`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
 
-## Running the iOS app 📱
-For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
-
-* If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
-    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
-* Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
-    * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
-    * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
-* Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions.
-    * For help with MapBox token, you can see [this Slack thread](https://expensify.slack.com/archives/C01GTK53T8Q/p1692740856745279?thread_ts=1692322511.804599&cid=C01GTK53T8Q)
-* To install the iOS dependencies, run: `npm install && npm run pod-install`
-* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
-* To run a on a **Development Simulator**: `npm run ios`
-* Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
-
-If you want to run the app on an actual physical iOS device, please follow the instructions [here](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BUILD_APP_ON_PHYSICAL_IOS_DEVICE.md).
-
-## Running the Android app 🤖
-* Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
-* Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
-* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
-* To run a on a **Development Emulator**: `npm run android`
-* Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
-
-### Enabling prebuilt `react-native` artifacts on Android
-#### Disabling build from source
-
-By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
-
-   - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
-   - Set `patchedArtifacts.forceBuildFromSource=false`
-
-#### Configuring GitHub CLI
+## Enabling prebuilt `react-native` artifacts
 
 To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
 
@@ -121,7 +89,36 @@ To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
    ```
    You should see a message confirming you are authenticated with your GitHub account.
 
-After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
+After completing these steps, you should be able to build both mobile platform apps using the prebuilt react-native artifacts.
+
+### Troubleshooting
+* If fetching cached builds for mobile fails, check whether both workflows succeeded. If they didn’t, the failure will prevent Rock from fetching the cached builds.
+
+## Running the iOS app 📱
+For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
+
+* If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
+    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
+* Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
+    * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
+    * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
+* Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions.
+    * For help with MapBox token, you can see [this Slack thread](https://expensify.slack.com/archives/C01GTK53T8Q/p1692740856745279?thread_ts=1692322511.804599&cid=C01GTK53T8Q)
+* To install the dependencies, run: `npm install`
+* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
+* To run a on a **Development Simulator**: `npm run ios`
+* Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
+
+If you want to run the app on an actual physical iOS device, please follow the instructions [here](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BUILD_APP_ON_PHYSICAL_IOS_DEVICE.md).
+
+## Running the Android app 🤖
+* Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
+* Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
+* If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
+* To run a on a **Development Emulator**: `npm run android`
+* Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
+
+
 
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
