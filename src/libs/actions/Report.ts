@@ -97,7 +97,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
+import {removeTitleFieldFromReport, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
@@ -2330,6 +2330,7 @@ function toggleSubscribeToChildReport(
 
 function updateReportName(reportID: string, value: string, previousValue: string) {
     const optimisticData: OnyxUpdate[] = [
+        ...removeTitleFieldFromReport(reportID),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

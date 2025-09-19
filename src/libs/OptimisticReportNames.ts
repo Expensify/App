@@ -9,6 +9,8 @@ import type Report from '@src/types/onyx/Report';
 import type {FormulaContext} from './Formula';
 import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
+import {applyUpdateToCache, getCachedPolicyByID, getCachedReportByID, getCachedReportNameValuePairsByID, getCachedTransactionByID} from './OptimisticReportNamesCache';
+import type {WorkingUpdates} from './OptimisticReportNamesCache';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
 import {isArchivedReport} from './ReportUtils';
@@ -16,8 +18,8 @@ import {isArchivedReport} from './ReportUtils';
 /**
  * Get the title field from report name value pairs
  */
-function getTitleFieldFromRNVP(reportID: string, context: UpdateContext) {
-    const reportNameValuePairs = context.allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+function getTitleFieldFromRNVP(reportID: string, context: UpdateContext, workingUpdates: WorkingUpdates) {
+    const reportNameValuePairs = getCachedReportNameValuePairsByID(reportID, context, workingUpdates);
     return reportNameValuePairs?.expensify_text_title;
 }
 
@@ -73,18 +75,18 @@ function getReportByID(reportID: string, allReports: Record<string, Report>): Re
 /**
  * Get policy by ID from the policies collection
  */
-function getPolicyByID(policyID: string | undefined, allPolicies: Record<string, Policy>): Policy | undefined {
+function getPolicyByID(policyID: string | undefined, context: UpdateContext, workingUpdates: WorkingUpdates): Policy | undefined {
     if (!policyID) {
         return;
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    return getCachedPolicyByID(policyID, context, workingUpdates);
 }
 
 /**
  * Get transaction by ID from the transactions collection
  */
-function getTransactionByID(transactionID: string, allTransactions: Record<string, Transaction>): Transaction | undefined {
-    return allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+function getTransactionByID(transactionID: string, context: UpdateContext, workingUpdates: WorkingUpdates): Transaction | undefined {
+    return getCachedTransactionByID(transactionID, context, workingUpdates);
 }
 
 /**
@@ -123,12 +125,12 @@ function getReportsForNameComputation(policyID: string, allReports: Record<strin
 /**
  * Get the report associated with a transaction ID
  */
-function getReportByTransactionID(transactionID: string, context: UpdateContext): Report | undefined {
+function getReportByTransactionID(transactionID: string, context: UpdateContext, workingUpdates: WorkingUpdates): Report | undefined {
     if (!transactionID) {
         return undefined;
     }
 
-    const transaction = getTransactionByID(transactionID, context.allTransactions);
+    const transaction = getTransactionByID(transactionID, context, workingUpdates);
 
     if (!transaction?.reportID) {
         return undefined;
@@ -148,7 +150,7 @@ function getReportKey(reportID: string): OnyxKey {
 /**
  * Check if a report should have its name automatically computed
  */
-function shouldComputeReportName(report: Report, context: UpdateContext): boolean {
+function shouldComputeReportName(report: Report, context: UpdateContext, workingUpdates: WorkingUpdates): boolean {
     if (!report) {
         return false;
     }
@@ -159,7 +161,7 @@ function shouldComputeReportName(report: Report, context: UpdateContext): boolea
 
     // Only compute names for expense reports with policies that have title fields
     // Check if the policy has a title field with a formula
-    const titleField = getTitleFieldFromRNVP(report.reportID, context);
+    const titleField = getTitleFieldFromRNVP(report.reportID, context, workingUpdates);
     if (!titleField?.defaultValue) {
         return false;
     }
@@ -182,23 +184,21 @@ function isValidReportType(reportType?: string): boolean {
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
-    const {allPolicies} = context;
-
-    // If no report is provided, extract it from the update (for new reports)
-    const targetReport = report ?? (incomingUpdate.value as Report);
+function computeReportNameIfNeeded(report: Report | undefined, context: UpdateContext, incomingUpdate: OnyxUpdate, workingUpdates: WorkingUpdates): string | null {
+    // If no report is provided, extract it from the update - new report creation case
+    const targetReport = report ? getCachedReportByID(report.reportID, context, workingUpdates) : (incomingUpdate.value as Report);
 
     if (!targetReport) {
         return null;
     }
 
-    const policy = getPolicyByID(targetReport.policyID, allPolicies);
+    const policy = getPolicyByID(targetReport.policyID, context, workingUpdates);
 
-    if (!shouldComputeReportName(targetReport, context)) {
+    if (!shouldComputeReportName(targetReport, context, workingUpdates)) {
         return null;
     }
 
-    const titleField = getTitleFieldFromRNVP(targetReport.reportID, context);
+    const titleField = getTitleFieldFromRNVP(targetReport.reportID, context, workingUpdates);
     if (!titleField?.defaultValue) {
         return null;
     }
@@ -210,7 +210,7 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     let transaction: Transaction | undefined;
     if (updateType === 'transaction') {
-        transaction = getTransactionByID((incomingUpdate.value as Transaction).transactionID, context.allTransactions);
+        transaction = getTransactionByID(getTransactionIDFromKey(incomingUpdate.key), context, workingUpdates);
     }
 
     // Check if any formula part might be affected by this update
@@ -219,10 +219,10 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
             // Checking if the formula part is affected in this manner works, but it could certainly be more precise.
             // For example, a policy update only affects the part if the formula in the policy changed, or if the report part references a field on the policy.
             // However, if we run into performance problems, this would be a good place to optimize.
-            return updateType === 'report' || updateType === 'transaction' || updateType === 'policy';
+            return updateType === 'report' || updateType === 'transaction' || updateType === 'policy' || updateType === 'reportNameValuePairs';
         }
         if (part.type === FORMULA_PART_TYPES.FIELD) {
-            return updateType === 'report';
+            return updateType === 'report' || updateType === 'reportNameValuePairs';
         }
         return false;
     });
@@ -231,19 +231,13 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
         return null;
     }
 
-    // Build context with the updated data
-    const updatedReport =
-        updateType === 'report' && targetReport.reportID === getReportIDFromKey(incomingUpdate.key) ? {...targetReport, ...(incomingUpdate.value as Partial<Report>)} : targetReport;
-
-    const updatedPolicy = updateType === 'policy' && targetReport.policyID === getPolicyIDFromKey(incomingUpdate.key) ? {...(policy ?? {}), ...(incomingUpdate.value as Policy)} : policy;
-
-    const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
-
     // Compute the new name
     const formulaContext: FormulaContext = {
-        report: updatedReport,
-        policy: updatedPolicy,
-        transaction: updatedTransaction,
+        report: targetReport,
+        policy,
+        transaction,
+        workingUpdates,
+        updateContext: context,
     };
 
     const newName = compute(formula, formulaContext);
@@ -278,25 +272,41 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     });
 
     const additionalUpdates: OnyxUpdate[] = [];
+    let workingUpdates: WorkingUpdates = {};
+    const affectedReports = new Map<
+        string,
+        {
+            report: Report;
+            update: OnyxUpdate;
+        }
+    >();
 
     for (const update of updates) {
         const objectType = determineObjectTypeByKey(update.key);
+        workingUpdates = applyUpdateToCache(workingUpdates, update, context);
 
         switch (objectType) {
             case 'report': {
                 const reportID = getReportIDFromKey(update.key);
                 const report = getReportByID(reportID, allReports);
 
-                // Handle both existing and new reports with the same function
-                const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
+                if (!report) {
+                    // Handle new report creation
+                    const reportNameUpdate = computeReportNameIfNeeded(report, context, update, workingUpdates);
 
-                if (reportNameUpdate) {
-                    additionalUpdates.push({
-                        key: getReportKey(reportID),
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        value: {
-                            reportName: reportNameUpdate,
-                        },
+                    if (reportNameUpdate) {
+                        additionalUpdates.push({
+                            key: getReportKey(reportID),
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            value: {
+                                reportName: reportNameUpdate,
+                            },
+                        });
+                    }
+                } else {
+                    affectedReports.set(reportID, {
+                        report,
+                        update,
                     });
                 }
                 break;
@@ -304,19 +314,9 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
 
             case 'policy': {
                 const policyID = getPolicyIDFromKey(update.key);
-                const affectedReports = getReportsForNameComputation(policyID, allReports, context);
-                for (const report of affectedReports) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
-
-                    if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(report.reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
-                    }
+                const reports = getReportsForNameComputation(policyID, allReports, context);
+                for (const report of reports) {
+                    affectedReports.set(report.reportID, {report, update});
                 }
                 break;
             }
@@ -327,21 +327,10 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 if (transactionUpdate.reportID) {
                     report = getReportByID(transactionUpdate.reportID, allReports);
                 } else {
-                    report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
+                    report = getReportByTransactionID(getTransactionIDFromKey(update.key), context, workingUpdates);
                 }
-
                 if (report) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
-
-                    if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(report.reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
-                    }
+                    affectedReports.set(report.reportID, {report, update});
                 }
                 break;
             }
@@ -349,23 +338,27 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                 const reportID = getReportIDFromKey(update.key);
                 const report = getReportByID(reportID, allReports);
                 if (report) {
-                    const reportNameUpdate = computeReportNameIfNeeded(report, update, context);
-
-                    if (reportNameUpdate) {
-                        additionalUpdates.push({
-                            key: getReportKey(report.reportID),
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            value: {
-                                reportName: reportNameUpdate,
-                            },
-                        });
-                    }
+                    affectedReports.set(report.reportID, {report, update});
                 }
                 break;
             }
 
             default:
                 continue;
+        }
+    }
+
+    for (const [, {report, update}] of affectedReports) {
+        const reportNameUpdate = computeReportNameIfNeeded(report, context, update, workingUpdates);
+
+        if (reportNameUpdate) {
+            additionalUpdates.push({
+                key: getReportKey(report.reportID),
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    reportName: reportNameUpdate,
+                },
+            });
         }
     }
 
