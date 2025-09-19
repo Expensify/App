@@ -113,7 +113,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import type {Ancestor, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticAddCommentReportAction,
@@ -155,7 +155,6 @@ import {
     getDisplayedReportID,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
-    getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
     getParsedComment,
     getPersonalDetailsForAccountID,
@@ -172,7 +171,7 @@ import {
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
-    isExpenseReport,
+    isExpenseReport as isExpenseReportUtils,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
@@ -196,6 +195,7 @@ import {
     isTrackExpenseReport,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
+    updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -3443,9 +3443,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         originalTransactionID: transactionParams.originalTransactionID,
         policy,
         transactionParams: {
-            amount: isExpenseReport(iouReport) ? -amount : amount,
+            amount: isExpenseReportUtils(iouReport) ? -amount : amount,
             distance,
-            ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReport(iouReport) ? -modifiedAmount : modifiedAmount}),
+            ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReportUtils(iouReport) ? -modifiedAmount : modifiedAmount}),
             currency,
             reportID: iouReport.reportID,
             comment,
@@ -3457,7 +3457,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             tag,
             taxCode,
             source,
-            taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
+            taxAmount: isExpenseReportUtils(iouReport) ? -(taxAmount ?? 0) : taxAmount,
             billable,
             reimbursable: isPolicyExpenseChat ? reimbursable : true,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
@@ -3705,7 +3705,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const optimisticTransaction = buildOptimisticTransaction({
         policy,
         transactionParams: {
-            amount: isExpenseReport(iouReport) ? -amount : amount,
+            amount: isExpenseReportUtils(iouReport) ? -amount : amount,
             currency,
             reportID: iouReport.reportID,
             comment: finalComment,
@@ -4045,7 +4045,7 @@ function calculateDiffAmount(
     if (!iouReport) {
         return 0;
     }
-    const isExpenseReportLocal = isExpenseReport(iouReport);
+    const isExpenseReportLocal = isExpenseReportUtils(iouReport);
     const updatedCurrency = getCurrency(updatedTransaction);
     const currentCurrency = getCurrency(transaction);
 
@@ -4097,7 +4097,7 @@ function getUpdateMoneyRequestParams(
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = isOnHold(transaction);
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
-    const isFromExpenseReport = isExpenseReport(iouReport);
+    const isFromExpenseReport = isExpenseReportUtils(iouReport);
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
         ? getUpdatedTransaction({
               transaction,
@@ -4206,7 +4206,7 @@ function getUpdateMoneyRequestParams(
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
     if (!iouReport) {
         updatedMoneyRequestReport = null;
-    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+    } else if ((isExpenseReportUtils(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
         // For expense report, the amount is negative, so we should subtract total from diff
         updatedMoneyRequestReport = {
             ...iouReport,
@@ -6584,7 +6584,7 @@ function createSplitsAndOnyxData({
         let oneOnOneTransaction = buildOptimisticTransaction({
             originalTransactionID: splitTransaction.transactionID,
             transactionParams: {
-                amount: isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
+                amount: isExpenseReportUtils(oneOnOneIOUReport) ? -splitAmount : splitAmount,
                 currency,
                 reportID: oneOnOneIOUReport.reportID,
                 comment,
@@ -6593,7 +6593,7 @@ function createSplitsAndOnyxData({
                 category,
                 tag,
                 taxCode,
-                taxAmount: isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
+                taxAmount: isExpenseReportUtils(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
                 billable,
                 source: CONST.IOU.TYPE.SPLIT,
             },
@@ -7862,7 +7862,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     const currency = getCurrency(transaction);
     const updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(reportPreviewAction ?? {});
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-    if (iouReport && isExpenseReport(iouReport)) {
+    if (iouReport && isExpenseReportUtils(iouReport)) {
         updatedIOUReport = {...iouReport};
 
         if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency) {
@@ -8924,7 +8924,7 @@ function getReportFromHoldRequestsOnyxData(
     const firstHoldTransaction = holdTransactions.at(0);
     const newParentReportActionID = NumberUtils.rand64();
 
-    const coefficient = isExpenseReport(iouReport) ? -1 : 1;
+    const coefficient = isExpenseReportUtils(iouReport) ? -1 : 1;
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
     const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
@@ -9209,7 +9209,7 @@ function getPayMoneyRequestParams(
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        amount: isExpenseReport(iouReport) ? -total : total,
+        amount: isExpenseReportUtils(iouReport) ? -total : total,
         currency: iouReport?.currency ?? '',
         comment: '',
         participants: [recipient],
@@ -9494,7 +9494,7 @@ function canApproveIOU(
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
     // Only expense reports can be approved
-    if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
+    if (!isExpenseReportUtils(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
     }
 
@@ -9524,7 +9524,7 @@ function canApproveIOU(
 
 function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
     return (
-        isExpenseReport(iouReport) &&
+        isExpenseReportUtils(iouReport) &&
         (isReportManager(iouReport) || isPolicyAdmin(policy)) &&
         isReportApproved({report: iouReport}) &&
         !isSubmitAndClose(policy) &&
@@ -9601,7 +9601,7 @@ function canIOUBePaid(
 }
 
 function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
-    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
+    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReportUtils(iouReport);
 }
 
 function canSubmitReport(
@@ -11038,11 +11038,11 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, searchHash?: number) {
+function putOnHold(transactionID: string, comment: string, ancestors: Ancestor[], initialReportID: string | undefined, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
-    const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
+    const holdReportAction = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const updatedViolations = [...transactionViolations, newViolation];
@@ -11061,7 +11061,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     }
 
     const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
-    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(transactionThreadReport, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -11069,7 +11068,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: createdReportAction as ReportAction,
-                [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
+                [holdReportAction.reportActionID]: holdReportAction as ReportAction,
             },
         },
         {
@@ -11091,13 +11090,13 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                lastVisibleActionCreated: createdReportActionComment.created,
+                lastVisibleActionCreated: holdReportAction.created,
             },
         },
     ];
 
     if (iouReport && iouReport.currency === transaction?.currency) {
-        const isExpenseReportLocal = isExpenseReport(iouReport);
+        const isExpenseReportLocal = isExpenseReportUtils(iouReport);
         const coefficient = isExpenseReportLocal ? -1 : 1;
         const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
         optimisticData.push({
@@ -11109,13 +11108,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             },
         });
     }
-
-    parentReportActionOptimistic.forEach((parentActionData) => {
-        if (!parentActionData) {
-            return;
-        }
-        optimisticData.push(parentActionData);
-    });
 
     const successData: OnyxUpdate[] = [
         {
@@ -11144,7 +11136,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: null,
-                [createdReportActionComment.reportActionID]: null,
+                [holdReportAction.reportActionID]: null,
             },
         },
         {
@@ -11182,11 +11174,13 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         );
 
         if (iouAction?.reportActionID) {
+            const iouActionParentUpdate = updateOptimisticParentReportAction(iouAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
             // We link the IOU action to the new transaction thread by setting childReportID optimistically
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
-                value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
+                value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT, ...iouActionParentUpdate}},
             });
             // We reset the childReportID if the request fails
             failureData.push({
@@ -11194,6 +11188,18 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: null, childType: null}},
             });
+        }
+
+        for (const {reportAction: ancestorReportAction} of ancestors) {
+            if (ancestorReportAction?.reportActionID && ancestorReportAction?.reportID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportAction.reportID}`,
+                    value: {
+                        [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                    },
+                });
+            }
         }
 
         successData.push(
@@ -11262,7 +11268,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         transactionID,
         comment,
         reportActionID: createdReportAction.reportActionID,
-        commentReportActionID: createdReportActionComment.reportActionID,
+        commentReportActionID: holdReportAction.reportActionID,
     };
 
     if (!initialReportID) {
@@ -11276,10 +11282,10 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[]) {
     transactionsID.forEach((transactionID) => {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID);
+        putOnHold(transactionID, comment, ancestors, childReportID);
     });
 }
 
@@ -11326,7 +11332,7 @@ function unholdRequest(transactionID: string, reportID: string) {
     ];
 
     if (iouReport && iouReport.currency === transaction?.currency) {
-        const isExpenseReportLocal = isExpenseReport(iouReport);
+        const isExpenseReportLocal = isExpenseReportUtils(iouReport);
         const coefficient = isExpenseReportLocal ? -1 : 1;
         const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
         optimisticData.push({
@@ -11938,7 +11944,7 @@ function shouldOptimisticallyUpdateSearch(
         validSearchTypes &&
         (currentSearchQueryJSON.flatFilters.length === 0 ||
             [submitQueryJSON?.similarSearchHash, approveQueryJSON?.similarSearchHash].includes(currentSearchQueryJSON.similarSearchHash) ||
-            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash && isExpenseReport(iouReport) && transaction?.reimbursable))
+            (unapprovedCashSimilarSearchHash === currentSearchQueryJSON.similarSearchHash && isExpenseReportUtils(iouReport) && transaction?.reimbursable))
     );
 }
 
