@@ -5375,7 +5375,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
+                left: hasMarginLeft ? receiptPaneRHPWidth : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
                 right: hasMarginRight ? variables.sideBarWidth : 0,
