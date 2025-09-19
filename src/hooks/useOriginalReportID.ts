@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {useMemo, useRef} from 'react';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -27,26 +27,35 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
     const {isOffline} = useNetwork();
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportID);
 
+    const reportActionID = reportAction?.reportActionID;
+    const currentReportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
+    const reportActionBelongsCurrentReport = Object.keys(currentReportAction ?? {}).length > 0;
+    const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
+
     // This will only be found if the report with reportID is a report with a single transaction and we are merging reportActions
     const uniqueTransactionThreadReportID = useMemo(() => {
+        // These conditions are repeated with the conditions that make us return early below because there is no need to do expensive calculations
+        // on the transactions and reportActions if we are not going to use uniqueTransactionThreadReportID.
+        if (!reportID || reportActionBelongsCurrentReport || isThreadReportParentAction || !reportActionID) {
+            return undefined;
+        }
+
         const visibleTransactionsIDs = getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
             .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((transaction) => transaction.transactionID);
-        return getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
-    }, [allReportTransactions, reportActions, report, chatReport, isOffline]);
+        return getOneTransactionThreadReportID({type: report?.type}, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
+    }, [reportID, reportActionBelongsCurrentReport, isThreadReportParentAction, reportActionID, allReportTransactions, reportActions, report?.type, chatReport, isOffline]);
+
     const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`, {canBeMissing: true});
 
     if (!reportID) {
         return undefined;
     }
-    const reportActionID = reportAction?.reportActionID;
-    const currentReportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
-    if (Object.keys(currentReportAction ?? {}).length > 0) {
+    if (reportActionBelongsCurrentReport) {
         // the reportActionID does belong to reportID
         return reportID;
     }
 
-    const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
     if (isThreadReportParentAction) {
         // This reportAction is the parent action of a thread report, so the original reportID is the parentReportID
         return report?.parentReportID;
