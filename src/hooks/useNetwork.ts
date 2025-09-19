@@ -1,6 +1,7 @@
 import {networkStatusSelector} from '@selectors/Network';
 import {useEffect, useRef} from 'react';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
 import useOnyx from './useOnyx';
 
 type UseNetworkProps = {
