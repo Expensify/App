@@ -6821,6 +6821,11 @@ const CONST = {
         },
     },
     DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
+    UPGRADE_PATHS: {
+        CATEGORIES: 'categories',
+        REPORTS: 'reports',
+        DISTANCE_RATES: 'distance-rates',
+    },
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {

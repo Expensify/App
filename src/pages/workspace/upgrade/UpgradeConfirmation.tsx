@@ -12,12 +12,15 @@ import ROUTES from '@src/ROUTES';
 type Props = {
     policyName: string;
     afterUpgradeAcknowledged: () => void;
+    /** Whether is categorizing the expense */
     isCategorizing?: boolean;
+    /** Whether is adding an unreported expense to a report */
+    isReporting?: boolean;
     isTravelUpgrade?: boolean;
     isDistanceRateUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
+function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -33,7 +36,7 @@ function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isCategorizi
     }, [updateSubscriptionLink]);
 
     const description = useMemo(() => {
-        if (isCategorizing) {
+        if (isCategorizing ?? isReporting) {
             return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>;
         }
 
@@ -50,11 +53,18 @@ function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isCategorizi
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', {policyName, subscriptionLink})} />
             </View>
         );
-    }, [isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+
+    const heading = useMemo(() => {
+        if (isCategorizing ?? isReporting) {
+            return translate('workspace.upgrade.completed.createdWorkspace');
+        }
+        return translate('workspace.upgrade.completed.headline');
+    }, [isCategorizing, isReporting, translate]);
 
     return (
         <ConfirmationPage
-            heading={translate('workspace.upgrade.completed.headline')}
+            heading={heading}
             descriptionComponent={description}
             shouldShowButton
             onButtonPress={afterUpgradeAcknowledged}

@@ -1539,7 +1539,8 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
-        featureName?: string;
+        upgradePath?: ValueOf<typeof CONST.UPGRADE_PATHS>;
+        shouldSubmitExpense?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
         action: IOUAction;

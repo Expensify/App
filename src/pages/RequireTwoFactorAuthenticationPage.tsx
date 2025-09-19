@@ -1,6 +1,6 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {Encryption} from '@components/Icon/Illustrations';
@@ -13,14 +13,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type Account from '@src/types/onyx/Account';
-
-const accountValidatedSelector = (account: OnyxEntry<Account>) => account?.validated;
 
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountValidatedSelector, canBeMissing: true});
+    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {

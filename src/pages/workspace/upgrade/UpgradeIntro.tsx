@@ -28,6 +28,7 @@ type Props = {
     loading?: boolean;
     feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
+    /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
