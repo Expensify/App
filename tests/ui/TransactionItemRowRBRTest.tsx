@@ -123,6 +123,10 @@ describe('TransactionItemRowRBR', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
         });
         await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
+        });
+
+        await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
         });
 

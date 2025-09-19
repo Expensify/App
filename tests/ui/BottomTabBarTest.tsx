@@ -36,7 +36,6 @@ jest.mock('@src/hooks/useRootNavigationState', () => {
 
 // Mock the specific function that's causing the navigation error
 jest.mock('@libs/Navigation/helpers/navigateToWorkspacesPage', () => ({
-    __esModule: true,
     default: jest.fn(),
     getWorkspaceNavigationRouteState: jest.fn(() => ({
         lastWorkspacesTabNavigatorRoute: null,

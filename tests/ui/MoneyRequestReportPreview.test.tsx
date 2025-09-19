@@ -24,7 +24,6 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import {violationsR14932 as mockViolations} from '../../__mocks__/reportData/violations';
 import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockSecondTransactionID = `${mockTransaction.transactionID}2`;
