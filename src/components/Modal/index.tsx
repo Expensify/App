@@ -28,6 +28,12 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         rest.onClose?.();
     });
 
+    useEffect(() => {
+        handlePopStateRef.current = () => {
+            rest.onClose?.();
+        };
+    }, [rest.onClose]);
+
     const showModal = () => {
         if (shouldHandleNavigationBack) {
             window.history.pushState({shouldGoBack: true}, '', null);

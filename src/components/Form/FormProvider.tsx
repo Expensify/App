@@ -140,11 +140,6 @@ function FormProvider({
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurContext();
 
-    const inputValuesRef = useRef(inputValues);
-    useEffect(() => {
-        inputValuesRef.current = inputValues;
-    }, [inputValues]);
-
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
             const trimmedStringValues = shouldTrimValues ? prepareValues(values) : values;
@@ -416,7 +411,7 @@ function FormProvider({
                             setTouchedInput(inputID);
                             // We don't validate the form on blur in case the current screen is not focused
                             if (shouldValidateOnBlur && isFocusedRef.current) {
-                                onValidate(inputValuesRef.current, !hasServerError);
+                                onValidate(inputValues, !hasServerError);
                             }
                         }, VALIDATE_DELAY);
                     }
