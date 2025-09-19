@@ -13,7 +13,7 @@ import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
 
-function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}: AddToWalletButtonProps) {
+function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
     const {translate} = useLocalize();
@@ -91,16 +91,18 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
 
     if (isInWallet) {
         return (
-            <View style={buttonStyle}>
+            <View style={style}>
                 <Text style={[styles.textLabelSupporting, styles.mt6]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>
             </View>
         );
     }
 
+    // The system provides control over the correct appearance and language
     return (
         <RNAddToWalletButton
-            buttonStyle={buttonStyle}
-            locale="en"
+            style={[styles.addToWalletButtonSize, style]}
+            buttonType="badge"
+            buttonStyle="blackOutline"
             onPress={handleOnPress}
         />
     );
