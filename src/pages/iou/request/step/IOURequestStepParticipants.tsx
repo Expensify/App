@@ -38,6 +38,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -122,6 +123,7 @@ function IOURequestStepParticipants({
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
+    const isPerDiem = isPerDiemRequest(initialTransaction);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
@@ -206,7 +208,7 @@ function IOURequestStepParticipants({
             const firstParticipantReportID = val.at(0)?.reportID;
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
-            
+
             // Use transactions array if available, otherwise use initialTransactionID directly
             // This handles the case where initialTransaction hasn't loaded yet but we still need to set participants
             if (transactions.length > 0) {
@@ -224,7 +226,7 @@ function IOURequestStepParticipants({
                 const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
                 const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
-                
+
                 if (transactions.length > 0) {
                     transactions.forEach((transaction) => {
                         setCustomUnitRateID(transaction.transactionID, rateID);
@@ -353,12 +355,12 @@ function IOURequestStepParticipants({
                 />
             )}
             <MoneyRequestParticipantsSelector
-                participants={isSplitRequest ? participants : []}
+                participants={isSplitRequest ? participants : getEmptyArray()}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
                 action={action}
-                isPerDiemRequest={isPerDiemRequest(initialTransaction)}
+                isPerDiemRequest={isPerDiem}
             />
         </StepScreenWrapper>
     );
