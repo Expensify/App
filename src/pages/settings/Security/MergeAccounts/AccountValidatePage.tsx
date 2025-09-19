@@ -113,7 +113,6 @@ function AccountValidatePage() {
             if (!isAccountMerged || !email) {
                 return;
             }
-            FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.MERGE_ACCOUNT);
             return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
         }, [isAccountMerged, email]),
     );
