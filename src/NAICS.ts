@@ -4,6 +4,7 @@ type NAICSItem = {
     options: NAICSItem[];
 };
 
+
 type NAICSItemWithoutOptions = Omit<NAICSItem, 'options'>;
 
 const NAICS: NAICSItem[] = [
