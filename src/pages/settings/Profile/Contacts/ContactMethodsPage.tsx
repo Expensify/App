@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext} from 'react';
 import {View} from 'react-native';
@@ -35,7 +36,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const navigateBackTo = route?.params?.backTo;
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.

@@ -20,7 +20,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(50000);
+jest.setTimeout(120000);
 
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
