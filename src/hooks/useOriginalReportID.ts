@@ -1,4 +1,4 @@
-import {useMemo, useRef} from 'react';
+import {useMemo} from 'react';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
