@@ -508,6 +508,7 @@ const WRITE_COMMANDS = {
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
     ASSIGN_REPORT_TO_ME: 'AssignReportToMe',
     ADD_REPORT_APPROVER: 'AddReportApprover',
+    SEND_SCHEDULE_CALL_NUDGE: 'SendScheduleCallNudge',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -876,6 +877,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: null;
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
+    [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
