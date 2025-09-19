@@ -1664,6 +1664,91 @@ describe('actions/IOU', () => {
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
+
+        it('increase the nonReimbursableTotal only when the expense is not reimbursable', async () => {
+            const expenseReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                nonReimbursableTotal: 0,
+                total: 0,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                currency: CONST.CURRENCY.USD,
+            };
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                iouReportID: expenseReport.reportID,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+
+            requestMoney({
+                report: expenseReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: workspaceChat.reportID, isPolicyExpenseChat: true},
+                },
+                transactionParams: {
+                    amount: 100,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: '',
+                    comment: '',
+                    reimbursable: true,
+                },
+                shouldGenerateTransactionThreadReport: true,
+            });
+
+            await waitForBatchedUpdates();
+
+            const nonReimbursableTotal = await new Promise<number>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report?.nonReimbursableTotal ?? 0);
+                    },
+                });
+            });
+
+            expect(nonReimbursableTotal).toBe(0);
+
+            requestMoney({
+                report: expenseReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: workspaceChat.reportID, isPolicyExpenseChat: true},
+                },
+                transactionParams: {
+                    amount: 100,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: '',
+                    comment: '',
+                    reimbursable: false,
+                },
+                shouldGenerateTransactionThreadReport: true,
+            });
+
+            await waitForBatchedUpdates();
+
+            const newNonReimbursableTotal = await new Promise<number>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report?.nonReimbursableTotal ?? 0);
+                    },
+                });
+            });
+
+            expect(newNonReimbursableTotal).toBe(-100);
+        });
     });
 
     describe('createDistanceRequest', () => {
