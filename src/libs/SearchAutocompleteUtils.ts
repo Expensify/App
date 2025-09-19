@@ -201,7 +201,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
-            return /^-?\d{1,8}(?:[.,]\d{1,2})?$/.test(range.value);
+            return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,3})?$/.test(range.value);
         default:
             return false;
     }
