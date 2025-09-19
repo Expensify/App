@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import usePolicy from '@hooks/usePolicy';
@@ -59,7 +59,7 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={SageIntacctImportTaxMappingPage.displayName}
             sections={[{data: selectionOptions}]}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onSelectRow={updateMapping}
             initiallyFocusedOptionKey={selectionOptions.find((option) => option.isSelected)?.keyForList}

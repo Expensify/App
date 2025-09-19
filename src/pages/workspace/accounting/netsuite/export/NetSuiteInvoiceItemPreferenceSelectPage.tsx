@@ -6,7 +6,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -87,7 +87,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                 <SelectionList
                     onSelectRow={(selection: SelectorType) => selectInvoicePreference(selection as MenuListItem)}
                     sections={[{data}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

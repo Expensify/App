@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +25,6 @@ function EnablePaymentsPage() {
     const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
 
     useEffect(() => {
         if (isOffline) {
@@ -37,18 +35,6 @@ function EnablePaymentsPage() {
             openEnablePaymentsPage();
         }
     }, [isOffline, userWallet]);
-
-    if (isActingAsDelegate) {
-        return (
-            <ScreenWrapper
-                testID={EnablePaymentsPage.displayName}
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
-            >
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
-            </ScreenWrapper>
-        );
-    }
 
     if (isEmptyObject(userWallet)) {
         return <FullScreenLoadingIndicator />;

@@ -1,15 +1,16 @@
-import React, {forwardRef, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {FlatListProps, ScrollViewProps, ViewToken} from 'react-native';
 import {DeviceEventEmitter, FlatList} from 'react-native';
 import type {ReportAction} from '@src/types/onyx';
 
 type BaseInvertedFlatListProps = FlatListProps<ReportAction> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
+    ref?: React.ForwardedRef<FlatList<ReportAction>>;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
-function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.ForwardedRef<FlatList<ReportAction>>) {
+function BaseInvertedFlatListE2e({ref, ...props}: BaseInvertedFlatListProps) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
 
     const handleViewableItemsChanged = useMemo(
@@ -47,4 +48,4 @@ function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.Fo
 
 BaseInvertedFlatListE2e.displayName = 'BaseInvertedFlatListE2e';
 
-export default forwardRef(BaseInvertedFlatListE2e);
+export default BaseInvertedFlatListE2e;
