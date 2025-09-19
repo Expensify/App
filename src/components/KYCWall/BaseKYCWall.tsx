@@ -167,7 +167,8 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        ({event, iouPaymentType, paymentMethod, policy, goBackRoute}: ContinueActionParams) => {
+        (params?: ContinueActionParams) => {
+            const {event, iouPaymentType, paymentMethod, policy, goBackRoute} = params ?? {};
             const currentSource = walletTerms?.source ?? source;
 
             /**
