@@ -206,9 +206,17 @@ function IOURequestStepParticipants({
             const firstParticipantReportID = val.at(0)?.reportID;
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
-            transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction.transactionID, val);
-            });
+            
+            // Use transactions array if available, otherwise use initialTransactionID directly
+            // This handles the case where initialTransaction hasn't loaded yet but we still need to set participants
+            if (transactions.length > 0) {
+                transactions.forEach((transaction) => {
+                    setMoneyRequestParticipants(transaction.transactionID, val);
+                });
+            } else {
+                // Fallback to using initialTransactionID directly when transaction object isn't loaded yet
+                setMoneyRequestParticipants(initialTransactionID, val);
+            }
 
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
@@ -216,9 +224,15 @@ function IOURequestStepParticipants({
                 const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
                 const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
-                transactions.forEach((transaction) => {
-                    setCustomUnitRateID(transaction.transactionID, rateID);
-                });
+                
+                if (transactions.length > 0) {
+                    transactions.forEach((transaction) => {
+                        setCustomUnitRateID(transaction.transactionID, rateID);
+                    });
+                } else {
+                    // Fallback to using initialTransactionID directly
+                    setCustomUnitRateID(initialTransactionID, rateID);
+                }
             }
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -233,7 +247,7 @@ function IOURequestStepParticipants({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates],
+        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates, initialTransactionID],
     );
 
     const goToNextStep = useCallback(() => {
