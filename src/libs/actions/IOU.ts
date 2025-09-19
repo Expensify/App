@@ -7898,7 +7898,8 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
                 reportAction.reportActionID === reportActionID ||
                 reportActionData.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                 reportActionData.actionName === 'CREATED' ||
-                !reportActionData.message
+                !reportActionData.message ||
+                isDeletedAction(reportActionData)
             ) {
                 continue;
             }
