@@ -116,7 +116,7 @@ function BaseVideoPlayer({
         isOffline,
         isLocalFile: isUploading,
     });
-    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef, updatePlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -185,7 +185,7 @@ function BaseVideoPlayer({
         if (!videoPlayerRef.current?.playbackRate) {
             return;
         }
-        setCurrentPlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
+        updatePlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
         setIsPopoverVisible(true);
 
         setPopoverMenuSource(url);
