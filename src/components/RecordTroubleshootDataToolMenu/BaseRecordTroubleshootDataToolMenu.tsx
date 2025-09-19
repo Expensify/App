@@ -3,7 +3,7 @@ import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Alert} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import {startProfiling, stopProfiling} from 'react-native-release-profiler';
+import {startProfiling, stopProfiling as stopReleaseProfiler} from 'react-native-release-profiler';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -19,7 +19,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {Memoize} from '@libs/memoize';
 import Performance from '@libs/Performance';
-import {shouldShowProfileTool as shouldShowProfileToolUtil} from '@userActions/TestTool';
+import {shouldShowProfileTool} from '@userActions/TestTool';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,24 +92,6 @@ function BaseRecordTroubleshootDataToolMenu({
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [profileTracePath, setProfileTracePath] = useState<string>();
 
-    const shouldShowProfileTool = useMemo(() => shouldShowProfileToolUtil(), []);
-
-    const onToggleProfiling = useCallback(() => {
-        const shouldProfiling = !isProfilingInProgress;
-        if (shouldProfiling) {
-            setShareUrls(undefined);
-            Memoize.startMonitoring();
-            Performance.enableMonitoring();
-            startProfiling();
-        } else {
-            Performance.disableMonitoring();
-        }
-        toggleProfileTool(isProfilingInProgress);
-        return () => {
-            Performance.disableMonitoring();
-        };
-    }, [isProfilingInProgress]);
-
     const getAppInfo = useCallback(() => {
         return Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]).then(([totalMemory, usedMemory]) => {
             return JSON.stringify({
@@ -122,14 +104,134 @@ function BaseRecordTroubleshootDataToolMenu({
                 performance: shouldShowProfileTool ? Performance.getPerformanceMeasures() : undefined,
             });
         });
-    }, [shouldShowProfileTool]);
+    }, []);
 
-    const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
+    const stopProfiling = useCallback(() => {
+        if (!shouldShowProfileTool) {
+            return Promise.resolve();
+        }
+
+        if (!capturedLogs) {
+            return Promise.resolve();
+        }
+
+        const logs = Object.values(capturedLogs);
+        const logsWithParsedMessages = parseStringifiedMessages(logs);
+
+        const infoFileName = `App_Info_${pkg.version}.json`;
+
+        switch (getPlatform()) {
+            case CONST.PLATFORM.WEB:
+                return stopReleaseProfiler(true, newFileName).then(() => {
+                    getAppInfo().then((appInfo) => {
+                        zipRef.current?.file(infoFileName, appInfo);
+
+                        onDisableLogging(logsWithParsedMessages).then(() => {
+                            disableLoggingAndFlushLogs();
+                            setShouldRecordTroubleshootData(false);
+                            setIsDisabled(false);
+                            onDownloadZip?.();
+                        });
+                    });
+                });
+            case CONST.PLATFORM.IOS:
+                return stopReleaseProfiler(true, newFileName).then((path) => {
+                    if (!path) {
+                        return;
+                    }
+
+                    const newFilePath = `${pathToBeUsed}/${newFileName}`;
+
+                    RNFS.exists(newFilePath)
+                        .then((fileExists) => {
+                            if (!fileExists) {
+                                return;
+                            }
+
+                            return RNFS.unlink(newFilePath).then(() => {
+                                Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
+                            });
+                        })
+                        .catch((error) => {
+                            const typedError = error as Error;
+                            Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
+                        })
+                        .then(() => {
+                            RNFS.copyFile(path, newFilePath)
+                                .then(() => {
+                                    getAppInfo().then((appInfo) => {
+                                        zipRef.current?.file(infoFileName, appInfo);
+
+                                        onDisableLogging(logsWithParsedMessages).then(() => {
+                                            disableLoggingAndFlushLogs();
+                                            setShouldRecordTroubleshootData(false);
+                                            setIsDisabled(false);
+                                            onDownloadZip?.();
+                                        });
+                                    });
+                                    Log.hmmm('[ProfilingToolMenu] file copied successfully');
+
+                                    setProfileTracePath(newFilePath);
+                                })
+                                .catch((err) => {
+                                    console.error('[ProfilingToolMenu] error copying file: ', err);
+                                });
+                        })
+                        .catch((error: Record<string, unknown>) => {
+                            console.error('[ProfilingToolMenu] error copying file: ', error);
+                            Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
+                        });
+                });
+            case CONST.PLATFORM.ANDROID:
+                return stopReleaseProfiler(true, newFileName).then((path) => {
+                    if (!path) {
+                        return;
+                    }
+
+                    setProfileTracePath(path);
+
+                    getAppInfo().then((appInfo) => {
+                        zipRef.current?.file(infoFileName, appInfo);
+
+                        onDisableLogging(logsWithParsedMessages).then(() => {
+                            disableLoggingAndFlushLogs();
+                            setShouldRecordTroubleshootData(false);
+                            setIsDisabled(false);
+                        });
+                    });
+                });
+            case CONST.PLATFORM.DESKTOP:
+                return stopReleaseProfiler(true, newFileName).then(() => {
+                    getAppInfo().then((appInfo) => {
+                        zipRef.current?.file(infoFileName, appInfo);
+
+                        onDisableLogging(logsWithParsedMessages).then(() => {
+                            disableLoggingAndFlushLogs();
+                            setShouldRecordTroubleshootData(false);
+                            setIsDisabled(false);
+                        });
+                    });
+                });
+            default:
+                return Promise.resolve();
+        }
+    }, [capturedLogs, getAppInfo, onDisableLogging, onDownloadZip, pathToBeUsed, zipRef]);
 
     const onToggle = () => {
         if (shouldShowProfileTool) {
-            onToggleProfiling();
+            if (isProfilingInProgress) {
+                Performance.disableMonitoring();
+                Memoize.stopMonitoring();
+                stopProfiling();
+            } else {
+                setShareUrls(undefined);
+                Memoize.startMonitoring();
+                Performance.enableMonitoring();
+                startProfiling();
+            }
+            toggleProfileTool(!isProfilingInProgress);
         }
+
         if (!shouldRecordTroubleshootData) {
             setShouldStoreLogs(true);
             setShouldRecordTroubleshootData(true);
@@ -147,106 +249,6 @@ function BaseRecordTroubleshootDataToolMenu({
             Alert.alert(translate('initialSettingsPage.troubleshoot.noLogsToShare'));
             disableLoggingAndFlushLogs();
             setShouldRecordTroubleshootData(false);
-            return;
-        }
-
-        const logs = Object.values(capturedLogs);
-        const logsWithParsedMessages = parseStringifiedMessages(logs);
-
-        const infoFileName = `App_Info_${pkg.version}.json`;
-
-        if (getPlatform() === CONST.PLATFORM.WEB) {
-            onStopProfiling(true, newFileName).then(() => {
-                getAppInfo().then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
-
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
-                        setIsDisabled(false);
-                        onDownloadZip?.();
-                    });
-                });
-            });
-        } else if (getPlatform() === CONST.PLATFORM.IOS) {
-            onStopProfiling(true, newFileName).then((path) => {
-                if (!path) {
-                    return;
-                }
-
-                const newFilePath = `${pathToBeUsed}/${newFileName}`;
-
-                RNFS.exists(newFilePath)
-                    .then((fileExists) => {
-                        if (!fileExists) {
-                            return;
-                        }
-
-                        return RNFS.unlink(newFilePath).then(() => {
-                            Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
-                        });
-                    })
-                    .catch((error) => {
-                        const typedError = error as Error;
-                        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
-                    })
-                    .then(() => {
-                        RNFS.copyFile(path, newFilePath)
-                            .then(() => {
-                                getAppInfo().then((appInfo) => {
-                                    zipRef.current?.file(infoFileName, appInfo);
-
-                                    onDisableLogging(logsWithParsedMessages).then(() => {
-                                        disableLoggingAndFlushLogs();
-                                        setShouldRecordTroubleshootData(false);
-                                        setIsDisabled(false);
-                                        onDownloadZip?.();
-                                    });
-                                });
-                                Log.hmmm('[ProfilingToolMenu] file copied successfully');
-
-                                setProfileTracePath(newFilePath);
-                            })
-                            .catch((err) => {
-                                console.error('[ProfilingToolMenu] error copying file: ', err);
-                            });
-                    })
-                    .catch((error: Record<string, unknown>) => {
-                        console.error('[ProfilingToolMenu] error copying file: ', error);
-                        Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
-                    });
-            });
-        } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
-            onStopProfiling(true, newFileName).then((path) => {
-                if (!path) {
-                    return;
-                }
-
-                setProfileTracePath(path);
-
-                getAppInfo().then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
-
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
-                        setIsDisabled(false);
-                    });
-                });
-            });
-        } else {
-            // Desktop
-            onStopProfiling(true, newFileName).then(() => {
-                getAppInfo().then((appInfo) => {
-                    zipRef.current?.file(infoFileName, appInfo);
-
-                    onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
-                        setIsDisabled(false);
-                    });
-                });
-            });
         }
     };
 
