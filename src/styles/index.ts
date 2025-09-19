@@ -4920,6 +4920,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        errorStateCardIllustration: {
+            width: 254,
+            height: 165,
+            marginBottom: 12,
+        },
+
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
