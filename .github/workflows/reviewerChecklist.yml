@@ -1,6 +1,7 @@
 name: PR Reviewer Checklist
 
 on: pull_request_review
+  paths-ignore: ['docs/articles/**/*.md', 'docs/redirects.csv', 'docs/assets/images/**']
 
 jobs:
   # Note: PHP specifically looks for the name of this job, "checklist", so if the name of the job is changed,
