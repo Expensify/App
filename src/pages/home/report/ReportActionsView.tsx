@@ -130,10 +130,13 @@ function ReportActionsView({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, reportActionID]);
 
-    const shouldBuildOptimisticCreatedReportAction = useMemo(
-        () => (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread) && !allReportActions?.findLast(isCreatedAction),
-        [allReportActions, isReportTransactionThread, report],
-    );
+    const shouldBuildOptimisticCreatedReportAction = useMemo(() => {
+        if (isReportTransactionThread) {
+            return !allReportActions?.findLast(isCreatedAction) && isLoadingInitialReportActions;
+        }
+
+        return (isMoneyRequestReport(report) || isInvoiceReport(report)) && !allReportActions?.findLast(isCreatedAction);
+    }, [allReportActions, isReportTransactionThread, report, isLoadingInitialReportActions]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.

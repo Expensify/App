@@ -6094,6 +6094,9 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
         parentReportID,
         parentReportActionID,
         type: CONST.REPORT.TYPE.CHAT,
+        // Add additional fields to ensure complete report structure
+        lastReadTime: DateUtils.getDBTime(),
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     });
 }
 
