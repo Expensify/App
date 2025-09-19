@@ -13,22 +13,34 @@ const tests = [
     {
         query: parserCommonTests.userFriendlyNames,
         expected: {
-            autocomplete: null,
+            autocomplete: {
+                key: 'reportID',
+                value: '1234',
+                start: 59,
+                length: 4,
+            },
             ranges: [
                 {key: 'taxRate', value: 'rate1', start: 9, length: 5},
                 {key: 'expenseType', value: 'card', start: 28, length: 4},
                 {key: 'cardID', value: 'Big Bank', start: 38, length: 10},
+                {key: 'reportID', value: '1234', start: 59, length: 4},
             ],
         },
     },
     {
         query: parserCommonTests.oldNames,
         expected: {
-            autocomplete: null,
+            autocomplete: {
+                key: 'reportID',
+                value: '1234',
+                start: 59,
+                length: 4,
+            },
             ranges: [
                 {key: 'taxRate', value: 'rate1', start: 8, length: 5},
                 {key: 'expenseType', value: 'card', start: 26, length: 4},
                 {key: 'cardID', value: 'Big Bank', start: 38, length: 10},
+                {key: 'reportID', value: '1234', start: 59, length: 4},
             ],
         },
     },
@@ -42,8 +54,10 @@ const tests = [
                 value: 'meal & entertainment',
             },
             ranges: [
+                {key: 'amount', length: 3, start: 7, value: '200'},
                 {key: 'expenseType', length: 4, start: 24, value: 'cash'},
                 {key: 'expenseType', length: 4, start: 29, value: 'card'},
+                {key: 'description', length: 17, start: 46, value: 'Las Vegas party'},
                 {key: 'date', length: 10, start: 69, value: '2024-06-01'},
                 {key: 'category', length: 6, start: 89, value: 'travel'},
                 {key: 'category', length: 5, start: 96, value: 'hotel'},
@@ -70,7 +84,15 @@ const tests = [
         query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, report-id:123456789 word',
         expected: {
             autocomplete: null,
-            ranges: [{key: 'date', length: 10, start: 5, value: '2024-01-01'}],
+            ranges: [
+                {key: 'date', length: 10, start: 5, value: '2024-01-01'},
+                {key: 'amount', length: 3, start: 23, value: '100'},
+                {key: 'merchant', length: 5, start: 36, value: 'A B'},
+                {key: 'description', length: 1, start: 54, value: 'A'},
+                {key: 'description', length: 1, start: 56, value: 'B'},
+                {key: 'description', length: 1, start: 58, value: 'C'},
+                {key: 'reportID', length: 9, start: 73, value: '123456789'},
+            ],
         },
     },
     {
@@ -208,6 +230,7 @@ const tests = [
                 {key: 'currency', value: 'PLN', start: 9, length: 3},
                 {key: 'currency', value: 'USD', start: 13, length: 3},
                 {key: 'taxRate', value: 'tax', start: 34, length: 3},
+                {key: 'merchant', value: 'Expensify, Inc.', start: 48, length: 17},
                 {key: 'tag', value: 'General Overhead', start: 70, length: 18},
                 {key: 'tag', value: 'IT', start: 89, length: 2},
                 {key: 'expenseType', value: 'card', start: 105, length: 4},
@@ -353,10 +376,16 @@ const nameFieldContinuationTests = [
     {
         query: 'type:expense to:John Smi amount>100',
         expected: {
-            autocomplete: null,
+            autocomplete: {
+                key: 'amount',
+                value: '100',
+                start: 32,
+                length: 3,
+            },
             ranges: [
                 {key: 'type', value: 'expense', start: 5, length: 7},
                 {key: 'to', value: 'John', start: 16, length: 4},
+                {key: 'amount', value: '100', start: 32, length: 3},
             ],
         },
         description: 'Complex query with name field continuation should return null autocomplete',
