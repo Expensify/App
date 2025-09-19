@@ -105,7 +105,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const searchResults = useMemo(() => {
+        const country = getCountry();
+        return searchOptions(debouncedSearchValue, countries, [country]);
+    }, [countries, debouncedSearchValue, getCountry]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
