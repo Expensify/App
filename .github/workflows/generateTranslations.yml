@@ -20,7 +20,7 @@ jobs:
 
       - name: Check if English translations were modified
         id: check-en-changes
-        uses: ./.github/actions/javascript/checkPullRequestIncrementalChanges
+        uses: ./.github/actions/javascript/getPullRequestIncrementalChanges
         with:
           FILE_PATHS: '["src/languages/en.ts"]'
 
