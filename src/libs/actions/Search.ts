@@ -610,16 +610,32 @@ function clearAdvancedFilters() {
 }
 
 /**
+ * For Expense reports, user can choose both expense and transaction, in this case we need to check for both selected reports and transactions
+ * This function checks if all remaining selected transactions (not included in selectedReports) are eligible for bulk pay
+ */
+function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: SelectedTransactions, selectedReportIDs?: string[], transactionKeys?: string[]) {
+    if (!selectedTransactions || isEmpty(selectedTransactions)) {
+        return true;
+    }
+    const neededFilterTransactions = transactionKeys?.filter((transactionIdKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIdKey].reportID));
+    if (!neededFilterTransactions?.length) {
+        return true;
+    }
+
+    return neededFilterTransactions.every((transactionIdKey) => selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY);
+}
+
+/**
  * Checks if the current selected reports/transactions are eligible for bulk pay.
  */
-function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
+function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs?: string[]) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const firstReport = selectedReports.at(0);
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-            : Object.keys(selectedTransactions ?? {}).every((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
+            : transactionKeys.every((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0
@@ -627,7 +643,8 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
                   (report) =>
                       report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) &&
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      ((hasLastPaymentMethod && report.policyID) || (getReportType(report.reportID) === getReportType(firstReport?.reportID) && report.policyID === firstReport?.policyID)),
+                      ((hasLastPaymentMethod && report.policyID) || (getReportType(report.reportID) === getReportType(firstReport?.reportID) && report.policyID === firstReport?.policyID)) &&
+                      shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
                   (transactionIdKey) =>
@@ -700,7 +717,10 @@ function handleBulkPayItemSelected(
 
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
     const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
+<<<<<<< HEAD
     const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
+=======
+>>>>>>> d2beed2b5ed (fix report bug)
 
     const paymentMethod = item.key as PaymentMethod;
     let paymentType;
