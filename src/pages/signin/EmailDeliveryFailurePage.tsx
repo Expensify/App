@@ -8,11 +8,11 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Session from '@userActions/Session';
+import {clearSignInData} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function EmailDeliveryFailurePage() {
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
@@ -49,7 +49,7 @@ function EmailDeliveryFailurePage() {
             </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
-                    onPress={() => Session.clearSignInData()}
+                    onPress={() => clearSignInData()}
                     role="button"
                     accessibilityLabel={translate('common.back')}
                     // disable hover dim for switch
