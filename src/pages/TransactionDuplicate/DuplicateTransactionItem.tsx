@@ -9,7 +9,7 @@ import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {userWalletTierNameSelector} from '@src/selectors/UserWallet';
+import {userWalletTierNameSelector} from '@selectors/UserWallet';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {

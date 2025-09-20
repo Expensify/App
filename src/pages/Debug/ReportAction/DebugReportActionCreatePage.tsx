@@ -24,7 +24,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {userWalletTierNameSelector} from '@src/selectors/UserWallet';
+import {userWalletTierNameSelector} from '@selectors/UserWallet';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;

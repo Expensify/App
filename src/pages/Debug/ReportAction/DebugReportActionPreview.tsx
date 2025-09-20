@@ -5,7 +5,7 @@ import ScrollView from '@components/ScrollView';
 import useOnyx from '@hooks/useOnyx';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {userWalletTierNameSelector} from '@src/selectors/UserWallet';
+import {userWalletTierNameSelector} from '@selectors/UserWallet';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type DebugReportActionPreviewProps = {
