@@ -371,6 +371,10 @@ function MoneyRequestView({
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
+            if (readonly || isSettled) {
+                return '';
+            }
+
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -389,10 +393,6 @@ function MoneyRequestView({
             };
 
             const {isError, translationPath} = fieldChecks[field] ?? {};
-
-            if (readonly) {
-                return '';
-            }
 
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
@@ -579,6 +579,7 @@ function MoneyRequestView({
                     updatedTransaction={updatedTransaction}
                     isFromReviewDuplicates={isFromReviewDuplicates}
                     mergeTransactionID={mergeTransactionID}
+                    isSettled={isSettled}
                 />
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2]}>
