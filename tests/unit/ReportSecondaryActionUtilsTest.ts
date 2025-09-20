@@ -564,7 +564,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             policy,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
     it('includes HOLD option ', () => {
