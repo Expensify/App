@@ -21,6 +21,7 @@ import {
     buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAddTransaction,
+    canCreateRequest,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
@@ -138,6 +139,8 @@ jest.mock('@libs/Permissions');
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
+    navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => 'mock-route'),
     navigationRef: {
         getCurrentRoute: jest.fn(() => ({
             params: {
@@ -2676,6 +2679,191 @@ describe('ReportUtils', () => {
 
                 // Should not include SUBMIT
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+            });
+        });
+
+        describe('Preferred workspace restrictions', () => {
+            // Self DM - TRACK should always be allowed regardless of restrictions
+            it('should allow TRACK requests for self DMs', () => {
+                const selfDMReport = {
+                    reportID: '1234',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const selfDMParticipants = [currentUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+
+            // DM - SUBMIT, PAY, SPLIT should be restricted
+            it('should restrict SUBMIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1235',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+            });
+
+            it('should restrict PAY requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1236',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                if (withoutRestrictionsResult.includes(CONST.IOU.TYPE.PAY)) {
+                    expect(withRestrictionsResult.includes(CONST.IOU.TYPE.PAY)).toBe(false);
+                }
+            });
+
+            it('should restrict SPLIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1237',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            // Group Chat - Only SPLIT functionality available, should be restricted
+
+            it('should restrict SPLIT requests for group chats', () => {
+                const groupParticipants = [currentUserAccountID, ...participantsAccountIDs.slice(0, 3)];
+                const groupChatReport = {
+                    ...LHNTestUtils.getFakeReport(groupParticipants),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: undefined,
+                };
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            // Policy Rooms - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for user-created policy rooms', () => {
+                const policyRoomParticipants = [currentUserAccountID, participantsAccountIDs.at(0) ?? 0];
+                const policyRoomReport = {
+                    ...LHNTestUtils.getFakeReport(policyRoomParticipants),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                };
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+        });
+    });
+
+    describe('canCreateRequest', () => {
+        describe('Preferred workspace restrictions', () => {
+            const participantsAccountIDs = Object.keys(participantsPersonalDetails).map(Number);
+
+            // Self DM - TRACK should always be allowed regardless of restrictions
+            it('should allow TRACK requests for self DMs', () => {
+                const selfDMReport = {
+                    reportID: '2234',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, false);
+                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(true);
+            });
+
+            // DM - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '2237',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
+            });
+
+            // Group Chat - Only SPLIT functionality available, should be restricted
+
+            it('should restrict SPLIT requests for group chats', () => {
+                const groupChat = LHNTestUtils.getFakeReport([currentUserAccountID, ...participantsAccountIDs.slice(0, 3)]);
+
+                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
+            });
+
+            // Policy Rooms - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for user-created policy rooms', () => {
+                const policyRoom = {
+                    ...LHNTestUtils.getFakeReport([currentUserAccountID, participantsAccountIDs.at(0) ?? 0]),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
             });
         });
     });
