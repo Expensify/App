@@ -717,10 +717,7 @@ function handleBulkPayItemSelected(
 
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
     const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-<<<<<<< HEAD
     const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
-=======
->>>>>>> d2beed2b5ed (fix report bug)
 
     const paymentMethod = item.key as PaymentMethod;
     let paymentType;
