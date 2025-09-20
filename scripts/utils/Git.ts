@@ -93,6 +93,16 @@ class Git {
             cwd: process.cwd(),
         });
 
+        return Git.parseDiff(diffOutput);
+    }
+
+    /**
+     * Parse git diff output into structured format.
+     *
+     * @param diffOutput - Raw git diff output string
+     * @returns Structured diff result with line numbers and change information
+     */
+    static parseDiff(diffOutput: string): DiffResult {
         // Parse the diff output inline
         if (!diffOutput.trim()) {
             return {
