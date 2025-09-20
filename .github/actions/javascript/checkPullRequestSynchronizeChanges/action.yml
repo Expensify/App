@@ -1,0 +1,28 @@
+name: 'Check Pull Request Synchronize Changes'
+description: |
+  Detects actual file changes in PR synchronize events, avoiding false positives from merged commits.
+  
+  This action is specifically designed for pull_request synchronize events where you need to distinguish 
+  between actual changes pushed to the PR versus changes that came from merging the base branch.
+  
+  For simple file change detection in PRs, use `gh pr diff --name-only <pr_number>` instead.
+  
+  Use this action when you need to:
+  - Trigger workflows only when specific files are actually modified in the PR (not just merged from main)
+  - Avoid false positives when main is merged into a PR branch
+  - Perform line-level comparison between push changes and PR changes
+inputs:
+  GITHUB_TOKEN:
+    description: 'GitHub token for API access'
+    required: true
+  FILE_PATHS:
+    description: 'JSON array of file paths to check (e.g., ["src/languages/en.ts", "package.json"]). If not provided, all files in the PR will be checked.'
+    required: false
+outputs:
+  FILES_CHANGED:
+    description: 'JSON object with file paths as keys and boolean values indicating if they were changed in the PR'
+  ANY_CHANGED:
+    description: 'True if any of the specified files were changed in the PR'
+runs:
+  using: 'node20'
+  main: './index.js'

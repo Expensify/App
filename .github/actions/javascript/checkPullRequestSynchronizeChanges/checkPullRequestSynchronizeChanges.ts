@@ -53,8 +53,8 @@ async function run(): Promise<void> {
     for (const prFileDiff of prDiff.files) {
         const filePath = prFileDiff.filePath;
 
-        const localFile = localChangedFiles.get(filePath);
-        if (!localFile) {
+        const localFileDiff = localChangedFiles.get(filePath);
+        if (!localFileDiff) {
             results[filePath] = false;
             continue;
         }
@@ -65,7 +65,7 @@ async function run(): Promise<void> {
         const prModifiedContent = new Set<string>();
 
         // Get local diff content
-        for (const hunk of localFile.hunks) {
+        for (const hunk of localFileDiff.hunks) {
             for (const line of hunk.lines) {
                 localModifiedContent.add(line.content);
             }
