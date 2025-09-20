@@ -36,8 +36,7 @@ async function run(): Promise<void> {
     // If no files changed locally, we can skip all API calls
     if (localChangedFiles.size === 0) {
         console.log(`⏭️ No files changed in push - skipping API validation`);
-        core.setOutput('FILES_CHANGED', JSON.stringify(Object.fromEntries((filePathsInput ?? []).map((f) => [f, false]))));
-        core.setOutput('ANY_CHANGED', 'false');
+        core.setOutput('CHANGED_FILES', JSON.stringify([]));
         return;
     }
 
@@ -45,21 +44,18 @@ async function run(): Promise<void> {
     console.log(`🌐 Using GitHub API to validate ${localChangedFiles.size} files with local changes`);
     const prDiff = Git.parseDiff(await GitHubUtils.getPullRequestDiff(pullRequestNumber));
 
-    // Compare the local push diff with the PR diff
-    const results: Record<string, boolean> = {};
-    let anyChanged = false;
+    // Compare the local push diff with the PR diff and collect changed files
+    const changedFiles: string[] = [];
 
-    // Cross-check the files changed in the PR diff with the local changed files at the line level
+    // Cross-check files that have overlapping content changes
     for (const prFileDiff of prDiff.files) {
         const filePath = prFileDiff.filePath;
 
         const localFileDiff = localChangedFiles.get(filePath);
         if (!localFileDiff) {
-            results[filePath] = false;
-            continue;
+            continue; // File not in local changes
         }
 
-        // File exists in both diffs - now check if any lines overlap
         // Extract all modified content from both diffs (regardless of add/remove)
         const localModifiedContent = new Set<string>();
         const prModifiedContent = new Set<string>();
@@ -80,22 +76,22 @@ async function run(): Promise<void> {
 
         // Check if any content overlaps between push and PR
         const hasOverlappingContent = Array.from(localModifiedContent).some((content) => prModifiedContent.has(content));
-        results[filePath] = hasOverlappingContent;
 
         if (hasOverlappingContent) {
-            console.log(`✅ ${filePath} has overlapping line changes in both push and PR`);
-            anyChanged = true;
+            console.log(`✅ ${filePath} has overlapping content changes in both push and PR`);
+            changedFiles.push(filePath);
         } else {
-            console.log(`⏭️ ${filePath} has changes in both push and PR but no overlapping lines - likely from merged commits`);
+            console.log(`⏭️ ${filePath} has changes in both push and PR but no overlapping content - likely from merged commits`);
         }
     }
 
-    // Set outputs
-    core.setOutput('FILES_CHANGED', JSON.stringify(results));
-    core.setOutput('ANY_CHANGED', anyChanged.toString());
+    // Set output
+    core.setOutput('CHANGED_FILES', JSON.stringify(changedFiles));
 
-    console.log(`📊 Results: ${JSON.stringify(results)}`);
-    console.log(`📈 Any files changed: ${anyChanged}`);
+    console.log(`📈 Total files changed: ${changedFiles.length}`);
+    core.startGroup('📊 Changed files:');
+    console.log(changedFiles);
+    core.endGroup();
 }
 
 if (require.main === module) {
