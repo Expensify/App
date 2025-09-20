@@ -1,16 +1,12 @@
-name: 'Check Pull Request Synchronize Changes'
+name: 'Check Pull Request Incremental Changes'
 description: |
-  Detects actual file changes in PR synchronize events, avoiding false positives from merged commits.
+  Detects actual file changes in PR opened or synchronize events, ignoring false positives from merge commits.
   
   This action is specifically designed for pull_request synchronize events where you need to distinguish 
   between actual changes pushed to the PR versus changes that came from merging the base branch.
   
-  For simple file change detection in PRs, use `gh pr diff --name-only <pr_number>` instead.
-  
-  Use this action when you need to:
-  - Trigger workflows only when specific files are actually modified in the PR (not just merged from main)
-  - Avoid false positives when main is merged into a PR branch
-  - Perform line-level comparison between push changes and PR changes
+  For simple file change detection in PRs, use `gh pr diff <pr_number>` instead.
+
 inputs:
   GITHUB_TOKEN:
     description: 'GitHub token for API access'
