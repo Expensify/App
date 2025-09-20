@@ -16,7 +16,6 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [HybridApp](#HybridApp)
-* [Philosophy](#Philosophy)
 * [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
@@ -581,29 +580,6 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 ### Additional information and troubleshooting
 
 If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
-
-----
-
-# Philosophy
-This application is built with the following principles.
-1. [Data Flow](contributingGuides/philosophies/DATA-FLOW.md)
-1. [Offline First](contributingGuides/philosophies/OFFLINE.md)
-1. [Data Binding](contributingGuides/philosophies/DATA_BINDING.md)
-1. **Actions manage Onyx Data**
-    - When data needs to be written to or read from the server, this is done through Actions only.
-    - Action methods should only have return values (data or a promise) if they are called by other actions. This is done to encourage that action methods can be called in parallel with no dependency on other methods (see discussion above).
-    - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
-    - Views should not call `Onyx.merge()` or `Onyx.set()` directly and should call an action instead.
-    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
-    - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
-    - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
-        1. user adds a comment
-        2. comment is shown in the UI (by mocking the expected response from the server)
-        3. comment is created in the server
-        4. server responds
-        5. UI updates with data from the server
-
-1. [Cross Platform](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 
