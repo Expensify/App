@@ -314,31 +314,24 @@ function generateReport(results: DetailedCompilerResults, outputFileName = DEFAU
     logSuccess(`Detailed report saved to: ${reportFile}`);
 }
 
-function getMainBranchRemote(): string {
-    // Determine the remote that contains the main branch, fallback to 'origin'
-    let remote = 'origin';
-    try {
-        const remotesOutput = execSync('git remote', {encoding: 'utf8'}).trim().split('\n');
-        for (const r of remotesOutput) {
-            try {
-                const branches = execSync(`git ls-remote --heads ${r} main`, {encoding: 'utf8'}).trim();
-                if (branches.length > 0) {
-                    remote = r;
-                    break;
-                }
-            } catch {
-                // ignore errors for remotes that don't have main
-            }
-        }
-    } catch {
-        // fallback to 'origin'
-    }
-    return remote;
-}
-
 function getMainBaseCommitHash(): string {
-    const remote = getMainBranchRemote();
-    return execSync(`git merge-base ${remote}/main HEAD`, {encoding: 'utf8'}).trim();
+    // Fetch the main branch from origin to ensure it's available
+    try {
+        execSync('git fetch origin main --no-tags', {encoding: 'utf8'});
+    } catch (error) {
+        logError('Failed to fetch origin/main:', error);
+        throw error;
+    }
+
+    // Get the merge base commit hash
+    const mergeBaseHash = execSync('git merge-base origin/main HEAD', {encoding: 'utf8'}).trim();
+
+    // Validate the output is a proper SHA hash
+    if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+        throw new Error(`git merge-base returned unexpected output: ${mergeBaseHash}`);
+    }
+
+    return mergeBaseHash;
 }
 
 function getChangedFiles(): string[] {
@@ -346,11 +339,13 @@ function getChangedFiles(): string[] {
         // Get files changed in the current branch/commit
         const mainBaseCommitHash = getMainBaseCommitHash();
 
-        // Compare against the main branch on the detected remote
-        const output = execSync(`git diff --name-only --diff-filter=AMR ${mainBaseCommitHash} HEAD`, {
+        // Get the diff output and check status
+        const gitDiffOutput = execSync(`git diff --diff-filter=AMR --name-only ${mainBaseCommitHash} HEAD`, {
             encoding: 'utf8',
         });
-        return output.trim().split('\n').filter(shouldProcessFile);
+
+        const changedFiles = gitDiffOutput.trim().split('\n').filter(shouldProcessFile);
+        return changedFiles;
     } catch (error) {
         logError('Could not determine changed files:', error);
         throw error;
