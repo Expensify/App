@@ -89,7 +89,6 @@ function AddPlaidBankAccount({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-
     const getPlaidLinkToken = (): string | undefined => {
         if (plaidLinkToken) {
             return plaidLinkToken;
