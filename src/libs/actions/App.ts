@@ -688,6 +688,15 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     clearSoundAssetsCache();
 }
 
+/**
+ * Clears a top-level Onyx value key by setting it to null.
+ * This is used for ephemeral flags so they do not persist across reloads.
+ */
+function clearSupportalPermissionDenied() {
+    // We intentionally set to null to keep key present but empty
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
@@ -708,6 +717,7 @@ export {
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
+    clearSupportalPermissionDenied,
     setPreservedUserSession,
     KEYS_TO_PRESERVE,
 };
