@@ -2589,13 +2589,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Notre fournisseur de messagerie a temporairement suspendu les emails vers ${login} en raison de problèmes de livraison. Pour débloquer votre connexion, veuillez suivre ces étapes :`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirmez que ${login} est orthographié correctement et qu'il s'agit d'une adresse e-mail réelle et valide.`,
-        emailAliases: 'Les alias d\'e-mail tels que "expenses@domain.com" doivent avoir accès à leur propre boîte de réception pour être un identifiant Expensify valide.',
-        ensureYourEmailClient: 'Assurez-vous que votre client de messagerie autorise les emails de expensify.com.',
-        youCanFindDirections: 'Vous pouvez trouver des instructions sur la façon de compléter cette étape',
-        helpConfigure: 'mais vous pourriez avoir besoin de votre service informatique pour vous aider à configurer vos paramètres de messagerie.',
-        onceTheAbove: 'Une fois les étapes ci-dessus terminées, veuillez contacter',
-        toUnblock: 'pour débloquer votre connexion.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirmez que ${login} est orthographié correctement et qu'il s'agit d'une adresse e-mail réelle et valide.</strong> Les alias d'e-mail tels que "expenses@domain.com" doivent avoir accès à leur propre boîte de réception pour être un identifiant Expensify valide.`,
+        ensureYourEmailClient: `<strong>Assurez-vous que votre client de messagerie autorise les emails de expensify.com.</strong> Vous trouverez des instructions sur la manière de réaliser cette étape <a href="${CONST.SET_NOTIFICATION_LINK}">ici</a> mais vous aurez peut-être besoin de l'aide de votre service informatique pour configurer vos paramètres de messagerie.`,
+        onceTheAbove: `Une fois les étapes ci-dessus terminées, veuillez contacter <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> pour débloquer votre connexion.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>

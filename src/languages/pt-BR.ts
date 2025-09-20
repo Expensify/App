@@ -2606,13 +2606,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Nosso provedor de e-mail suspendeu temporariamente os e-mails para ${login} devido a problemas de entrega. Para desbloquear seu login, siga estas etapas:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirme que ${login} está escrito corretamente e é um endereço de e-mail real e válido para entrega.`,
-        emailAliases: 'Os aliases de e-mail, como "expenses@domain.com", devem ter acesso à sua própria caixa de entrada de e-mail para que seja um login válido do Expensify.',
-        ensureYourEmailClient: 'Certifique-se de que seu cliente de e-mail permita e-mails de expensify.com.',
-        youCanFindDirections: 'Você pode encontrar instruções sobre como concluir esta etapa',
-        helpConfigure: 'mas você pode precisar que o seu departamento de TI ajude a configurar as suas configurações de e-mail.',
-        onceTheAbove: 'Depois de concluir as etapas acima, por favor entre em contato com',
-        toUnblock: 'para desbloquear seu login.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirme que ${login} está escrito corretamente e é um endereço de e-mail real e válido para entrega.</strong> Os aliases de e-mail, como "expenses@domain.com", devem ter acesso à sua própria caixa de entrada de e-mail para que seja um login válido do Expensify.`,
+        ensureYourEmailClient: `<strong>Certifique-se de que seu cliente de e-mail permita e-mails de expensify.com.</strong> Você pode encontrar instruções sobre como concluir essa etapa <a href="${CONST.SET_NOTIFICATION_LINK}">aqui</a>, mas talvez seja necessário que seu departamento de TI o ajude a definir suas configurações de e-mail.`,
+        onceTheAbove: `Depois que as etapas acima forem concluídas, entre em contato com <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> para desbloquear seu login.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
