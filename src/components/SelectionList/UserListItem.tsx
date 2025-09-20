@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,8 +17,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
+
+const definedReportSelector = (report: OnyxEntry<Report>): boolean => !!report;
 
 function UserListItem<TItem extends ListItem>({
     item,
@@ -57,7 +61,7 @@ function UserListItem<TItem extends ListItem>({
 
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         canBeMissing: true,
-        selector: (report) => !!report,
+        selector: definedReportSelector,
     });
 
     const reportExists = isReportInOnyx && !!item.reportID;

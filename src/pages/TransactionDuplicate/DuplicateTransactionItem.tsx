@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {userWalletTierNameSelector} from '@selectors/UserWallet';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -22,7 +23,7 @@ type DuplicateTransactionItemProps = {
 
 function DuplicateTransactionItem({transaction, index, allReports, policies}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: userWalletTierNameSelector, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
