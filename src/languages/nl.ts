@@ -95,6 +95,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -5434,8 +5435,8 @@ const translations = {
             updateDetails: 'Details bijwerken',
             yesDisconnectMyBankAccount: 'Ja, koppel mijn bankrekening los.',
             yesStartOver: 'Ja, begin opnieuw.',
-            disconnectYour: 'Verbreek de verbinding met uw',
-            bankAccountAnyTransactions: 'bankrekening. Eventuele openstaande transacties voor deze rekening zullen nog steeds worden voltooid.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Koppel uw <strong>${bankName}</strong> bankrekening los. Eventuele openstaande transacties voor deze rekening zullen nog steeds worden voltooid.`,
             clearProgress: 'Opnieuw beginnen zal de voortgang die je tot nu toe hebt gemaakt wissen.',
             areYouSure: 'Weet je het zeker?',
             workspaceCurrency: 'Werkruimte valuta',
