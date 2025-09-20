@@ -742,6 +742,21 @@ class GithubUtils {
             throw error;
         }
     }
+
+    static async getPullRequestDiff(pullRequestNumber: number): Promise<string> {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        const response = await this.internalOctokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: pullRequestNumber,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data as unknown as string;
+    }
 }
 
 export default GithubUtils;
