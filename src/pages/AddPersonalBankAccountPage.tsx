@@ -51,7 +51,13 @@ function AddPersonalBankAccountPage() {
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            addPersonalBankAccount(selectedPlaidBankAccount, policyID, source);
+            const bankAccountWithToken = selectedPlaidBankAccount.plaidAccessToken
+                ? selectedPlaidBankAccount
+                : {
+                      ...selectedPlaidBankAccount,
+                      plaidAccessToken: plaidData?.plaidAccessToken ?? '',
+                  };
+            addPersonalBankAccount(bankAccountWithToken, policyID, source);
         }
     }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
 
