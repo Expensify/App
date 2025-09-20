@@ -32,7 +32,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const isCollect = isCollectPolicy(policy);
-    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
