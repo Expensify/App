@@ -3626,7 +3626,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników.',
+            subtitle: `<muted-text>Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Dowiedz się więcej</a>.</muted-text>`,
             amount: 'Kwota',
             deleteRates: () => ({
                 one: 'Usuń stawkę',

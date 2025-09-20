@@ -3626,7 +3626,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: '日当料金を設定して、従業員の1日の支出を管理します。',
+            subtitle: `<muted-text>日当料金を設定して、従業員の1日の支出を管理します。<a href="${CONST.DEEP_DIVE_PER_DIEM}">詳しくはこちら</a>。</muted-text>`,
             amount: '金額',
             deleteRates: () => ({
                 one: 'レートを削除',

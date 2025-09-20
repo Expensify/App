@@ -3631,7 +3631,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários.',
+            subtitle: `<muted-text>Defina taxas de diárias para controlar os gastos diários dos funcionários. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Saiba mais</a>.</muted-text>`,
             amount: 'Quantia',
             deleteRates: () => ({
                 one: 'Taxa de exclusão',

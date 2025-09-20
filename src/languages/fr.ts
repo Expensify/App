@@ -3622,7 +3622,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
+            subtitle: `<muted-text>Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés. <a href="${CONST.DEEP_DIVE_PER_DIEM}">En savoir plus</a>.</muted-text>`,
             amount: 'Montant',
             deleteRates: () => ({
                 one: 'Supprimer le taux',

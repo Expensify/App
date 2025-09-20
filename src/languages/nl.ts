@@ -3633,7 +3633,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
+            subtitle: `<muted-text>Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Meer informatie</a>.</muted-text>`,
             amount: 'Bedrag',
             deleteRates: () => ({
                 one: 'Verwijder tarief',

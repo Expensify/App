@@ -3600,7 +3600,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
+            subtitle: `<muted-text>Establece las tasas per diem para controlar los gastos diarios de los empleados. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Más información</a>.</muted-text>`,
             amount: 'Cantidad',
             deleteRates: () => ({
                 one: 'Eliminar tasa',
