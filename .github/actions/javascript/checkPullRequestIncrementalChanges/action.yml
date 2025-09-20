@@ -14,9 +14,13 @@ inputs:
   FILE_PATHS:
     description: 'JSON array of file paths to check (e.g., ["src/languages/en.ts", "package.json"]). If not provided, all files in the PR will be checked.'
     required: false
+
 outputs:
   CHANGED_FILES:
     description: 'JSON array of file paths that were actually changed in the PR (not from merged commits)'
+  HAS_CHANGES:
+    description: 'True if any of the specified files were changed in the PR'
+
 runs:
   using: 'node20'
   main: './index.js'

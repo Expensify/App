@@ -115,6 +115,7 @@ async function run(): Promise<void> {
 
     // Set output
     core.setOutput('CHANGED_FILES', JSON.stringify(changedFiles));
+    core.setOutput('HAS_CHANGES', changedFiles.length > 0);
 }
 
 if (require.main === module) {
