@@ -3644,7 +3644,7 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
 
  */
-function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}, isReportArchived = false): LastVisibleMessage {
+function getLastVisibleMessage(reportID: string | undefined, isReportArchived: boolean | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
     const report = getReportOrDraftReport(reportID);
     const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
 
@@ -3657,7 +3657,7 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
     }
 
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
-    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report), actionsToMerge);
+    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
 }
 
 /**
@@ -8162,7 +8162,7 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived = fal
         return false;
     }
 
-    const lastVisibleMessage = getLastVisibleMessage(report.reportID, {}, isReportArchived);
+    const lastVisibleMessage = getLastVisibleMessage(report.reportID, isReportArchived);
     return !lastVisibleMessage.lastMessageText;
 }
 
@@ -8246,12 +8246,13 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
-function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined): boolean {
+function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived = false): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
     const isChildReportHasComment = Object.values(reportActions ?? {})?.some(
-        (reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0 && shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report)),
+        (reportAction) =>
+            (reportAction?.childVisibleActionCount ?? 0) > 0 && shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
     );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
@@ -8579,7 +8580,7 @@ function reasonForReportToBeInOptionList({
     }
 
     const isEmptyChat = isEmptyReport(report, isReportArchived);
-    const canHideReport = shouldHideReport(report, currentReportId);
+    const canHideReport = shouldHideReport(report, currentReportId, isReportArchived);
 
     // Include reports if they are pinned
     if (report.isPinned) {
@@ -9251,7 +9252,7 @@ function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): Repo
 function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: ValueOf<typeof CONST.IOU.TYPE>, isReportArchived = false): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
 
-    if (!canUserPerformWriteAction(report)) {
+    if (!canUserPerformWriteAction(report, isReportArchived)) {
         return false;
     }
 
@@ -11097,11 +11098,11 @@ function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions, 
         lastVisibleActionCreated: '',
     };
 
-    const {lastMessageText = ''} = getLastVisibleMessage(reportID, actionsToMerge, isReportArchived);
+    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge);
 
     if (lastMessageText) {
         const report = getReport(reportID, allReports);
-        const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report), actionsToMerge);
+        const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         result = {
