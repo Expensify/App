@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -162,7 +163,11 @@ type NewChatPageRef = {
     focus?: () => void;
 };
 
-function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
+type NewChatPageProps = {
+    /** Reference to the outer element */
+    ref?: Ref<NewChatPageRef>;
+};
+function NewChatPage({ref}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -411,4 +416,4 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default forwardRef(NewChatPage);
+export default NewChatPage;

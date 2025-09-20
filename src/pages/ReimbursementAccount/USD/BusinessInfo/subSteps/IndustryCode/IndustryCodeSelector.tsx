@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
@@ -91,4 +91,4 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
 
 IndustryCodeSelector.displayName = 'IndustryCodeSelector';
 
-export default forwardRef(IndustryCodeSelector);
+export default IndustryCodeSelector;
