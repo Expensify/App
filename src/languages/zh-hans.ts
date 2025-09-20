@@ -143,6 +143,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1670,13 +1671,13 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: '合并账户',
         accountDetails: {
-            accountToMergeInto: '输入您想要合并的账户',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `输入要合并到 <strong>${login}</strong> 中的账户。`,
             notReversibleConsent: '我明白这是不可逆的。',
         },
         accountValidate: {
             confirmMerge: '您确定要合并账户吗？',
-            lossOfUnsubmittedData: `合并您的账户是不可逆的，并且将导致任何未提交费用的丢失`,
-            enterMagicCode: `要继续，请输入发送到的验证码`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `合并账户是不可逆转的，将导致 <strong>${login}</strong> 失去任何未提交的支出。`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `要继续，请输入发送到 <strong>${login}</strong> 的神奇代码。`,
             errors: {
                 incorrectMagicCode: '魔法代码不正确或无效。请重试或请求新代码。',
                 fallback: '出现问题。请稍后再试。',

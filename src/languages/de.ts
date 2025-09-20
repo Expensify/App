@@ -143,6 +143,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1700,13 +1701,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Konten zusammenführen',
         accountDetails: {
-            accountToMergeInto: 'Geben Sie das Konto ein, in das Sie zusammenführen möchten.',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Geben Sie das Konto ein, das Sie in <strong>${login}</strong> zusammenführen möchten`,
             notReversibleConsent: 'Ich verstehe, dass dies nicht umkehrbar ist.',
         },
         accountValidate: {
             confirmMerge: 'Möchten Sie die Konten wirklich zusammenführen?',
-            lossOfUnsubmittedData: `Das Zusammenführen Ihrer Konten ist unwiderruflich und führt zum Verlust aller nicht eingereichten Ausgaben für`,
-            enterMagicCode: `Um fortzufahren, geben Sie bitte den magischen Code ein, der an  gesendet wurde.`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Die Zusammenlegung Ihrer Konten ist unumkehrbar und führt zum Verlust aller nicht eingereichten Ausgaben für <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Um fortzufahren, geben Sie bitte den magischen Code ein, der an <strong>${login}</strong> gesendet wurde.`,
             errors: {
                 incorrectMagicCode: 'Falscher oder ungültiger Magic-Code. Bitte versuche es erneut oder fordere einen neuen Code an.',
                 fallback: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es später noch einmal.',

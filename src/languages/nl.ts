@@ -143,6 +143,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1691,13 +1692,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Accounts samenvoegen',
         accountDetails: {
-            accountToMergeInto: 'Voer het account in waarmee u wilt samenvoegen',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Voer de account in die je wilt samenvoegen in <strong>${login}</strong>.`,
             notReversibleConsent: 'Ik begrijp dat dit niet omkeerbaar is.',
         },
         accountValidate: {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
-            lossOfUnsubmittedData: `Het samenvoegen van uw accounts is onomkeerbaar en zal resulteren in het verlies van alle niet-ingediende uitgaven voor`,
-            enterMagicCode: `Om door te gaan, voer de magische code in die is verzonden naar`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Het samenvoegen van je accounts is onomkeerbaar en zal resulteren in het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Voer de magische code in die naar <strong>${login}</strong> is verzonden om verder te gaan.`,
             errors: {
                 incorrectMagicCode: 'Onjuiste of ongeldige magische code. Probeer het opnieuw of vraag een nieuwe code aan.',
                 fallback: 'Er is iets misgegaan. Probeer het later opnieuw.',
