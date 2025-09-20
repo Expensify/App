@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setUserLocation} from '@libs/actions/UserLocation';
 import {getCommandURL} from '@libs/ApiUtils';
+import {getCountryCode} from '@libs/CountryUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
@@ -165,7 +166,8 @@ function AddressSearch(
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
         const {country: countryFallbackLongName = '', state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
-        const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
+        // Convert country fallback to country code
+        const countryFallback = getCountryCode(countryFallbackLongName);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const country = countryPrimary || countryFallback || '';
