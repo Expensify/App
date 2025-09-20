@@ -42,6 +42,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -316,7 +317,14 @@ type PureReportActionItemProps = {
     ) => void;
 
     /** Function to create a draft transaction and navigate to participant selector */
-    createDraftTransactionAndNavigateToParticipantSelector?: (transactionID: string | undefined, reportID: string | undefined, actionName: IOUAction, reportActionID: string) => void;
+    createDraftTransactionAndNavigateToParticipantSelector?: (
+        transactionID: string | undefined,
+        reportID: string | undefined,
+        actionName: IOUAction,
+        reportActionID: string,
+        isRestrictedToPreferredWorkspace?: boolean,
+        preferredWorkspaceID?: string,
+    ) => void;
 
     /** Function to resolve actionable report mention whisper */
     resolveActionableReportMentionWhisper?: (
@@ -455,6 +463,7 @@ function PureReportActionItem({
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
     const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredWorkspace, preferredWorkspaceID} = usePreferredWorkspace();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -765,7 +774,14 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(
+                            transactionID,
+                            reportID,
+                            CONST.IOU.ACTION.SUBMIT,
+                            action.reportActionID,
+                            isRestrictedToPreferredWorkspace,
+                            preferredWorkspaceID,
+                        );
                     },
                 },
             ];
@@ -900,6 +916,8 @@ function PureReportActionItem({
         formatPhoneNumber,
         resolveActionableMentionWhisper,
         isReportArchived,
+        isRestrictedToPreferredWorkspace,
+        preferredWorkspaceID,
     ]);
 
     /**
