@@ -61,18 +61,18 @@ async function run(): Promise<void> {
 
         // File exists in both diffs - now check if any lines overlap
         // Extract added and removed content from both diffs
-        const localAddedLines = new Set<string>();
-        const localRemovedLines = new Set<string>();
-        const prAddedLines = new Set<string>();
-        const prRemovedLines = new Set<string>();
+        const localAddedLines = new Set<number>();
+        const localRemovedLines = new Set<number>();
+        const prAddedLines = new Set<number>();
+        const prRemovedLines = new Set<number>();
 
-        // Get push diff content
+        // Get local diff content
         for (const hunk of localFile.hunks) {
             for (const line of hunk.lines) {
                 if (line.type === 'added') {
-                    localAddedLines.add(line.content);
+                    localAddedLines.add(line.number);
                 } else if (line.type === 'removed') {
-                    localRemovedLines.add(line.content);
+                    localRemovedLines.add(line.number);
                 }
             }
         }
@@ -81,9 +81,9 @@ async function run(): Promise<void> {
         for (const hunk of prFileDiff.hunks) {
             for (const line of hunk.lines) {
                 if (line.type === 'added') {
-                    prAddedLines.add(line.content);
+                    prAddedLines.add(line.number);
                 } else if (line.type === 'removed') {
-                    prRemovedLines.add(line.content);
+                    prRemovedLines.add(line.number);
                 }
             }
         }

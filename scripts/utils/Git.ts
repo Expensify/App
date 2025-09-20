@@ -8,7 +8,7 @@ const exec = promisify(execWithCallback);
  * With -U0, only added and removed lines are present (no context).
  */
 type DiffLine = {
-    lineNumber: number;
+    number: number;
     type: 'added' | 'removed';
     content: string;
 };
@@ -178,7 +178,7 @@ class Git {
                     const lineNumber = this.calculateLineNumber(currentHunk, 'added');
 
                     currentHunk.lines.push({
-                        lineNumber,
+                        number: lineNumber,
                         type: 'added',
                         content,
                     });
@@ -187,7 +187,7 @@ class Git {
                     const lineNumber = this.calculateLineNumber(currentHunk, 'removed');
 
                     currentHunk.lines.push({
-                        lineNumber,
+                        number: lineNumber,
                         type: 'removed',
                         content,
                     });
@@ -220,7 +220,7 @@ class Git {
                 for (let j = 0; j < modifiedCount; j++) {
                     const addedLine = addedLines.at(j);
                     if (addedLine) {
-                        file.modifiedLines.add(addedLine.lineNumber);
+                        file.modifiedLines.add(addedLine.number);
                     }
                 }
 
@@ -228,7 +228,7 @@ class Git {
                 for (let j = modifiedCount; j < addedCount; j++) {
                     const addedLine = addedLines.at(j);
                     if (addedLine) {
-                        file.addedLines.add(addedLine.lineNumber);
+                        file.addedLines.add(addedLine.number);
                     }
                 }
 
@@ -236,7 +236,7 @@ class Git {
                 for (let j = modifiedCount; j < removedCount; j++) {
                     const removedLine = removedLines.at(j);
                     if (removedLine) {
-                        file.removedLines.add(removedLine.lineNumber);
+                        file.removedLines.add(removedLine.number);
                     }
                 }
             }
