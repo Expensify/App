@@ -922,6 +922,10 @@ type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
 };
 
+type MergeAccountIntoParams = {
+    login: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1228,4 +1232,5 @@ export type {
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
+    MergeAccountIntoParams,
 };
