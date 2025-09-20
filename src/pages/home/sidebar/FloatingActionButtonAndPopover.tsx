@@ -22,7 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
@@ -47,7 +47,7 @@ import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@li
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,6 +89,10 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
+const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
+
+const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
+
 /**
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
@@ -99,11 +103,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const {translate} = useLocalize();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => ({email: onyxSession?.email, accountID: onyxSession?.accountID})});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const policyChatForActivePolicy = useMemo(() => {
         if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
@@ -114,6 +119,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
@@ -126,9 +132,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const prevIsFocused = usePrevious(isFocused);
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isOffline} = useNetwork();
-    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: true});
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
 
@@ -221,9 +228,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
 
             // Start the scan flow directly
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -309,11 +316,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                             // for all of the routes in the creation flow.
                             generateReportID(),
+                            undefined,
+                            undefined,
+                            undefined,
+                            allTransactionDrafts,
                         );
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -339,7 +350,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction(isValidReport, quickAction, selectOption);
+                    navigateToQuickAction({isValidReport, quickAction, selectOption, isManualDistanceTrackingEnabled, lastDistanceExpenseType});
                 });
             };
             return [
@@ -364,7 +375,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     }
 
                     const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
                 });
             };
 
@@ -399,6 +410,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         isReportArchived,
+        isManualDistanceTrackingEnabled,
+        lastDistanceExpenseType,
+        allTransactionDrafts,
     ]);
 
     const isTravelEnabled = useMemo(() => {
@@ -434,7 +448,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
                               // Start the flow to start tracking a distance request
-                              return null;
+                              startDistanceRequest(
+                                  CONST.IOU.TYPE.CREATE,
+                                  // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                  // for all of the routes in the creation flow.
+                                  generateReportID(),
+                                  lastDistanceExpenseType,
+                              );
                           });
                       },
                   },
@@ -474,8 +494,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                       Navigation.navigate(
                                           isSearchTopmostFullScreenRoute()
-                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID})
-                                              : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()),
+                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                                              : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
                                       );
                                   });
                               } else {
@@ -510,6 +530,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                   // for all of the routes in the creation flow.
                                   generateReportID(),
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  allTransactionDrafts,
                               );
                           }),
                   },
@@ -583,7 +607,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 onConfirm={() => {
                     setModalVisible(false);
                     if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                        closeReactNativeApp({shouldSetNVP: true});
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX);

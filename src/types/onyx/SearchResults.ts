@@ -4,6 +4,7 @@ import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
@@ -34,18 +35,6 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
         ? TransactionListItemType[]
         : TransactionGroupListItemType[];
 
-/** Model of columns to show for search results */
-type ColumnsToShow = {
-    /** Whether the category column should be shown */
-    shouldShowCategoryColumn: boolean;
-
-    /** Whether the tag column should be shown */
-    shouldShowTagColumn: boolean;
-
-    /** Whether the tax column should be shown */
-    shouldShowTaxColumn: boolean;
-};
-
 /** Model of search result state */
 type SearchResultsInfo = {
     /** Current search results offset/cursor */
@@ -66,9 +55,6 @@ type SearchResultsInfo = {
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
-
-    /** The optional columns that should be shown according to policy settings */
-    columnsToShow: ColumnsToShow;
 
     /** The number of results */
     count?: number;
@@ -357,6 +343,9 @@ type SearchTransaction = {
 
         /** State of the receipt */
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+
+        /** The name of the file of the receipt */
+        filename?: string;
     };
 
     /** The transaction tag */
@@ -395,6 +384,9 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
+    /** Used during the creation flow before the transaction is saved to the server */
+    iouRequestType?: IOURequestType;
+
     /** If the transaction has violations */
     hasViolation?: boolean;
 
@@ -403,6 +395,9 @@ type SearchTransaction = {
 
     /** The ID of the report the transaction is associated with */
     reportID: string;
+
+    /** The name of the file used for a receipt */
+    filename?: string;
 
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
@@ -433,6 +428,18 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** The CC for this transaction */
+    cardID?: number;
+
+    /** The display name of the purchaser card, if any */
+    cardName?: string;
+
+    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
+    convertedAmount: number;
+
+    /** The currency that the converted amount is in */
+    convertedCurrency: string;
 };
 
 /** Model of tasks search result */

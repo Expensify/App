@@ -43,6 +43,10 @@
   }
 
   function updateDefaultValues(field, value) {
+    if (field === "status" && value === "all") {
+      defaultValues[field] = "";
+      return;
+    }
     defaultValues[field] = value;
   }
 }
@@ -111,6 +115,7 @@ key "key"
   = @(
       date
       / amount
+      / total
       / merchant
       / description
       / reportID
@@ -124,10 +129,12 @@ key "key"
       / taxRate
       / cardID
       / from
+      / attendee
       / payer
       / exporter
       / expenseType
       / withdrawalType
+      / withdrawalID
       / submitted
       / approved
       / paid
@@ -141,11 +148,14 @@ key "key"
       / reimbursable
       / billable
       / action
+      / has
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
   = k:key {
-      nameOperator = (k === "from" || k === "to");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }
 

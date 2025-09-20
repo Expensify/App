@@ -14,6 +14,7 @@ const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<Se
 
 function BaseSearchList({
     data,
+    columns,
     renderItem,
     onSelectRow,
     keyExtractor,
@@ -26,12 +27,9 @@ function BaseSearchList({
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
-    estimatedItemSize,
-    overrideItemLayout,
-    estimatedListSize,
     contentContainerStyle,
-    calculatedListHeight,
     flattenedItemsLength,
+    newTransactions,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
 
@@ -74,7 +72,7 @@ function BaseSearchList({
                 }
                 setFocusedIndex(index);
             };
-            return renderItem(item, isItemFocused, onFocus);
+            return renderItem(item, index, isItemFocused, onFocus);
         },
         [focusedIndex, renderItem, setFocusedIndex],
     );
@@ -103,7 +101,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, isFocused], [focusedIndex, isFocused]);
+    const extraData = useMemo(() => [focusedIndex, isFocused, columns, newTransactions], [focusedIndex, isFocused, columns, newTransactions]);
 
     return (
         <AnimatedFlashListComponent
@@ -121,11 +119,8 @@ function BaseSearchList({
             onLayout={onLayout}
             removeClippedSubviews
             drawDistance={1000}
-            estimatedItemSize={estimatedItemSize}
-            overrideItemLayout={overrideItemLayout}
-            estimatedListSize={estimatedListSize}
             contentContainerStyle={contentContainerStyle}
-            overrideProps={{estimatedHeightSize: calculatedListHeight}}
+            maintainVisibleContentPosition={{disabled: true}}
         />
     );
 }

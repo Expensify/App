@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -10,6 +11,7 @@ import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {FallbackAvatar} from './Icon/Expensicons';
 import {usePersonalDetails} from './OnyxListItemProvider';
@@ -25,6 +27,7 @@ type SelectionListApprover = {
     login: string;
     rightElement?: React.ReactNode;
     icons: Icon[];
+    value?: number;
 };
 type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
@@ -40,6 +43,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const sections: ApproverSection[] = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
@@ -78,7 +82,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             approvers.push(...availableApprovers);
         }
 
-        const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (approver) => [approver.text ?? '', approver.login ?? '']);
+        const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [approver.text ?? '', approver.login ?? '']);
 
         return [
             {
@@ -87,7 +91,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                 shouldShow: true,
             },
         ];
-    }, [debouncedSearchTerm, personalDetails, policy?.employeeList, policy?.owner, selectedApprover, localeCompare]);
+    }, [policy?.employeeList, policy?.owner, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover]);
 
     const handleOnSelectRow = (approver: SelectionListApprover) => {
         setApprover(approver.login);

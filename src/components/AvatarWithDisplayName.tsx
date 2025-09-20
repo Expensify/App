@@ -17,6 +17,7 @@ import {
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
     getReportName,
+    getReportStatusTranslation,
     isChatThread,
     isExpenseReport,
     isInvoiceReport,
@@ -57,6 +58,9 @@ type AvatarWithDisplayNameProps = {
 
     /** Whether we should enable custom title logic designed for search lis */
     shouldUseCustomSearchTitleName?: boolean;
+
+    /** Whether we should display the status of the report */
+    shouldDisplayStatus?: boolean;
 
     /** Transactions inside report */
     transactions?: TransactionListItemType[];
@@ -154,9 +158,10 @@ function AvatarWithDisplayName({
     transactions = [],
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
+    shouldDisplayStatus = false,
 }: AvatarWithDisplayNameProps) {
     const {localeCompare} = useLocalize();
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: !report?.parentReportID});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -166,16 +171,18 @@ function AvatarWithDisplayName({
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
     );
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: true});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes);
-    const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isReportArchived);
+    const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, undefined, isReportArchived);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
+    const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
@@ -271,6 +278,7 @@ function AvatarWithDisplayName({
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
+                                statusText={statusText}
                             />
                         )}
                         {!!subtitle && (
