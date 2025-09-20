@@ -8,7 +8,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 function LongTermsForm() {
@@ -19,48 +19,48 @@ function LongTermsForm() {
     const termsData = [
         {
             title: translate('termsStep.longTermsForm.openingAccountTitle'),
-            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
+            rightText: convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.openingAccountDetails'),
         },
         {
             title: translate('termsStep.monthlyFee'),
-            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
+            rightText: convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.monthlyFeeDetails'),
         },
         {
             title: translate('termsStep.longTermsForm.customerServiceTitle'),
             subTitle: translate('termsStep.longTermsForm.automated'),
-            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
+            rightText: convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.customerServiceDetails'),
         },
         {
             title: translate('termsStep.longTermsForm.customerServiceTitle'),
             subTitle: translate('termsStep.longTermsForm.liveAgent'),
-            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
+            rightText: convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.customerServiceDetails'),
         },
         {
             title: translate('termsStep.inactivity'),
-            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
+            rightText: convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.inactivityDetails'),
         },
         {
             title: translate('termsStep.longTermsForm.sendingFundsTitle'),
-            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
+            rightText: convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.sendingFundsDetails'),
         },
         {
             title: translate('termsStep.electronicFundsWithdrawal'),
             subTitle: translate('termsStep.standard'),
-            rightText: CurrencyUtils.convertToDisplayString(0, 'USD'),
+            rightText: convertToDisplayString(0, 'USD'),
             details: translate('termsStep.longTermsForm.electronicFundsStandardDetails'),
         },
         {
             title: translate('termsStep.electronicFundsWithdrawal'),
             subTitle: translate('termsStep.longTermsForm.instant'),
             rightText: `${numberFormat(1.5)}%`,
-            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', {amount: CurrencyUtils.convertToDisplayString(25, 'USD')}),
-            details: translate('termsStep.longTermsForm.electronicFundsInstantDetails', {percentage: numberFormat(1.5), amount: CurrencyUtils.convertToDisplayString(25, 'USD')}),
+            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', {amount: convertToDisplayString(25, 'USD')}),
+            details: translate('termsStep.longTermsForm.electronicFundsInstantDetails', {percentage: numberFormat(1.5), amount: convertToDisplayString(25, 'USD')}),
         },
     ];
 
@@ -92,19 +92,11 @@ function LongTermsForm() {
             </CollapsibleSection>
 
             <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
-                {translate('termsStep.longTermsForm.fdicInsuranceBancorp', {amount: CurrencyUtils.convertToDisplayString(25000000, 'USD')})} {CONST.TERMS.FDIC_PREPAID}{' '}
-                {translate('termsStep.longTermsForm.fdicInsuranceBancorp2')}
+                {translate('termsStep.longTermsForm.fdicInsuranceBancorp', {amount: convertToDisplayString(25000000, 'USD')})}
             </Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.noOverdraftOrCredit')}</Text>
-            <Text style={[styles.mb4, styles.textMicroSupporting]}>
-                {translate('termsStep.longTermsForm.contactExpensifyPayments')} {CONST.EMAIL.CONCIERGE} {translate('termsStep.longTermsForm.contactExpensifyPayments2')}{' '}
-                {CONST.NEW_EXPENSIFY_URL}.
-            </Text>
-            <Text style={[styles.mb6, styles.textMicroSupporting]}>
-                {translate('termsStep.longTermsForm.generalInformation')} {CONST.TERMS.CFPB_PREPAID}
-                {'. '}
-                {translate('termsStep.longTermsForm.generalInformation2')} {CONST.TERMS.CFPB_COMPLAINT}.
-            </Text>
+            <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.contactExpensifyPayments')}</Text>
+            <Text style={[styles.mb6, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.generalInformation')}</Text>
 
             <View style={styles.flexRow}>
                 <Icon
