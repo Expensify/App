@@ -2,13 +2,19 @@ require('dotenv').config();
 
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
+// Load React Compiler configuration from shared config file
+const reactCompilerConfig = require('./react-compiler-config.json');
+
 const ReactCompilerConfig = {
     target: '18',
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
-    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
-    sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
+    // Use shared configuration for file filtering
+    sources: (filename) => {
+        // Check if file is in any excluded folder
+        return !reactCompilerConfig.excludedFolderPatterns.some((pattern) => filename.includes(pattern));
+    },
 };
 
 /**
