@@ -519,7 +519,7 @@ describe('getSecondaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         } as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
