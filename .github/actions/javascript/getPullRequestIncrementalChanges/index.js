@@ -11538,7 +11538,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 1894:
+/***/ 6578:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -11583,6 +11583,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const ActionUtils_1 = __nccwpck_require__(6981);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const Git_1 = __importDefault(__nccwpck_require__(7037));
 /**
@@ -11593,68 +11594,90 @@ async function run() {
     if (github_1.context.eventName !== 'pull_request') {
         throw new Error(`This action can only be run on pull_request events, but was run on: ${github_1.context.eventName}`);
     }
-    // Get PR information from GitHub context
-    const pullRequestNumber = github_1.context.payload.pull_request?.number;
-    const beforeSha = github_1.context.payload.before;
-    const afterSha = github_1.context.payload.after;
-    // Ensure we have valid git refs, fetching them if needed
+    const eventPayload = github_1.context.payload;
+    const prNumber = eventPayload.pull_request.number;
     const filePathsInput = (0, ActionUtils_1.getJSONInput)('FILE_PATHS', { required: false });
-    console.log(`🔍 Checking for local changes with push range ${beforeSha}..${afterSha}${filePathsInput ? `, looking for files ${JSON.stringify(filePathsInput)}` : ''}`);
-    await Promise.all([Git_1.default.ensureRef(beforeSha), Git_1.default.ensureRef(afterSha)]);
-    // Do local git diff to see what files actually changed in the push
-    const localDiff = Git_1.default.diff(beforeSha, afterSha, filePathsInput);
-    const localChangedFiles = new Map();
-    for (const file of localDiff.files) {
-        localChangedFiles.set(file.filePath, file);
-    }
-    console.log(`📝 Found ${localChangedFiles.size} files with local changes in push`);
-    // If no files changed locally, we can skip all API calls
-    if (localChangedFiles.size === 0) {
-        console.log(`⏭️ No files changed in push - skipping API validation`);
-        core.setOutput('CHANGED_FILES', JSON.stringify([]));
-        return;
-    }
-    // Now we know there are local changes - get PR diff from the GitHub API to compare
-    console.log(`🌐 Using GitHub API to validate ${localChangedFiles.size} files with local changes`);
-    const prDiff = Git_1.default.parseDiff(await GithubUtils_1.default.getPullRequestDiff(pullRequestNumber));
-    // Compare the local push diff with the PR diff and collect changed files
-    const changedFiles = [];
-    // Cross-check files that have overlapping content changes
-    for (const prFileDiff of prDiff.files) {
-        const filePath = prFileDiff.filePath;
-        const localFileDiff = localChangedFiles.get(filePath);
-        if (!localFileDiff) {
-            continue; // File not in local changes
+    let changedFiles = [];
+    if (eventPayload.action === 'opened') {
+        console.log('🆕 PR was just opened, including all files in the PR');
+        changedFiles = (await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            // @eslint-disable-next-line @typescript-eslint/naming-convention
+            pull_number: prNumber,
+            // @eslint-disable-next-line @typescript-eslint/naming-convention
+            per_page: 100,
+        })).map((file) => file.filename);
+        if (filePathsInput) {
+            changedFiles = changedFiles.filter((file) => filePathsInput.includes(file));
         }
-        // Extract all modified content from both diffs (regardless of add/remove)
-        const localModifiedContent = new Set();
-        const prModifiedContent = new Set();
-        // Get local diff content
-        for (const hunk of localFileDiff.hunks) {
-            for (const line of hunk.lines) {
-                localModifiedContent.add(line.content);
+    }
+    else if (eventPayload.action === 'synchronize') {
+        console.log('🔄 PR was updated, checking only the new commits');
+        const beforeSha = github_1.context.payload.before;
+        const afterSha = github_1.context.payload.after;
+        // Ensure we have valid git refs, fetching them if needed
+        console.log(`🔍 Checking for local changes with push range ${beforeSha}..${afterSha}${filePathsInput ? `, looking for files ${JSON.stringify(filePathsInput)}` : ''}`);
+        await Promise.all([Git_1.default.ensureRef(beforeSha), Git_1.default.ensureRef(afterSha)]);
+        // Do local git diff to see what files actually changed in the push
+        const localDiff = Git_1.default.diff(beforeSha, afterSha, filePathsInput);
+        const localChangedFiles = new Map();
+        for (const file of localDiff.files) {
+            localChangedFiles.set(file.filePath, file);
+        }
+        console.log(`📝 Found ${localChangedFiles.size} files with local changes in push`);
+        // If no files changed locally, we can skip all API calls
+        if (localChangedFiles.size === 0) {
+            console.log(`⏭️ No files changed in push - skipping API validation`);
+            core.setOutput('CHANGED_FILES', JSON.stringify([]));
+            return;
+        }
+        // Now we know there are local changes - get PR diff from the GitHub API to compare
+        console.log(`🌐 Using GitHub API to validate ${localChangedFiles.size} files with local changes`);
+        const prDiff = Git_1.default.parseDiff(await GithubUtils_1.default.getPullRequestDiff(prNumber));
+        // Compare the local push diff with the PR diff and collect changed files, checking for overlapping content changes at the line level
+        for (const prFileDiff of prDiff.files) {
+            const filePath = prFileDiff.filePath;
+            const localFileDiff = localChangedFiles.get(filePath);
+            if (!localFileDiff) {
+                continue; // File not in local changes
+            }
+            // Extract all modified content from both diffs (regardless of add/remove)
+            const localModifiedContent = new Set();
+            const prModifiedContent = new Set();
+            // Get local diff content
+            for (const hunk of localFileDiff.hunks) {
+                for (const line of hunk.lines) {
+                    localModifiedContent.add(line.content);
+                }
+            }
+            // Get PR diff content
+            for (const hunk of prFileDiff.hunks) {
+                for (const line of hunk.lines) {
+                    prModifiedContent.add(line.content);
+                }
+            }
+            // Check if any content overlaps between push and PR
+            const hasOverlappingContent = Array.from(localModifiedContent).some((content) => prModifiedContent.has(content));
+            if (hasOverlappingContent) {
+                console.log(`✅ ${filePath} has overlapping content changes in both push and PR`);
+                changedFiles.push(filePath);
+            }
+            else {
+                console.log(`⏭️ ${filePath} has changes in both push and PR but no overlapping content - likely from merged commits`);
             }
         }
-        // Get PR diff content
-        for (const hunk of prFileDiff.hunks) {
-            for (const line of hunk.lines) {
-                prModifiedContent.add(line.content);
-            }
-        }
-        // Check if any content overlaps between push and PR
-        const hasOverlappingContent = Array.from(localModifiedContent).some((content) => prModifiedContent.has(content));
-        if (hasOverlappingContent) {
-            console.log(`✅ ${filePath} has overlapping content changes in both push and PR`);
-            changedFiles.push(filePath);
-        }
-        else {
-            console.log(`⏭️ ${filePath} has changes in both push and PR but no overlapping content - likely from merged commits`);
-        }
     }
+    else {
+        throw new Error(`This action can only be run on pull_request opened or synchronize events, but was run on: ${eventPayload.action}`);
+    }
+    console.log(`📈 Total files changed: ${changedFiles.length}`);
+    core.startGroup('📊 Changed files:');
+    console.log(changedFiles);
+    core.endGroup();
     // Set output
     core.setOutput('CHANGED_FILES', JSON.stringify(changedFiles));
-    console.log(`📊 Changed files: ${JSON.stringify(changedFiles)}`);
-    console.log(`📈 Total files changed: ${changedFiles.length}`);
+    core.setOutput('HAS_CHANGES', changedFiles.length > 0);
 }
 if (require.main === require.cache[eval('__filename')]) {
     run().catch((error) => {
@@ -12915,7 +12938,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(1894);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(6578);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
