@@ -5,9 +5,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type SigningOutPageType from './types';
 
-const SigningOutPage: SigningOutPageType = () => {
+function SigningOutPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -56,7 +55,7 @@ const SigningOutPage: SigningOutPageType = () => {
             />
         </ScreenWrapper>
     );
-};
+}
 
 SigningOutPage.displayName = 'SigningOutPage';
 

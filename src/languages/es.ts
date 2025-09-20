@@ -7670,6 +7670,10 @@ const translations = {
         },
         callScheduled: 'Llamada programada',
     },
+    signingOutPage: {
+        title: 'Cerrando sesión...',
+        subtitle: 'Un momento, por favor.',
+    },
     autoSubmitModal: {
         title: '¡Todo claro y enviado!',
         description: 'Se han solucionado todas las advertencias e infracciones, así que:',

@@ -2135,6 +2135,7 @@ type SharedScreensParamList = {
         // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes;
     };
+    [SCREENS.SIGNING_OUT]: undefined;
 };
 
 type ShareNavigatorParamList = {

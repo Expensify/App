@@ -7225,6 +7225,10 @@ const translations = {
         },
         callScheduled: 'Chiamata programmata',
     },
+    signingOutPage: {
+        title: 'Disconnessione...',
+        subtitle: 'Un momento, per favore.',
+    },
     autoSubmitModal: {
         title: 'Tutto chiaro e inviato!',
         description: 'Tutti gli avvisi e le violazioni sono stati risolti quindi:',

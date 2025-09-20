@@ -785,6 +785,7 @@ const SCREENS = {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
+    SIGNING_OUT: 'Signing_Out',
     REPORT_CHANGE_APPROVER: {
         ROOT: 'Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
