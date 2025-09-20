@@ -23,5 +23,5 @@
             "@src/*": ["../src/*"],
             "@userActions/*": ["../src/libs/actions/*"]
         }
-    },
+    }
 }
