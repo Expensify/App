@@ -4798,8 +4798,14 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
 }
 
 function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void) {
+    let reportIDParam = reportID;
+    const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
+    if (allTransactionIDs.length !== transactionIDList.length) {
+        reportIDParam = '-1';
+    }
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_CSV, {
-        reportID,
+        reportID: reportIDParam,
         transactionIDList,
     });
 
