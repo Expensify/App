@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
@@ -46,15 +46,21 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
         const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false, canBeMissing: true});
+
+        const getParentReportAction = useCallback(
+            (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxEntry<OnyxTypes.ReportAction> | undefined => {
+                const parentReportActionID = report?.parentReportActionID;
+                if (!parentReportActionID || !parentReportActions) {
+                    return undefined;
+                }
+                return parentReportActions[parentReportActionID];
+            },
+            [report?.parentReportActionID],
+        );
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
-            selector: (parentReportActions) => {
-                const parentReportActionID = report?.parentReportActionID;
-                if (!parentReportActionID) {
-                    return null;
-                }
-                return parentReportActions?.[parentReportActionID] ?? null;
-            },
+            selector: getParentReportAction,
             canEvict: false,
             canBeMissing: true,
         });

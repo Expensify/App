@@ -79,8 +79,16 @@ function ReportActionsView({
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isReportArchived = useReportIsArchived(report?.reportID);
+
+    const getTransactionThreadReportActions = useCallback(
+        (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction[] => {
+            return getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report, isReportArchived), true);
+        },
+        [report, isReportArchived],
+    );
+
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
-        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report, isReportArchived), true),
+        selector: getTransactionThreadReportActions,
         canBeMissing: true,
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});

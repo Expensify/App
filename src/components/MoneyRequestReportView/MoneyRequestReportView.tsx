@@ -111,10 +111,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
 
+    const getParentReportActionSelector = useCallback(
+        (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxEntry<OnyxTypes.ReportAction> => {
+            return getParentReportAction(parentReportActions, report?.parentReportActionID);
+        },
+        [report?.parentReportActionID],
+    );
+
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
+        selector: getParentReportActionSelector,
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
