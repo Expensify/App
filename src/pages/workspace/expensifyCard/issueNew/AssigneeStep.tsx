@@ -7,23 +7,21 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import useOptions from '@libs/UseOptionsUtils';
 import Navigation from '@navigation/Navigation';
-import {clearIssueNewCardFlow, getCardDefaultName, setIssueNewCardStepAndData} from '@userActions/Card';
+import {clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
-
-const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
 type AssigneeStepProps = {
     // The policy that the card will be issued under
@@ -43,11 +41,10 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const currency = useCurrencyForExpensifyCard({policyID});
 
     const isEditing = issueNewCard?.isEditing;
-
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const submit = (assignee: ListItem) => {
         const data: Partial<IssueNewCardData> = {
@@ -58,6 +55,17 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {
             // If the card title is the default card title, update it with the new assignee's name
             data.cardTitle = getCardDefaultName(getUserNameByEmail(assignee?.login ?? '', 'firstName'));
+        }
+
+        if (userToInvite?.accountID === assignee?.accountID) {
+            data.assigneeAccountID = assignee?.accountID;
+            setIssueNewCardStepAndData({
+                step: CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER,
+                data,
+                policyID,
+            });
+            setDraftInviteAccountID(data.assigneeEmail, assignee?.accountID, policyID);
+            return;
         }
 
         setIssueNewCardStepAndData({
@@ -77,7 +85,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         clearIssueNewCardFlow(policyID);
     };
 
-    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
+    const shouldShowSearchInput = policy?.employeeList;
     const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
 
     const membersDetails = useMemo(() => {
@@ -115,7 +123,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     }, [isOffline, policy?.employeeList, formatPhoneNumber, localeCompare]);
 
     const sections = useMemo(() => {
-        if (!debouncedSearchTerm) {
+        if (!debouncedSearchValue) {
             return [
                 {
                     data: membersDetails,
@@ -124,8 +132,8 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+        const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchValue, countryCode).toLowerCase();
+        const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
             {
@@ -133,14 +141,22 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 data: filteredOptions,
                 shouldShow: true,
             },
+            {
+                title: undefined,
+                data: userToInvite ? [userToInvite] : [],
+                shouldShow: !!userToInvite,
+            },
+            ...(personalDetails
+                ? [
+                      {
+                          title: undefined,
+                          data: personalDetails,
+                          shouldShow: !!personalDetails,
+                      },
+                  ]
+                : []),
         ];
-    }, [debouncedSearchTerm, countryCode, membersDetails]);
-
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
-
-        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
-    }, [debouncedSearchTerm, sections]);
+    }, [debouncedSearchValue, membersDetails, userToInvite, personalDetails, countryCode]);
 
     return (
         <InteractiveStepWrapper
@@ -156,13 +172,14 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
                 textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
+                textInputValue={searchValue}
+                onChangeText={setSearchValue}
+                sections={areOptionsInitialized ? sections : []}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
                 onSelectRow={submit}
                 addBottomSafeAreaPadding
+                showLoadingPlaceholder={!areOptionsInitialized}
             />
         </InteractiveStepWrapper>
     );
