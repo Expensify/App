@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +40,6 @@ function CategoryRequireReceiptsOverPage({
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
-
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
@@ -88,7 +87,7 @@ function CategoryRequireReceiptsOverPage({
                 />
                 <SelectionList
                     sections={[{data: requireReceiptsOverListData}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
                         if (policyData.policy === undefined) {
                             return;
