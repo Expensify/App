@@ -517,14 +517,15 @@ function MoneyRequestConfirmationListFooter({
 
                         if (isManualDistanceEnabled && !isPolicyExpenseChat) {
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action,
                                     iouType,
                                     transactionID,
                                     reportID,
-                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias,
-                                    Navigation.getActiveRoute(),
-                                ),
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                    backTo: Navigation.getActiveRoute(),
+                                    shouldSubmitExpense: true,
+                                }),
                             );
                             return;
                         }
