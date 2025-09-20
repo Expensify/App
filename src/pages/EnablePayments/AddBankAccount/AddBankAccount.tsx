@@ -40,7 +40,7 @@ function AddBankAccount() {
                   };
             addPersonalBankAccount(bankAccountWithToken);
         }
-    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
+    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken]);
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
