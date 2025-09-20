@@ -78,15 +78,17 @@ function AddPlaidBankAccount({
     const styles = useThemeStyles();
     const plaidBankAccounts = plaidData?.bankAccounts ?? [];
     const defaultSelectedPlaidAccount = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID);
-    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID;
+    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID;±
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
+    subscribedKeyboardShortcuts.current = [];
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true, initWithStoredValues: false});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
 
     const getPlaidLinkToken = (): string | undefined => {
         if (plaidLinkToken) {
