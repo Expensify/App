@@ -3532,6 +3532,7 @@ function openReportFromDeepLink(
                                     currentOnboardingPurposeSelected,
                                     currentOnboardingCompanySize,
                                     onboardingInitialPath,
+                                    onboardingValues: val,
                                 }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
