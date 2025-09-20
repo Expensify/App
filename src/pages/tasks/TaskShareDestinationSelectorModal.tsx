@@ -76,6 +76,7 @@ function TaskShareDestinationSelectorModal() {
             return ids;
         },
     });
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
@@ -90,7 +91,7 @@ function TaskShareDestinationSelectorModal() {
             };
         }
         const filteredReports = reportFilter(optionList.reports, archivedReportsIdSet);
-        const {recentReports} = getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
+        const {recentReports} = getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true, draftComments);
         const header = getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
             recentReports,
@@ -99,7 +100,7 @@ function TaskShareDestinationSelectorModal() {
             currentUserOption: null,
             header,
         };
-    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports, archivedReportsIdSet]);
+    }, [areOptionsInitialized, optionList.reports, optionList.personalDetails, archivedReportsIdSet, draftComments]);
 
     const options = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
