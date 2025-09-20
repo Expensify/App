@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -20,9 +21,11 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();
 
     const {transactionID, reportID, backTo} = route.params;
+    const {removeTransaction} = useSearchContext();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment);
+        removeTransaction(transactionID);
         Navigation.dismissModal();
         if (urlToNavigateBack) {
             Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack));
