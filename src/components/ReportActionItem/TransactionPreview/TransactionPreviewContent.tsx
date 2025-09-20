@@ -63,6 +63,7 @@ function TransactionPreviewContent({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
 
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -105,8 +106,9 @@ function TransactionPreviewContent({
                 shouldShowRBR,
                 violationMessage,
                 reportActions,
+                originalTransaction,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
