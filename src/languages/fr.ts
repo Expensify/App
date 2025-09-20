@@ -3180,22 +3180,6 @@ const translations = {
         codiceFiscaleDescription:
             "Veuillez télécharger une vidéo d'une visite de site ou un appel enregistré avec le signataire. Le signataire doit fournir : nom complet, date de naissance, nom de l'entreprise, numéro d'enregistrement, numéro de code fiscal, adresse enregistrée, nature de l'activité et objet du compte.",
     },
-    validationStep: {
-        headerTitle: 'Valider le compte bancaire',
-        buttonText: 'Terminer la configuration',
-        maxAttemptsReached: 'La validation de ce compte bancaire a été désactivée en raison de trop nombreuses tentatives incorrectes.',
-        description: `Dans un délai de 1 à 2 jours ouvrables, nous enverrons trois (3) petites transactions sur votre compte bancaire sous un nom tel que "Expensify, Inc. Validation".`,
-        descriptionCTA: 'Veuillez entrer le montant de chaque transaction dans les champs ci-dessous. Exemple : 1,51.',
-        reviewingInfo: 'Merci ! Nous examinons vos informations et nous vous contacterons sous peu. Veuillez vérifier votre chat avec Concierge.',
-        forNextStep: 'pour les prochaines étapes pour terminer la configuration de votre compte bancaire.',
-        letsChatCTA: 'Oui, discutons.',
-        letsChatText: 'Presque terminé ! Nous avons besoin de votre aide pour vérifier quelques dernières informations par chat. Prêt ?',
-        letsChatTitle: 'Discutons !',
-        enable2FATitle: "Prévenez la fraude, activez l'authentification à deux facteurs (2FA)",
-        enable2FAText:
-            "Nous prenons votre sécurité au sérieux. Veuillez configurer l'authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.",
-        secureYourAccount: 'Sécurisez votre compte',
-    },
     completeVerificationStep: {
         completeVerification: 'Terminer la vérification',
         confirmAgreements: 'Veuillez confirmer les accords ci-dessous.',
@@ -3206,18 +3190,13 @@ const translations = {
         termsAndConditions: 'termes et conditions',
     },
     connectBankAccountStep: {
-        finishButtonText: 'Terminer la configuration',
         validateYourBankAccount: 'Validez votre compte bancaire',
         validateButtonText: 'Valider',
         validationInputLabel: 'Transaction',
         maxAttemptsReached: 'La validation de ce compte bancaire a été désactivée en raison de trop nombreuses tentatives incorrectes.',
         description: `Dans un délai de 1 à 2 jours ouvrables, nous enverrons trois (3) petites transactions sur votre compte bancaire sous un nom tel que "Expensify, Inc. Validation".`,
         descriptionCTA: 'Veuillez entrer le montant de chaque transaction dans les champs ci-dessous. Exemple : 1,51.',
-        reviewingInfo: 'Merci ! Nous examinons vos informations et nous vous contacterons sous peu. Veuillez vérifier votre chat avec Concierge.',
-        forNextSteps: 'pour les prochaines étapes pour terminer la configuration de votre compte bancaire.',
-        letsChatCTA: 'Oui, discutons.',
         letsChatText: 'Presque terminé ! Nous avons besoin de votre aide pour vérifier quelques dernières informations par chat. Prêt ?',
-        letsChatTitle: 'Discutons !',
         enable2FATitle: "Prévenez la fraude, activez l'authentification à deux facteurs (2FA)",
         enable2FAText:
             "Nous prenons votre sécurité au sérieux. Veuillez configurer l'authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.",
