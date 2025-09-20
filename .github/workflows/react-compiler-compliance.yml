@@ -17,16 +17,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Need full history for git diff
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
         with:
-          node-version: '20.19.4'
-          cache: 'npm'
+          IS_DESKTOP_BUILD: true
 
       - name: Install dependencies
         run: npm ci
