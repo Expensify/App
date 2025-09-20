@@ -109,14 +109,9 @@ function StatusClearAfterPage() {
 
             if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
                 updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
-            } else {
-                const selectedRange = statusType.find((item) => item.value === mode.value);
-                const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
-                updateDraftCustomStatus({clearAfter: calculatedDraftDate});
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
             }
         },
-        [draftPeriod, statusType],
+        [draftPeriod],
     );
 
     useEffect(() => {
@@ -160,6 +155,20 @@ function StatusClearAfterPage() {
         );
     }, [translate, styles.pr2, styles.flex1, customStatusDate, customStatusTime, draftPeriod, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
 
+    const saveAndGoBack = useCallback(() => {
+        if (!draftPeriod) {
+            return;
+        }
+
+        if (draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+            const selectedRange = statusType.find((item) => item.value === draftPeriod);
+            const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
+            updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+        }
+
+        Navigation.goBack(ROUTES.SETTINGS_STATUS);
+    }, [draftPeriod, statusType]);
+
     const timePeriodOptions = useCallback(
         () => (
             <SelectionList
@@ -168,9 +177,12 @@ function StatusClearAfterPage() {
                 onSelectRow={updateMode}
                 initiallyFocusedOptionKey={statusType.find((status) => status.isSelected)?.keyForList}
                 listFooterContent={listFooterContent}
+                showConfirmButton
+                confirmButtonText={translate('statusPage.save')}
+                onConfirm={saveAndGoBack}
             />
         ),
-        [statusType, updateMode, listFooterContent],
+        [statusType, updateMode, listFooterContent, saveAndGoBack, translate],
     );
 
     return (
