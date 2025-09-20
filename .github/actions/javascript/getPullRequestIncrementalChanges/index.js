@@ -11603,9 +11603,9 @@ async function run() {
         changedFiles = (await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            // @eslint-disable-next-line @typescript-eslint/naming-convention
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_number: prNumber,
-            // @eslint-disable-next-line @typescript-eslint/naming-convention
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         })).map((file) => file.filename);
         if (filePathsInput) {
