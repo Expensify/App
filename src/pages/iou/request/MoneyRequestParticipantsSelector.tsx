@@ -80,6 +80,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Whether this is a corporate card transaction */
+    isCorporateCardTransaction?: boolean;
 };
 
 type InputFocusRef = {
@@ -95,6 +98,7 @@ function MoneyRequestParticipantsSelector(
         iouType,
         action,
         isPerDiemRequest = false,
+        isCorporateCardTransaction = false,
     }: MoneyRequestParticipantsSelectorProps,
     ref: Ref<InputFocusRef>,
 ) {
@@ -171,8 +175,8 @@ function MoneyRequestParticipantsSelector(
                 // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
                 excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
 
-                // Per diem expenses should only be submitted to workspaces, not individual users
-                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
+                // Per diem expenses and corporate card transactions should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -203,6 +207,7 @@ function MoneyRequestParticipantsSelector(
         participants,
         isPerDiemRequest,
         canShowManagerMcTest,
+        isCorporateCardTransaction,
     ]);
 
     const chatOptions = useMemo(() => {
