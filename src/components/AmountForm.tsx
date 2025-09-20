@@ -75,6 +75,7 @@ function AmountForm({
             label={label}
             value={value}
             decimals={decimals}
+            currency={currency}
             displayAsTextInput={displayAsTextInput}
             onInputChange={onInputChange}
             onSymbolButtonPress={onCurrencyButtonPress}
