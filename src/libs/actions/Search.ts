@@ -1,17 +1,23 @@
+import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
+import type {PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
+import type {KYCFlowEvent} from '@libs/PaymentUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
@@ -19,8 +25,10 @@ import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
@@ -28,6 +36,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 
 function handleActionButtonPress(
     hash: number,
@@ -600,6 +609,155 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+/**
+ * For Expense reports, user can choose both expense and transaction, in this case we need to check for both selected reports and transactions
+ * This function checks if all remaining selected transactions (not included in selectedReports) are eligible for bulk pay
+ */
+function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: SelectedTransactions, selectedReportIDs?: string[], transactionKeys?: string[]) {
+    if (!selectedTransactions || isEmpty(selectedTransactions)) {
+        return true;
+    }
+    const neededFilterTransactions = transactionKeys?.filter((transactionIdKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIdKey].reportID));
+    if (!neededFilterTransactions?.length) {
+        return true;
+    }
+
+    return neededFilterTransactions.every((transactionIdKey) => selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY);
+}
+
+/**
+ * Checks if the current selected reports/transactions are eligible for bulk pay.
+ */
+function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs: string[]) {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
+    const firstReport = selectedReports.at(0);
+    const hasLastPaymentMethod =
+        selectedReports.length > 0
+            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
+            : transactionKeys.every((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
+
+    const shouldShowBulkPayOption =
+        selectedReports.length > 0
+            ? selectedReports.every(
+                  (report) =>
+                      report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) &&
+                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                      ((hasLastPaymentMethod && report.policyID) || (getReportType(report.reportID) === getReportType(firstReport?.reportID) && report.policyID === firstReport?.policyID)) &&
+                      shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
+              )
+            : transactionKeys.every(
+                  (transactionIdKey) =>
+                      selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                      ((hasLastPaymentMethod && selectedTransactions[transactionIdKey].policyID) ||
+                          (getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID) &&
+                              selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID)),
+              );
+
+    return {
+        shouldEnableBulkPayOption: shouldShowBulkPayOption,
+        isFirstTimePayment: !hasLastPaymentMethod,
+    };
+}
+
+/**
+ *
+ * @param selectedReports
+ * @param selectedTransactions
+ * @param currency
+ * @returns The formatted amount of the selected reports/transactions.
+ */
+function getFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency: string): string {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const totalAmount =
+        selectedReports.length > 0
+            ? selectedReports.reduce((acc, report) => acc + (Math.abs(report.total) ?? 0), 0)
+            : transactionKeys.reduce((acc, transactionIdKey) => acc + (Math.abs(selectedTransactions[transactionIdKey].amount) ?? 0), 0);
+    const formattedAmount = convertToDisplayString(totalAmount, currency);
+    return formattedAmount ?? '';
+}
+
+/**
+ * Checks if current menu item is a valid bulk pay option
+ */
+function isValidBulkPayOption(item: PopoverMenuItem) {
+    if (!item.key) {
+        return false;
+    }
+    return Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod) || Object.values(CONST.IOU.PAYMENT_TYPE).includes(item.key as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>);
+}
+
+/**
+ * Handles the click event when user selects bulk pay action.
+ */
+function handleBulkPayItemSelected(
+    item: PopoverMenuItem,
+    triggerKYCFlow: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void,
+    isAccountLocked: boolean,
+    showLockedAccountModal: () => void,
+    policy: OnyxEntry<Policy>,
+    latestBankItems: BankAccountMenuItem[] | undefined,
+    activeAdminPolicies: Policy[],
+    isUserValidated: boolean | undefined,
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
+) {
+    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
+    // Policy id is also a last payment method so we shouldn't early return here for that case.
+    if (!isValidBulkPayOption(item) && !selectedPolicy) {
+        return;
+    }
+    if (isAccountLocked) {
+        showLockedAccountModal();
+        return;
+    }
+
+    if (policy && shouldRestrictUserBillableActions(policy?.id)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
+        return;
+    }
+
+    const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
+    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
+
+    const paymentMethod = item.key as PaymentMethod;
+    let paymentType;
+    switch (paymentMethod) {
+        case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+            break;
+        case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+            paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
+            break;
+        default:
+            paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+            break;
+    }
+
+    if (!!selectedPolicy || shouldSelectPaymentMethod) {
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+        triggerKYCFlow(undefined, paymentType, paymentMethod, selectedPolicy);
+
+        if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+        }
+        return;
+    }
+    confirmPayment?.(paymentType as PaymentMethodType);
+}
+
+/**
+ * Return true if selected reports/transactions have the same USD currency.
+ */
+function isCurrencySupportWalletBulkPay(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions) {
+    return selectedReports?.length > 0
+        ? Object.values(selectedReports).every((report) => report?.currency === CONST.CURRENCY.USD)
+        : Object.values(selectedTransactions).every((transaction) => transaction.currency === CONST.CURRENCY.USD);
+}
+
 export {
     saveSearch,
     search,
@@ -622,4 +780,9 @@ export {
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
+    getPayOption,
+    getFormattedAmount,
+    isValidBulkPayOption,
+    handleBulkPayItemSelected,
+    isCurrencySupportWalletBulkPay,
 };

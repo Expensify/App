@@ -8,6 +8,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -19,6 +20,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -35,6 +37,8 @@ import {
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getLastPolicyPaymentMethod,
+    getPayOption,
+    isCurrencySupportWalletBulkPay,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -46,7 +50,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
-import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -92,10 +96,32 @@ function SearchPage({route}: SearchPageProps) {
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
+    const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
+    const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
+    const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
+    const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
+    // Collate a list of policyIDs from the selected transactions
+    const selectedPolicyIDs = useMemo(
+        () => [
+            ...new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction.policyID)
+                    .filter(Boolean),
+            ),
+        ],
+        [selectedTransactions],
+    );
+
+    const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
+        selectedPolicyID: selectedPolicyIDs.at(0),
+        selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
+        activeAdminPolicies,
+        isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
+    });
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -122,7 +148,6 @@ function SearchPage({route}: SearchPageProps) {
                 queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
             } else {
                 // Otherwise, we will use the selected transactionIDs and reportIDs directly
-                const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
@@ -135,7 +160,70 @@ function SearchPage({route}: SearchPageProps) {
 
             setIsExportWithTemplateModalVisible(true);
         },
-        [queryJSON, selectedTransactions, selectedTransactionsKeys, areAllMatchingItemsSelected],
+        [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs],
+    );
+
+    const onBulkPaySelected = useCallback(
+        (paymentMethod?: PaymentMethodType) => {
+            if (!hash) {
+                return;
+            }
+            if (isOffline) {
+                setIsOfflineModalVisible(true);
+                return;
+            }
+
+            const activeRoute = Navigation.getActiveRoute();
+            const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+            const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+            for (const item of items) {
+                const itemPolicyID = item.policyID;
+                const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods) ?? paymentMethod;
+
+                if (!lastPolicyPaymentMethod) {
+                    Navigation.navigate(
+                        ROUTES.SEARCH_REPORT.getRoute({
+                            reportID: item.reportID,
+                            backTo: activeRoute,
+                        }),
+                    );
+                    return;
+                }
+
+                const hasPolicyVBBA = hasVBBA(itemPolicyID);
+
+                if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
+                    Navigation.navigate(
+                        ROUTES.SEARCH_REPORT.getRoute({
+                            reportID: item.reportID,
+                            backTo: activeRoute,
+                        }),
+                    );
+                    return;
+                }
+            }
+
+            const paymentData = (
+                selectedReports.length
+                    ? selectedReports.map((report) => ({
+                          reportID: report.reportID,
+                          amount: report.total,
+                          paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                      }))
+                    : Object.values(selectedTransactions).map((transaction) => ({
+                          reportID: transaction.reportID,
+                          amount: transaction.amount,
+                          paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
+                      }))
+            ) as PaymentData[];
+
+            payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+            InteractionManager.runAfterInteractions(() => {
+                clearSelectedTransactions();
+            });
+        },
+        [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions],
     );
 
     const headerButtonsOptions = useMemo(() => {
@@ -197,8 +285,6 @@ function SearchPage({route}: SearchPageProps) {
             ];
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
-            const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
-            const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
@@ -236,15 +322,6 @@ function SearchPage({route}: SearchPageProps) {
                     });
                 }
             }
-
-            // Collate a list of policyIDs from the selected transactions
-            const selectedPolicyIDs = [
-                ...new Set(
-                    Object.values(selectedTransactions)
-                        .map((transaction) => transaction.policyID)
-                        .filter(Boolean),
-                ),
-            ];
 
             // If all of the transactions are on the same policy, add the policy-level in-app export templates as export options
             if (selectedPolicyIDs.length === 1) {
@@ -341,84 +418,21 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+        const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
 
-        const shouldShowPayOption =
-            !isOffline &&
-            !isAnyTransactionOnHold &&
-            (selectedReports.length
-                ? selectedReports.every(
-                      (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
-                  )
-                : selectedTransactionsKeys.every(
-                      (id) =>
-                          selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                          selectedTransactions[id].policyID &&
-                          getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
-                  ));
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
 
         if (shouldShowPayOption) {
-            options.push({
+            const payButtonOption = {
                 icon: Expensicons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
+                rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
-                    const activeRoute = Navigation.getActiveRoute();
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
-                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
-
-                    for (const item of items) {
-                        const itemPolicyID = item.policyID;
-                        const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods);
-
-                        if (!lastPolicyPaymentMethod) {
-                            Navigation.navigate(
-                                ROUTES.SEARCH_REPORT.getRoute({
-                                    reportID: item.reportID,
-                                    backTo: activeRoute,
-                                }),
-                            );
-                            return;
-                        }
-
-                        const hasPolicyVBBA = hasVBBA(itemPolicyID);
-
-                        if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
-                            Navigation.navigate(
-                                ROUTES.SEARCH_REPORT.getRoute({
-                                    reportID: item.reportID,
-                                    backTo: activeRoute,
-                                }),
-                            );
-                            return;
-                        }
-                    }
-
-                    const paymentData = (
-                        selectedReports.length
-                            ? selectedReports.map((report) => ({
-                                  reportID: report.reportID,
-                                  amount: report.total,
-                                  paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
-                              }))
-                            : Object.values(selectedTransactions).map((transaction) => ({
-                                  reportID: transaction.reportID,
-                                  amount: transaction.amount,
-                                  paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
-                              }))
-                    ) as PaymentData[];
-
-                    payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
-                    InteractionManager.runAfterInteractions(() => {
-                        clearSelectedTransactions();
-                    });
-                },
-            });
+                subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
+                onSelected: () => onBulkPaySelected(undefined),
+            };
+            options.push(payButtonOption);
         }
 
         options.push(exportButtonOption);
@@ -540,6 +554,11 @@ function SearchPage({route}: SearchPageProps) {
         integrationsExportTemplates,
         csvExportLayouts,
         policies,
+        bulkPayButtonOptions,
+        onBulkPaySelected,
+        selectedPolicyIDs,
+        selectedReportIDs,
+        selectedTransactionReportIDs,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -704,6 +723,10 @@ function SearchPage({route}: SearchPageProps) {
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                         footerData={footerData}
+                        currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                        currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                        confirmPayment={onBulkPaySelected}
+                        latestBankItems={latestBankItems}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -798,6 +821,10 @@ function SearchPage({route}: SearchPageProps) {
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                    confirmPayment={onBulkPaySelected}
+                                    latestBankItems={latestBankItems}
                                 />
                                 <Search
                                     key={queryJSON.hash}
