@@ -16,6 +16,10 @@ import {bold, info, log, error as logError, success as logSuccess, note, warn} f
 const REACT_COMPILER_CONFIG_FILENAME = 'react-compiler-config.json';
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
+const ERRORS = {
+    FAILED_TO_FETCH_FROM_REMOTE: 'Failed to fetch from remote',
+} as const;
+
 type ReactCompilerConfig = {
     excludedFolderPatterns: string[];
     checkedFileEndings: string[];
@@ -86,13 +90,23 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
     return false;
 }
 
-function checkChangedFiles(): boolean {
+function checkChangedFiles(remote = 'origin'): boolean {
     info('Checking changed files for React Compiler compliance...');
 
-    const changedFiles = getChangedFiles();
-    const filesToCheck = [...new Set(changedFiles)];
+    try {
+        const changedFiles = getChangedFiles(remote);
+        const filesToCheck = [...new Set(changedFiles)];
 
-    return check(filesToCheck);
+        return check(filesToCheck);
+    } catch (error) {
+        if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
+            logError(`Could not fetch from remote ${remote}. If your base remote is not ${remote}, please specify another remote with the --remote flag.`);
+            throw error;
+        }
+
+        logError('Could not determine changed files:', error);
+        throw error;
+    }
 }
 
 /** Helper functions */
@@ -314,17 +328,16 @@ function generateReport(results: DetailedCompilerResults, outputFileName = DEFAU
     logSuccess(`Detailed report saved to: ${reportFile}`);
 }
 
-function getMainBaseCommitHash(): string {
-    // Fetch the main branch from origin to ensure it's available
+function getMainBaseCommitHash(remote: string): string {
+    // Fetch the main branch from the specified remote to ensure it's available
     try {
-        execSync('git fetch origin main --no-tags', {encoding: 'utf8'});
+        execSync(`git fetch ${remote} main --no-tags`, {encoding: 'utf8'});
     } catch (error) {
-        logError('Failed to fetch origin/main:', error);
-        throw error;
+        throw new Error(ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
     }
 
     // Get the merge base commit hash
-    const mergeBaseHash = execSync('git merge-base origin/main HEAD', {encoding: 'utf8'}).trim();
+    const mergeBaseHash = execSync(`git merge-base ${remote}/main HEAD`, {encoding: 'utf8'}).trim();
 
     // Validate the output is a proper SHA hash
     if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
@@ -334,10 +347,10 @@ function getMainBaseCommitHash(): string {
     return mergeBaseHash;
 }
 
-function getChangedFiles(): string[] {
+function getChangedFiles(remote: string): string[] {
     try {
         // Get files changed in the current branch/commit
-        const mainBaseCommitHash = getMainBaseCommitHash();
+        const mainBaseCommitHash = getMainBaseCommitHash(remote);
 
         // Get the diff output and check status
         const gitDiffOutput = execSync(`git diff --diff-filter=AMR --name-only ${mainBaseCommitHash} HEAD`, {
@@ -347,6 +360,10 @@ function getChangedFiles(): string[] {
         const changedFiles = gitDiffOutput.trim().split('\n').filter(shouldProcessFile);
         return changedFiles;
     } catch (error) {
+        if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
+            throw error;
+        }
+
         logError('Could not determine changed files:', error);
         throw error;
     }
@@ -386,6 +403,11 @@ function main() {
                 required: false,
                 parse: (val) => val.split(',').map((f) => f.trim()),
             },
+            remote: {
+                description: 'Git remote name to use for main branch (default: origin)',
+                required: false,
+                default: 'origin',
+            },
         },
         flags: {
             report: {
@@ -397,7 +419,7 @@ function main() {
     });
 
     const {command} = cli.positionalArgs;
-    const {files} = cli.namedArgs;
+    const {files, remote} = cli.namedArgs;
     const {report: shouldGenerateReport} = cli.flags;
 
     let isPassed = false;
@@ -407,14 +429,13 @@ function main() {
                 isPassed = Checker.check(files, shouldGenerateReport);
                 break;
             case 'check-changed':
-                isPassed = Checker.checkChangedFiles();
+                isPassed = Checker.checkChangedFiles(remote);
                 break;
             default:
                 logError(`Unknown command: ${String(command)}`);
                 isPassed = false;
         }
     } catch (error) {
-        logError('Error:', error);
         isPassed = false;
     } finally {
         process.exit(isPassed ? 0 : 1);
