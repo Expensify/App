@@ -352,8 +352,8 @@ function getChangedFiles(): string[] {
         });
         return output.trim().split('\n').filter(shouldProcessFile);
     } catch (error) {
-        warn('Could not determine changed files:', error);
-        return [];
+        logError('Could not determine changed files:', error);
+        throw error;
     }
 }
 
