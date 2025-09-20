@@ -3642,9 +3642,6 @@ const translations = {
                 title: '日当',
                 subtitle: '日当の設定を行い、従業員の1日の支出を管理します。スプレッドシートからレートをインポートして始めましょう。',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `値が${rate}のレートは既に存在します`,
-            },
             importPerDiemRates: '日当料金をインポート',
             editPerDiemRate: '日当料金を編集',
             editPerDiemRates: '日当のレートを編集',

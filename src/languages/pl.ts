@@ -3642,9 +3642,6 @@ const translations = {
                 title: 'Dieta',
                 subtitle: 'Ustaw stawki dzienne, aby kontrolować codzienne wydatki pracowników. Importuj stawki z arkusza kalkulacyjnego, aby rozpocząć.',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Stawka o wartości ${rate} już istnieje`,
-            },
             importPerDiemRates: 'Importuj stawki diety',
             editPerDiemRate: 'Edytuj stawkę diety',
             editPerDiemRates: 'Edytuj stawki diet',

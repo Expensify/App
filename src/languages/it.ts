@@ -3642,9 +3642,6 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Imposta le tariffe diarie per controllare la spesa giornaliera dei dipendenti. Importa le tariffe da un foglio di calcolo per iniziare.',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Una tariffa con valore ${rate} esiste già`,
-            },
             importPerDiemRates: 'Importa le tariffe diarie',
             editPerDiemRate: 'Modifica la tariffa di diaria',
             editPerDiemRates: 'Modifica le tariffe di diaria',
