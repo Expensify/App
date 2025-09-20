@@ -27,9 +27,9 @@ async function run(): Promise<void> {
             await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
-                // @eslint-disable-next-line @typescript-eslint/naming-convention
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: prNumber,
-                // @eslint-disable-next-line @typescript-eslint/naming-convention
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 per_page: 100,
             })
         ).map((file) => file.filename);
