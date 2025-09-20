@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {userWalletTierNameSelector} from '@selectors/UserWallet';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -10,7 +11,6 @@ import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {userWalletTierNameSelector} from '@selectors/UserWallet';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {

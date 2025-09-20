@@ -1,3 +1,4 @@
+import {exitSurveyReasonSelector} from '@selectors/ExitSurveyReasonForm';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import Icon from '@components//Icon';
@@ -21,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {exitSurveyReasonSelector} from '@selectors/ExitSurveyReasonForm';
 import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ExitSurveyOffline from './ExitSurveyOffline';

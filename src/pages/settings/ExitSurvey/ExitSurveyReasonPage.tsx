@@ -1,3 +1,4 @@
+import {exitSurveyReasonSelector} from '@selectors/ExitSurveyReasonForm';
 import React, {useEffect, useMemo, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -15,7 +16,6 @@ import {saveExitReason} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {exitSurveyReasonSelector} from '@selectors/ExitSurveyReasonForm';
 import type {ExitReason} from '@src/types/form/ExitSurveyReasonForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
