@@ -60,49 +60,33 @@ async function run(): Promise<void> {
         }
 
         // File exists in both diffs - now check if any lines overlap
-        // Extract added and removed content from both diffs
-        const localAddedLines = new Set<number>();
-        const localRemovedLines = new Set<number>();
-        const prAddedLines = new Set<number>();
-        const prRemovedLines = new Set<number>();
+        // Extract all modified content from both diffs (regardless of add/remove)
+        const localModifiedContent = new Set<string>();
+        const prModifiedContent = new Set<string>();
 
         // Get local diff content
         for (const hunk of localFile.hunks) {
             for (const line of hunk.lines) {
-                if (line.type === 'added') {
-                    localAddedLines.add(line.number);
-                } else if (line.type === 'removed') {
-                    localRemovedLines.add(line.number);
-                }
+                localModifiedContent.add(line.content);
             }
         }
 
         // Get PR diff content
         for (const hunk of prFileDiff.hunks) {
             for (const line of hunk.lines) {
-                if (line.type === 'added') {
-                    prAddedLines.add(line.number);
-                } else if (line.type === 'removed') {
-                    prRemovedLines.add(line.number);
-                }
+                prModifiedContent.add(line.content);
             }
         }
 
-        // Check if any lines overlap between push and PR
-        const hasOverlappingAddedLines = Array.from(localAddedLines).some((line) => prAddedLines.has(line));
-        const hasOverlappingRemovedLines = Array.from(localRemovedLines).some((line) => prRemovedLines.has(line));
+        // Check if any content overlaps between push and PR
+        const hasOverlappingContent = Array.from(localModifiedContent).some((content) => prModifiedContent.has(content));
+        results[filePath] = hasOverlappingContent;
 
-        const isChanged = hasOverlappingAddedLines || hasOverlappingRemovedLines;
-
-        if (isChanged) {
+        if (hasOverlappingContent) {
             console.log(`✅ ${filePath} has overlapping line changes in both push and PR`);
+            anyChanged = true;
         } else {
             console.log(`⏭️ ${filePath} has changes in both push and PR but no overlapping lines - likely from merged commits`);
-        }
-
-        results[filePath] = isChanged;
-        if (isChanged) {
-            anyChanged = true;
         }
     }
 
