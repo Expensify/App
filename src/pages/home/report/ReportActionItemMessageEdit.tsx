@@ -77,6 +77,9 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
+
+    /** Whether the flatlist is reverted */
+    isReverted?: boolean;
 };
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
@@ -90,7 +93,7 @@ const DEFAULT_MODAL_VALUE = {
 };
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false, isReverted = true}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -391,6 +394,25 @@ function ReportActionItemMessageEdit(
         [cursorPositionValue, measureContainer, selection, isScrolling],
     );
 
+    const scrollToIndex = useCallback(
+        (i: number, isEditing?: boolean, viewPosition?: number, shouldDelay = false) => {
+            if (shouldDelay) {
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        reportScrollManager.scrollToIndex(i, isEditing, viewPosition);
+                    });
+                }, 400);
+            } else {
+                InteractionManager.runAfterInteractions(() => {
+                    requestAnimationFrame(() => {
+                        reportScrollManager.scrollToIndex(i, isEditing, viewPosition);
+                    });
+                });
+            }
+        },
+        [reportScrollManager],
+    );
+
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
         tag.set(findNodeHandle(textInputRef.current) ?? -1);
@@ -486,7 +508,7 @@ function ReportActionItemMessageEdit(
                                 startScrollBlock();
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
-                                        reportScrollManager.scrollToIndex(index, true);
+                                        scrollToIndex(index, true, isReverted ? 0 : 1, !isReverted);
                                         endScrollBlock();
                                     });
                                 });
