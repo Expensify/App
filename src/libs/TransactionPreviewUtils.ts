@@ -10,8 +10,6 @@ import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './acti
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
-import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
 import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     hasActionWithErrorsForTransaction,
@@ -74,13 +72,7 @@ function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, perso
     };
 }
 
-const getReviewNavigationRoute = (
-    route: PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, 'Transaction_Duplicate_Review'>,
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
-) => {
-    const backTo = route.params.backTo;
-
+const getReviewNavigationRoute = (backTo: string, threadReportID: string, transaction: OnyxEntry<OnyxTypes.Transaction>, duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
@@ -93,28 +85,28 @@ const getReviewNavigationRoute = (
     });
 
     if (comparisonResult.change.merchant) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.category) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.tag) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.description) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.taxCode) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.billable) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo);
     }
     if (comparisonResult.change.reimbursable) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo);
     }
 
-    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo);
+    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID, backTo);
 };
 
 type TranslationPathOrText = {
