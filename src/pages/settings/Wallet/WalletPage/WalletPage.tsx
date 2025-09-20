@@ -2,7 +2,6 @@ import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -484,7 +483,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
@@ -495,7 +494,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
                                                         icon={Expensicons.Transfer}
-                                                        onPress={triggerKYCFlow}
+                                                        onPress={(event) => {
+                                                            triggerKYCFlow({event});
+                                                        }}
                                                         shouldShowRightIcon
                                                         disabled={network.isOffline}
                                                         wrapperStyle={[

@@ -1065,7 +1065,9 @@ function PureReportActionItem({
                                         large
                                         style={[styles.w100, styles.requestPreviewBox]}
                                         text={translate('iou.enableWallet')}
-                                        onPress={triggerKYCFlow}
+                                        onPress={(event) => {
+                                            triggerKYCFlow({event});
+                                        }}
                                     />
                                 )}
                             </KYCWall>
