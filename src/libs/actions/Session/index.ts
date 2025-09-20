@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {InteractionManager, Linking} from 'react-native';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {migrateHybridAppToNewPartnerName} from '@libs/actions/HybridApp';
@@ -157,7 +157,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
 
-function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
+function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -199,7 +199,27 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
         },
     ];
 
-    return {optimisticData, finallyData};
+    const failureData: OnyxUpdate[] = [];
+
+    if (CONFIG.IS_HYBRID_APP && isSAML) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.HYBRID_APP,
+            value: {
+                signingInWithSAML: true,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.HYBRID_APP,
+            value: {
+                signingInWithSAML: null,
+            },
+        });
+    }
+
+    return {optimisticData, failureData, finallyData};
 }
 
 /**
@@ -269,12 +289,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 Navigation.resetToHome();
             }
             Navigation.navigate(ROUTES.SIGN_IN_MODAL);
-            Linking.getInitialURL().then((url) => {
-                const reportID = getReportIDFromLink(url);
-                if (reportID) {
-                    Onyx.merge(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
-                }
-            });
         }
         return;
     }
@@ -648,9 +662,9 @@ function beginGoogleSignIn(token: string | null) {
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string) {
-    const {optimisticData, finallyData} = getShortLivedLoginParams();
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
+function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
+    const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, failureData, finallyData});
     NetworkStore.setLastShortAuthToken(authToken);
 }
 
@@ -843,6 +857,7 @@ function clearSignInData() {
         [ONYXKEYS.ACCOUNT]: null,
         [ONYXKEYS.CREDENTIALS]: null,
     });
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {signingInWithSAML: null});
 }
 
 /**
