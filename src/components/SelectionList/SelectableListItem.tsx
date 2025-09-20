@@ -19,6 +19,7 @@ function SelectableListItem<TItem extends ListItem>({
     onDismissError,
     onFocus,
     shouldSyncFocus,
+    accessibilityState,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const handleCheckboxPress = useCallback(() => {
@@ -44,6 +45,7 @@ function SelectableListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessibilityState={accessibilityState}
         >
             <>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>

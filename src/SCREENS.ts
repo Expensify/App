@@ -187,6 +187,7 @@ const SCREENS = {
     TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',
         VERIFY: 'Settings_TwoFactorAuth_Verify',
+        VERIFY_ACCOUNT: 'Settings_TwoFactorAuth_VerifyAccount',
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
