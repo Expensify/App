@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -3641,9 +3640,6 @@ const translations = {
             emptyList: {
                 title: 'Dieta',
                 subtitle: 'Ustaw stawki dzienne, aby kontrolować codzienne wydatki pracowników. Importuj stawki z arkusza kalkulacyjnego, aby rozpocząć.',
-            },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Stawka o wartości ${rate} już istnieje`,
             },
             importPerDiemRates: 'Importuj stawki diety',
             editPerDiemRate: 'Edytuj stawkę diety',
