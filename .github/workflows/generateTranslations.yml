@@ -23,6 +23,7 @@ jobs:
         uses: ./.github/actions/javascript/getPullRequestIncrementalChanges
         with:
           FILE_PATHS: '["src/languages/en.ts"]'
+          GITHUB_TOKEN: ${{ github.token }}g
 
       - name: Fetch base ref
         if: steps.check-en-changes.outputs.HAS_CHANGES == 'true'
