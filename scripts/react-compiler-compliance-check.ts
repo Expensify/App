@@ -20,6 +20,9 @@ const ERRORS = {
     FAILED_TO_FETCH_FROM_REMOTE: 'Failed to fetch from remote',
 } as const;
 
+// Detect if running in CI environment
+const IS_CI = process.env.CI === 'true';
+
 type ReactCompilerConfig = {
     excludedFolderPatterns: string[];
     checkedFileEndings: string[];
@@ -47,7 +50,7 @@ type CompilerResults = {
 
 type DetailedCompilerResults = {
     success: string[];
-    failure: CompilerFailure[];
+    failures: CompilerFailure[];
 };
 
 type CompilerFailure = {
@@ -72,8 +75,11 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
     }
 
     const results = runCompilerHealthcheck(true);
-    const {failure: failures} = results;
-    const failedFileNames = getFailedFileNames(failures, filesToCheck);
+    const {success, failures} = results;
+
+    const successFileNames = getDistinctFileNames(success, (s) => s, filesToCheck);
+    const failedFileNames = getDistinctFileNames(failures, (f) => f.file, filesToCheck);
+
     const isPassed = failedFileNames.length === 0;
 
     if (isPassed) {
@@ -81,7 +87,7 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
         return true;
     }
 
-    printSummary(results, failedFileNames);
+    printFailureSummary({success, failures}, successFileNames, failedFileNames);
 
     if (shouldGenerateReport) {
         generateReport(results, DEFAULT_REPORT_FILENAME);
@@ -90,7 +96,7 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
     return false;
 }
 
-function checkChangedFiles(remote = 'origin'): boolean {
+function checkChangedFiles(remote: string): boolean {
     info('Checking changed files for React Compiler compliance...');
 
     try {
@@ -257,36 +263,37 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
         }
     }
 
-    return {success, failure: Array.from(failure.values())};
+    return {success, failures: Array.from(failure.values())};
 }
 
 function getUniqueFileKey(failure: CompilerFailure): string {
     return `${failure.file}:${failure.line}:${failure.column}`;
 }
 
-function getFailedFileNames(failures: CompilerFailure[], filesToCheck?: string[]): string[] {
-    const failedFileNames = new Set<string>();
-    failures.forEach((failure) => {
-        const isFileToCheck = filesToCheck?.includes(failure.file) ?? true;
-        if (failedFileNames.has(failure.file) || !isFileToCheck) {
+function getDistinctFileNames<T>(items: T[], getFile: (item: T) => string, filesToCheck?: string[]): string[] {
+    const distinctFileNames = new Set<string>();
+    items.forEach((item) => {
+        const file = getFile(item);
+
+        const isFileToCheck = filesToCheck?.includes(file) ?? true;
+        if (distinctFileNames.has(file) || !isFileToCheck) {
             return;
         }
 
-        failedFileNames.add(failure.file);
+        distinctFileNames.add(file);
     });
 
-    return Array.from(failedFileNames);
+    return Array.from(distinctFileNames);
 }
 
-function printSummary({success, failure: failures}: DetailedCompilerResults, failedFileNames: string[]): void {
-    logSuccess(`Successfully compiled ${success.length} files with React Compiler:`);
-
-    logError(`Failed to compile ${failedFileNames.length} files with React Compiler:`);
+function printFailureSummary({success, failures}: DetailedCompilerResults, successFileNames: string[], failedFileNames: string[]): void {
+    logSuccess(`Successfully compiled ${success.length} files with React Compiler:\n`);
+    logError(`Failed to compile ${failedFileNames.length} files with React Compiler:\n`);
     failedFileNames.forEach((file) => bold(file));
     log('\n');
 
     // Print unique failures for the files that were checked
-    info('Detailed reasons for failures:');
+    info('Detailed reasons for failures:\n');
     failures
         .filter((failure) => failedFileNames.includes(failure.file))
         .forEach((failure) => {
@@ -313,12 +320,12 @@ function generateReport(results: DetailedCompilerResults, outputFileName = DEFAU
             {
                 timestamp: new Date().toISOString(),
                 summary: {
-                    total: results.success.length + results.failure.length,
+                    total: results.success.length + results.failures.length,
                     success: results.success.length,
-                    failure: results.failure.length,
+                    failure: results.failures.length,
                 },
                 success: results.success,
-                failures: results.failure,
+                failures: results.failures,
             },
             null,
             2,
@@ -336,8 +343,39 @@ function getMainBaseCommitHash(remote: string): string {
         throw new Error(ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
     }
 
-    // Get the merge base commit hash
-    const mergeBaseHash = execSync(`git merge-base ${remote}/main HEAD`, {encoding: 'utf8'}).trim();
+    // In CI, use a simpler approach - just use the remote main branch directly
+    // This avoids issues with shallow clones and merge-base calculations
+    if (IS_CI) {
+        try {
+            const mergeBaseHash = execSync(`git rev-parse ${remote}/main`, {encoding: 'utf8'}).trim();
+
+            // Validate the output is a proper SHA hash
+            if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
+                throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
+            }
+
+            return mergeBaseHash;
+        } catch (error) {
+            logError(`Failed to get commit hash for ${remote}/main:`, error);
+            throw new Error(`Could not get commit hash for ${remote}/main`);
+        }
+    }
+
+    // For local development, try to find the actual merge base
+    let mergeBaseHash: string;
+    try {
+        mergeBaseHash = execSync(`git merge-base ${remote}/main HEAD`, {encoding: 'utf8'}).trim();
+    } catch (error) {
+        // If merge-base fails locally, fall back to using the remote main branch
+        try {
+            mergeBaseHash = execSync(`git rev-parse ${remote}/main`, {encoding: 'utf8'}).trim();
+            logError(`Warning: Could not find merge base between ${remote}/main and HEAD. Using ${remote}/main as base.`);
+        } catch (fallbackError) {
+            logError(`Failed to find merge base with ${remote}/main:`, error);
+            logError(`Fallback also failed:`, fallbackError);
+            throw new Error(`Could not determine merge base with ${remote}/main`);
+        }
+    }
 
     // Validate the output is a proper SHA hash
     if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
