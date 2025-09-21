@@ -338,7 +338,7 @@ function generateReport(results: DetailedCompilerResults, outputFileName = DEFAU
 function getMainBaseCommitHash(remote: string): string {
     // Fetch the main branch from the specified remote to ensure it's available
     try {
-        execSync(`git fetch ${remote} main --no-tags`, {encoding: 'utf8'});
+        execSync(`git fetch ${remote} main --no-tags -q`, {encoding: 'utf8'});
     } catch (error) {
         throw new Error(ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
     }
