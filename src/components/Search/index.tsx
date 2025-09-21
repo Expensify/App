@@ -8,7 +8,14 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ReportActionListItemType,
+    SearchListItem,
+    SelectionListHandle,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
@@ -110,6 +117,26 @@ function mapTransactionItemToSelectedEntry(
     ];
 }
 
+function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType): [string, SelectedTransactionInfo] {
+    return [
+        item.keyForList ?? '',
+        {
+            isSelected: true,
+            canDelete: true,
+            canHold: false,
+            isHeld: false,
+            canUnhold: false,
+            canChangeReport: false,
+            action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+            reportID: item.reportID,
+            policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
+            amount: 0,
+            convertedAmount: 0,
+            convertedCurrency: '',
+        },
+    ];
+}
+
 function mapToTransactionItemWithAdditionalInfo(
     item: TransactionListItemType,
     selectedTransactions: SelectedTransactions,
@@ -146,8 +173,9 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
                   mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
               ),
               isSelected:
-                  item?.transactions?.length > 0 &&
-                  item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+                  item?.transactions?.length > 0
+                      ? item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple)
+                      : !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple),
               hash,
           };
 }
@@ -833,25 +861,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const allSelections: Array<[string, SelectedTransactionInfo]> = (data as TransactionGroupListItemType[]).flatMap((item) => {
                 // Handle empty reports - select the report itself
                 if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && item.keyForList) {
-                    return [
-                        [
-                            item.keyForList,
-                            {
-                                isSelected: true,
-                                canDelete: true,
-                                canHold: false,
-                                isHeld: false,
-                                canUnhold: false,
-                                canChangeReport: false,
-                                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                                reportID: item.reportID,
-                                policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
-                                amount: 0,
-                                convertedAmount: 0,
-                                convertedCurrency: '',
-                            },
-                        ],
-                    ];
+                    return [mapEmptyReportToSelectedEntry(item)];
                 }
 
                 // Handle regular reports with transactions
