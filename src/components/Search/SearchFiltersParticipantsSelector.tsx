@@ -162,7 +162,17 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-        let sortedSectionData = sectionData.sort((a, b) => localeCompare(a?.text?.toLowerCase() ?? '', b?.text?.toLowerCase() ?? ''));
+        let sortedSectionData = sectionData.sort((a, b) => {
+            const nameComparison = localeCompare(a?.text?.toLowerCase() ?? '', b?.text?.toLowerCase() ?? '');
+
+            if (nameComparison !== 0) {
+                return nameComparison;
+            }
+
+            const accountID1 = a?.accountID ?? 0;
+            const accountID2 = b?.accountID ?? 0;
+            return accountID1 - accountID2;
+        });
 
         if (initialSelectedOptions.length) {
             sortedSectionData = [
