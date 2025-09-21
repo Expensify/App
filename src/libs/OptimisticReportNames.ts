@@ -167,18 +167,47 @@ function isValidReportType(reportType?: string): boolean {
     );
 }
 
-function getNewReportFromUpdates(reportID: string, updates: OnyxUpdate[]): Report | undefined {
+/**
+ * Checks if a report is partial/incomplete by validating essential fields.
+ */
+function isPartialReport(report: Partial<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+
+    // These fields are the ONLY ones ALWAYS set in ALL optimistic report building functions
+    const hasEssentialFields = report.reportID && report.type && report.ownerAccountID !== undefined && report.stateNum !== undefined && report.statusNum !== undefined;
+
+    return !hasEssentialFields;
+}
+
+/**
+ * Returns the first update containing the most complete Report in the batch.
+ */
+function getReportFromUpdates(reportID: string, updates: OnyxUpdate[]): Report | undefined {
     if (!reportID) {
         return undefined;
     }
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    const newReportUpdate = updates.find((update) => update.key === reportKey && update.onyxMethod === Onyx.METHOD.SET);
 
-    if (!newReportUpdate || !newReportUpdate.value) {
-        return undefined;
-    }
+    const report = updates.find((update) => {
+        if (update.key !== reportKey) {
+            return false;
+        }
 
-    return newReportUpdate.value as Report;
+        const reportUpdate = update.value as Partial<Report> | undefined;
+        if (!reportUpdate || !isValidReportType(reportUpdate.type)) {
+            return false;
+        }
+
+        if (isPartialReport(reportUpdate)) {
+            return false;
+        }
+
+        return true;
+    })?.value as Report | undefined;
+
+    return report;
 }
 
 /**
@@ -332,11 +361,10 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
                 }
 
-                // In FAB expense creation, reports and transactions may be created in the same batch.
-                // Since formulas (e.g., {report:startdate}, {report:total}) depend on transaction data,
-                // we must find the new report from the updates to compute names correctly.
+                // When we create a new expense, a new report can also be created in the same batch of updates.
+                // Since report formulas (e.g., {report:startdate}, {report:total}) rely on transaction data, we must locate the new report in that batch to compute names correctly.
                 if (!report && transactionUpdate.reportID) {
-                    report = getNewReportFromUpdates(transactionUpdate.reportID, updates);
+                    report = getReportFromUpdates(transactionUpdate.reportID, updates);
                 }
 
                 if (report) {
