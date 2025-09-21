@@ -4396,10 +4396,7 @@ const translations = {
                 whoIsYourBankAccount: 'Wer ist Ihre Bank?',
                 whereIsYourBankLocated: 'Wo befindet sich Ihre Bank?',
                 howDoYouWantToConnect: 'Wie möchten Sie sich mit Ihrer Bank verbinden?',
-                learnMoreAboutOptions: {
-                    text: 'Erfahren Sie mehr darüber',
-                    linkText: 'Optionen.',
-                },
+                learnMoreAboutOptions: `<muted-text>Erfahren Sie mehr über diese <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Optionen</a>.</muted-text>`,
                 commercialFeedDetails:
                     'Erfordert die Einrichtung mit Ihrer Bank. Dies wird typischerweise von größeren Unternehmen verwendet und ist oft die beste Option, wenn Sie qualifiziert sind.',
                 commercialFeedPlaidDetails: `Erfordert die Einrichtung mit Ihrer Bank, aber wir werden Sie anleiten. Dies ist normalerweise auf größere Unternehmen beschränkt.`,

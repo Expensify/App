@@ -4331,10 +4331,7 @@ const translations = {
                 whoIsYourBankAccount: '您的银行是哪家？',
                 whereIsYourBankLocated: '您的银行在哪里？',
                 howDoYouWantToConnect: '您想如何连接到您的银行？',
-                learnMoreAboutOptions: {
-                    text: '了解更多关于这些的信息',
-                    linkText: '选项。',
-                },
+                learnMoreAboutOptions: `<muted-text>了解有关这些<a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">选项</a>的更多信息。</muted-text>`,
                 commercialFeedDetails: '需要与您的银行进行设置。这通常由较大的公司使用，并且如果您符合条件，这通常是最佳选择。',
                 commercialFeedPlaidDetails: `需要与您的银行进行设置，但我们会指导您。通常这仅限于较大的公司。`,
                 directFeedDetails: '最简单的方法。使用您的主账户凭证立即连接。这是最常见的方法。',

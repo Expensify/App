@@ -4408,10 +4408,7 @@ const translations = {
                 whoIsYourBankAccount: 'Qual è la tua banca?',
                 whereIsYourBankLocated: 'Dove si trova la tua banca?',
                 howDoYouWantToConnect: 'Come vuoi connetterti alla tua banca?',
-                learnMoreAboutOptions: {
-                    text: 'Scopri di più su questi',
-                    linkText: 'opzioni.',
-                },
+                learnMoreAboutOptions: `<muted-text>Per saperne di più su queste <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">opzioni</a>.</muted-text>`,
                 commercialFeedDetails: 'Richiede la configurazione con la tua banca. Questo è tipicamente utilizzato da aziende più grandi ed è spesso la migliore opzione se si è idonei.',
                 commercialFeedPlaidDetails: `Richiede la configurazione con la tua banca, ma ti guideremo noi. Questo è generalmente limitato alle aziende più grandi.`,
                 directFeedDetails: "L'approccio più semplice. Connettiti subito utilizzando le tue credenziali master. Questo metodo è il più comune.",
