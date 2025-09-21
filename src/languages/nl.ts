@@ -5692,8 +5692,7 @@ const translations = {
                 nonBillable: 'Niet-factureerbaar',
                 nonBillableDescription: 'Uitgaven worden soms opnieuw gefactureerd aan klanten.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceipts worden automatisch aangemaakt',
-                eReceiptsHintLink: 'voor de meeste USD-credittransacties',
+                eReceiptsHint: `eRecepten worden automatisch aangemaakt [voor de meeste USD-krediettransacties](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Deelnemer tracking',
                 attendeeTrackingHint: 'Volg de kosten per persoon voor elke uitgave.',
                 prohibitedDefaultDescription:

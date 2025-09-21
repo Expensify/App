@@ -5693,8 +5693,7 @@ const translations = {
                 nonBillable: 'Não faturável',
                 nonBillableDescription: 'Despesas são ocasionalmente refaturadas para clientes',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceipts são criados automaticamente',
-                eReceiptsHintLink: 'para a maioria das transações de crédito em USD',
+                eReceiptsHint: `Os recibos eletrônicos são criados automaticamente [para a maioria das transações de crédito em dólares](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Rastreamento de participantes',
                 attendeeTrackingHint: 'Acompanhe o custo por pessoa para cada despesa.',
                 prohibitedDefaultDescription:

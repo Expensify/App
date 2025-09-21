@@ -5689,8 +5689,7 @@ const translations = {
                 nonBillable: 'Nicht abrechenbar',
                 nonBillableDescription: 'Spesen werden gelegentlich an Kunden weiterberechnet.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceipts werden automatisch erstellt',
-                eReceiptsHintLink: 'für die meisten USD-Kredittransaktionen',
+                eReceiptsHint: `eReceipts werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Teilnehmerverfolgung',
                 attendeeTrackingHint: 'Verfolgen Sie die Kosten pro Person für jede Ausgabe.',
                 prohibitedDefaultDescription:

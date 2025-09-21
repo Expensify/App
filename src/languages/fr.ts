@@ -5699,8 +5699,7 @@ const translations = {
                 nonBillable: 'Non-facturable',
                 nonBillableDescription: 'Les dépenses sont occasionnellement refacturées aux clients.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'Les eReceipts sont créés automatiquement',
-                eReceiptsHintLink: 'pour la plupart des transactions de crédit en USD',
+                eReceiptsHint: `Les reçus électroniques sont créés automatiquement [pour la plupart des transactions de crédit en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Suivi des participants',
                 attendeeTrackingHint: 'Suivez le coût par personne pour chaque dépense.',
                 prohibitedDefaultDescription:
