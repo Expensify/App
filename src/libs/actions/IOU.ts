@@ -12331,7 +12331,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 reportID,
                 report?.reportName ?? '',
                 false, // isFromIOU
-            ) as OnyxTypes.ReportAction;
+            );
             newReportActions[movedExpenseAction.reportActionID] = movedExpenseAction;
 
             // Add all report actions to the new report
