@@ -20,7 +20,6 @@ const ERRORS = {
     FAILED_TO_FETCH_FROM_REMOTE: 'Failed to fetch from remote',
 } as const;
 
-// Detect if running in CI environment
 const IS_CI = process.env.CI === 'true';
 
 type CompilerResults = {

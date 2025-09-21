@@ -2,15 +2,12 @@ require('dotenv').config();
 
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
-// Load React Compiler configuration from shared config file
 const shouldReactCompilerProcessFile = require('./scripts/shouldReactCompilerProcessFile');
-
 const ReactCompilerConfig = {
     target: '18',
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
-    // Use shared configuration for file filtering
     sources: shouldReactCompilerProcessFile,
 };
 
