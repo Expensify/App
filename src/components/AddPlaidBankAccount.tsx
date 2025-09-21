@@ -81,7 +81,6 @@ function AddPlaidBankAccount({
     const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID;
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
-    subscribedKeyboardShortcuts.current = [];
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true, initWithStoredValues: false});
