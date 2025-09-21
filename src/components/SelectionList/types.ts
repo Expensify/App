@@ -1,5 +1,6 @@
 import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
+    AccessibilityState,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
@@ -17,14 +18,15 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
-import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -73,7 +75,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -107,6 +109,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
+
+    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
+    accessibilityState?: AccessibilityState;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -234,7 +239,7 @@ type ListItem<K extends string | number = string> = {
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** Report to which the transaction belongs */
-        report: Report;
+        report: Report | undefined;
 
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
@@ -339,6 +344,12 @@ type TaskListItemType = ListItem &
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
+
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
+
+    /** The hash of the query to get the transactions data */
+    transactionsQueryJSON?: SearchQueryJSON;
 };
 
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
@@ -392,6 +403,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 
+    /** Whether the network is offline */
+    isOffline?: boolean;
+
     /** Index of the item in the list */
     index?: number;
 
@@ -402,36 +416,38 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 };
 
-type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
-    item: TItem;
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-    shouldPreventEnterKeySubmit?: boolean;
-    shouldShowBlueBorderOnFocus?: boolean;
-    keyForList?: string | null;
-    errors?: Errors | ReceiptErrors | null;
-    pendingAction?: PendingAction | null;
-    FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
-    shouldSyncFocus?: boolean;
-    hoverStyle?: StyleProp<ViewStyle>;
-    /** Errors that this user may contain */
-    shouldDisplayRBR?: boolean;
-    /** Test ID of the component. Used to locate this view in end-to-end tests. */
-    testID?: string;
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
-};
+type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        item: TItem;
+        shouldPreventDefaultFocusOnSelectRow?: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
+        shouldShowBlueBorderOnFocus?: boolean;
+        keyForList?: string | null;
+        errors?: Errors | ReceiptErrors | null;
+        pendingAction?: PendingAction | null;
+        FooterComponent?: ReactElement;
+        children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+        shouldSyncFocus?: boolean;
+        hoverStyle?: StyleProp<ViewStyle>;
+        /** Errors that this user may contain */
+        shouldDisplayRBR?: boolean;
+        /** Test ID of the component. Used to locate this view in end-to-end tests. */
+        testID?: string;
+        /** Whether to show the default right hand side checkmark */
+        shouldUseDefaultRightHandSideCheckmark?: boolean;
+    };
 
-type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Errors that this user may contain */
-    errors?: Errors | ReceiptErrors | null;
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        /** Errors that this user may contain */
+        errors?: Errors | ReceiptErrors | null;
 
-    /** The type of action that's pending  */
-    pendingAction?: PendingAction | null;
+        /** The type of action that's pending  */
+        pendingAction?: PendingAction | null;
 
-    /** The React element that will be shown as a footer */
-    FooterComponent?: ReactElement;
-};
+        /** The React element that will be shown as a footer */
+        FooterComponent?: ReactElement;
+    };
 
 type SplitListItemType = ListItem &
     SplitExpense & {
@@ -484,18 +500,28 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
+    accountID?: number;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
+    newTransactionID?: string;
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -807,9 +833,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * within half the visible length of the list.
      */
     onEndReachedThreshold?: number;
-
-    /** Whether to skip the Show More button pagination logic */
-    shouldSkipShowMoreButton?: boolean;
 
     /**
      * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).

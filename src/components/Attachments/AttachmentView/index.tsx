@@ -245,7 +245,7 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !hasReceiptSource(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 

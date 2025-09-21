@@ -1,31 +1,38 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
-import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+
+const APPROVER_TYPE = {
+    ADD_APPROVER: 'addApprover',
+    BYPASS_APPROVER: 'bypassApprover',
+} as const;
+
+type ApproverType = ValueOf<typeof APPROVER_TYPE>;
 
 type ReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
 
@@ -34,9 +41,8 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [selectedApproverType, setSelectedApproverType] = useState<string>();
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
     const [hasError, setHasError] = useState(false);
 
     const changeApprover = useCallback(() => {
@@ -44,29 +50,46 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             setHasError(true);
             return;
         }
-
-        if (!isPolicyAdmin(policy) || !policy || !session?.accountID) {
+        if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
+            if (policy && !isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(
+                        policy.id,
+                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
+                        ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID),
+                    ),
+                );
+                return;
+            }
+            Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        assignReportToMe(report, session.accountID);
+        assignReportToMe(report, currentUserDetails.accountID);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [selectedApproverType, policy, session?.accountID, report, reportID]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, reportID, policy]);
 
     const sections = useMemo(() => {
-        const data = [];
+        const data: Array<ListItem<ApproverType>> = [
+            {
+                text: translate('iou.changeApprover.actions.addApprover'),
+                keyForList: APPROVER_TYPE.ADD_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
+                isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
+            },
+        ];
 
-        if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID))) {
+        const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
+        if (!isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
-                keyForList: 'bypassApprover',
-                value: 'bypassApprover',
+                keyForList: APPROVER_TYPE.BYPASS_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-                isSelected: selectedApproverType === 'bypassApprover',
+                isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
             });
         }
 
         return [{data}];
-    }, [report, policy, selectedApproverType, translate]);
+    }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
@@ -86,10 +109,13 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 sections={sections}
                 isAlternateTextMultilineSupported
                 onSelectRow={(option) => {
+                    if (!option.keyForList) {
+                        return;
+                    }
                     setSelectedApproverType(option.keyForList);
                     setHasError(false);
                 }}

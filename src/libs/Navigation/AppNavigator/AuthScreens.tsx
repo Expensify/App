@@ -14,6 +14,7 @@ import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +27,6 @@ import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
-import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -37,6 +37,7 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
+import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -78,7 +79,6 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
-import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
@@ -112,6 +112,7 @@ function initializePusher() {
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
+let isLoadingApp = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -145,10 +146,13 @@ Onyx.connect({
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            PersonalDetails.updateAutomaticTimezone({
-                automatic: true,
-                selected: currentTimezone,
-            });
+            PersonalDetails.updateAutomaticTimezone(
+                {
+                    automatic: true,
+                    selected: currentTimezone,
+                },
+                currentAccountID,
+            );
         }
     },
 });
@@ -160,7 +164,14 @@ Onyx.connect({
     },
 });
 
-function handleNetworkReconnect(isLoadingApp: boolean) {
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = !!value;
+    },
+});
+
+function handleNetworkReconnect() {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -212,7 +223,6 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
@@ -221,6 +231,7 @@ function AuthScreens() {
         canBeMissing: true,
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
@@ -234,7 +245,6 @@ function AuthScreens() {
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, {canBeMissing: true});
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
 
     // On HybridApp we need to prevent flickering during transition to OldDot
@@ -246,12 +256,11 @@ function AuthScreens() {
         return (
             !CONFIG.IS_HYBRID_APP &&
             Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) &&
-            getPlatform() !== CONST.PLATFORM.DESKTOP &&
-            onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
+            shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration) &&
             isOnboardingCompleted === true &&
             (!!isOnboardingLoading || !!prevIsOnboardingLoading)
         );
-    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading]);
+    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading, userReportedIntegration]);
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -290,7 +299,7 @@ function AuthScreens() {
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp));
+        NetworkConnection.onReconnect(() => handleNetworkReconnect());
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
@@ -303,7 +312,7 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect(delegatorEmail, true)
+                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, isFromOldDot: true})
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -328,10 +337,6 @@ function AuthScreens() {
 
         App.redirectThirdPartyDesktopSignIn();
 
-        if (lastOpenedPublicRoomID) {
-            // Re-open the last opened public room if the user logged in from a public room link
-            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
-        }
         Download.clearDownloads();
 
         const unsubscribeOnyxModal = onyxSubscribe({
@@ -541,7 +546,16 @@ function AuthScreens() {
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
+        <ComposeProviders
+            components={[
+                OptionsListContextProvider,
+                SidebarOrderedReportsContextProvider,
+                SearchContextProvider,
+                LockedAccountModalProvider,
+                DelegateNoAccessModalProvider,
+                WideRHPContextProvider,
+            ]}
+        >
             <RootStack.Navigator
                 persistentScreens={[
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -703,11 +717,6 @@ function AuthScreens() {
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.basicModalNavigator}
-                    component={WelcomeVideoModalNavigator}
                 />
                 {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp || shouldRenderOnboardingExclusively) && (
                     <RootStack.Screen
