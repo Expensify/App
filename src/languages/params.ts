@@ -922,6 +922,10 @@ type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
 };
 
+type ErrorODIntegrationParams = {
+    oldDotPolicyConnectionsURL: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1228,4 +1232,5 @@ export type {
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
+    ErrorODIntegrationParams,
 };
