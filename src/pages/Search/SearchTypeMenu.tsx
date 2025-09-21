@@ -135,6 +135,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             taxRates,
             allCards,
             allFeeds,
+            currentUserAccountID,
             allPolicies,
         ],
     );
