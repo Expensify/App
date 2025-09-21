@@ -538,22 +538,6 @@ function deleteSelectedItemsOnSearch(hash: number, selectedTransactions: Record<
         reportIDList.forEach((reportID) => {
             deleteAppReport(reportID);
         });
-
-        const {optimisticData: loadingOptimisticData} = getOnyxLoadingData(hash);
-        const optimisticData: OnyxUpdate[] = [
-            ...loadingOptimisticData,
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: Object.fromEntries(
-                        reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
-                    ) as Partial<SearchReport>,
-                },
-            },
-        ];
-
-        Onyx.update(optimisticData);
     }
 }
 
