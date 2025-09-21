@@ -1,8 +1,9 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -27,7 +28,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [currentCountry, setCurrentCountry] = useState(formValues.bankCountry);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
 
     const onCountrySelected = useCallback(() => {
         if (currentCountry === CONST.COUNTRY.US) {
@@ -83,7 +84,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
                 onChangeText={setSearchValue}
                 onSelectRow={onSelectionChange}
                 onConfirm={onCountrySelected}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldSingleExecuteRowSelect
                 shouldStopPropagation

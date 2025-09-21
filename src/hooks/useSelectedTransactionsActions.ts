@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
+import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -40,6 +41,7 @@ function useSelectedTransactionsActions({
     allTransactionsLength,
     session,
     onExportFailed,
+    onExportOffline,
     policy,
     beginExportWithTemplate,
 }: {
@@ -48,9 +50,11 @@ function useSelectedTransactionsActions({
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
+    onExportOffline?: () => void;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
+    const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
@@ -209,6 +213,10 @@ function useSelectedTransactionsActions({
                         if (!report) {
                             return;
                         }
+                        if (isOffline) {
+                            onExportOffline?.();
+                            return;
+                        }
                         exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
                             onExportFailed?.();
                         });
@@ -222,6 +230,10 @@ function useSelectedTransactionsActions({
                         if (!report) {
                             return;
                         }
+                        if (isOffline) {
+                            onExportOffline?.();
+                            return;
+                        }
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs);
                     },
                 },
@@ -232,9 +244,14 @@ function useSelectedTransactionsActions({
                 exportOptions.push({
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
-                    onSelected: () =>
+                    onSelected: () => {
+                        if (isOffline) {
+                            onExportOffline?.();
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs);
+                    },
                 });
             }
 
@@ -355,6 +372,8 @@ function useSelectedTransactionsActions({
         beginExportWithTemplate,
         integrationsExportTemplates,
         customInAppTemplates,
+        isOffline,
+        onExportOffline,
     ]);
 
     return {
