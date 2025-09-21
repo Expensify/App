@@ -624,24 +624,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     return;
                 }
 
-                // Select the empty report
+                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item);
                 setSelectedTransactions(
                     {
                         ...selectedTransactions,
-                        [reportKey]: {
-                            isSelected: true,
-                            canDelete: true,
-                            canHold: false,
-                            isHeld: false,
-                            canUnhold: false,
-                            canChangeReport: false,
-                            action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                            reportID: item.reportID,
-                            policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
-                            amount: 0,
-                            convertedAmount: 0,
-                            convertedCurrency: '',
-                        },
+                        [reportKey]: emptyReportSelection,
                     },
                     data,
                 );
