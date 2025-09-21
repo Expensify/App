@@ -5544,6 +5544,11 @@ const translations = {
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
             },
+            reports: {
+                title: 'Raporty',
+                description: 'Twórz uporządkowane raporty wydatków, aby śledzić swoje wydatki biznesowe, przesyłać je do zatwierdzenia i usprawniać proces zwrotu kosztów.',
+                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
+            },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',
                 description:
@@ -6149,6 +6154,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Mniej niż ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Większe niż ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Pomiędzy ${greaterThan} a ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Równe ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',

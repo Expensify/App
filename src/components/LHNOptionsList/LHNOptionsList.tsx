@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -23,13 +25,21 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
+    isInviteOrRemovedAction,
+    isMoneyRequestAction,
+    shouldReportActionBeVisibleAsLastAction,
+} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
@@ -45,7 +55,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const isScreenFocused = useIsFocused();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -183,7 +193,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-            const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
+            const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -216,6 +226,24 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+
+            let lastAction: ReportAction | undefined;
+            if (!itemReportActions || !item) {
+                lastAction = undefined;
+            } else {
+                const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
+                const actionsArray = getSortedReportActions(Object.values(itemReportActions));
+                const reportActionsForDisplay = actionsArray.filter(
+                    (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                );
+                lastAction = reportActionsForDisplay.at(-1);
+            }
+
+            let lastActionReport: OnyxEntry<Report> | undefined;
+            if (isInviteOrRemovedAction(lastAction)) {
+                const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
+                lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
+            }
 
             return (
                 <OptionRowLHNData
@@ -250,6 +278,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     localeCompare={localeCompare}
                     testID={index}
                     isReportArchived={isReportArchived}
+                    lastAction={lastAction}
+                    lastActionReport={lastActionReport}
                 />
             );
         },
