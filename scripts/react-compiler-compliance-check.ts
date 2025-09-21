@@ -287,12 +287,12 @@ function getDistinctFileNames<T>(items: T[], getFile: (item: T) => string, files
 }
 
 function printFailureSummary({success, failures}: DetailedCompilerResults, successFileNames: string[], failedFileNames: string[]): void {
-    logSuccess(`Successfully compiled ${success.length} files with React Compiler:\n`);
+    logSuccess(`Successfully compiled ${success.length} files with React Compiler:`);
     logError(`Failed to compile ${failedFileNames.length} files with React Compiler:\n\n`);
     failedFileNames.forEach((file) => bold(file));
 
     // Print unique failures for the files that were checked
-    info('\nDetailed reasons for failures:\n');
+    info('Detailed reasons for failures:\n\n');
     failures
         .filter((failure) => failedFileNames.includes(failure.file))
         .forEach((failure) => {
@@ -303,7 +303,8 @@ function printFailureSummary({success, failures}: DetailedCompilerResults, succe
             }
         });
 
-    logError('\n\nThe files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
+    log('\n');
+    logError('The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
 }
 
 function generateReport(results: DetailedCompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
