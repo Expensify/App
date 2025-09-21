@@ -169,8 +169,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 return nameComparison;
             }
 
-            const accountID1 = a?.accountID ?? 0;
-            const accountID2 = b?.accountID ?? 0;
+            const accountID1 = a?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+            const accountID2 = b?.accountID ?? CONST.DEFAULT_NUMBER_ID;
             return accountID1 - accountID2;
         });
 
