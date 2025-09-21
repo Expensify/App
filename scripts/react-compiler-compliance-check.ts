@@ -7,13 +7,13 @@
  * It provides both CI and local development tools to enforce Rules of React compliance.
  */
 import {execSync} from 'child_process';
-import {readFileSync, writeFileSync} from 'fs';
+import {writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
+import shouldReactCompilerProcessFile from './shouldReactCompilerProcessFile';
 import CLI from './utils/CLI';
 import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
 
-const REACT_COMPILER_CONFIG_FILENAME = 'react-compiler-config.json';
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
 const ERRORS = {
@@ -22,26 +22,6 @@ const ERRORS = {
 
 // Detect if running in CI environment
 const IS_CI = process.env.CI === 'true';
-
-type ReactCompilerConfig = {
-    excludedFolderPatterns: string[];
-    checkedFileEndings: string[];
-};
-
-const REACT_COMPILER_CONFIG = JSON.parse(readFileSync(join(process.cwd(), REACT_COMPILER_CONFIG_FILENAME), 'utf8')) as ReactCompilerConfig;
-
-/**
- * Check if a file should be processed by React Compiler
- * Matches the same logic as babel.config.js ReactCompilerConfig.sources
- */
-function shouldProcessFile(filePath: string): boolean {
-    // Check if file is in any excluded folder
-    return (
-        filePath.length > 0 &&
-        !REACT_COMPILER_CONFIG.excludedFolderPatterns.some((pattern) => filePath.includes(pattern)) &&
-        REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => filePath.endsWith(ending))
-    );
-}
 
 type CompilerResults = {
     success: string[];
@@ -394,7 +374,8 @@ function getChangedFiles(remote: string): string[] {
             encoding: 'utf8',
         });
 
-        const changedFiles = gitDiffOutput.trim().split('\n').filter(shouldProcessFile);
+        const files = gitDiffOutput.trim().split('\n');
+        const changedFiles = files.filter(shouldReactCompilerProcessFile);
         return changedFiles;
     } catch (error) {
         if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
