@@ -20,9 +20,9 @@ Anyone can use search operators when filtering data in features like Expenses, R
 
 You can use search operators directly in:
 
-* The **Expenses**, **Reports**, or **Invoices** navigation tabs on the left (web)
-* The **Search** bar at the top of your workspace inbox
-* Inside advanced filters for Reports, Tasks, or Chats
+- The **Expenses**, **Reports**, or **Invoices** navigation tabs on the left (web)
+- The **Search** bar at the top of your workspace inbox
+- Inside advanced filters for Reports, Tasks, or Chats
 
 ---
 
@@ -30,13 +30,28 @@ You can use search operators directly in:
 
 Here are the core rules and behaviors you’ll use across all filters:
 
-* `field:value` is the basic format.
-* Use commas for **OR**: `status:drafts,outstanding`.
-* Chaining fields means **AND**: `amount>50 status:approved`.
-* Use `-` to negate: `-has:receipt`.
-* Add quotes for exact phrases: `description:"team lunch"`.
-* Supports relative dates: `date:this-week`.
-* Autocomplete kicks in after typing `:`.
+- `field:value` is the basic format.
+- Use commas for **OR**: `status:drafts,outstanding`.
+- Chaining fields means **AND**: `amount>50 status:approved`.
+- Use `-` to negate: `-has:receipt`.
+- Add quotes for exact phrases: `description:"team lunch"`.
+- Supports relative dates: `date:this-week`.
+- Autocomplete kicks in after typing `:`.
+
+---
+
+# Type and type-agnostic filters
+
+These filters help you refine searches across object types, workspaces, or user-specific data.
+
+| **Syntax**       | **Description**                                                               | **Example**                  |
+|------------------|-------------------------------------------------------------------------------|------------------------------|
+| `type:`          | Filter by object type: `expense`, `chat`, `invoice`, `trip`, or `task`       | `type:expense`               |
+| `workspace:`     | Filter by workspace name (wrap in quotes if the name has spaces)             | `workspace:"Acme Inc."`      |
+| `from:`          | Filter by sender (email, phone, display name, or `me` for yourself)          | `from:alice@acme.com`        |
+| `to:`            | Filter by recipient (email, phone, display name, or `me` for yourself)       | `to:me`                      |
+
+**Note:** Quotes are required when filtering by names with spaces, such as `workspace:"Sales Team"`.
 
 ---
 
@@ -48,16 +63,16 @@ Here are the core rules and behaviors you’ll use across all filters:
 type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 ```
 
-* `merchant:` – expense merchant name
-* `category:` – expense category label
-* `tag:` – tag or multiple tags
-* `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
-* `status:` – unreported, draft, outstanding, approved, paid, done
-* `has:` – attachment, receipt, category, tag
-* `expense-type:` – cash, card, distance, per-diem
-* `reimbursable:` and `billable:` – yes or no
-* `attendee:` – expense attendees, e.g. `attendee:"Jason Mills"`
-* `posted:` – credit card posted date, e.g. `posted:last-statement`
+- `merchant:` – expense merchant name
+- `category:` – expense category label
+- `tag:` – tag or multiple tags
+- `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
+- `status:` – unreported, draft, outstanding, approved, paid, done
+- `has:` – attachment, receipt, category, tag
+- `expense-type:` – cash, card, distance, per-diem
+- `reimbursable:` and `billable:` – yes or no
+- `attendee:` – expense attendees, e.g. `attendee:"Jason Mills"`
+- `posted:` – credit card posted date, e.g. `posted:last-statement`
 
 ## Reports and Invoices
 
@@ -65,14 +80,14 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 type:expense-report status:paid exported:never
 ```
 
-* `report-id:` – unique report reference
-* `status:` – draft, outstanding, approved, paid, done
-* `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates
-* `title:` – report or invoice title
-* `total:` – total amount with relative comparisons
-* `withdrawn:` – ACH withdrawal date
-* `withdrawal-type:` – reimbursement or expensify-card
-* `action:` – blocking report action, e.g. `action:approve`
+- `report-id:` – unique report reference
+- `status:` – draft, outstanding, approved, paid, done
+- `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates
+- `title:` – report or invoice title
+- `total:` – total amount with relative comparisons
+- `withdrawn:` – ACH withdrawal date
+- `withdrawal-type:` – reimbursement or expensify-card
+- `action:` – blocking report action, e.g. `action:approve`
 
 ## Available filters for Chat
 
@@ -80,10 +95,10 @@ type:expense-report status:paid exported:never
 type:chat in:"Concierge" is:unread
 ```
 
-* `in:` – channel name or DM
-* `has:` – attachment, link
-* `is:` – unread, read, pinned
-* `date:` – message timestamp
+- `in:` – channel name or DM
+- `has:` – attachment, link
+- `is:` – unread, read, pinned
+- `date:` – message timestamp
 
 ## Available filters for Tasks
 
@@ -91,11 +106,11 @@ type:chat in:"Concierge" is:unread
 type:task assignee:"Charlie Brown" status:outstanding
 ```
 
-* `assignee:` – assigned member
-* `status:` – outstanding, completed
-* `description:` – task description
-* `title:` – task title
-* `in:` – channel name or DM for tasks
+- `assignee:` – assigned member
+- `status:` – outstanding, completed
+- `description:` – task description
+- `title:` – task title
+- `in:` – channel name or DM for tasks
 
 ---
 
@@ -109,10 +124,10 @@ group-by:merchant group-currency:USD
 
 Supported groupings include:
 
-* `group-by:report`
-* `group-by:from`
-* `group-by:card`
-* `group-by:withdrawal-id`
+- `group-by:report`
+- `group-by:from`
+- `group-by:card`
+- `group-by:withdrawal-id`
 
 ---
 
