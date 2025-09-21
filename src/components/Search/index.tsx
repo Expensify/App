@@ -540,17 +540,17 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
         const areItemsGrouped = !!groupBy;
-        const flattenedItems = areItemsGrouped
-            ? (data as TransactionGroupListItemType[]).flatMap((item) => {
+        const totalSelectableItemsCount = areItemsGrouped
+            ? (data as TransactionGroupListItemType[]).reduce((count, item) => {
                   // For empty reports, count the report itself as a selectable item
                   if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item)) {
-                      return [item];
+                      return count + 1;
                   }
                   // For regular reports, count all transactions
-                  return item.transactions;
-              })
-            : data;
-        const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+                  return count + item.transactions.length;
+              }, 0)
+            : data.length;
+        const areAllItemsSelected = totalSelectableItemsCount === Object.keys(selectedTransactions).length;
 
         // If the user has selected all the expenses in their view but there are more expenses matched by the search
         // give them the option to select all matching expenses
@@ -609,7 +609,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             canChangeReport: false,
                             action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                             reportID: item.reportID,
-                            policyID: item.policyID,
+                            policyID: item.policyID ?? '',
                             amount: 0,
                             convertedAmount: 0,
                             convertedCurrency: '',
@@ -830,7 +830,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         if (areItemsGrouped) {
-            const allSelections = (data as TransactionGroupListItemType[]).flatMap((item) => {
+            const allSelections: Array<[string, SelectedTransactionInfo]> = (data as TransactionGroupListItemType[]).flatMap((item) => {
                 // Handle empty reports - select the report itself
                 if (item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && item.keyForList) {
                     return [
@@ -845,7 +845,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                                 canChangeReport: false,
                                 action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                                 reportID: item.reportID,
-                                policyID: item.policyID,
+                                policyID: item.policyID ?? '',
                                 amount: 0,
                                 convertedAmount: 0,
                                 convertedCurrency: '',
@@ -859,7 +859,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     .filter((t) => !isTransactionPendingDelete(t))
                     .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID));
             });
-
             setSelectedTransactions(Object.fromEntries(allSelections), data);
 
             return;
