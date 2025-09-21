@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
+import type {PaymentData, SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
@@ -28,6 +28,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import {deleteAppReport} from './Report';
 
 function handleActionButtonPress(
     hash: number,
@@ -516,6 +517,46 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, failureData, finallyData});
 }
 
+function deleteSelectedItemsOnSearch(hash: number, selectedTransactions: Record<string, SelectedTransactionInfo>) {
+    const transactionIDList: string[] = [];
+    const reportIDList: string[] = [];
+
+    Object.keys(selectedTransactions).forEach((key) => {
+        const selectedItem = selectedTransactions[key];
+        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+            reportIDList.push(selectedItem.reportID);
+        } else {
+            transactionIDList.push(key);
+        }
+    });
+
+    if (transactionIDList.length > 0) {
+        deleteMoneyRequestOnSearch(hash, transactionIDList);
+    }
+
+    if (reportIDList.length > 0) {
+        reportIDList.forEach((reportID) => {
+            deleteAppReport(reportID);
+        });
+
+        const {optimisticData: loadingOptimisticData} = getOnyxLoadingData(hash);
+        const optimisticData: OnyxUpdate[] = [
+            ...loadingOptimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: Object.fromEntries(
+                        reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
+                    ) as Partial<SearchReport>,
+                },
+            },
+        ];
+
+        Onyx.update(optimisticData);
+    }
+}
+
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
@@ -605,6 +646,7 @@ export {
     search,
     updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
+    deleteSelectedItemsOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,

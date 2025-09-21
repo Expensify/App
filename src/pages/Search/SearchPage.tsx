@@ -32,7 +32,7 @@ import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
-    deleteMoneyRequestOnSearch,
+    deleteSelectedItemsOnSearch,
     exportSearchItemsToCSV,
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
@@ -529,17 +529,18 @@ function SearchPage({route}: SearchPageProps) {
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
+        activePolicy,
         queryJSON,
+        integrationsExportTemplates,
+        csvExportLayouts,
         clearSelectedTransactions,
+        beginExportWithTemplate,
+        policies,
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        beginExportWithTemplate,
-        integrationsExportTemplates,
-        csvExportLayouts,
-        policies,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -552,7 +553,7 @@ function SearchPage({route}: SearchPageProps) {
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+            deleteSelectedItemsOnSearch(hash, selectedTransactions);
             clearSelectedTransactions();
         });
     };
