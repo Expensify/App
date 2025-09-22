@@ -45,6 +45,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import Permissions from '@libs/Permissions';
 import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -183,6 +184,10 @@ function SearchPage({route}: SearchPageProps) {
                     text: translate('export.expenseLevelExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
@@ -204,6 +209,10 @@ function SearchPage({route}: SearchPageProps) {
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
@@ -455,7 +464,10 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        // TODO: change this condition after the feature is ready to be deployed
+        const canAllTransactionsBeMoved = Permissions.canUseUnreportedExpense()
+            ? selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport) && !!activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL
+            : selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
             options.push({

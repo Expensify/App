@@ -5516,7 +5516,7 @@ const translations = {
             },
             categories: {
                 title: 'Categorias',
-                description: `As categorias ajudam você a organizar melhor as despesas para acompanhar onde está gastando seu dinheiro. Use nossa lista de categorias sugeridas ou crie as suas próprias.`,
+                description: 'As categorias permitem rastrear e organizar gastos. Use nossas categorias padrão ou adicione as suas próprias.',
                 onlyAvailableOnPlan: 'As categorias estão disponíveis no plano Collect, a partir de',
             },
             glCodes: {
@@ -5555,6 +5555,11 @@ const translations = {
                 description: 'Expensify Travel é uma nova plataforma de reserva e gestão de viagens corporativas que permite aos membros reservar acomodações, voos, transporte e mais.',
                 onlyAvailableOnPlan: 'Viagens estão disponíveis no plano Collect, a partir de',
             },
+            reports: {
+                title: 'Relatórios',
+                description: 'Crie relatórios de despesas organizados para acompanhar seus gastos empresariais, enviá-los para aprovação e otimizar seu processo de reembolso.',
+                onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
+            },
             multiLevelTags: {
                 title: 'Tags multiníveis',
                 description:
@@ -5587,6 +5592,7 @@ const translations = {
                 travelMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
                 distanceRateMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode alterar a taxa de distância!`,
                 gotIt: 'Entendi, obrigado',
+                createdWorkspace: 'Você criou um espaço de trabalho!',
             },
             commonFeatures: {
                 title: 'Faça upgrade para o plano Control',
@@ -6163,6 +6169,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Menos de ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Maior que ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Entre ${greaterThan} e ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Igual a ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
