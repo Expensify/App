@@ -7319,6 +7319,8 @@ const FRAUD_PROTECTION_EVENT = {
     ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
     ADD_BILLING_CARD: 'AddBillingCard',
     VIEW_VIRTUAL_CARD_PAN: 'ViewVirtualCardPAN',
+    BUSINESS_BANK_ACCOUNT_SETUP: 'BusinessBankAccountSetup',
+    PERSONAL_BANK_ACCOUNT_SETUP: 'PersonalBankAccountSetup',
 };
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
