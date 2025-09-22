@@ -6,10 +6,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
+import NewChatListItem from '@components/SelectionList/NewChatListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -41,12 +41,13 @@ import {
     sanitizeSearchValue,
     shouldHighlight,
 } from '@libs/SearchQueryUtils';
-import {getDatePresets} from '@libs/SearchUIUtils';
+import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
@@ -147,7 +148,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
         );
     }
     return (
-        <UserListItem
+        <NewChatListItem
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -192,12 +193,11 @@ function SearchAutocompleteList({
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-    const currentType = typeFilter?.value;
+    const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
 
     const groupByAutocompleteList = (() => {
         switch (currentType) {
-            case undefined:
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 return Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
@@ -215,9 +215,6 @@ function SearchAutocompleteList({
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 suggestedStatuses = Object.values(CONST.SEARCH.STATUS.INVOICE);
                 break;
-            case CONST.SEARCH.DATA_TYPES.CHAT:
-                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.CHAT);
-                break;
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 suggestedStatuses = Object.values(CONST.SEARCH.STATUS.TRIP);
                 break;
@@ -228,12 +225,21 @@ function SearchAutocompleteList({
                 suggestedStatuses = Object.values({
                     ...CONST.SEARCH.STATUS.EXPENSE,
                     ...CONST.SEARCH.STATUS.INVOICE,
-                    ...CONST.SEARCH.STATUS.CHAT,
                     ...CONST.SEARCH.STATUS.TRIP,
                     ...CONST.SEARCH.STATUS.TASK,
                 });
         }
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
+    })();
+
+    const hasAutocompleteList = getHasOptions(currentType);
+    const isAutocompleteList = (() => {
+        switch (currentType) {
+            case CONST.SEARCH.DATA_TYPES.CHAT:
+                return Object.values(CONST.SEARCH.IS_VALUES);
+            default:
+                return [];
+        }
     })();
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
@@ -497,14 +503,21 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
-                const filteredHasValues = Object.values(CONST.SEARCH.HAS_VALUES).filter((hasValue) => {
-                    return hasValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(hasValue.toLowerCase());
+                const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
+                    return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(hasValue.value.toLowerCase());
                 });
 
                 return filteredHasValues.map((hasValue) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.HAS,
-                    text: hasValue,
+                    text: hasValue.value,
                 }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS: {
+                const filteredIsValues = isAutocompleteList.filter((isValue) => {
+                    return isValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(isValue.toLowerCase());
+                });
+
+                return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IS, text: isValue}));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
@@ -545,6 +558,8 @@ function SearchAutocompleteList({
         booleanTypes,
         workspaceList,
         currentUserLogin,
+        isAutocompleteList,
+        hasAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
