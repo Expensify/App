@@ -100,6 +100,7 @@ import {isEmailPublicDomain} from './LoginUtils';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
+import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
@@ -274,7 +275,6 @@ import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
-import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
@@ -6802,10 +6802,7 @@ function buildOptimisticTransactionAction(
 ): ReportAction {
     const reportName = allReports?.[targetReportID]?.reportName ?? '';
     const url = getReportURLForCurrentContext(targetReportID);
-    const [actionText, messageHtml] = [
-        `moved this expense to ${reportName}`,
-        `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
-    ];
+    const [actionText, messageHtml] = [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
         actionName: type,
@@ -11716,9 +11713,7 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
         return `${environmentURL}/r/`;
     }
     const isInSearchContext = isSearchTopmostFullScreenRoute();
-    const relativePath = isInSearchContext
-        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: id})
-        : ROUTES.REPORT_WITH_ID.getRoute(id);
+    const relativePath = isInSearchContext ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: id}) : ROUTES.REPORT_WITH_ID.getRoute(id);
     return `${environmentURL}/${relativePath}`;
 }
 

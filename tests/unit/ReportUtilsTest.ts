@@ -8,8 +8,10 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
+import * as SearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -54,6 +56,7 @@ import {
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -80,16 +83,13 @@ import {
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
-    getReportURLForCurrentContext,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
-import {getEnvironmentURL} from '@libs/Environment/Environment';
-import * as SearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -7004,11 +7004,11 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportURLForCurrentContext', () => {
-        const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
-        const mockIsSearchTopmostFullScreenRoute = jest.spyOn(
-            SearchTopmostFullScreenRoute,
-            'default',
-        ) as jest.MockedFunction<() => boolean>;
+        const flushPromises = () =>
+            new Promise<void>((resolve) => {
+                setImmediate(resolve);
+            });
+        const mockIsSearchTopmostFullScreenRoute = jest.spyOn(SearchTopmostFullScreenRoute, 'default') as jest.MockedFunction<() => boolean>;
         let environmentURL: string;
 
         beforeAll(async () => {
