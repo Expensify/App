@@ -52,10 +52,14 @@ function WorkspaceResetBankAccountModal({
         (paymentMethods: OnyxEntry<OnyxTypes.LastPaymentMethod>) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
         [policyID],
     );
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
-        canBeMissing: true,
-        selector: lastPaymentMethodSelector,
-    });
+    const [lastPaymentMethod] = useOnyx(
+        ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+        {
+            canBeMissing: true,
+            selector: lastPaymentMethodSelector,
+        },
+        [lastPaymentMethodSelector],
+    );
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {

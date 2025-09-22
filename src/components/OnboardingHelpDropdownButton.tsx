@@ -1,6 +1,6 @@
 import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
-import React from 'react';
+import React, {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
 import {CalendarSolid, Close, Monitor} from './Icon/Expensicons';
@@ -38,10 +39,17 @@ type OnboardingHelpButtonProps = {
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-        selector: (reportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1),
-        canBeMissing: true,
-    });
+
+    const reportNameValuePartsSelector = useCallback((reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1), []);
+
+    const [latestScheduledCall] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        {
+            selector: reportNameValuePartsSelector,
+            canBeMissing: true,
+        },
+        [reportNameValuePartsSelector],
+    );
 
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

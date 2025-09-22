@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AvailableBookingDay from './AvailableBookingDay';
 
@@ -48,12 +49,22 @@ function ScheduleCallPage() {
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
-    const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-        selector: (data) => ({
+
+    const adminReportNameValuePairsSelector = useCallback(
+        (data?: ReportNameValuePairs) => ({
             calendlySchedule: data?.calendlySchedule,
         }),
-        canBeMissing: true,
-    });
+        [],
+    );
+
+    const [adminReportNameValuePairs] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        {
+            selector: adminReportNameValuePairsSelector,
+            canBeMissing: true,
+        },
+        [adminReportNameValuePairsSelector],
+    );
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
     useEffect(() => {
@@ -74,6 +85,8 @@ function ScheduleCallPage() {
         return () => {
             sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
         };
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
