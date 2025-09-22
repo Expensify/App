@@ -6,8 +6,8 @@ import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {createPoliciesSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeepCompareRef from './useDeepCompareRef';
@@ -49,7 +49,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSi
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
 
-const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => mapOnyxCollectionItems(policies, policySelector);
+const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
 
 function SidebarOrderedReportsContextProvider({
     children,

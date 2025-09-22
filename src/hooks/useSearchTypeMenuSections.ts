@@ -2,8 +2,8 @@ import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {createPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy, Session} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -28,7 +28,7 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         achAccount: policy.achAccount,
     };
 
-const policiesSelector = (policies: OnyxCollection<Policy>) => mapOnyxCollectionItems(policies, policySelector);
+const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
