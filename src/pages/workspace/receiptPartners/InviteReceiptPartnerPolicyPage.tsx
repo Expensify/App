@@ -196,7 +196,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const shouldSkipToAllSet = useMemo(() => {
         // Skip if no workspace members can be invited (covers all cases: no employees, only owner, already linked)
         return workspaceMembers.length === 0;
-    }, [workspaceMembers]);
+    }, [workspaceMembers.length]);
 
     if (isInvitationSent || shouldSkipToAllSet) {
         return (

@@ -5,7 +5,6 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -185,11 +184,10 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 keyForList: email,
                 reportID: '',
                 isDisabled: true,
+                pendingAction: uberEmployeesByEmail[email]?.pendingAction,
             });
 
-            const rightElementWithOfflineFeedback = <OfflineWithFeedback pendingAction={uberEmployeesByEmail[email]?.pendingAction}>{rightElement}</OfflineWithFeedback>;
-
-            list.push({...option, rightElement: rightElementWithOfflineFeedback} as MemberForList & ListItem);
+            list.push({...option, rightElement} as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
     }, [
