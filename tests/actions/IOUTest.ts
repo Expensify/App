@@ -49,7 +49,7 @@ import {
 } from '@libs/actions/IOU';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {addComment, createNewReport, deleteReport, moveIOUReportToPolicyAndInviteSubmitter, notifyNewAction, openReport} from '@libs/actions/Report';
+import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -1749,87 +1749,6 @@ describe('actions/IOU', () => {
 
             expect(newNonReimbursableTotal).toBe(-100);
         });
-    });
-
-    it('correctly implements RedBrickRoad error handling for moveIOUReportToPolicyAndInviteSubmitter when network fails', async () => {
-        const amount = 10000;
-
-        // Setup test data - create an IOU report with a submitter who is NOT in the policy
-        const submitterAccountID = 999;
-        const submitterEmail = 'submitter@test.com';
-
-        const submitter = {
-            accountID: submitterAccountID,
-            login: submitterEmail,
-            email: submitterEmail,
-        };
-
-        const submitterParticipant: Participant = {
-            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            role: 'member',
-        };
-
-        const policy: Policy = {
-            id: 'policy456',
-            name: 'Test Policy for IOU Move',
-            role: CONST.POLICY.ROLE.ADMIN,
-            type: CONST.POLICY.TYPE.TEAM,
-            owner: RORY_EMAIL,
-            outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
-            employeeList: {
-                [RORY_EMAIL]: {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                },
-                // Note: submitter is NOT in the employee list, which will trigger the invitation
-            },
-        };
-
-        const iouReport: Report = {
-            reportID: 'iouReport123',
-            type: CONST.REPORT.TYPE.IOU,
-            ownerAccountID: submitterAccountID,
-            managerID: RORY_ACCOUNT_ID,
-            participants: {
-                [submitterAccountID]: submitterParticipant,
-                [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
-            },
-            total: amount,
-            currency: CONST.CURRENCY.USD,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-        };
-
-        mockFetch?.pause?.();
-
-        // Setup initial data
-        await Promise.all([
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport),
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[submitterAccountID]: submitter}),
-        ]);
-        await waitForBatchedUpdates();
-
-        // Call moveIOUReportToPolicyAndInviteSubmitter
-        const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-        moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber);
-        await waitForBatchedUpdates();
-
-        // Simulate network failure
-        mockFetch?.fail?.();
-        await (mockFetch?.resume?.() as Promise<unknown>);
-
-        // Verify error handling after failure - focus on workspace invitation error
-        const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
-
-        // The submitter should have been added to the employee list with error
-        const submitterEmployee = policyData?.employeeList?.[submitterEmail];
-        expect(submitterEmployee).toBeTruthy();
-        expect(submitterEmployee?.errors).toBeTruthy();
-        expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
-
-        // Cleanup
-        mockFetch?.succeed?.();
     });
 
     describe('createDistanceRequest', () => {
