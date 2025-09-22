@@ -1,6 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -51,10 +50,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type AmountParams = {
     amount: string;
     paymentMethod?: PaymentMethodType;
-};
-
-type IOURequestStepAmountRef = {
-    focus?: () => void;
 };
 
 type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &

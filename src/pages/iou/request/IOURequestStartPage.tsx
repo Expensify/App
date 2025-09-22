@@ -201,10 +201,11 @@ function IOURequestStartPage({
         // We runAfterInteractions since the function is called in the animate block on web-based
         // implementation, this fixes an animation glitch and matches the native internal delay
         InteractionManager.runAfterInteractions(() => {
-            // 0 - Amount, 3 - PerDiem
-            if (index === 3) {
-                perDiemInputRef.current?.focus?.();
+            // 3 - PerDiem
+            if (index !== 3) {
+                return;
             }
+            perDiemInputRef.current?.focus?.();
         });
     };
 
