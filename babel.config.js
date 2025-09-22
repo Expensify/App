@@ -1,8 +1,10 @@
+const path = require('path');
+
 require('dotenv').config();
 
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
-const shouldReactCompilerProcessFile = require('./scripts/shouldReactCompilerProcessFile');
+const shouldReactCompilerProcessFile = require(path.resolve(__dirname, 'scripts/shouldReactCompilerProcessFile.js'));
 const ReactCompilerConfig = {
     target: '18',
     environment: {
@@ -154,7 +156,6 @@ if (process.env.DEBUG_BABEL_TRACE) {
  * When CAPTURE_METRICS is set we're explicitly saying that we want to capture metrics
  * To enable the <Profiler> for release builds we add these aliases */
 if (process.env.CAPTURE_METRICS === 'true') {
-    const path = require('path');
     const profilingRenderer = path.resolve(__dirname, './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling');
 
     metro.plugins.push([

@@ -1,17 +1,12 @@
-import {readFileSync} from 'fs';
-import minimatch from 'minimatch';
-import {join} from 'path';
+const {readFileSync} = require('fs');
+const minimatch = require('minimatch');
+const {join} = require('path');
 
 const REACT_COMPILER_CONFIG_FILENAME = 'react-compiler-config.json';
 
-type ReactCompilerConfig = {
-    excludedPatterns: string[];
-    includedPatterns: string[];
-};
+const REACT_COMPILER_CONFIG = JSON.parse(readFileSync(join(process.cwd(), REACT_COMPILER_CONFIG_FILENAME), 'utf8'));
 
-const REACT_COMPILER_CONFIG = JSON.parse(readFileSync(join(process.cwd(), REACT_COMPILER_CONFIG_FILENAME), 'utf8')) as ReactCompilerConfig;
-
-function shouldProcessFile(filePath: string): boolean {
+function shouldReactCompilerProcessFile(filePath) {
     if (filePath.length === 0) {
         return false;
     }
@@ -25,4 +20,4 @@ function shouldProcessFile(filePath: string): boolean {
     return isIncluded;
 }
 
-export default shouldProcessFile;
+module.exports = shouldReactCompilerProcessFile;
