@@ -534,7 +534,6 @@ describe('getSecondaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.BILLING,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             isWaitingOnBankAccount: true,
         } as unknown as Report;
@@ -550,7 +549,7 @@ describe('getSecondaryAction', () => {
                 IOUTransactionID: TRANSACTION_ID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             },
-            created: '2025-03-06 18:00:00.000',
+            created: new Date().toISOString(),
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
