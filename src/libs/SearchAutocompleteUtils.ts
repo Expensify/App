@@ -115,7 +115,6 @@ const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value)
 const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
     ...CONST.SEARCH.STATUS.INVOICE,
-    ...CONST.SEARCH.STATUS.CHAT,
     ...CONST.SEARCH.STATUS.TRIP,
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
@@ -142,6 +141,7 @@ function filterOutRangesWithCorrectValue(
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -191,6 +191,8 @@ function filterOutRangesWithCorrectValue(
             return datePresetList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
             return hasList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
+            return isList.includes(range.value);
         default:
             return false;
     }
