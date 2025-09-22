@@ -6487,6 +6487,7 @@ const CONST = {
         HAS_VALUES: {
             RECEIPT: 'receipt',
             ATTACHMENT: 'attachment',
+            LINK: 'link',
             CATEGORY: 'category',
             TAG: 'tag',
         },
@@ -6508,6 +6509,11 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
+        },
+        IS_VALUES: {
+            READ: 'read',
+            UNREAD: 'unread',
+            PINNED: 'pinned',
         },
         SORT_ORDER: {
             ASC: 'asc',
@@ -6547,14 +6553,7 @@ const CONST = {
                 CURRENT: 'current',
                 PAST: 'past',
             },
-            CHAT: {
-                ALL: '',
-                UNREAD: 'unread',
-                SENT: 'sent',
-                ATTACHMENTS: 'attachments',
-                LINKS: 'links',
-                PINNED: 'pinned',
-            },
+            CHAT: {},
             TASK: {
                 ALL: '',
                 OUTSTANDING: 'outstanding',
@@ -6639,6 +6638,7 @@ const CONST = {
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
             ATTENDEE: 'attendee',
+            IS: 'is',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6691,6 +6691,7 @@ const CONST = {
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
             ATTENDEE: 'attendee',
+            IS: 'is',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {

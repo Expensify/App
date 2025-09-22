@@ -364,7 +364,7 @@ const translations = {
         magicCode: 'Code de vérification',
         twoFactorCode: 'Code à deux facteurs',
         workspaces: 'Espaces de travail',
-        success: 'Succ\u00E8s',
+        success: 'Succès',
         inbox: 'Boîte de réception',
         group: 'Groupe',
         profile: 'Profil',
@@ -665,6 +665,9 @@ const translations = {
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
         purchaseAmount: "Montant de l'achat",
+        link: 'Lien',
+        pinned: 'Épinglé',
+        read: 'Lu',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1198,8 +1201,12 @@ const translations = {
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec le compte personnel`),
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) =>
             amount ? `Payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`,
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`,
+        payWithPolicy: ({
+            formattedAmount,
+            policyName,
+        }: SettleExpensifyCardParams & {
+            policyName: string;
+        }) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             amount ? `Payé ${amount} avec le compte bancaire ${last4Digits}.` : `Payé avec le compte bancaire ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
@@ -6164,9 +6171,6 @@ const translations = {
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
             currency: 'Devise',
-            link: 'Lien',
-            pinned: 'Épinglé',
-            unread: 'Non lu',
             completed: 'Terminé',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Moins de ${amount ?? ''}`,
@@ -6205,6 +6209,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
             },
+            is: 'Est',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
