@@ -1,14 +1,14 @@
-import React, {forwardRef, lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MapViewHandle, MapViewProps} from './MapViewTypes';
+import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
+function MapView({ref, ...props}: MapViewProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -42,14 +42,22 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
             }
         >
             <Suspense fallback={<FullScreenLoadingIndicator />}>
-                <MapViewImpl
-                    ref={ref}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                />
+                {!isOffline ? (
+                    <MapViewImpl
+                        ref={ref}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                ) : (
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={translate('distance.mapPending.subtitle')}
+                        style={styles.mapEditView}
+                    />
+                )}
             </Suspense>
         </ErrorBoundary>
     );
-});
+}
 
 export default MapView;

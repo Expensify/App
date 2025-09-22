@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
@@ -72,7 +72,6 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             onModalHide={onClose}
             onBackdropPress={onBackdropPress}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 includePaddingTop={false}
@@ -91,7 +90,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     onChangeText={setSearchValue}
                     onSelectRow={onCustomListSelected}
                     headerMessage={headerMessage}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     isRowMultilineSupported
                     initiallyFocusedOptionKey={currentCustomListValue}
                     shouldSingleExecuteRowSelect

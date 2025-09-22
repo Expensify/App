@@ -107,7 +107,8 @@ module Jekyll
         'View' => content.include?('<View'),
         'Text' => content.include?('<Text'),
         'TextLink' => content.include?('<TextLink'),
-        'BulletList' => content.include?('<BulletList')
+        'BulletList' => content.include?('<BulletList'),
+        'NumberedList' => content.include?('<NumberedList')
       }
       components.select { |_, used| used }.keys
     end
@@ -126,6 +127,7 @@ module Jekyll
       component_imports << "import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';" if components.include?('BulletList')
       component_imports << "import Text from '@components/Text';" if components.include?('Text')
       component_imports << "import TextLink from '@components/TextLink';" if components.include?('TextLink')
+      component_imports << "import NumberedList from '@components/SidePanel/HelpComponents/HelpNumberedList';" if components.include?('NumberedList')
 
       # Add style imports
       base_imports << "import type {ThemeStyles} from '@styles/index';"
@@ -135,6 +137,7 @@ module Jekyll
 
     def self.generate_ts_output(import_block, help_content_string)
       <<~TS
+        /* eslint-disable react/jsx-key */
         /* eslint-disable react/no-unescaped-entities */
         /* eslint-disable @typescript-eslint/naming-convention */
         #{import_block}
@@ -199,6 +202,7 @@ module Jekyll
         'div' => method(:process_div),
         'p' => method(:process_paragraph),
         'ul' => method(:process_unordered_list),
+        'ol' => method(:process_ordered_list),
         'li' => method(:process_list_item),
         'h1' => method(:process_heading),
         'h2' => method(:process_heading),
@@ -233,7 +237,18 @@ module Jekyll
     end
 
     def self.process_heading(node, indent_level)
-      return "#{'  ' * indent_level}<Text style={[styles.textHeadline#{node.name.upcase}, styles.mv4]}>#{CGI.escapeHTML(node.text).strip}</Text>"
+      classes = ["styles.textHeadline#{node.name.upcase}"]
+
+      # If a list follows immediately, don't add the normal bottom margin
+      if %w[ul ol].include?(node.next_element&.name)
+        classes << 'styles.mt4'
+        classes << 'styles.mb1'
+      else
+        classes << 'styles.mv4'
+      end
+
+      text = CGI.escapeHTML(node.text).strip
+      "#{' ' * indent_level}<Text style={[#{classes.join(', ')}]}>#{text}</Text>"
     end
 
     def self.process_unordered_list(node, indent_level)
@@ -264,6 +279,33 @@ module Jekyll
       TS
     end
 
+    def self.process_ordered_list(node, indent_level)
+      items = node.xpath('./li').map do |li|
+        contains_ol = li.xpath('.//ol').any?
+
+        li_parts = li.children.map { |child| html_node_to_RN(child, 0) }
+
+        if contains_ol
+          indented_li_parts = li_parts.map do |part|
+            part.lines.map { |line| "#{'  ' * (indent_level + 3)}#{line.rstrip}" }.join("\n")
+          end.join("\n")
+
+          "#{'  ' * (indent_level + 2)}<>\n#{indented_li_parts}\n#{'  ' * (indent_level + 2)}</>"
+        else
+          "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts.join.strip}</Text>"
+        end
+      end
+
+      <<~TS.chomp
+        #{'  ' * indent_level}<NumberedList
+        #{'  ' * indent_level}  styles={styles}
+        #{'  ' * indent_level}  items={[
+        #{items.join(",\n")}
+        #{'  ' * indent_level}  ]}
+        #{'  ' * indent_level}/>
+      TS
+    end
+
     def self.process_list_item(node, indent_level)
       '' # handled in <ul>
     end
@@ -272,8 +314,16 @@ module Jekyll
       inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join
 
       style_classes = ['styles.textNormal']
-      style_classes << 'styles.mt4' if node.previous_element&.name == 'ul'
-      style_classes << 'styles.mb4' if node.next_element&.name == 'p'
+      
+      # Add spacing if previous sibling is a list (ul or ol)
+      if %w[ul ol].include?(node.previous_element&.name)
+        style_classes << 'styles.mt4'
+      end
+
+      # Add spacing if the next element is another paragraph
+      if node.next_element&.name == 'p'
+        style_classes << 'styles.mb4'
+      end
 
       "#{'  ' * indent_level}<Text style={[#{style_classes.join(', ')}]}>#{inner.strip}</Text>"
     end

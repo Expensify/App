@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -42,10 +42,13 @@ type FloatingActionButtonProps = {
 
     /* If the tooltip is allowed to be shown */
     isTooltipAllowed: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<HTMLDivElement | View | Text>;
 };
 
-function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, isTooltipAllowed}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
-    const {success, buttonDefaultBG, textLight} = useTheme();
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, isTooltipAllowed, ref}: FloatingActionButtonProps) {
+    const {success, successHover, buttonDefaultBG, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
@@ -139,17 +142,22 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 shouldUseHapticsOnLongPress
                 testID="floating-action-button"
             >
-                <Animated.View style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}>
-                    <Svg
-                        width={fabSize}
-                        height={fabSize}
+                {({hovered}) => (
+                    <Animated.View
+                        style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: successHover}]}
+                        testID="fab-animated-container"
                     >
-                        <AnimatedPath
-                            d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                            fill={textLight}
-                        />
-                    </Svg>
-                </Animated.View>
+                        <Svg
+                            width={fabSize}
+                            height={fabSize}
+                        >
+                            <AnimatedPath
+                                d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                fill={textLight}
+                            />
+                        </Svg>
+                    </Animated.View>
+                )}
             </PressableWithoutFeedback>
         </EducationalTooltip>
     );
@@ -157,4 +165,4 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
 FloatingActionButton.displayName = 'FloatingActionButton';
 
-export default forwardRef(FloatingActionButton);
+export default FloatingActionButton;

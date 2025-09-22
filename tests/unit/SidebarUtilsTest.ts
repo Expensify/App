@@ -6,6 +6,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -13,7 +15,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -32,6 +34,12 @@ jest.mock('@libs/DraftCommentUtils', () => ({
     getDraftComment: jest.fn(),
     isValidDraftComment: jest.fn(),
     prepareDraftComment: jest.fn(),
+}));
+
+// Mock PolicyUtils
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    getConnectedIntegration: jest.fn(() => true),
 }));
 
 describe('SidebarUtils', () => {
@@ -344,6 +352,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -355,6 +365,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -736,6 +748,11 @@ describe('SidebarUtils', () => {
                 chatType: 'group',
                 type: 'chat',
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'email1@test.com'} as unknown as PersonalDetails,
+                {accountID: 2, avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+            ];
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
@@ -745,7 +762,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
                         expect(result.messageText).toBe('This chat is with One and Two.');
                     })
             );
@@ -756,6 +773,10 @@ describe('SidebarUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'One'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'Two'} as unknown as PersonalDetails,
+            ];
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
@@ -768,7 +789,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -781,6 +802,10 @@ describe('SidebarUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'one@example.com'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+            ];
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
@@ -790,7 +815,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -850,6 +875,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -909,6 +936,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -950,7 +979,9 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -985,7 +1016,10 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    isReportArchived: true,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1017,7 +1051,9 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1138,7 +1174,9 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
                 const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
@@ -1181,7 +1219,9 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1248,10 +1288,12 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 member`);
+                expect(result?.alternateText).toBe(`You: invited 1 member`);
             });
             it('returns the last action message as an alternate text if the action is MOVED type', async () => {
                 const report: Report = {
@@ -1295,6 +1337,8 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -1362,6 +1406,8 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1474,6 +1520,8 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -1484,15 +1532,14 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
+                // Given hasValidDraftComment is mocked to return true for report '2'
+                const {hasValidDraftComment} = require('@libs/DraftCommentUtils') as {hasValidDraftComment: jest.Mock};
+                hasValidDraftComment.mockImplementation((reportID: string) => reportID === '2');
+
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
-                // Given draftReportComments with a draft for report '2'
-                const draftReportComments = {
-                    '2': 'This is a draft comment',
-                };
-
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes, draftReportComments);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1528,7 +1575,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes, undefined);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1555,7 +1602,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, undefined);
+                const result = SidebarUtils.categorizeReportsForLHN(reports);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1569,7 +1616,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty reports object', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.categorizeReportsForLHN({}, undefined, undefined, undefined);
+                const result = SidebarUtils.categorizeReportsForLHN({});
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1577,37 +1624,6 @@ describe('SidebarUtils', () => {
                 expect(result.draftReports).toHaveLength(0);
                 expect(result.nonArchivedReports).toHaveLength(0);
                 expect(result.archivedReports).toHaveLength(0);
-            });
-
-            it('should categorize draft reports using draftReportComments parameter', () => {
-                // Given reports with no drafts initially
-                const reports = createSidebarReportsCollection([
-                    {
-                        reportName: 'Report 1',
-                        isPinned: false,
-                        hasErrorsOtherThanFailedReceipt: false,
-                    },
-                    {
-                        reportName: 'Report 2',
-                        isPinned: false,
-                        hasErrorsOtherThanFailedReceipt: false,
-                    },
-                ]);
-
-                // Given draftReportComments with drafts for both reports
-                const draftReportComments = {
-                    '0': 'Draft comment for report 1',
-                    '1': 'Draft comment for report 2',
-                };
-
-                // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, draftReportComments);
-
-                // Then both reports should be categorized as draft reports
-                expect(result.draftReports).toHaveLength(2);
-                expect(result.draftReports.at(0)?.reportID).toBe('0');
-                expect(result.draftReports.at(1)?.reportID).toBe('1');
-                expect(result.nonArchivedReports).toHaveLength(0);
             });
         });
 
@@ -1837,7 +1853,7 @@ describe('SidebarUtils', () => {
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, undefined);
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare);
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -1863,10 +1879,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
                 // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, undefined);
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare);
 
                 // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, undefined);
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare);
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)

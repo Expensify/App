@@ -35,6 +35,7 @@ import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner
 import CardSectionActions from './CardSectionActions';
 import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import getSectionSubtitle from './CardSectionSubtitle';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
@@ -76,17 +77,22 @@ function CardSection() {
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
-        CardSectionUtils.getBillingStatus({translate, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
+        CardSectionUtils.getBillingStatus({translate, stripeCustomerId: privateStripeCustomerID, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
     );
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
-    const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
+    const sectionSubtitle = getSectionSubtitle({
+        translate,
+        hasDefaultCard: !!defaultCard,
+        nextPaymentDate,
+    });
 
     useEffect(() => {
         setBillingStatus(
             CardSectionUtils.getBillingStatus({
                 translate,
+                stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
             }),
@@ -189,7 +195,7 @@ function CardSection() {
                         large
                     />
                 )}
-                {hasCardAuthenticatedError() && (
+                {hasCardAuthenticatedError(privateStripeCustomerID) && (
                     <CardSectionButton
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}

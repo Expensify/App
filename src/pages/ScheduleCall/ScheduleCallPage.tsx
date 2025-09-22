@@ -9,6 +9,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -16,7 +17,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
+import {getGuideCallAvailabilitySchedule, saveBookingDraft, sendScheduleCallNudge} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,6 +44,7 @@ function ScheduleCallPage() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
+    const session = useSession();
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
@@ -67,6 +69,12 @@ function ScheduleCallPage() {
             saveBookingDraft({timeSlot: null});
         }, []),
     );
+
+    useEffect(() => {
+        return () => {
+            sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
+        };
+    }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
         saveBookingDraft({date});

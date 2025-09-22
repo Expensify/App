@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -45,7 +45,6 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}
@@ -60,7 +59,7 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
                 />
                 <SelectionList
                     sections={[{data: expenseLimitTypes}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(item) => onExpenseLimitTypeSelected(item.value)}
                     shouldSingleExecuteRowSelect
                     containerStyle={[styles.pt3]}

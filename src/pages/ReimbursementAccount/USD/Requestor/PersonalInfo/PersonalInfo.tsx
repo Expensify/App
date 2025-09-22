@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import BankAccount from '@libs/models/BankAccount';
 import getInitialSubStepForPersonalInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForPersonalInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {updatePersonalInformationForBankAccount} from '@userActions/BankAccounts';
@@ -41,7 +40,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
         },
         [values, bankAccountID, policyID],
     );
-    const isBankAccountVerifying = reimbursementAccount?.achData?.state === BankAccount.STATE.VERIFYING;
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
 
     const {

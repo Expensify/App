@@ -182,3 +182,8 @@ platforms:
         title: Travel Analytics
         icon: /assets/images/simple-illustration__chart.svg
         description: "Track spend, spot savings, and drive smarter bookings with travel analytics."
+
+      - href: event-management
+        title: Event Management
+        icon: /assets/images/envelope-receipt.svg
+        description: "Learn how to create and manage Travel Events for group bookings."
