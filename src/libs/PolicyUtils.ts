@@ -76,33 +76,6 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
 }
 
 /**
- * Filter out the active policies, which will exclude policies with pending deletion
- * and policies the current user doesn't belong to.
- * These will be policies that has expense chat enabled.
- * These are policies that we can use to create reports with in NewDot.
- */
-function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy =>
-            !!policy &&
-            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            !!policy.name &&
-            !!policy.id &&
-            !!getPolicyRole(policy, currentUserLogin) &&
-            policy.isPolicyExpenseChatEnabled,
-    );
-}
-
-function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: string | undefined): Array<{policyID: string; customUnit: CustomUnit}> {
-    return (
-        getActivePoliciesWithExpenseChat(policies, email)
-            .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
-            // We filter out custom units that are undefine but ts cant' figure it out.
-            .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
-    );
-}
-
-/**
  * Checks if the current user is an admin of the policy.
  */
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.ADMIN;
@@ -1528,7 +1501,6 @@ export {
     canEditTaxRate,
     escapeTagName,
     getActivePolicies,
-    getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
