@@ -1623,7 +1623,6 @@ describe('actions/IOU', () => {
                     .then(mockFetch?.succeed)
             );
         });
-
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
