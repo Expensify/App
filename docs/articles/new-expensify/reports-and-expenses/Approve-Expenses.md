@@ -44,7 +44,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 # Change Approver
 
-**To add an approver**
+**To add an approver:**
 
 1. From the Report, open the **More** dropdown at the top of the expense.
 2. Select **Change approver**.
@@ -52,7 +52,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 4. Select the approver and save.
 5. The approver you selected is now the current approver, and the prescribed workflow will continue after their approval. 
 
-**To bypass approvers**
+**To bypass approvers:**
 
 1. From the Report, open the **More** dropdown at the top of the expense.
 2. Select **Change approver**.
