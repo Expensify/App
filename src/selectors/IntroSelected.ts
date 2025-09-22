@@ -3,4 +3,4 @@ import type IntroSelected from '@src/types/onyx/IntroSelected';
 
 const hasIntroSelectedSelector = (introSelected: OnyxEntry<IntroSelected>) => !!introSelected?.choice;
 
-export {hasIntroSelectedSelector};
+export default hasIntroSelectedSelector;

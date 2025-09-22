@@ -1,4 +1,4 @@
-import {hasIntroSelectedSelector} from '@selectors/IntroSelected';
+import hasIntroSelectedSelector from '@selectors/IntroSelected';
 import {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
