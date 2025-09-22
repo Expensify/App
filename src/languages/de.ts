@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -666,6 +665,9 @@ const translations = {
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
         purchaseAmount: 'Kaufbetrag',
+        link: 'Link',
+        pinned: 'Angeheftet',
+        read: 'Gelesen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1199,8 +1201,12 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als bezahlt markieren` : `Als bezahlt markieren`),
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Privatkonto ${last4Digits} bezahlt` : `Mit Privatkonto bezahlt`),
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `${formattedAmount} über ${policyName} bezahlen` : `Über ${policyName} bezahlen`,
+        payWithPolicy: ({
+            formattedAmount,
+            policyName,
+        }: SettleExpensifyCardParams & {
+            policyName: string;
+        }) => (formattedAmount ? `${formattedAmount} über ${policyName} bezahlen` : `Über ${policyName} bezahlen`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Bankkonto ${last4Digits} bezahlt.` : `mit Bankkonto ${last4Digits} bezahlt.`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `heeft ${amount} betaald met bankrekening ${last4Digits}. via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
@@ -3633,9 +3639,6 @@ const translations = {
                 title: 'Tagegeld',
                 subtitle: 'Legen Sie Tagessätze fest, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren. Importieren Sie die Sätze aus einer Tabelle, um loszulegen.',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Ein Tarif mit dem Wert ${rate} existiert bereits.`,
-            },
             importPerDiemRates: 'Tagespauschalen importieren',
             editPerDiemRate: 'Tagespauschale bearbeiten',
             editPerDiemRates: 'Tagespauschalen bearbeiten',
@@ -5550,6 +5553,12 @@ const translations = {
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
             },
+            reports: {
+                title: 'Berichte',
+                description:
+                    'Erstellen Sie organisierte Spesenabrechnungen, um Ihre Geschäftsausgaben zu verfolgen, zur Genehmigung einzureichen und Ihren Erstattungsprozess zu optimieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
+            },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
@@ -6152,9 +6161,6 @@ const translations = {
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
             currency: 'Währung',
-            link: 'Link',
-            pinned: 'Angeheftet',
-            unread: 'Ungelesen',
             completed: 'Abgeschlossen',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Weniger als ${amount ?? ''}`,
@@ -6193,6 +6199,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
             },
+            is: 'Ist',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Einreichen',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',

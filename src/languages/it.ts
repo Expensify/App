@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -666,6 +665,9 @@ const translations = {
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
+        link: 'Link',
+        pinned: 'Fissato',
+        read: 'Letto',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1193,8 +1195,12 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagato`),
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagato ${amount} con conto aziendale ${last4Digits}` : `Pagato con conto aziendale`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`,
+        payWithPolicy: ({
+            formattedAmount,
+            policyName,
+        }: SettleExpensifyCardParams & {
+            policyName: string;
+        }) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             amount ? `Pagato ${amount} con conto bancario ${last4Digits}` : `Pagato con conto bancario ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
@@ -3642,9 +3648,6 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Imposta le tariffe diarie per controllare la spesa giornaliera dei dipendenti. Importa le tariffe da un foglio di calcolo per iniziare.',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Una tariffa con valore ${rate} esiste già`,
-            },
             importPerDiemRates: 'Importa le tariffe diarie',
             editPerDiemRate: 'Modifica la tariffa di diaria',
             editPerDiemRates: 'Modifica le tariffe di diaria',
@@ -5558,6 +5561,11 @@ const translations = {
                     'Expensify Travel è una nuova piattaforma aziendale per la prenotazione e la gestione dei viaggi che consente ai membri di prenotare alloggi, voli, trasporti e altro.',
                 onlyAvailableOnPlan: 'Il viaggio è disponibile nel piano Collect, a partire da',
             },
+            reports: {
+                title: 'Report',
+                description: 'Crea report spese organizzati per tenere traccia delle tue spese aziendali, inviarli per approvazione e semplificare il processo di rimborso.',
+                onlyAvailableOnPlan: 'I report sono disponibili nel piano Collect, a partire da ',
+            },
             multiLevelTags: {
                 title: 'Tag multi-livello',
                 description:
@@ -6163,9 +6171,6 @@ const translations = {
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
             currency: 'Valuta',
-            link: 'Link',
-            pinned: 'Aggiunto ai preferiti',
-            unread: 'Non letto',
             completed: 'Completato',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Meno di ${amount ?? ''}`,
@@ -6204,6 +6209,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rimborso',
             },
+            is: 'È',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Inviare',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approvare',

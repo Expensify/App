@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -365,7 +364,7 @@ const translations = {
         magicCode: 'Code de vérification',
         twoFactorCode: 'Code à deux facteurs',
         workspaces: 'Espaces de travail',
-        success: 'Succ\u00E8s',
+        success: 'Succès',
         inbox: 'Boîte de réception',
         group: 'Groupe',
         profile: 'Profil',
@@ -666,6 +665,9 @@ const translations = {
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
         purchaseAmount: "Montant de l'achat",
+        link: 'Lien',
+        pinned: 'Épinglé',
+        read: 'Lu',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1199,8 +1201,12 @@ const translations = {
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec le compte personnel`),
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) =>
             amount ? `Payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`,
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`,
+        payWithPolicy: ({
+            formattedAmount,
+            policyName,
+        }: SettleExpensifyCardParams & {
+            policyName: string;
+        }) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             amount ? `Payé ${amount} avec le compte bancaire ${last4Digits}.` : `Payé avec le compte bancaire ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
@@ -3638,9 +3644,6 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés. Importez les taux depuis une feuille de calcul pour commencer.',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Un taux avec la valeur ${rate} existe déjà`,
-            },
             importPerDiemRates: 'Importer les taux de per diem',
             editPerDiemRate: 'Modifier le taux de per diem',
             editPerDiemRates: 'Modifier les taux de per diem',
@@ -5561,6 +5564,12 @@ const translations = {
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
                 onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
             },
+            reports: {
+                title: 'Rapports',
+                description:
+                    'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
+                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
+            },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',
                 description:
@@ -6162,9 +6171,6 @@ const translations = {
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
             currency: 'Devise',
-            link: 'Lien',
-            pinned: 'Épinglé',
-            unread: 'Non lu',
             completed: 'Terminé',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Moins de ${amount ?? ''}`,
@@ -6203,6 +6209,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
             },
+            is: 'Est',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
