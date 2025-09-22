@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -6,7 +7,7 @@ import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -44,7 +45,12 @@ type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof S
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
         explicitPolicyID?: string;
+        ref: ForwardedRef<IOURequestStepDestinationRef>;
     };
+
+type IOURequestStepDestinationRef = {
+    focus?: () => void;
+};
 
 function IOURequestStepDestination({
     report,
@@ -54,6 +60,7 @@ function IOURequestStepDestination({
     transaction,
     openedFromStartPage = false,
     explicitPolicyID,
+    ref,
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const {accountID} = useCurrentUserPersonalDetails();
@@ -73,6 +80,12 @@ function IOURequestStepDestination({
     const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+
+    const destinationSelectionListRef = useRef<SelectionListHandle | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        focus: destinationSelectionListRef.current?.focusTextInput,
+    }));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -167,6 +180,7 @@ function IOURequestStepDestination({
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
                         onSubmit={updateDestination}
+                        ref={destinationSelectionListRef}
                     />
                 )}
             </StepScreenWrapper>
