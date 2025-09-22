@@ -89,6 +89,9 @@ function IOURequestStepUpgrade({
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, ROUTES.REPORT_WITH_ID.getRoute(reportID)));
                 break;
+            case CONST.UPGRADE_PATHS.REPORTS:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
             default:
         }
     }, [action, reportID, shouldSubmitExpense, transactionID, upgradePath]);
@@ -168,6 +171,7 @@ function IOURequestStepUpgrade({
                             buttonDisabled={isOffline}
                             loading={false}
                             isCategorizing={isCategorizing}
+                            isReporting={isReporting}
                             isDistanceRateUpgrade={isDistanceRateUpgrade}
                         />
                     )}
