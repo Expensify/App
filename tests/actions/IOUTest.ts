@@ -1624,7 +1624,7 @@ describe('actions/IOU', () => {
             );
         });
 
-        it('correctly implements RedBrickRoad error handling for ShareTrackedExpense when inviting new user to workspace', () => {
+        it('correctly implements RedBrickRoad error handling for ShareTrackedExpense when inviting new user to workspace', async () => {
             const amount = 5000;
             const comment = 'Shared tracked expense test';
             let selfDMReportID: string | undefined;
@@ -1634,6 +1634,20 @@ describe('actions/IOU', () => {
             let linkedTrackedExpenseReportID: string | undefined;
             let actionableWhisperReportActionID: string | undefined;
             let moneyRequestReportID: string | undefined;
+
+            // Helper function to promisify Onyx.connect
+            const waitForOnyxData = <T>(key: string, waitForCollection = false): Promise<T> => {
+                return new Promise<T>((resolve) => {
+                    const connection = Onyx.connect({
+                        key,
+                        waitForCollectionCallback: waitForCollection,
+                        callback: (data) => {
+                            Onyx.disconnect(connection);
+                            resolve(data as T);
+                        },
+                    });
+                });
+            };
 
             // Setup test data - create a self DM report and policy expense chat
             const selfDMReport: Report = {
@@ -1678,365 +1692,142 @@ describe('actions/IOU', () => {
 
             mockFetch?.pause?.();
 
-            return (
-                Promise.resolve()
-                    .then(() =>
-                        Promise.all([
-                            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport),
-                            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat),
-                            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
-                            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant}),
-                        ]),
-                    )
-                    .then(() => waitForBatchedUpdates())
+            // Setup initial data
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport),
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant}),
+            ]);
+            await waitForBatchedUpdates();
 
-                    // First create a tracked expense in self DM
-                    .then(() => {
-                        trackExpense({
-                            report: selfDMReport,
-                            isDraftPolicy: true,
-                            action: CONST.IOU.ACTION.CREATE,
-                            participantParams: {
-                                payeeEmail: RORY_EMAIL,
-                                payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {accountID: RORY_ACCOUNT_ID},
-                            },
-                            transactionParams: {
-                                amount,
-                                currency: CONST.CURRENCY.USD,
-                                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                                merchant: 'Test Merchant',
-                                comment,
-                                billable: false,
-                            },
-                        });
-                    })
-                    .then(() => mockFetch?.resume?.())
-                    .then(() => waitForBatchedUpdates())
+            // First create a tracked expense in self DM
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    currency: CONST.CURRENCY.USD,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Test Merchant',
+                    comment,
+                    billable: false,
+                },
+            });
+            
+            mockFetch?.resume?.();
+            await waitForBatchedUpdates();
 
-                    // Capture the created tracked expense data
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: ONYXKEYS.COLLECTION.REPORT,
-                                    waitForCollectionCallback: true,
-                                    callback: (allReports) => {
-                                        Onyx.disconnect(connection);
-                                        const reports = Object.values(allReports ?? {});
-                                        const selfDMReportOnyx = reports.find((report) => report?.reportID === selfDMReport.reportID);
-                                        selfDMReportID = selfDMReportOnyx?.reportID;
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (reportActions) => {
-                                        Onyx.disconnect(connection);
-                                        const actions = Object.values(reportActions ?? {});
-                                        linkedTrackedExpenseReportAction = actions.find((action) => isMoneyRequestAction(action));
-                                        actionableWhisperReportActionID = actions.find((action) => isActionableTrackExpense(action))?.reportActionID;
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                                    waitForCollectionCallback: true,
-                                    callback: (allTransactions) => {
-                                        Onyx.disconnect(connection);
-                                        const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-                                        transactionID = transaction?.transactionID;
-                                        linkedTrackedExpenseReportID = transaction?.reportID;
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
+            // Capture the created tracked expense data
+            const allReports = await waitForOnyxData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT, true);
+            const reports = Object.values(allReports ?? {});
+            const selfDMReportOnyx = reports.find((report) => report?.reportID === selfDMReport.reportID);
+            selfDMReportID = selfDMReportOnyx?.reportID;
 
-                    // Now pause fetch and share the tracked expense with accountant
-                    .then(() => {
-                        mockFetch?.pause?.();
-                        trackExpense({
-                            report: policyExpenseChat,
-                            isDraftPolicy: false,
-                            action: CONST.IOU.ACTION.SHARE,
-                            participantParams: {
-                                payeeEmail: RORY_EMAIL,
-                                payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
-                            },
-                            policyParams: {
-                                policy,
-                            },
-                            transactionParams: {
-                                amount,
-                                currency: CONST.CURRENCY.USD,
-                                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                                merchant: 'Test Merchant',
-                                comment,
-                                billable: false,
-                                actionableWhisperReportActionID,
-                                linkedTrackedExpenseReportAction,
-                                linkedTrackedExpenseReportID,
-                            },
-                            accountantParams: {
-                                accountant,
-                            },
-                        });
-                    })
-                    .then(() => waitForBatchedUpdates())
+            const reportActions = await waitForOnyxData<OnyxCollection<ReportAction>>(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`);
+            const actions = Object.values(reportActions ?? {});
+            linkedTrackedExpenseReportAction = actions.find((action) => isMoneyRequestAction(action));
+            actionableWhisperReportActionID = actions.find((action) => isActionableTrackExpense(action))?.reportActionID;
 
-                    // Verify optimistic data is created with pending status
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: ONYXKEYS.COLLECTION.REPORT,
-                                    waitForCollectionCallback: true,
-                                    callback: (allReports) => {
-                                        Onyx.disconnect(connection);
-                                        const reports = Object.values(allReports ?? {});
+            const allTransactions = await waitForOnyxData<OnyxCollection<Transaction>>(ONYXKEYS.COLLECTION.TRANSACTION, true);
+            const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
+            transactionID = transaction?.transactionID;
+            linkedTrackedExpenseReportID = transaction?.reportID;
 
-                                        // Find the policy expense chat and money request report
-                                        const policyExpenseChatOnyx = reports.find((report) => report?.reportID === policyExpenseChat.reportID);
-                                        const moneyRequestReport = reports.find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+            // Now pause fetch and share the tracked expense with accountant
+            mockFetch?.pause?.();
+            trackExpense({
+                report: policyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.SHARE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                },
+                transactionParams: {
+                    amount,
+                    currency: CONST.CURRENCY.USD,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Test Merchant',
+                    comment,
+                    billable: false,
+                    actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID,
+                },
+                accountantParams: {
+                    accountant,
+                },
+            });
+            await waitForBatchedUpdates();
 
-                                        policyExpenseChatReportID = policyExpenseChatOnyx?.reportID;
-                                        moneyRequestReportID = moneyRequestReport?.reportID;
+            // Verify optimistic data is created with pending status
+            const allReportsAfterShare = await waitForOnyxData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT, true);
+            const reportsAfterShare = Object.values(allReportsAfterShare ?? {});
 
-                                        // Verify accountant was added to the expense chat
-                                        expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
+            // Find the policy expense chat and money request report
+            const policyExpenseChatOnyx = reportsAfterShare.find((report) => report?.reportID === policyExpenseChat.reportID);
+            const moneyRequestReport = reportsAfterShare.find((report) => report?.type === CONST.REPORT.TYPE.IOU);
 
-                                        // Verify money request report was created
-                                        expect(moneyRequestReport).toBeTruthy();
-                                        expect(moneyRequestReport?.type).toBe(CONST.REPORT.TYPE.IOU);
+            policyExpenseChatReportID = policyExpenseChatOnyx?.reportID;
+            moneyRequestReportID = moneyRequestReport?.reportID;
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (reportActions) => {
-                                        Onyx.disconnect(connection);
-                                        const actions = Object.values(reportActions ?? {});
-                                        const createdAction = actions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-                                        const iouAction = actions.find((action) => isMoneyRequestAction(action));
+            // Verify accountant was added to the expense chat
+            expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
 
-                                        // Both actions should be pending
-                                        expect(createdAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                        expect(iouAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            // Verify money request report was created
+            expect(moneyRequestReport).toBeTruthy();
+            expect(moneyRequestReport?.type).toBe(CONST.REPORT.TYPE.IOU);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatReportID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (reportActions) => {
-                                        Onyx.disconnect(connection);
-                                        const actions = Object.values(reportActions ?? {});
-                                        const reportPreviewAction = actions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            // Verify money request report actions are pending
+            const moneyRequestReportActions = await waitForOnyxData<OnyxCollection<ReportAction>>(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`);
+            const moneyRequestActions = Object.values(moneyRequestReportActions ?? {});
+            const createdAction = moneyRequestActions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const iouAction = moneyRequestActions.find((action) => isMoneyRequestAction(action));
 
-                                        // Report preview should be pending
-                                        expect(reportPreviewAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            // Both actions should be pending
+            expect(createdAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(iouAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (transaction) => {
-                                        Onyx.disconnect(connection);
+            // Verify policy expense chat report preview is pending
+            const policyExpenseChatActions = await waitForOnyxData<OnyxCollection<ReportAction>>(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatReportID}`);
+            const policyExpenseActions = Object.values(policyExpenseChatActions ?? {});
+            const reportPreviewAction = policyExpenseActions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
 
-                                        // Transaction should be pending
-                                        expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            // Report preview should be pending
+            expect(reportPreviewAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
+            // Verify transaction is pending
+            const transactionData = await waitForOnyxData<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
-                    // Simulate network failure
-                    .then((): Promise<unknown> => {
-                        mockFetch?.fail?.();
-                        return mockFetch?.resume?.() as Promise<unknown>;
-                    })
+            // Transaction should be pending
+            expect(transactionData?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                    // Verify error handling after failure - focus on workspace invitation error
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyData) => {
-                                        Onyx.disconnect(connection);
+            // Simulate network failure
+            mockFetch?.fail?.();
+            await (mockFetch?.resume?.() as Promise<unknown>);
 
-                                        // The new accountant should have been added to the employee list with error
-                                        const accountantEmployee = policyData?.employeeList?.[accountant.email];
-                                        expect(accountantEmployee).toBeTruthy();
-                                        expect(accountantEmployee?.errors).toBeTruthy();
-                                        expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            // Verify error handling after failure - focus on workspace invitation error
+            const policyData = await waitForOnyxData<Policy>(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (transaction) => {
-                                        Onyx.disconnect(connection);
+            // The new accountant should have been added to the employee list with error
+            const accountantEmployee = policyData?.employeeList?.[accountant.email];
+            expect(accountantEmployee).toBeTruthy();
+            expect(accountantEmployee?.errors).toBeTruthy();
+            expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
 
-                                        // Transaction should still be pending and have errors
-                                        expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                        expect(transaction?.errors).toBeTruthy();
-                                        expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
-
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatReportID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (reportActions) => {
-                                        Onyx.disconnect(connection);
-                                        const actions = Object.values(reportActions ?? {});
-                                        const reportPreviewAction = actions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
-
-                                        // Report preview should still be pending after failure
-                                        expect(reportPreviewAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-
-                    // Test error cleanup by clearing errors on the money request report
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                if (moneyRequestReportID) {
-                                    const connection = Onyx.connect({
-                                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`,
-                                        waitForCollectionCallback: false,
-                                        callback: (reportActions) => {
-                                            Onyx.disconnect(connection);
-                                            const iouAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action));
-                                            if (iouAction) {
-                                                clearAllRelatedReportActionErrors(moneyRequestReportID, iouAction);
-                                            }
-                                            resolve();
-                                        },
-                                    });
-                                } else {
-                                    resolve();
-                                }
-                            }),
-                    )
-
-                    // Verify that workspace invitation error persists even after clearing report action errors
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyData) => {
-                                        Onyx.disconnect(connection);
-
-                                        // The workspace invitation error should still be present
-                                        const accountantEmployee = policyData?.employeeList?.[accountant.email];
-                                        expect(accountantEmployee).toBeTruthy();
-                                        expect(accountantEmployee?.errors).toBeTruthy();
-                                        expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
-
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-
-                    // Verify that failed optimistic data is properly removed after error cleanup
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatReportID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (reportActions) => {
-                                        Onyx.disconnect(connection);
-                                        const actions = Object.values(reportActions ?? {});
-                                        const reportPreviewAction = actions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
-
-                                        // Report preview should be removed after error cleanup
-                                        expect(reportPreviewAction).toBeFalsy();
-
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (transaction) => {
-                                        Onyx.disconnect(connection);
-
-                                        // Transaction should be removed after error cleanup
-                                        expect(transaction).toBeFalsy();
-
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-
-                    // Cleanup
-                    .then(mockFetch?.succeed)
-            );
+            // Cleanup
+            mockFetch?.succeed?.();
         });
 
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
