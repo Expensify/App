@@ -1,6 +1,7 @@
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -34,7 +35,7 @@ import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {ReportMetadata, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
@@ -50,10 +51,16 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
-    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
-        selector: (value) => value?.hasOnceLoadedReportActions,
-        canBeMissing: true,
-    });
+    const hasOnceLoadedTransactionThreadReportActionsSelector = useCallback((value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions, []);
+
+    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`,
+        {
+            selector: hasOnceLoadedTransactionThreadReportActionsSelector,
+            canBeMissing: true,
+        },
+        [hasOnceLoadedTransactionThreadReportActionsSelector],
+    );
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
     const [iouActionForTargetTransaction] = useOnyx(
