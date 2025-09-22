@@ -16,7 +16,6 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [HybridApp](#HybridApp)
-* [Philosophy](#Philosophy)
 * [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
@@ -576,39 +575,6 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 ### Additional information and troubleshooting
 
 If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
-
-----
-
-# Philosophy
-This application is built with the following principles.
-1. [Data Flow](contributingGuides/philosophies/DATA-FLOW.md)
-1. [Offline First](contributingGuides/philosophies/OFFLINE.md)
-1. **UI Binds to data on disk**
-    - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components subscribe to Onyx (using `useOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
-    - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
-    - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
-    - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
-    - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `openReport(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
-        - The order that actions are done in. All actions should be done in parallel instead of sequence.
-            - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
-            - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
-1. **Actions manage Onyx Data**
-    - When data needs to be written to or read from the server, this is done through Actions only.
-    - Action methods should only have return values (data or a promise) if they are called by other actions. This is done to encourage that action methods can be called in parallel with no dependency on other methods (see discussion above).
-    - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
-    - Views should not call `Onyx.merge()` or `Onyx.set()` directly and should call an action instead.
-    - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
-    - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
-    - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:
-        1. user adds a comment
-        2. comment is shown in the UI (by mocking the expected response from the server)
-        3. comment is created in the server
-        4. server responds
-        5. UI updates with data from the server
-
-1. [Cross Platform](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 
