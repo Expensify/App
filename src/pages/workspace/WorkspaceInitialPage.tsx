@@ -511,7 +511,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback pendingAction={reportPendingAction} shouldShowErrorMessages={false}>
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                shouldShowErrorMessages={false}
+                            >
                                 <MenuItem
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
