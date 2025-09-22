@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -55,8 +55,10 @@ function IOURequestStepTime({
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
 
-    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
-    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
+    const policiesWithPerDiemEnabled = useMemo(() => {
+        return Object.values(allPolicies ?? {})?.filter((p) => p?.arePerDiemRatesEnabled);
+    }, [allPolicies]);
+    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
 
     const navigateBack = () => {
         if (isEditPage) {
@@ -70,7 +72,7 @@ function IOURequestStepTime({
         }
 
         if (transaction?.isFromGlobalCreate) {
-            if (moreThanOnePerDiemExist) {
+            if (hasMoreThanOnePolicyWithPerDiemEnabled) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
                 return;
             }
