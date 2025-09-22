@@ -81,10 +81,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         [policy],
     );
 
-    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: getUnreportedTransactions,
-        canBeMissing: true,
-    });
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: getUnreportedTransactions,
+            canBeMissing: true,
+        },
+        [getUnreportedTransactions],
+    );
 
     const fetchMoreUnreportedTransactions = () => {
         if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {

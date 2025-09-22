@@ -10,10 +10,14 @@ function useTransactionsByID(transactionIDs: string[]) {
         [transactionIDs],
     );
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: transactionsSelector,
-        canBeMissing: true,
-    });
+    const [transactions] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: transactionsSelector,
+            canBeMissing: true,
+        },
+        [transactionsSelector],
+    );
 
     return [transactions];
 }

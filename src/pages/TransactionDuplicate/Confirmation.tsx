@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -63,21 +63,8 @@ function Confirmation() {
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
-    const duplicatesSelector = useCallback(
-        (allTransactions: OnyxCollection<Transaction>) => {
-            return reviewDuplicates?.duplicates.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
-        },
-        [reviewDuplicates?.duplicates],
-    );
 
-    const [duplicates] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector: duplicatesSelector,
-            canBeMissing: true,
-        },
-        [reviewDuplicates?.duplicates],
-    );
+    const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates ?? []);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const transactionsMergeParams = useMemo(
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),

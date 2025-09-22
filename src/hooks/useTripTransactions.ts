@@ -41,7 +41,7 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
             selector: tripTransactionsSelector,
             canBeMissing: true,
         },
-        [tripTransactionReportIDs],
+        [tripTransactionsSelector],
     );
     return tripTransactions;
 }

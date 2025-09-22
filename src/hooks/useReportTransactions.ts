@@ -20,10 +20,14 @@ function useReportTransactions(reportID: string | undefined): Transaction[] {
         [reportID],
     );
 
-    const [reportTransactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: reportTransactionsSelector,
-        canBeMissing: true,
-    });
+    const [reportTransactions = getEmptyArray<Transaction>()] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: reportTransactionsSelector,
+            canBeMissing: true,
+        },
+        [reportTransactionsSelector],
+    );
 
     return reportTransactions;
 }
