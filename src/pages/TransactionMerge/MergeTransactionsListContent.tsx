@@ -40,7 +40,7 @@ type MergeTransactionsListContentProps = {
 type MergeTransactionListItemType = Transaction & ListItem;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -65,16 +65,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const sections = useMemo(() => {
         return [
             {
-                data: (eligibleTransactions ?? []).map((eligibleTransaction) => ({
-                    ...fillMissingReceiptSource(eligibleTransaction),
-                    keyForList: eligibleTransaction.transactionID,
-                    isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
-                    errors: eligibleTransaction.errors as Errors | undefined,
-                })),
+                data: (eligibleTransactions ?? [])
+                    .map((eligibleTransaction) => ({
+                        ...fillMissingReceiptSource(eligibleTransaction),
+                        keyForList: eligibleTransaction.transactionID,
+                        isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
+                        errors: eligibleTransaction.errors as Errors | undefined,
+                    }))
+                    .sort((a, b) => localeCompare(b.created, a.created)),
                 shouldShow: true,
             },
         ];
-    }, [eligibleTransactions, mergeTransaction]);
+    }, [eligibleTransactions, mergeTransaction, localeCompare]);
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
