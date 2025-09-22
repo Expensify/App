@@ -497,7 +497,6 @@ const translations = {
         decline: 'Rifiuta',
         reject: 'Rifiuta',
         transferBalance: 'Trasferisci saldo',
-        cantFindAddress: 'Non riesci a trovare il tuo indirizzo?',
         enterManually: 'Inseriscilo manualmente',
         message: 'Messaggio',
         leaveThread: 'Abbandona discussione',
