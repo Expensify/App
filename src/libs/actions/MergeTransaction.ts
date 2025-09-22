@@ -181,6 +181,7 @@ function getOptimisticTargetTransactionData(targetTransaction: Transaction, merg
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
         value: targetTransaction,
     };
+
     const successTargetTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
