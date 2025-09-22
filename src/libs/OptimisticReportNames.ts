@@ -188,7 +188,7 @@ function getReportFromUpdates(reportID: string, updates: OnyxUpdate[]): Report |
     if (!reportID) {
         return undefined;
     }
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const reportKey = getReportKey(reportID);
 
     const report = updates.find((update) => {
         if (update.key !== reportKey) {
