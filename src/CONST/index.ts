@@ -7317,6 +7317,8 @@ const FRAUD_PROTECTION_EVENT = {
     MERGE_ACCOUNT: 'MergeAccount',
     TOGGLE_TWO_FACTOR_AUTH: 'ToggleTwoFactorAuth',
     ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
+    ADD_BILLING_CARD: 'AddBillingCard',
+    VIEW_VIRTUAL_CARD_PAN: 'ViewVirtualCardPAN',
 };
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
