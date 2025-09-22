@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -104,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -274,7 +276,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -357,10 +358,11 @@ const translations = {
         selectMultiple: 'Wybierz wiele',
         saveChanges: 'Zapisz zmiany',
         submit: 'Prześlij',
+        submitted: 'Przesłano',
         rotate: 'Obróć',
         zoom: 'Zoom',
         password: 'Hasło',
-        magicCode: 'Magic code',
+        magicCode: 'Kod weryfikacyjny',
         twoFactorCode: 'Kod dwuskładnikowy',
         workspaces: 'Przestrzenie robocze',
         inbox: 'Skrzynka odbiorcza',
@@ -373,7 +375,7 @@ const translations = {
         wallet: 'Portfel',
         preferences: 'Preferencje',
         view: 'Widok',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Recenzja${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Nie',
         signIn: 'Zaloguj się',
         signInWithGoogle: 'Zaloguj się przez Google',
@@ -401,6 +403,7 @@ const translations = {
         contacts: 'Kontakty',
         recents: 'Ostatnie',
         close: 'Zamknij',
+        comment: 'Komentarz',
         download: 'Pobierz',
         downloading: 'Pobieranie',
         uploading: 'Przesyłanie plików',
@@ -493,6 +496,7 @@ const translations = {
         join: 'Dołącz',
         leave: 'Opuść',
         decline: 'Odrzuć',
+        reject: 'Odrzuć',
         transferBalance: 'Przelej saldo',
         cantFindAddress: 'Nie możesz znaleźć swojego adresu?',
         enterManually: 'Wprowadź ręcznie',
@@ -601,7 +605,7 @@ const translations = {
         chooseFiles: 'Wybierz pliki',
         dropTitle: 'Puść to',
         dropMessage: 'Prześlij swój plik tutaj',
-        ignore: 'Ignore',
+        ignore: 'Ignorować',
         enabled: 'Włączone',
         disabled: 'Wyłączony',
         import: 'Importuj',
@@ -817,9 +821,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Nie chcesz logować się za pomocą ${provider}?`,
         continueWithMyCurrentSession: 'Kontynuuj moją obecną sesję',
         redirectToDesktopMessage: 'Przekierujemy Cię do aplikacji desktopowej po zakończeniu logowania.',
-        signInAgreementMessage: 'Logując się, zgadzasz się na',
-        termsOfService: 'Warunki korzystania z usługi',
-        privacy: 'Prywatność',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Kontynuuj logowanie za pomocą jednokrotnego logowania:',
@@ -1306,6 +1307,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Brak niezgłoszonych wydatków',
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
+        newReport: 'Nowy raport',
         explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
         retracted: 'wycofany',
         retract: 'Wycofać',
@@ -1393,6 +1395,22 @@ const translations = {
         rates: 'Stawki',
         submitsTo: ({name}: SubmitsToParams) => `Przesyła do ${name}`,
         moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
+        reject: {
+            educationalTitle: 'Czy powinieneś wstrzymać czy odrzucić?',
+            educationalText: 'Jeśli nie jesteś gotów zatwierdzić lub opłacić wydatku, możesz go wstrzymać lub odrzucić.',
+            holdExpenseTitle: 'Wstrzymaj wydatek, aby poprosić o więcej szczegółów przed zatwierdzeniem lub opłaceniem.',
+            heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
+            rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
+            reasonPageTitle: 'Odrzuć wydatek',
+            reasonPageDescription: 'Wyjaśnij, dlaczego odrzucasz ten wydatek.',
+            rejectReason: 'Powód odrzucenia',
+            markAsResolved: 'Oznacz jako rozwiązane',
+            rejectedStatus: 'Ten wydatek został odrzucony. Oczekiwanie, aż rozwiążesz problem(y) i oznaczysz jako rozwiązane, aby umożliwić przesłanie.',
+            reportActions: {
+                rejectedExpense: 'odrzucił ten wydatek',
+                markedAsResolved: 'oznaczył powód odrzucenia jako rozwiązany',
+            },
+        },
         changeApprover: {
             title: 'Zmień zatwierdzającego',
             subtitle: 'Wybierz opcję, aby zmienić zatwierdzającego dla tego raportu.',
@@ -1648,12 +1666,7 @@ const translations = {
         restoreStashed: 'Przywróć zapisane logowanie',
         signOutConfirmationText: 'Utracisz wszystkie zmiany offline, jeśli się wylogujesz.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Przeczytaj',
-            phrase2: 'Warunki korzystania z usługi',
-            phrase3: 'i',
-            phrase4: 'Prywatność',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Zapoznaj się z <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunkami korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Polityką prywatności</a>.</muted-text-micro>`,
         help: 'Pomoc',
         whatIsNew: 'Co nowego',
         accountSettings: 'Ustawienia konta',
@@ -2174,12 +2187,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Wybierz motyw poniżej lub zsynchronizuj z ustawieniami urządzenia.',
     },
     termsOfUse: {
-        phrase1: 'Logując się, zgadzasz się na',
-        phrase2: 'Warunki korzystania z usługi',
-        phrase3: 'i',
-        phrase4: 'Prywatność',
-        phrase5: `Przekazy pieniężne są świadczone przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jego`,
-        phrase6: 'licencje',
+        terms: `<muted-text-xs>Logując się, użytkownik wyraża zgodę na <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politykę prywatności</a>.</muted-text-xs>`,
+        license: `<muted-text-xs>Transmisja pieniędzy jest świadczona przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jej <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencjami</a>.</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Nie otrzymałeś magicznego kodu?',
@@ -2487,10 +2496,11 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Zo bekijkt en werkt u uw werkruimte-instellingen bij:\n' +
-                    '1. Klik op het instellingentabblad.\n' +
-                    '2. Klik op *Werkruimtes* > [Uw werkruimte].\n' +
-                    `[Ga naar uw werkruimte](${workspaceSettingsLink}). We volgen ze in de #admins-kamer.`,
+                    'Oto jak przejrzeć i zaktualizować ustawienia obszaru roboczego:\n' +
+                    '1. Kliknij Obszary robocze.\n' +
+                    '2. Wybierz swój obszar roboczy.\n' +
+                    '3. Przejrzyj i zaktualizuj swoje ustawienia.\n' +
+                    `[Przejdź do swojego obszaru roboczego.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Maak uw eerste rapport',
@@ -3346,7 +3356,7 @@ const translations = {
             class: 'Klasa kabiny',
             recordLocator: 'Lokalizator rezerwacji',
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Nieznany',
                 economy: 'Ekonomia',
                 premiumEconomy: 'Premium Economy',
                 business: 'Biznes',
@@ -3363,7 +3373,7 @@ const translations = {
             cancellationUntil: 'Bezpłatne anulowanie do',
             confirmation: 'Numer potwierdzenia',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Nieznany',
                 nonRefundable: 'Bezzwrotny',
                 freeCancellationUntil: 'Bezpłatne anulowanie do',
                 partiallyRefundable: 'Częściowo zwracalne',
@@ -4661,10 +4671,9 @@ const translations = {
                 cardholder: 'Posiadacz karty',
                 cardName: 'Nazwa karty',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} eksport` : `eksport ${integration}`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane.`,
-                integrationExportTitlePart: 'Wybierz inny',
-                integrationExportTitleLinkPart: 'opcja eksportu',
-                integrationExportTitleSecondPart: 'aby zmienić dostępne konta.',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane.`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data rozpoczęcia transakcji',
                 updateCard: 'Zaktualizuj kartę',
@@ -4849,13 +4858,8 @@ const translations = {
             editTags: 'Edytuj tagi',
             findTag: 'Znajdź tag',
             subtitle: 'Tagi dodają bardziej szczegółowe sposoby klasyfikacji kosztów.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Używasz',
-                phrase2: 'tagi zależne',
-                phrase3: '. Możesz',
-                phrase4: 'ponownie zaimportuj arkusz kalkulacyjny',
-                phrase5: 'aby zaktualizować swoje tagi.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Używane są <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tagi zależne</a>. Możesz <a href="${importSpreadsheetLink}">ponownie zaimportować arkusz kalkulacyjny</a>, aby zaktualizować tagi.</muted-text>`,
             emptyTags: {
                 title: 'Nie utworzyłeś żadnych tagów',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -5296,7 +5300,8 @@ const translations = {
             continuousReconciliation: 'Ciągła rekonsyliacja',
             saveHoursOnReconciliation:
                 'Zaoszczędź godziny na uzgadnianiu w każdym okresie rozliczeniowym, pozwalając Expensify na ciągłe uzgadnianie wyciągów i rozliczeń z karty Expensify w Twoim imieniu.',
-            enableContinuousReconciliation: 'Aby włączyć Ciągłą Rekoncyliację, proszę włączyć',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
                 accountMatches: 'Upewnij się, że to konto pasuje do Twojego',
@@ -5426,16 +5431,13 @@ const translations = {
             updateWorkspaceCurrency: 'Zaktualizuj walutę przestrzeni roboczej',
             workspaceCurrencyNotSupported: 'Waluta przestrzeni roboczej nie jest obsługiwana',
             yourWorkspace: `Twoje miejsce pracy jest ustawione na nieobsługiwaną walutę. Zobacz <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">listę obsługiwanych walut</a>.`,
+            chooseAnExisting: 'Wybierz istniejące konto bankowe do płacenia wydatków lub dodaj nowe.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Przenieś właściciela',
             addPaymentCardTitle: 'Wprowadź swoją kartę płatniczą, aby przenieść własność',
             addPaymentCardButtonText: 'Zaakceptuj warunki i dodaj kartę płatniczą',
-            addPaymentCardReadAndAcceptTextPart1: 'Przeczytaj i zaakceptuj',
-            addPaymentCardReadAndAcceptTextPart2: 'zasady dodawania karty',
-            addPaymentCardTerms: 'warunki',
-            addPaymentCardPrivacy: 'prywatność',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro>Przeczytaj i zaakceptuj <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">warunki</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politykę prywatności</a>, aby dodać swoją kartę.</muted-text-micro>`,
             addPaymentCardPciCompliant: 'Zgodny z PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Szyfrowanie na poziomie bankowym',
             addPaymentCardRedundant: 'Nadmierna infrastruktura',
@@ -5502,7 +5504,7 @@ const translations = {
             },
             categories: {
                 title: 'Kategorie',
-                description: `Kategorie pomagają lepiej organizować wydatki, aby śledzić, na co wydajesz swoje pieniądze. Skorzystaj z naszej sugerowanej listy kategorii lub stwórz własne.`,
+                description: 'Kategorie pozwalają śledzić i organizować wydatki. Użyj naszych domyślnych kategorii lub dodaj własne.',
                 onlyAvailableOnPlan: 'Kategorie są dostępne w planie Collect, zaczynając od',
             },
             glCodes: {
@@ -5542,11 +5544,21 @@ const translations = {
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
             },
+            reports: {
+                title: 'Raporty',
+                description: 'Twórz uporządkowane raporty wydatków, aby śledzić swoje wydatki biznesowe, przesyłać je do zatwierdzenia i usprawniać proces zwrotu kosztów.',
+                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
+            },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',
                 description:
                     'Wielopoziomowe tagi pomagają śledzić wydatki z większą precyzją. Przypisz wiele tagów do każdej pozycji, takich jak dział, klient czy centrum kosztów, aby uchwycić pełny kontekst każdego wydatku. Umożliwia to bardziej szczegółowe raportowanie, przepływy pracy związane z zatwierdzaniem oraz eksporty księgowe.',
                 onlyAvailableOnPlan: 'Wielopoziomowe tagi są dostępne tylko w planie Control, zaczynając od',
+            },
+            distanceRates: {
+                title: 'Stawki za odległość',
+                description: 'Twórz i zarządzaj własnymi stawkami, śledź w milach lub kilometrach i ustawiaj domyślne kategorie dla wydatków na odległość.',
+                onlyAvailableOnPlan: 'Stawki za odległość są dostępne w planie Collect, zaczynając od',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Wiele poziomów zatwierdzania',
@@ -5559,15 +5571,17 @@ const translations = {
                 perMember: 'za członka miesięcznie.',
             },
             note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>Zaktualizuj swoje miejsce pracy, aby uzyskać dostęp do tej funkcji, lub <a href="${subscriptionLink}">dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
+                `<muted-text>Zaktualizuj, aby uzyskać dostęp do tej funkcji, lub <a href="${subscriptionLink}">dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
             upgradeToUnlock: 'Odblokuj tę funkcję',
             completed: {
                 headline: `Zaktualizowałeś swoje miejsce pracy!`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Pomyślnie zaktualizowano ${policyName} do planu Control! Aby uzyskać więcej informacji, <a href="${subscriptionLink}">sprawdź swoją subskrypcję</a>.</centered-text>`,
-                categorizeMessage: `Pomyślnie zaktualizowano do przestrzeni roboczej w planie Collect. Teraz możesz kategoryzować swoje wydatki!`,
-                travelMessage: `Pomyślnie zaktualizowano do przestrzeni roboczej w planie Collect. Teraz możesz zacząć rezerwować i zarządzać podróżami!`,
+                categorizeMessage: `Pomyślnie zaktualizowano do planu Collect. Teraz możesz kategoryzować swoje wydatki!`,
+                travelMessage: `Pomyślnie zaktualizowano do planu Collect. Teraz możesz zacząć rezerwować i zarządzać podróżami!`,
+                distanceRateMessage: `Pomyślnie zaktualizowano do planu Collect. Teraz możesz zmienić stawkę za odległość!`,
                 gotIt: 'Zrozumiałem, dzięki',
+                createdWorkspace: 'Utworzyłeś przestrzeń roboczą!',
             },
             commonFeatures: {
                 title: 'Ulepsz do planu Control',
@@ -5983,6 +5997,7 @@ const translations = {
         memberNotFound: 'Nie znaleziono członka.',
         useInviteButton: 'Aby zaprosić nowego członka do czatu, użyj przycisku zaproszenia powyżej.',
         notAuthorized: `Nie masz dostępu do tej strony. Jeśli próbujesz dołączyć do tego pokoju, poproś członka pokoju, aby Cię dodał. Coś innego? Skontaktuj się z ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Wygląda na to, że ten pokój został zarchiwizowany. W razie pytań skontaktuj się z ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Czy na pewno chcesz usunąć ${memberName} z pokoju?`,
             other: 'Czy na pewno chcesz usunąć wybranych członków z pokoju?',
@@ -6129,7 +6144,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Słowo kluczowe',
-            hasKeywords: 'Ma słowa kluczowe',
+            keywords: 'Słowa kluczowe',
             currency: 'Waluta',
             link: 'Link',
             pinned: 'Przypięte',
@@ -6139,6 +6154,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Mniej niż ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Większe niż ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Pomiędzy ${greaterThan} a ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Równe ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
@@ -6170,9 +6186,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
-            },
-            has: {
-                receipt: 'Paragon',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Prześlij',
@@ -6345,7 +6358,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `zapłacono ${currency}${amount} gdzie indziej`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `zapłacono ${currency}${amount} przez integrację`,
                 outdatedBankAccount: `nie można było przetworzyć płatności z powodu problemu z kontem bankowym płatnika`,
-                reimbursementACHBounce: `nie można przetworzyć płatności, ponieważ płatnik nie ma wystarczających środków`,
+                reimbursementACHBounce: `nie można było przetworzyć płatności z powodu problemu z kontem bankowym`,
                 reimbursementACHCancelled: `anulował płatność`,
                 reimbursementAccountChanged: `nie można było przetworzyć płatności, ponieważ płatnik zmienił konto bankowe`,
                 reimbursementDelayed: `przetworzono płatność, ale jest opóźniona o 1-2 dni robocze więcej`,
@@ -6592,7 +6605,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Wszystkie wymagane tagi',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} odrzucił ten wydatek z komentarzem „${rejectReason}”`,
+        autoReportedRejectedExpense: 'Wydatek ten został odrzucony.',
         billableExpense: 'Opłata nie jest już ważna',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Kategoria nie jest już ważna',
@@ -6957,7 +6970,7 @@ const translations = {
             title: 'Ustawienia subskrypcji',
             summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
                 `Rodzaj subskrypcji: ${subscriptionType}, Rozmiar subskrypcji: ${subscriptionSize}, Automatyczne odnawianie: ${autoRenew}, Automatyczne zwiększanie rocznych miejsc: ${autoIncrease}`,
-            none: 'none',
+            none: 'brak',
             on: 'na',
             off: 'wyłączony',
             annual: 'Roczny',
@@ -7082,12 +7095,12 @@ const translations = {
         dateTimeFields: 'Pola DateTime',
         date: 'Data',
         time: 'Czas',
-        none: 'None',
+        none: 'Brak',
         visibleInLHN: 'Widoczne w LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'prawda',
+        false: 'fałsz',
         viewReport: 'Zobacz raport',
         viewTransaction: 'Zobacz transakcję',
         createTransactionViolation: 'Utwórz naruszenie transakcji',

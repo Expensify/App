@@ -11,8 +11,10 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import NewChatListItem from '@components/SelectionList/NewChatListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,7 +28,6 @@ import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
-import UserListItem from '@src/components/SelectionList/UserListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,6 +52,7 @@ function ShareDetailsPage({
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const personalDetail = useCurrentUserPersonalDetails();
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
@@ -103,7 +105,7 @@ function ShareDetailsPage({
         }
 
         if (isTextShared) {
-            addComment(report.reportID, message);
+            addComment(report.reportID, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -125,7 +127,7 @@ function ShareDetailsPage({
                     );
                 }
                 if (report.reportID) {
-                    addAttachment(report.reportID, file, message);
+                    addAttachment(report.reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, message);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
@@ -160,7 +162,7 @@ function ShareDetailsPage({
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                             </View>
-                            <UserListItem
+                            <NewChatListItem
                                 item={displayReport}
                                 isFocused={false}
                                 showTooltip={false}

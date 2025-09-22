@@ -120,6 +120,89 @@ describe('OnyxDerived', () => {
             expect(Object.keys(reportAttributesComputedValue)).toEqual([reportID1, reportID2]);
         });
 
+        it('should not recompute reportAttributes when personalDetailsList changes without displayName change', async () => {
+            renderLocaleContextProvider();
+            await waitForBatchedUpdates();
+
+            // Set up initial state with report and personalDetailsList
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    accountID: 1,
+                    displayName: 'John Doe',
+                    login: 'john.doe@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Get initial computed value
+            const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // Spy on generateReportAttributes - this function should NOT be called
+            // when the optimization kicks in and skips the computation
+            const generateReportAttributesSpy = jest.spyOn(require('@libs/ReportUtils'), 'generateReportAttributes');
+
+            // Change only the login (not displayName) - this should trigger the optimization
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    login: 'john.newemail@example.com',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // The generateReportAttributes function should not have been called
+            // because the optimization should have returned early
+            expect(generateReportAttributesSpy).not.toHaveBeenCalled();
+
+            // Get the computed value after login change
+            const derivedReportAttributesAfterLoginChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // And the values should be preserved correctly
+            expect(derivedReportAttributesAfterLoginChange).toEqual(initialDerivedReportAttributes);
+
+            generateReportAttributesSpy.mockRestore();
+        });
+
+        it('should recompute reportAttributes when personalDetailsList displayName changes', async () => {
+            renderLocaleContextProvider();
+            await waitForBatchedUpdates();
+
+            // Set up initial state with report and personalDetailsList
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    accountID: 1,
+                    displayName: 'John Doe',
+                    login: 'john.doe@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Get initial computed value reference
+            const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // Change the displayName - this should trigger full recomputation
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    displayName: 'Jane Doe',
+                    firstName: 'Jane',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Get the computed value after displayName change
+            const derivedReportAttributesAfterDisplayNameChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // The computed value should not be the same object (new computation happened)
+            expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
+        });
+
         describe('reportErrors', () => {
             it('returns empty errors when no errors exist', async () => {
                 const report = createRandomReport(1);
