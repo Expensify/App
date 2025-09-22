@@ -188,7 +188,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return datePresetList.includes(range.value) || !Number.isNaN(new Date(range.value).getTime());
+            return datePresetList.includes(range.value) || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
             return hasList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
