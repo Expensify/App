@@ -1855,7 +1855,7 @@ function requiresManualSubmission(report: OnyxEntry<Report>, policy: OnyxEntry<P
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
     // The report needs manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
-    return isManualSubmitEnabled || (isOpenReport(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
+    return isManualSubmitEnabled || (isOpenReport(report) && !isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
 }
 
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
