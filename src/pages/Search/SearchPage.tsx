@@ -645,8 +645,13 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isSorting, setIsSorting] = useState(false);
 
-    // eslint-disable-next-line no-nested-ternary
-    const searchResults = currentSearchResults?.data ? currentSearchResults : isSorting ? lastNonEmptySearchResults.current : undefined;
+    let searchResults;
+    if (currentSearchResults?.data) {
+        searchResults = currentSearchResults;
+    } else if (isSorting) {
+        searchResults = lastNonEmptySearchResults.current;
+    }
+
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
     const shouldShowFooter = !!metadata?.count;
