@@ -1,5 +1,7 @@
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
+import type { ForwardedRef } from 'react';
+import type { View } from 'react-native';
 
 type AmountSelectorModalProps = {
     /** Whether the modal is visible */
@@ -37,6 +39,9 @@ type AmountPickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Rreference to the outer element */
+    ref?: ForwardedRef<View>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     Pick<
         NumberWithSymbolFormProps,
