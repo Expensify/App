@@ -1,5 +1,6 @@
 import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
+    AccessibilityState,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
@@ -108,6 +109,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
+
+    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
+    accessibilityState?: AccessibilityState;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -601,9 +605,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
-
-    /** Whether selected items should be shown at the top within each section */
-    shouldPrioritizeSelectedItems?: boolean;
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;

@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {ForwardedRef} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,16 +11,17 @@ import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import SingleSelectListItem from './SelectionList/SingleSelectListItem';
+import type {ListItem, SelectionListHandle} from './SelectionList/types';
 
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
     onSubmit: (item: ListItem & {currency: string}) => void;
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
-function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
+function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
@@ -72,16 +74,18 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
 
     return (
         <SelectionList
+            ref={ref}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
+            textInputAutoFocus={false}
         />
     );
 }
