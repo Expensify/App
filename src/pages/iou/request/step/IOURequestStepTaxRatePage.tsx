@@ -1,3 +1,4 @@
+import {activePolicySelector} from '@selectors/Policy';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
@@ -11,7 +12,6 @@ import {setDraftSplitTransaction, setMoneyRequestTaxAmount, setMoneyRequestTaxRa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {activePolicySelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';

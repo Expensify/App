@@ -1,3 +1,4 @@
+import {activePolicySelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -22,7 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {activePolicySelector} from '@src/selectors/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';

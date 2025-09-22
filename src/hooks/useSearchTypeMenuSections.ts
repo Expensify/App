@@ -1,8 +1,8 @@
+import {createPoliciesSelector} from '@selectors/Policy';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useNetwork from './useNetwork';

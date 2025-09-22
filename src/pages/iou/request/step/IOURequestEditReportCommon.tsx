@@ -1,3 +1,4 @@
+import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,7 +19,6 @@ import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import {createPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
