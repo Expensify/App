@@ -633,7 +633,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 title={translate('common.enableGlobalReimbursements')}
                                 icon={Expensicons.Globe}
                                 onPress={() => {
-                                    console.log(paymentMethod.selectedPaymentMethod);
                                     if (isAccountLocked) {
                                         closeModal(() => showLockedAccountModal());
                                         return;
