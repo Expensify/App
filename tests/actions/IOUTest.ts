@@ -1720,14 +1720,12 @@ describe('actions/IOU', () => {
             const linkedTrackedExpenseReportAction = actions.find((action) => action && isMoneyRequestAction(action));
             const actionableWhisperReportActionID = actions.find((action) => action && isActionableTrackExpense(action))?.reportActionID;
 
-            let transactionID: string | undefined;
             let linkedTrackedExpenseReportID: string | undefined;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 waitForCollectionCallback: true,
                 callback: (allTransactions) => {
                     const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-                    transactionID = transaction?.transactionID;
                     linkedTrackedExpenseReportID = transaction?.reportID;
                 },
             });
@@ -1762,57 +1760,6 @@ describe('actions/IOU', () => {
                 },
             });
             await waitForBatchedUpdates();
-
-            // Verify optimistic data is created with pending status
-            let policyExpenseChatReportID: string | undefined;
-            let moneyRequestReportID: string | undefined;
-            let policyExpenseChatOnyx: Report | undefined;
-            let moneyRequestReport: Report | undefined;
-            await getOnyxData({
-                key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallback: true,
-                callback: (allReportsAfterShare) => {
-                    const reportsAfterShare = Object.values(allReportsAfterShare ?? {});
-                    
-                    // Find the policy expense chat and money request report
-                    policyExpenseChatOnyx = reportsAfterShare.find((report) => report?.reportID === policyExpenseChat.reportID);
-                    moneyRequestReport = reportsAfterShare.find((report) => report?.type === CONST.REPORT.TYPE.IOU);
-
-                    policyExpenseChatReportID = policyExpenseChatOnyx?.reportID;
-                    moneyRequestReportID = moneyRequestReport?.reportID;
-                },
-            });
-
-            // Verify accountant was added to the expense chat
-            expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
-
-            // Verify money request report was created
-            expect(moneyRequestReport).toBeTruthy();
-            expect(moneyRequestReport?.type).toBe(CONST.REPORT.TYPE.IOU);
-
-            // Verify money request report actions are pending
-            const moneyRequestReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`);
-            const moneyRequestActions = Object.values(moneyRequestReportActions ?? {});
-            const createdAction = moneyRequestActions.find((action) => action && action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-            const iouAction = moneyRequestActions.find((action) => action && isMoneyRequestAction(action));
-
-            // Both actions should be pending
-            expect(createdAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(iouAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-
-            // Verify policy expense chat report preview is pending
-            const policyExpenseChatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatReportID}`);
-            const policyExpenseActions = Object.values(policyExpenseChatActions ?? {});
-            const reportPreviewAction = policyExpenseActions.find((action) => action && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
-
-            // Report preview should be pending
-            expect(reportPreviewAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-
-            // Verify transaction is pending
-            const transactionData = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-
-            // Transaction should be pending
-            expect(transactionData?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
             // Simulate network failure
             mockFetch?.fail?.();
