@@ -16,7 +16,6 @@
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
 * [HybridApp](#HybridApp)
-* [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 * [Onyx derived values](#onyx-derived-values)
@@ -580,117 +579,6 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 ### Additional information and troubleshooting
 
 If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
-
-----
-
-# Security
-Updated rules for managing members across all types of chats in New Expensify.
-
-- **Nobody can leave or be removed from something they were automatically added to. For example:**
-
-    - DM members can't leave or be removed from their DMs
-    - Members can't leave or be removed from their own expense chats
-    - Admins can't leave or be removed from expense chats
-    - Members can't leave or be removed from the #announce room
-    - Admins can't leave or be removed from #admins
-    - Domain members can't leave or be removed from their domain chat
-    - Report submitters can't leave or be removed from their reports
-    - Report managers can't leave or be removed from their reports
-    - Group owners cannot be removed from their groups - they need to transfer ownership first
-- **Excepting the above, admins can remove anyone. For example:**
-    - Group admins can remove other group admins, as well as group members
-    - Workspace admins can remove other workspace admins, as well as workspace members, and invited guests
-- **Excepting the above, members can remove guests. For example:**
-    - Workspace members can remove non-workspace guests.
-- **Excepting the above, anybody can remove themselves from any object**
-
-1. ### DM
-    |                    | Member |
-    | :----------------: | :----: |
-    |     **Invite**     |   ❌    |
-    |     **Remove**     |   ❌    |
-    |     **Leave**      |   ❌    |
-    | **Can be removed** |   ❌    |
-- DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
-
-2. ### Workspace
-    1. #### Workspace
-        |                    | Creator | Member(Employee/User) | Admin | Auditor? |
-        | :----------------: | :-----: | :-------------------: | :---: | :------: |
-        |     **Invite**     |    ✅    |           ❌           |   ✅   |    ❌     |
-        |     **Remove**     |    ✅    |           ❌           |   ✅   |    ❌     |
-        |     **Leave**      |    ❌    |           ✅           |   ❌   |    ✅     |
-        | **Can be removed** |    ❌    |           ✅           |   ✅   |    ✅     |
-
-        - Creator can't leave or be removed from their own workspace
-        - Admins can't leave from the workspace
-        - Admins can remove other workspace admins, as well as workspace members, and invited guests
-        - Creator can remove other workspace admins, as well as workspace members, and invited guests
-        - Members and Auditors cannot invite or remove anyone from the workspace
-
-    2. #### Workspace #announce room
-        |                    | Member(Employee/User) | Admin | Auditor? |
-        | :----------------: | :-------------------: | :---: | :------: |
-        |     **Invite**     |           ❌           |   ❌   |    ❌     |
-        |     **Remove**     |           ❌           |   ❌   |    ❌     |
-        |     **Leave**      |           ❌           |   ❌   |    ❌     |
-        | **Can be removed** |           ❌           |   ❌   |    ❌     |
-
-       - No one can leave or be removed from the #announce room
-
-    3. #### Workspace #admin room
-        |                    | Admin |
-        | :----------------: | :---: |
-        |     **Invite**     |   ❌   |
-        |     **Remove**     |   ❌   |
-        |     **Leave**      |   ❌   |
-        | **Can be removed** |   ❌   |
-
-        - Admins can't leave or be removed from #admins
-
-    4. #### Workspace rooms
-        |                    | Creator | Member | Guest(outside of the workspace) |
-        | :----------------: | :-----: | :----: | :-----------------------------: |
-        |     **Invite**     |    ✅    |   ✅    |                ✅                |
-        |     **Remove**     |    ✅    |   ✅    |                ❌                |
-        |     **Leave**      |    ✅    |   ✅    |                ✅                |
-        | **Can be removed** |    ✅    |   ✅    |                ✅                |
-
-        - Everyone can be removed/can leave from the room including creator
-        - Guests are not able to remove anyone from the room
-
-    4. #### Expense chats
-        |                    | Admin | Member(default) | Member(invited) |
-        | :----------------: | :---: | :-------------: | :-------------: |
-        |     **Invite**     |   ✅   |        ✅        |        ❌        |
-        |     **Remove**     |   ✅   |        ✅        |        ❌        |
-        |     **Leave**      |   ❌   |        ❌        |        ✅        |
-        | **Can be removed** |   ❌   |        ❌        |        ✅        |
-
-        - Admins are not able to leave/be removed from the expense chat
-        - Default members(automatically invited) are not able to leave/be removed from the expense chat
-        - Invited members(invited by members) are not able to invite or remove from the expense chat
-        - Invited members(invited by members) are able to leave the expense chat
-        - Default members and admins are able to remove invited members
-
-3. ### Domain chat
-    |                    | Member |
-    | :----------------: | :----: |
-    |     **Remove**     |   ❌    |
-    |     **Leave**      |   ❌    |
-    | **Can be removed** |   ❌    |
-
-- Domain members can't leave or be removed from their domain chat
-
-4. ### Reports
-    |                    | Submitter | Manager |
-    | :----------------: | :-------: | :-----: |
-    |     **Remove**     |     ❌     |    ❌    |
-    |     **Leave**      |     ❌     |    ❌    |
-    | **Can be removed** |     ❌     |    ❌    |
-
-- Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
-- Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
 
 ----
 

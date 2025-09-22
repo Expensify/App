@@ -12,3 +12,4 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 * [Directory Structure and File Naming Philosophy](/contributingGuides/philosophies/DIRECTORIES.md)
 * [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md)
 * [Routing Philosophy](/contributingGuides/philosophies/ROUTING.md)
+* [Security Philosophy](/contributingGuides/philosophies/SECURITY.md)
