@@ -767,7 +767,7 @@ If you are unhappy with the results of an AI translation, there are currently tw
 
 ----
 
-# Deploying
+# Deploying 
 ## QA and deploy cycles
 We utilize a CI/CD deployment system built using [GitHub Actions](https://github.com/features/actions) to ensure that new code is automatically deployed to our users as fast as possible. As part of this process, all code is first deployed to our staging environments, where it undergoes quality assurance (QA) testing before it is deployed to production. Typically, pull requests are deployed to staging immediately after they are merged.
 
