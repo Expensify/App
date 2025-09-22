@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {reportsSelector} from '@selectors/Attributes';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {ActivityIndicator, InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
@@ -73,7 +74,6 @@ import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, remov
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {reportsSelector} from '@src/selectors/Attributes';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';

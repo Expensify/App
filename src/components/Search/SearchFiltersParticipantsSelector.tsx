@@ -1,3 +1,4 @@
+import {reportsSelector} from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -16,7 +17,6 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {reportsSelector} from '@src/selectors/Attributes';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {

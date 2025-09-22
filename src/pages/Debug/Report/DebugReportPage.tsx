@@ -1,3 +1,4 @@
+import {reportSelectorFromReportID} from '@selectors/Attributes';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -28,7 +29,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {reportSelectorFromReportID} from '@src/selectors/Attributes';
 import DebugReportActions from './DebugReportActions';
 
 type DebugReportPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;

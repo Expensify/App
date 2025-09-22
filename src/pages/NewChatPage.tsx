@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {reportsSelector} from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -42,7 +43,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {reportsSelector} from '@src/selectors/Attributes';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 

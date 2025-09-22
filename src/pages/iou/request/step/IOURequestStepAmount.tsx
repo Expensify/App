@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {reportsSelector} from '@selectors/Attributes';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -39,7 +40,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {reportsSelector} from '@src/selectors/Attributes';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';

@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {reportsSelector} from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
@@ -52,7 +53,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {reportsSelector} from '@src/selectors/Attributes';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';

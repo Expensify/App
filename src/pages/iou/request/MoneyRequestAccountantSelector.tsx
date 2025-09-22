@@ -1,3 +1,4 @@
+import {reportsSelector} from '@selectors/Attributes';
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -29,7 +30,6 @@ import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {reportsSelector} from '@src/selectors/Attributes';
 import type {Accountant} from '@src/types/onyx/IOU';
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});

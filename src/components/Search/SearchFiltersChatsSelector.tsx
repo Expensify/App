@@ -1,3 +1,4 @@
+import {reportsSelector} from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -17,7 +18,6 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {reportsSelector} from '@src/selectors/Attributes';
 
 const defaultListOptions = {
     recentReports: [],

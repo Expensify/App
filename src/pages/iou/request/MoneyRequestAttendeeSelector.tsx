@@ -1,3 +1,4 @@
+import {reportsSelector} from '@selectors/Attributes';
 import {deepEqual} from 'fast-equals';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
@@ -37,7 +38,6 @@ import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {reportsSelector} from '@src/selectors/Attributes';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 type MoneyRequestAttendeesSelectorProps = {

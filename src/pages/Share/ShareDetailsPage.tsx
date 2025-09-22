@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {reportsSelector} from '@selectors/Attributes';
 import React, {useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -32,7 +33,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {reportsSelector} from '@src/selectors/Attributes';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
