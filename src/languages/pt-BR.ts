@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -3647,9 +3646,6 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários. Importe taxas de uma planilha para começar.',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Uma taxa com o valor ${rate} já existe`,
-            },
             importPerDiemRates: 'Importar taxas de diária',
             editPerDiemRate: 'Editar taxa de diárias',
             editPerDiemRates: 'Editar taxas de diárias',
@@ -5554,6 +5550,11 @@ const translations = {
                 title: 'Viagem',
                 description: 'Expensify Travel é uma nova plataforma de reserva e gestão de viagens corporativas que permite aos membros reservar acomodações, voos, transporte e mais.',
                 onlyAvailableOnPlan: 'Viagens estão disponíveis no plano Collect, a partir de',
+            },
+            reports: {
+                title: 'Relatórios',
+                description: 'Crie relatórios de despesas organizados para acompanhar seus gastos empresariais, enviá-los para aprovação e otimizar seu processo de reembolso.',
+                onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multiníveis',
