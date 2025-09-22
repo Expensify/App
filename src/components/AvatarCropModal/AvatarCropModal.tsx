@@ -377,7 +377,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     {!isImageInitialized || !isImageContainerInitialized ? (
                         <ActivityIndicator
                             style={[styles.flex1]}
-                            size="large"
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         />
                     ) : (
                         <>

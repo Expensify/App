@@ -5,6 +5,7 @@ import {usePlaidLink} from 'react-plaid-link';
 import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import type PlaidLinkProps from './types';
 
 function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = () => {}, onEvent, receivedRedirectURI}: PlaidLinkProps) {
@@ -54,7 +55,7 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <ActivityIndicator size="large" />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 }

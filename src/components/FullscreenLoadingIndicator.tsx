@@ -2,6 +2,7 @@ import React from 'react';
 import type {ActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import ActivityIndicator from './ActivityIndicator';
 
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
@@ -12,7 +13,7 @@ type FullScreenLoadingIndicatorProps = {
     testID?: string;
 };
 
-function FullScreenLoadingIndicator({style, iconSize = 'large', testID = ''}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({style, iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE, testID = ''}: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, style]}>

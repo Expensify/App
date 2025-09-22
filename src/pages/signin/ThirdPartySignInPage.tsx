@@ -38,7 +38,7 @@ function ThirdPartySignInPage({signInProvider}: ThirdPartySignInPageProps) {
             {account?.isLoading ? (
                 <View style={styles.thirdPartyLoadingContainer}>
                     <ActivityIndicator
-                        size="large"
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         color={undefined}
                     />
                 </View>

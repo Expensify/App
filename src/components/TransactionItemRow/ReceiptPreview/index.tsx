@@ -108,7 +108,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                 <View style={[styles.w100]}>
                     {isLoading && (
                         <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                            <ActivityIndicator size="large" />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     )}
 
