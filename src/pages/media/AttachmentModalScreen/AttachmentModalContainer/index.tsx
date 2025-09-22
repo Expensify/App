@@ -6,6 +6,7 @@ import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalSc
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import AttachmentStateContextProvider from '../AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {
@@ -52,12 +53,14 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
             onClose={closeModal}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <AttachmentModalBaseContent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...contentProps}
-                shouldDisplayHelpButton={false}
-                onClose={closeModal}
-            />
+            <AttachmentStateContextProvider>
+                <AttachmentModalBaseContent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...contentProps}
+                    shouldDisplayHelpButton={false}
+                    onClose={closeModal}
+                />
+            </AttachmentStateContextProvider>
         </Modal>
     );
 }
