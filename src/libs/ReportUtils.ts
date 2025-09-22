@@ -274,6 +274,7 @@ import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
+import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
@@ -6361,12 +6362,8 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    const reportUrl = `${environmentURL}/r/${report?.reportID}`;
-    const message = translateLocal('iou.movedTransaction', {
-        reportUrl,
-        reportName,
-    });
-    return message;
+    const reportUrl = getReportURLForCurrentContext(report?.reportID);
+    return translateLocal('iou.movedTransaction', {reportUrl, reportName});
 }
 
 function getUnreportedTransactionMessage() {
@@ -6391,8 +6388,8 @@ function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) 
     const toPolicyName = getPolicyNameByID(toPolicyID);
     return translateLocal('iou.movedAction', {
         shouldHideMovedReportUrl: !isDM(report),
-        movedReportUrl: `${environmentURL}/r/${movedReportID}`,
-        newParentReportUrl: `${environmentURL}/r/${newParentReportID}`,
+        movedReportUrl: getReportURLForCurrentContext(movedReportID),
+        newParentReportUrl: getReportURLForCurrentContext(newParentReportID),
         toPolicyName,
     });
 }
@@ -6716,8 +6713,8 @@ function buildOptimisticMovedReportAction(
     const movedActionMessage = [
         {
             html: shouldHideMovedReportUrl
-                ? `moved this <a href='${CONST.NEW_EXPENSIFY_URL}r/${movedReportID}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
-                : `moved this report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+                ? `moved this <a href='${getReportURLForCurrentContext(movedReportID)}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
+                : `moved this report to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
             text: `moved this report to the ${policyName} workspace`,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
@@ -6804,11 +6801,11 @@ function buildOptimisticTransactionAction(
     targetReportID: string,
 ): ReportAction {
     const reportName = allReports?.[targetReportID]?.reportName ?? '';
-    const url = `${environmentURL}/r/${targetReportID}`;
-    const [actionText, messageHtml] =
-        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
-            ? [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
-            : ['moved this expense to your personal space', 'moved this expense to your personal space'];
+    const url = getReportURLForCurrentContext(targetReportID);
+    const [actionText, messageHtml] = [
+        `moved this expense to ${reportName}`,
+        `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
+    ];
 
     return {
         actionName: type,
@@ -11713,6 +11710,18 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
+function getReportURLForCurrentContext(reportID: string | undefined): string {
+    const id = reportID ?? '';
+    if (!id) {
+        return `${environmentURL}/r/`;
+    }
+    const isInSearchContext = isSearchTopmostFullScreenRoute();
+    const relativePath = isInSearchContext
+        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: id})
+        : ROUTES.REPORT_WITH_ID.getRoute(id);
+    return `${environmentURL}/${relativePath}`;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -12101,6 +12110,7 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
     getReportName,

@@ -80,10 +80,14 @@ import {
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
+    getReportURLForCurrentContext,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
+import * as SearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -6996,6 +7000,44 @@ describe('ReportUtils', () => {
                 shouldExcludeDeleted: true,
             });
             expect(result).toEqual([1, 4]); // participant 4 has 'add' action, should not be excluded
+        });
+    });
+
+    describe('getReportURLForCurrentContext', () => {
+        const flushPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
+        const mockIsSearchTopmostFullScreenRoute = jest.spyOn(
+            SearchTopmostFullScreenRoute,
+            'default',
+        ) as jest.MockedFunction<() => boolean>;
+        let environmentURL: string;
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+            await flushPromises();
+        });
+
+        afterAll(() => {
+            mockIsSearchTopmostFullScreenRoute.mockRestore();
+        });
+
+        beforeEach(() => {
+            mockIsSearchTopmostFullScreenRoute.mockReset();
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+        });
+
+        it('returns report route when not in search context', () => {
+            const reportID = '123';
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+        });
+
+        it('returns search route when in search context', () => {
+            const reportID = '456';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID})}`);
+        });
+
+        it('falls back to the base report path when reportID is missing', () => {
+            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
         });
     });
 
