@@ -1,5 +1,4 @@
-import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -79,8 +78,8 @@ function AddressSearch(
         value,
         locationBias,
         caretHidden,
+        ref,
     }: AddressSearchProps,
-    ref: ForwardedRef<HTMLElement>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -492,6 +491,6 @@ function AddressSearch(
 
 AddressSearch.displayName = 'AddressSearchWithRef';
 
-export default forwardRef(AddressSearch);
+export default AddressSearch;
 
 export type {AddressSearchProps};
