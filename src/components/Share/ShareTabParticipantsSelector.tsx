@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import React from 'react';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,7 +9,7 @@ import type ROUTES from '@src/ROUTES';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
-    ref?: React.Ref<InputFocusRef>;
+    ref?: Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {
