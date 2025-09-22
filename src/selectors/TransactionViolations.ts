@@ -43,10 +43,5 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
     return result;
 }
 
-/**
- * Selector factory for getting violations with duplicates for specific transaction IDs
- */
-const createViolationsWithDuplicatesSelector = (transactionIDs: string[]) => (allTransactionsViolations: OnyxCollection<TransactionViolations>) =>
-    selectViolationsWithDuplicates(transactionIDs, allTransactionsViolations);
-
-export {selectViolationsWithDuplicates, createViolationsWithDuplicatesSelector};
+// eslint-disable-next-line import/prefer-default-export
+export {selectViolationsWithDuplicates};
