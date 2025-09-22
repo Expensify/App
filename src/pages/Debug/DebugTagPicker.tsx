@@ -25,7 +25,7 @@ type DebugTagPickerProps = {
     onSubmit: (item: ListItem) => void;
 };
 
-const policySelector = (policy: OnyxEntry<Policy>) => policy?.hasMultipleTagLists;
+const policyHasMultipleTagListsSelector = (policy: OnyxEntry<Policy>) => policy?.hasMultipleTagLists;
 
 function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps) {
     const styles = useThemeStyles();
@@ -35,7 +35,7 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const [hasMultipleTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policySelector});
+    const [hasMultipleTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policyHasMultipleTagListsSelector});
     const updateTagName = useCallback(
         (index: number) =>
             ({text}: ListItem) => {

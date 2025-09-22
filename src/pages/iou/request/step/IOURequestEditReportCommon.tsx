@@ -41,9 +41,9 @@ type Props = {
     createReport?: () => void;
 };
 
-const policySelector = (policy: OnyxEntry<Policy>) => policy?.id;
+const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
 
-const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
+const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policyIdSelector);
 
 function IOURequestEditReportCommon({
     backTo,
