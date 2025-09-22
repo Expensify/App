@@ -2032,7 +2032,7 @@ describe('actions/Report', () => {
             const ownerEmail = 'submitter@test.com';
             const adminEmail = 'admin@test.com';
             const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
-            
+
             const expenseReport: OnyxTypes.Report = {
                 ...createRandomReport(1),
                 reportID: 'expenseReport123',
@@ -2085,13 +2085,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call changeReportPolicyAndInviteSubmitter
-            Report.changeReportPolicyAndInviteSubmitter(
-                expenseReport,
-                newPolicy,
-                employeeList,
-                TestHelper.formatPhoneNumber,
-                false
-            );
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, employeeList, TestHelper.formatPhoneNumber, false);
             await waitForBatchedUpdates();
 
             // Simulate network failure
