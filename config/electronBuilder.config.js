@@ -48,6 +48,9 @@ module.exports = {
                 arch: ['universal'],
             },
         ],
+        extendInfo: {
+            "CFBundleIconName": "AppIcon"
+        },
     },
     dmg: {
         title: 'New Expensify',
@@ -71,4 +74,5 @@ module.exports = {
         name: 'New Expensify',
         schemes: ['new-expensify'],
     },
+    afterPack: "desktop/afterPack.js"
 };
