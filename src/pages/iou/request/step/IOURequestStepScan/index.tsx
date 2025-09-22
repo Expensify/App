@@ -1002,7 +1002,8 @@ function IOURequestStepScan({
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [downloadAppBannerHeight, setDownloadAppBannerHeight] = useState(0);
     /*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */
-    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    const shouldHideDownloadAppBanner = isMobile() || downloadAppBannerHeight + desktopUploadViewHeight + styles.uploadFileView.paddingVertical * 2 > containerHeight;
+    const uploadFileViewStyles = !isMobile() && {...styles.uploadFileView, ...styles.uploadFileViewBorderWidth(isSmallScreenWidth)};
 
     const desktopUploadView = () => (
         <View
@@ -1068,7 +1069,7 @@ function IOURequestStepScan({
                         }
                         onLayout(setTestReceiptAndNavigate);
                     }}
-                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
+                    style={[styles.flex1, uploadFileViewStyles]}
                 >
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
@@ -1079,7 +1080,7 @@ function IOURequestStepScan({
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={isReplacingReceipt ? translate('dropzone.replaceReceipt') : translate(shouldAcceptMultipleFiles ? 'dropzone.scanReceipts' : 'quickAction.scanReceipt')}
                             dropTextStyles={styles.receiptDropText}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
                     {!shouldHideDownloadAppBanner && <DownloadAppBanner onLayout={(e) => setDownloadAppBannerHeight(e.nativeEvent.layout.height)} />}

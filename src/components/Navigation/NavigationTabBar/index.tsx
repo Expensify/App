@@ -240,9 +240,8 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                             {!!chatTabBrickRoad && (
                                                 <View
                                                     style={[
-                                                        styles.navigationTabBarStatusIndicator(
-                                                            chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger,
-                                                        ),
+                                                        styles.navigationTabBarStatusIndicator,
+                                                        styles.statusIndicatorColor(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger),
                                                         hovered && {borderColor: theme.sidebarHover},
                                                     ]}
                                                 />
@@ -311,7 +310,13 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                             height={variables.iconBottomBar}
                                         />
                                         {!!workspacesTabIndicatorStatus && (
-                                            <View style={[styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor), hovered && {borderColor: theme.sidebarHover}]} />
+                                            <View
+                                                style={[
+                                                    styles.navigationTabBarStatusIndicator,
+                                                    styles.statusIndicatorColor(workspacesTabIndicatorColor),
+                                                    hovered && {borderColor: theme.sidebarHover},
+                                                ]}
+                                            />
                                         )}
                                     </View>
                                     <Text
@@ -379,7 +384,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 height={variables.iconBottomBar}
                             />
                             {!!chatTabBrickRoad && (
-                                <View style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                                <View
+                                    style={[
+                                        styles.navigationTabBarStatusIndicator,
+                                        styles.statusIndicatorColor(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger),
+                                    ]}
+                                />
                             )}
                         </View>
                         <Text
@@ -441,7 +451,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
-                        {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                        {!!workspacesTabIndicatorStatus && <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(workspacesTabIndicatorColor)]} />}
                     </View>
                     <Text
                         numberOfLines={1}

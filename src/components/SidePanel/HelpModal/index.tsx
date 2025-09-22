@@ -68,7 +68,9 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
                     <ColorSchemeWrapper>
                         <Animated.View
                             style={[
-                                styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth),
+                                styles.sidePanelContent,
+                                styles.sidePanelContentWidth(shouldUseNarrowLayout),
+                                styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
                                 {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom},
                             ]}
                         >

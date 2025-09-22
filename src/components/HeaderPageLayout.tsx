@@ -105,7 +105,7 @@ function HeaderPageLayout({
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
                             keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                         >
-                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)} />}
+                            {!Browser.isSafari() && <View style={[styles.overscrollSpacerPosition, styles.w100, styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)]} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG), headerContainerStyles]}>
                                 {headerContent}
                             </View>

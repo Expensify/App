@@ -328,8 +328,8 @@ function BaseTextInput({
                         ) : null}
                         <View
                             style={[
-                                styles.textInputAndIconContainer(isMarkdownEnabled),
-                                {flex: 1},
+                                styles.textInputAndIconContainer,
+                                styles.flex1,
                                 isMultiline && hasLabel && styles.textInputMultilineContainer,
                                 styles.pointerEventsBoxNone,
                             ]}
