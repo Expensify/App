@@ -341,6 +341,7 @@ function MoneyReportHeader({
         [moneyRequestReport],
     );
 
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
@@ -352,6 +353,7 @@ function MoneyReportHeader({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
     });
@@ -649,8 +651,6 @@ function MoneyReportHeader({
         [moneyRequestReport?.reportID, policy, translate],
     );
 
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
         const options: Record<string, DropdownOption<string>> = {
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
@@ -674,13 +674,25 @@ function MoneyReportHeader({
                 text: translate('export.expenseLevelExport'),
                 icon: Expensicons.Table,
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-                onSelected: () => beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs),
+                onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
+                        return;
+                    }
+                    beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs);
+                },
             },
             [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: {
                 text: translate('export.reportLevelExport'),
                 icon: Expensicons.Table,
                 value: CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
-                onSelected: () => beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs),
+                onSelected: () => {
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
+                        return;
+                    }
+                    beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs);
+                },
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -5523,6 +5523,11 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
             },
+            reports: {
+                title: 'Reports',
+                description: 'Create organized expense reports to track your business spending, submit for approvals, and streamline your reimbursement process.',
+                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
+            },
             multiLevelTags: {
                 title: 'Multi-level tags',
                 description:
@@ -6130,6 +6135,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Between ${greaterThan} and ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Equal to ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
