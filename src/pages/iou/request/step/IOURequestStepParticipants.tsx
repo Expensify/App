@@ -345,7 +345,7 @@ function IOURequestStepParticipants({
             )}
             {transactions.length > 0 && (
                 <MoneyRequestParticipantsSelector
-                    participants={participants}
+                    participants={isSplitRequest ? participants : []}
                     onParticipantsAdded={addParticipant}
                     onFinish={goToNextStep}
                     iouType={iouType}
