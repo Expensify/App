@@ -34,7 +34,7 @@ To turn on Expensify Cards for your workspace:
 
 # Step 2: Select a Bank Account
 
-Link a U.S, UK or EU business bank account to pay the card balance:
+Link a US, UK or EU business bank account to pay the card balance:
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**
@@ -89,7 +89,7 @@ You can issue virtual or physical cards to employees:
 
 ## What kind of bank account is required?
 
-You’ll need a US, UK or EU business bank account registered to an incorporated business in the applicable country
+You’ll need a US, UK, or EU business bank account registered to an incorporated business in the applicable country.
 
 ## Can I use Expensify Cards across multiple workspaces?
 
@@ -97,8 +97,8 @@ Yes, but each workspace must have its **own settlement account**. For example, u
 
 ## Can an employee have multiple cards?
 
-- **Yes**: Employees can have unlimited **virtual cards** (e.g. for trips or subscriptions).
-- **No**: Only **one active, physical card** is allowed per employee (US Only)
+- **Yes**: Employees can have unlimited **virtual cards** (e.g. for trips or subscriptions)
+- **No**: Only **one active, physical card** is allowed per employee (US only)
 
 ## How is the Expensify Card limit determined?
 
@@ -106,7 +106,7 @@ The limit is the maximum combined spending limit for all Expensify Cards in your
 
 - **Available balance** in the verified bank account set as your **settlement account**
 - **Pending expenses** and **unsettled transactions**
-- **Funds availability** tracked via **Plaid** (US only) OR by prooviding statements to Expensify at the time of set up and every 90 days after that (don't worry, we'll let you know when you need to provide statements)
+- **Funds availability** tracked via **Plaid** (US only) OR by providing statements to Expensify at the time of setup and every 90 days after that (don't worry, we'll let you know when you need to provide statements)
 - **Settlement cycle timing**, which usually takes **three business days**
 
 ## What affects the Expensify Card limit?
