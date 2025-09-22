@@ -3,7 +3,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -66,7 +66,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                     }}
                     sections={[{data: roleOptions}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
             </DelegateNoAccessWrapper>
         </ScreenWrapper>
