@@ -68,7 +68,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -647,6 +646,9 @@ const translations = {
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
         purchaseAmount: 'Importe de compra',
+        link: 'Enlace',
+        pinned: 'Fijado',
+        read: 'Leído',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1291,6 +1293,7 @@ const translations = {
         addUnreportedExpenseConfirm: 'Añadir al informe',
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
+        newReport: 'Nuevo informe',
         explainHold: 'Explica la razón para retener esta solicitud.',
         retract: 'Retractar',
         reopened: 'reabrir',
@@ -1387,8 +1390,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
-            reasonPageDescription1: 'Rechaza un gasto si no tienes intención de aprobarlo o pagarlo. De lo contrario, usa "retener" para pausar el gasto y pedir más contexto.',
-            reasonPageDescription2: 'Si vas a rechazar el gasto, por favor añade un comentario para explicar el motivo:',
+            reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
             rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
@@ -2453,10 +2455,11 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Revisa tu [configuración del espacio de trabajo](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Así es como puedes revisar y actualizar la configuración de tu espacio de trabajo:\n' +
-                    '1. Haz clic en la pestaña de configuración.\n' +
-                    '2. Haz clic en *Espacios de trabajo* > [Tu espacio de trabajo].\n' +
-                    `[Ir a tu espacio de trabajo](${workspaceSettingsLink}). Lo rastrearemos en la sala #admins.`,
+                    'Aquí te mostramos cómo revisar y actualizar la configuración de tu espacio de trabajo:\n' +
+                    '1. Haz clic en Espacios de trabajo.\n' +
+                    '2. Selecciona tu espacio de trabajo.\n' +
+                    '3. Revisa y actualiza tu configuración.\n' +
+                    `[Ir a tu espacio de trabajo.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Crea tu primer informe',
@@ -3447,7 +3450,7 @@ const translations = {
             card: 'Tarjetas',
             expensifyCard: 'Tarjeta Expensify',
             companyCards: 'Tarjetas de empresa',
-            workflows: 'Flujos de trabajo',
+            workflows: 'Werkstrome',
             workspace: 'Espacio de trabajo',
             findWorkspace: 'Encontrar espacio de trabajo',
             edit: 'Editar espacio de trabajo',
@@ -3614,9 +3617,6 @@ const translations = {
             emptyList: {
                 title: 'Per diem',
                 subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
-            },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}`,
             },
             importPerDiemRates: 'Importar tasas de per diem',
             editPerDiemRate: 'Editar la tasa de per diem',
@@ -5424,6 +5424,7 @@ const translations = {
             updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
             workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
             yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lista de monedas soportadas</a>.`,
+            chooseAnExisting: 'Elige una cuenta bancaria existente para pagar gastos o añade una nueva.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',
@@ -5516,7 +5517,7 @@ const translations = {
             },
             categories: {
                 title: 'Categorías',
-                description: `Las categorías te ayudan a organizar mejor los gastos y a llevar un seguimiento de en qué estás gastando tu dinero. Utiliza nuestra lista de categorías sugeridas o crea las tuyas propias.`,
+                description: 'Las categorías te permiten rastrear y organizar gastos. Usa nuestras categorías predeterminadas o añade las tuyas propias.',
                 onlyAvailableOnPlan: 'Las categorías están disponibles en el plan Recopilar, a partir de ',
             },
             glCodes: {
@@ -5556,11 +5557,21 @@ const translations = {
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
             },
+            reports: {
+                title: 'Informes',
+                description: 'Crea informes de gastos organizados para hacer seguimiento de tus gastos comerciales, enviarlos para aprobación y optimizar tu proceso de reembolso.',
+                onlyAvailableOnPlan: 'Los informes están disponibles en el plan Recopilar, a partir de ',
+            },
             multiLevelTags: {
                 title: 'Etiquetas multinivel',
                 description:
                     'Las etiquetas multinivel te ayudan a llevar un control más preciso de los gastos. Asigna múltiples etiquetas a cada partida, como departamento, cliente o centro de costos, para capturar el contexto completo de cada gasto. Esto permite informes más detallados, flujos de aprobación y exportaciones contables.',
                 onlyAvailableOnPlan: 'Las etiquetas multinivel solo están disponibles en el plan Control, a partir de ',
+            },
+            distanceRates: {
+                title: 'Tasas de distancia',
+                description: 'Crea y gestiona tus propias tasas, realiza el seguimiento en millas o kilómetros y establece categorías predeterminadas para los gastos de distancia.',
+                onlyAvailableOnPlan: 'Las tasas de distancia están disponibles en el plan Recopilar, a partir de ',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Múltiples niveles de aprobación',
@@ -5569,7 +5580,7 @@ const translations = {
                 onlyAvailableOnPlan: 'Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de ',
             },
             note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>Mejore su espacio de trabajo para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
+                `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
                 perMember: 'por miembro al mes.',
@@ -5577,11 +5588,13 @@ const translations = {
             upgradeToUnlock: 'Desbloquear esta función',
             completed: {
                 headline: 'Has mejorado tu espacio de trabajo.',
-                categorizeMessage: `Has actualizado con éxito a un espacio de trabajo en el plan Recopilar. ¡Ahora puedes categorizar tus gastos!`,
-                travelMessage: 'Has mejorado con éxito a un espacio de trabajo en el plan Recopilar. ¡Ahora puedes comenzar a reservar y gestionar viajes!',
+                categorizeMessage: `Has actualizado con éxito al plan Recopilar. ¡Ahora puedes categorizar tus gastos!`,
+                travelMessage: 'Has actualizado con éxito al plan Recopilar. ¡Ahora puedes comenzar a reservar y gestionar viajes!',
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Has actualizado con éxito ${policyName} al plan Controlar. <a href="${subscriptionLink}">Ver su suscripción</a> para obtener más información.</centered-text>`,
+                distanceRateMessage: 'Has actualizado correctamente al plan Recopilar. ¡Ahora puedes cambiar la tasa de distancia!',
                 gotIt: 'Entendido, gracias.',
+                createdWorkspace: '¡Has creado un espacio de trabajo!',
             },
             commonFeatures: {
                 title: 'Mejorar al plan Controlar',
@@ -6136,9 +6149,6 @@ const translations = {
             keyword: 'Palabra clave',
             keywords: 'Palabras clave',
             currency: 'Divisa',
-            link: 'Enlace',
-            pinned: 'Fijado',
-            unread: 'No leído',
             completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
@@ -6153,6 +6163,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Menos de ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Más que ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Entre ${greaterThan} y ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Igual a ${amount ?? ''}`,
             },
             current: 'Actual',
             past: 'Anterior',
@@ -6176,9 +6187,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
             },
-            has: {
-                receipt: 'Recibo',
-            },
+            is: 'Es',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
@@ -6350,7 +6359,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagó ${currency}${amount} mediante integración`,
                 outdatedBankAccount: `no se pudo procesar el pago debido a un problema con la cuenta bancaria del pagador`,
-                reimbursementACHBounce: `no se pudo procesar el pago porque el pagador no tiene fondos suficientes`,
+                reimbursementACHBounce: `no se pudo procesar el pago debido a un problema con la cuenta bancaria`,
                 reimbursementACHCancelled: `canceled the payment`,
                 reimbursementAccountChanged: `no se pudo procesar el pago porque el pagador cambió de cuenta bancaria`,
                 reimbursementDelayed: `procesó el pago pero se retrasó entre 1 y 2 días hábiles más`,

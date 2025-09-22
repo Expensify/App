@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,10 +20,10 @@ function DebitCardPage() {
     return <NotFoundPage />;
 
     const {translate} = useLocalize();
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: false});
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID, canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const kycWallRef = useContext(KYCWallContext);
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.

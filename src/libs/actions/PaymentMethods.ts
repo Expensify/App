@@ -42,7 +42,7 @@ function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?:
     kycWallRef.current.continueAction();
 }
 
-function openWalletPage() {
+function getPaymentMethods() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -571,7 +571,7 @@ function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string
 export {
     deletePaymentCard,
     addPaymentCard,
-    openWalletPage,
+    getPaymentMethods,
     makeDefaultPaymentMethod,
     continueSetup,
     addSubscriptionPaymentCard,
