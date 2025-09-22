@@ -1,5 +1,5 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -99,6 +99,9 @@ type MagicCodeInputProps = {
 
     /** TestID for test */
     testID?: string;
+    
+    /** Reference to the outer element */
+    ref?: ForwardedRef<MagicCodeInputHandle>;
 };
 
 type MagicCodeInputHandle = {
@@ -148,8 +151,8 @@ function MagicCodeInput(
         autoComplete,
         hasError = false,
         testID = '',
+        ref,
     }: MagicCodeInputProps,
-    ref: ForwardedRef<MagicCodeInputHandle>,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -540,5 +543,5 @@ function MagicCodeInput(
 
 MagicCodeInput.displayName = 'MagicCodeInput';
 
-export default forwardRef(MagicCodeInput);
+export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};
