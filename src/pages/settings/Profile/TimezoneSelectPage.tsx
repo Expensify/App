@@ -39,7 +39,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
     const saveSelectedTimezone = ({text}: {text: string}) => {
-        updateSelectedTimezone(text as SelectedTimezone);
+        updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
     };
 
     const filterShownTimezones = (searchText: string) => {
