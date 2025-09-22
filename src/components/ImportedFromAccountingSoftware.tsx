@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import Icon from './Icon';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextBlock from './TextBlock';
 import TextLinkBlock from './TextLinkBlock';
@@ -48,6 +49,8 @@ function ImportedFromAccountingSoftware({
     const {environmentURL} = useEnvironment();
     const icon = getIntegrationIcon(connectedIntegration);
 
+    console.log('ImportedFromAccountingSoftware: Calling translate with key:', 'workspace.tags.employeesSeeTagsAs', 'params:', {customTagName: customTagName ?? ''});
+
     if (!customTagName && isDisplayingTags) {
         return undefined;
     }
@@ -75,11 +78,9 @@ function ImportedFromAccountingSoftware({
             />
             <Text style={[styles.textNormal, styles.colorMuted]}>. </Text>
             {isDisplayingTags && (
-                <>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.employeesSeeTagsAs')}</Text>
-                    <Text style={[styles.textBold, styles.colorMuted]}>{customTagName}</Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                </>
+                <View style={[styles.renderHTML]}>
+                    <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName: customTagName ?? ''})} />
+                </View>
             )}
         </View>
     );
