@@ -58,13 +58,14 @@ describe('useSidebarOrderedReports', () => {
             [ONYXKEYS.COLLECTION.TRANSACTION]: {},
             [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {},
             [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
+            [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: {},
             [ONYXKEYS.BETAS]: [],
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
         } as unknown as OnyxMultiSetInput);
 
         // Default mock implementations
         mockSidebarUtils.getReportsToDisplayInLHN.mockImplementation(() => ({}));
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => prev);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue([]);
 
         return waitForBatchedUpdates();
@@ -112,7 +113,7 @@ describe('useSidebarOrderedReports', () => {
         // When the initial reports are set
         const initialReports = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => ({...prev}));
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
         currentReportIDForTestsValue = '1';
 
         // When the hook is rendered
@@ -128,7 +129,7 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
-
+        currentReportIDForTestsValue = '2';
         // Then sortReportsToDisplayInLHN should not be called again since deep comparison shows no change
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
     });
@@ -181,6 +182,7 @@ describe('useSidebarOrderedReports', () => {
             updatedReports,
             expect.any(String), // priorityMode
             expect.any(Function), // localeCompare
+            expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
             expect.any(Object), // reportAttributes
         );
@@ -232,7 +234,6 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
-        currentReportIDForTestsValue = '2';
 
         // When the mock is updated
         const thirdReportsWithSameContent = createMockReports(reportsContent);
@@ -241,7 +242,7 @@ describe('useSidebarOrderedReports', () => {
         rerender({});
         currentReportIDForTestsValue = '3';
 
-        // Then sortReportsToDisplayInLHN should be called only once (initial render)
+        // Then sortReportsToDisplayInLHN should be called only once (initial render) since the report content is the same
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalledTimes(1);
     });
 
