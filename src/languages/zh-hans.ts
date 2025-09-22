@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -3596,9 +3595,6 @@ const translations = {
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工的每日支出。从电子表格导入费率以开始。',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `值为${rate}的费率已存在`,
-            },
             importPerDiemRates: '导入每日津贴标准',
             editPerDiemRate: '编辑每日津贴费率',
             editPerDiemRates: '编辑每日津贴标准',
@@ -5458,6 +5454,11 @@ const translations = {
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
             },
+            reports: {
+                title: '报告',
+                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
+                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+            },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
@@ -6043,6 +6044,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `少于${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `大于${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `在 ${greaterThan} 和 ${lessThan} 之间`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `等于${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',

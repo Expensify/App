@@ -2,20 +2,20 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -41,7 +41,7 @@ function NetSuiteImportMappingPage({
         params: {importField},
     },
 }: NetSuiteImportMappingPageProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -100,7 +100,7 @@ function NetSuiteImportMappingPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteImportMappingPage.displayName}
             sections={[{data: inputSectionData}]}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={(selection: SelectorType) => updateImportMapping(selection as ImportListItem)}
             initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
@@ -109,9 +109,9 @@ function NetSuiteImportMappingPage({
             title={titleKey}
             listFooterContent={listFooterContent}
             pendingAction={settingsPendingAction([importField], netsuiteConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)}
+            errors={getLatestErrorField(netsuiteConfig ?? {}, importField)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
+            onClose={() => clearNetSuiteErrorField(policyID, importField)}
         />
     );
 }
