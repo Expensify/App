@@ -335,6 +335,67 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
         });
+
+        it('should update transaction when distance is changed', () => {
+            // Given: a policy with a mileage rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1, // 1 USD per mile
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10, // original distance
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const newDistance = 20; // change distance to 20 miles
+
+            // When: updating the transaction with a new distance
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {distance: newDistance},
+            });
+
+            // Then: quantity should be updated
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+
+            // And: amount should be recalculated (20 miles × 1 USD = 20)
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+
+            // And: merchant should be updated with mileage description
+            expect(updatedTransaction.modifiedMerchant).toContain('20');
+
+            // And: currency should be set from policy mileage rate
+            expect(updatedTransaction.modifiedCurrency).toBe(CONST.CURRENCY.USD);
+
+            // And: pending fields should mark distance-related updates
+            expect(updatedTransaction.pendingFields).toMatchObject({
+                quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+        });
     });
 
     describe('shouldShowRTERViolationMessage', () => {

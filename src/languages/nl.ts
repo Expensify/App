@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -328,7 +327,7 @@ const translations = {
         dismiss: 'Verwijderen',
         proceed: 'Proceed',
         yes: 'Ja',
-        no: 'No',
+        no: 'Nee',
         ok: 'OK',
         notNow: 'Niet nu',
         learnMore: 'Meer informatie',
@@ -362,7 +361,7 @@ const translations = {
         rotate: 'Draaien',
         zoom: 'Zoom',
         password: 'Wachtwoord',
-        magicCode: 'Magic code',
+        magicCode: 'Verificatiecode',
         twoFactorCode: 'Twee-factor code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
@@ -605,7 +604,7 @@ const translations = {
         chooseFiles: 'Bestanden kiezen',
         dropTitle: 'Laat het gaan',
         dropMessage: 'Sleep hier je bestand in.',
-        ignore: 'Ignore',
+        ignore: 'Negeren',
         enabled: 'Ingeschakeld',
         disabled: 'Uitgeschakeld',
         import: 'Importeren',
@@ -665,6 +664,9 @@ const translations = {
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
         enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
         purchaseAmount: 'Aankoopbedrag',
+        link: 'Link',
+        pinned: 'Vastgezet',
+        read: 'Gelezen',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1195,8 +1197,12 @@ const translations = {
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) =>
             amount ? `${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met persoonlijke rekening`,
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betalen via ${policyName}`,
+        payWithPolicy: ({
+            formattedAmount,
+            policyName,
+        }: SettleExpensifyCardParams & {
+            policyName: string;
+        }) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betalen via ${policyName}`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} betaald via bankrekening ${last4Digits}` : `betaald via bankrekening ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `${amount} betaald met bankrekening eindigend op ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
@@ -1310,6 +1316,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Geen niet-gerapporteerde uitgaven',
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
+        newReport: 'Nieuw rapport',
         explainHold: 'Leg uit waarom je deze uitgave vasthoudt.',
         retracted: 'ingetrokken',
         retract: 'Intrekken',
@@ -1354,7 +1361,7 @@ const translations = {
         changeWorkspace: 'Werkruimte wijzigen',
         set: 'set',
         changed: 'veranderd',
-        removed: 'removed',
+        removed: 'verwijderd',
         transactionPending: 'Transactie in behandeling.',
         chooseARate: 'Selecteer een vergoedingstarief per mijl of kilometer voor de werkruimte',
         unapprove: 'Afkeuren',
@@ -1404,8 +1411,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Vasthouden uitgaven blijven achter wanneer je een volledig rapport goedkeurt.',
             rejectExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
-            reasonPageDescription1: 'Wijs een uitgave af als je deze nooit wilt goedkeuren of betalen. Gebruik anders "Vasthouden" om de uitgave te pauzeren en om meer context te vragen.',
-            reasonPageDescription2: 'Als je de uitgave gaat afwijzen, voeg dan een opmerking toe om uit te leggen waarom:',
+            reasonPageDescription: 'Leg uit waarom u deze uitgave afwijst.',
             rejectReason: 'Reden van afwijzing',
             markAsResolved: 'Markeren als opgelost',
             rejectedStatus: 'Deze uitgave is afgewezen. Er wordt gewacht tot jij het/de probleem(en) oplost en het markeert als opgelost om indienen mogelijk te maken.',
@@ -1562,7 +1568,7 @@ const translations = {
         eEyEmEir: 'E / Ey / Em / Eir',
         faeFaer: 'Fae / Faer',
         heHimHis: 'Hij / Hem / Zijn',
-        heHimHisTheyThemTheirs: 'He / Him / His / They / Them / Theirs',
+        heHimHisTheyThemTheirs: 'Hij / Hem / Zijn / Zij / Hen / Hun',
         sheHerHers: 'Zij / Haar / Hare',
         sheHerHersTheyThemTheirs: 'Zij / Haar / Haar / Zij / Hen / Hun',
         merMers: 'Mer / Mers',
@@ -1662,7 +1668,7 @@ const translations = {
             execute: 'Uitvoeren',
             noLogsAvailable: 'Geen logs beschikbaar',
             logSizeTooLarge: ({size}: LogSizeParams) => `Loggrootte overschrijdt de limiet van ${size} MB. Gebruik "Log opslaan" om het logbestand te downloaden.`,
-            logs: 'Logs',
+            logs: 'Logboeken',
             viewConsole: 'Console bekijken',
         },
         security: 'Beveiliging',
@@ -2011,7 +2017,7 @@ const translations = {
                 '4': 'Vierde',
                 '5': 'Vijfde',
                 '6': 'Zesde',
-                '7': 'Seventh',
+                '7': 'Zevende',
                 '8': 'Achtste',
                 '9': 'Negende',
                 '10': 'Tiende',
@@ -2415,7 +2421,6 @@ const translations = {
                     '\n' +
                     `[Breng me naar het verbinden van mijn bedrijfskaarten](${corporateCardLink}).`,
             },
-
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
                 description: ({workspaceMembersLink}) =>
@@ -2431,7 +2436,6 @@ const translations = {
                     '\n' +
                     `![Nodig uw team uit](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
-
             setupCategoriesAndTags: {
                 title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Stel [categorieën](${workspaceCategoriesLink}) en [tags](${workspaceTagsLink}) in`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
@@ -2455,7 +2459,6 @@ const translations = {
                     '\n' +
                     `![Stel tags in](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
-
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Nodig uw [boekhouder](${workspaceMembersLink}) uit`,
                 description: ({workspaceMembersLink}) =>
@@ -2469,7 +2472,6 @@ const translations = {
                     '\n' +
                     `[Nodig nu uw boekhouder uit](${workspaceMembersLink}).`,
             },
-
             startChatTask: {
                 title: 'Start een chat',
                 description:
@@ -2483,7 +2485,6 @@ const translations = {
                     '\n' +
                     'Elke chat wordt ook omgezet in een e-mail of sms waar ze direct op kunnen reageren.',
             },
-
             splitExpenseTask: {
                 title: 'Splits een uitgave',
                 description:
@@ -2497,14 +2498,14 @@ const translations = {
                     '\n' +
                     'Voeg gerust meer details toe als u wilt, of stuur het gewoon op. Laten we ervoor zorgen dat u wordt terugbetaald!',
             },
-
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Zo bekijkt en werkt u uw werkruimte-instellingen bij:\n' +
-                    '1. Klik op het instellingentabblad.\n' +
-                    '2. Klik op *Werkruimtes* > [Uw werkruimte].\n' +
-                    `[Ga naar uw werkruimte](${workspaceSettingsLink}). We volgen ze in de #admins-kamer.`,
+                    '1. Klik op Werkruimtes.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Bekijk en werk uw instellingen bij.\n' +
+                    `[Ga naar uw werkruimte.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Maak uw eerste rapport',
@@ -2703,7 +2704,7 @@ const translations = {
         save: 'Opslaan',
         message: 'Bericht',
         timePeriods: {
-            never: 'Never',
+            never: 'Nooit',
             thirtyMinutes: '30 minuten',
             oneHour: '1 uur',
             afterToday: 'Vandaag',
@@ -3361,10 +3362,10 @@ const translations = {
             class: 'Cabineklasse',
             recordLocator: 'Record locator',
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Onbekend',
                 economy: 'Economie',
                 premiumEconomy: 'Premium Economy',
-                business: 'Business',
+                business: 'Zakelijk',
                 first: 'Eerste',
             },
         },
@@ -3378,7 +3379,7 @@ const translations = {
             cancellationUntil: 'Gratis annulering tot',
             confirmation: 'Bevestigingsnummer',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Onbekend',
                 nonRefundable: 'Niet-restitueerbaar',
                 freeCancellationUntil: 'Gratis annulering tot',
                 partiallyRefundable: 'Gedeeltelijk restitueerbaar',
@@ -3480,7 +3481,7 @@ const translations = {
             card: 'Kaarten',
             expensifyCard: 'Expensify Card',
             companyCards: 'Bedrijfskaarten',
-            workflows: 'Workflows',
+            workflows: 'Werkstromen',
             workspace: 'Werkruimte',
             findWorkspace: 'Werkruimte vinden',
             edit: 'Werkruimte bewerken',
@@ -3491,7 +3492,7 @@ const translations = {
             settings: 'Instellingen',
             reimburse: 'Vergoedingen',
             categories: 'Categorieën',
-            tags: 'Tags',
+            tags: 'Labels',
             customField1: 'Aangepast veld 1',
             customField2: 'Aangepast veld 2',
             customFieldHint: 'Voeg aangepaste codering toe die van toepassing is op alle uitgaven van dit lid.',
@@ -3647,9 +3648,6 @@ const translations = {
             emptyList: {
                 title: 'Per diem',
                 subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen. Importeer tarieven vanuit een spreadsheet om te beginnen.',
-            },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Een tarief met waarde ${rate} bestaat al.`,
             },
             importPerDiemRates: 'Importeer dagvergoedingen',
             editPerDiemRate: 'Bewerk dagvergoedingstarief',
@@ -4733,7 +4731,7 @@ const translations = {
                 statementCloseDateDescription: 'Laat ons weten wanneer je rekeningafschrift wordt gesloten, dan maken we een bijpassend rekeningafschrift in Expensify.',
             },
             workflows: {
-                title: 'Workflows',
+                title: 'Werkstromen',
                 subtitle: 'Configureer hoe uitgaven worden goedgekeurd en betaald.',
                 disableApprovalPrompt:
                     'Expensify-kaarten van deze werkruimte zijn momenteel afhankelijk van goedkeuring om hun Smart Limits te definiëren. Pas de limiettypen van eventuele Expensify-kaarten met Smart Limits aan voordat u goedkeuringen uitschakelt.',
@@ -4747,7 +4745,7 @@ const translations = {
                 subtitle: 'Volg en organiseer uitgaven.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Labels',
                 subtitle: 'Classificeer kosten en volg factureerbare uitgaven.',
             },
             taxes: {
@@ -5351,7 +5349,7 @@ const translations = {
             user: 'gebruiker',
             users: 'gebruikers',
             invited: 'uitgenodigd',
-            removed: 'removed',
+            removed: 'verwijderd',
             to: 'naar',
             from: 'van',
         },
@@ -5443,6 +5441,7 @@ const translations = {
             updateWorkspaceCurrency: 'Werkruimte valuta bijwerken',
             workspaceCurrencyNotSupported: 'Werkruimtevaluta niet ondersteund',
             yourWorkspace: `Uw werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,
+            chooseAnExisting: 'Kies een bestaande bankrekening om uitgaven te betalen of voeg een nieuwe toe.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',
@@ -5515,7 +5514,7 @@ const translations = {
             },
             categories: {
                 title: 'Categorieën',
-                description: `Categorieën helpen je om uitgaven beter te organiseren en bij te houden waar je je geld aan uitgeeft. Gebruik onze voorgestelde categorielijst of maak je eigen lijst.`,
+                description: 'Categorieën stellen je in staat om uitgaven bij te houden en te organiseren. Gebruik onze standaardcategorieën of voeg je eigen toe.',
                 onlyAvailableOnPlan: 'Categorieën zijn beschikbaar op het Collect-abonnement, beginnend bij',
             },
             glCodes: {
@@ -5554,11 +5553,21 @@ const translations = {
                 description: 'Expensify Travel is een nieuw platform voor het boeken en beheren van zakelijke reizen waarmee leden accommodaties, vluchten, vervoer en meer kunnen boeken.',
                 onlyAvailableOnPlan: 'Reizen is beschikbaar op het Collect-plan, beginnend bij',
             },
+            reports: {
+                title: 'Rapporten',
+                description: 'Maak georganiseerde onkostenrapporten om uw zakelijke uitgaven bij te houden, in te dienen voor goedkeuring en uw vergoedingsproces te stroomlijnen.',
+                onlyAvailableOnPlan: 'Rapporten zijn beschikbaar op het Collect-plan, beginnend bij ',
+            },
             multiLevelTags: {
                 title: 'Meerniveautags',
                 description:
                     'Multi-Level Tags helpen je om uitgaven met grotere precisie bij te houden. Ken meerdere tags toe aan elk regelitem—zoals afdeling, klant of kostenplaats—om de volledige context van elke uitgave vast te leggen. Dit maakt gedetailleerdere rapportage, goedkeuringsworkflows en boekhouduitvoer mogelijk.',
                 onlyAvailableOnPlan: 'Multi-level tags zijn alleen beschikbaar op het Control-plan, beginnend bij',
+            },
+            distanceRates: {
+                title: 'Afstandstarieven',
+                description: 'Maak en beheer je eigen tarieven, volg in mijlen of kilometers, en stel standaardcategorieën in voor afstandskosten.',
+                onlyAvailableOnPlan: 'Afstandstarieven zijn beschikbaar op het Collect-abonnement, beginnend bij',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Meerdere goedkeuringsniveaus',
@@ -5570,15 +5579,17 @@ const translations = {
                 perMember: 'per lid per maand.',
             },
             note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>Upgrade uw werkruimte om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
+                `<muted-text>Upgrade om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
             upgradeToUnlock: 'Ontgrendel deze functie',
             completed: {
                 headline: `Je hebt je werkruimte geüpgraded!`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Je hebt ${policyName} succesvol geüpgraded naar het Control-abonnement! <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer informatie.</centered-text>`,
-                categorizeMessage: `Je bent succesvol geüpgraded naar een werkruimte op het Collect-plan. Nu kun je je uitgaven categoriseren!`,
-                travelMessage: `Je bent succesvol geüpgraded naar een werkruimte op het Collect-plan. Nu kun je beginnen met het boeken en beheren van reizen!`,
+                categorizeMessage: `Je bent succesvol geüpgraded naar het Collect-plan. Nu kun je je uitgaven categoriseren!`,
+                travelMessage: `Je bent succesvol geüpgraded naar het Collect-abonnement. Nu kun je beginnen met het boeken en beheren van reizen!`,
+                distanceRateMessage: `Je bent succesvol overgestapt naar het Collect-abonnement. Nu kun je het kilometertarief aanpassen!`,
                 gotIt: 'Begrepen, bedankt.',
+                createdWorkspace: 'Je hebt een werkruimte aangemaakt!',
             },
             commonFeatures: {
                 title: 'Upgrade naar het Control-plan',
@@ -6146,14 +6157,12 @@ const translations = {
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             currency: 'Valuta',
-            link: 'Link',
-            pinned: 'Vastgezet',
-            unread: 'Ongelezen',
             completed: 'Voltooid',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Minder dan ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Groter dan ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Tussen ${greaterThan} en ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
@@ -6186,9 +6195,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
             },
-            has: {
-                receipt: 'Bon',
-            },
+            is: 'Is',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Indienen',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',
@@ -6360,7 +6367,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `elders betaald ${currency}${amount}`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `betaalde ${currency}${amount} via integratie`,
                 outdatedBankAccount: `kon de betaling niet verwerken vanwege een probleem met de bankrekening van de betaler`,
-                reimbursementACHBounce: `kon de betaling niet verwerken, omdat de betaler niet voldoende saldo heeft`,
+                reimbursementACHBounce: `kon de betaling niet verwerken vanwege een probleem met de bankrekening`,
                 reimbursementACHCancelled: `de betaling geannuleerd`,
                 reimbursementAccountChanged: `kon de betaling niet verwerken, omdat de betaler van bankrekening is veranderd`,
                 reimbursementDelayed: `heeft de betaling verwerkt, maar deze is met 1-2 extra werkdagen vertraagd`,
@@ -7100,8 +7107,8 @@ const translations = {
         visibleInLHN: 'Zichtbaar in LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'waar',
+        false: 'onwaar',
         viewReport: 'Bekijk rapport',
         viewTransaction: 'Transactie bekijken',
         createTransactionViolation: 'Transactieovertreding maken',
