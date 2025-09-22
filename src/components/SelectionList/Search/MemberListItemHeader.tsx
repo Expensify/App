@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The member currently being looked at */
@@ -22,32 +23,43 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
+function MemberListItemHeader<TItem extends ListItem>({
+    member: memberItem,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-
     const [formattedDisplayName, formattedLogin] = useMemo(
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
         [memberItem, formatPhoneNumber],
     );
 
-    // s77rt add total cell, action cell and collapse/expand button
-
     return (
         <View>
-            <View style={[styles.pv1Half, styles.ph3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
-                            isChecked={memberItem.isSelected}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <UserDetailsTooltip accountID={memberItem.accountID}>
                             <View>
                                 <Avatar
@@ -58,7 +70,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                                 />
                             </View>
                         </UserDetailsTooltip>
-                        <View style={[styles.gapHalf]}>
+                        <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={formattedDisplayName}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
@@ -70,9 +82,12 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                         </View>
                     </View>
                 </View>
-            </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
+                <View style={[styles.flexShrink0, styles.mr3]}>
+                    <TotalCell
+                        total={memberItem.total}
+                        currency={memberItem.currency}
+                    />
+                </View>
             </View>
         </View>
     );

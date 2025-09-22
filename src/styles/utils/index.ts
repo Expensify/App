@@ -861,7 +861,7 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ViewStyle {
     if (isSmallScreenWidth) {
         return {
             position: 'absolute',
@@ -1245,11 +1245,11 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
  * the first last item to have spacing to create the effect of having more items in the list.
  */
 function getOptionMargin(itemIndex: number, itemsLen: number) {
-    if (itemIndex === itemsLen && itemsLen > 5) {
+    if (itemIndex === itemsLen && itemsLen >= 5) {
         return {marginBottom: 16};
     }
 
-    if (itemIndex === 0 && itemsLen > 5) {
+    if (itemIndex === 0 && itemsLen >= 5) {
         return {marginTop: 16};
     }
 
@@ -1714,7 +1714,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false, isDateColumnFullWidth = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
@@ -1722,7 +1722,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52);
+                if (isDateColumnFullWidth) {
+                    columnWidth = styles.flex1;
+                    break;
+                }
+                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:

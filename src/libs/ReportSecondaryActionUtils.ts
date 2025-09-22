@@ -13,6 +13,7 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
     isSubmitAndClose,
@@ -21,8 +22,10 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
+    canDeleteCardTransactionByLiabilityType,
     canEditReportPolicy,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -52,7 +55,6 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCardTransaction as isCardTransactionUtils,
     isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -111,7 +113,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isOpenReport = isOpenReportUtils(report);
     const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const currentUserEmail = getCurrentUserEmail();
-    const userIsPolicyMember = isPolicyMember(currentUserEmail, report.policyID);
+    const userIsPolicyMember = isPolicyMember(policy, currentUserEmail);
 
     if (!(userIsPolicyMember && isPolicyExpenseChat)) {
         return false;
@@ -211,7 +213,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, true));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -298,7 +300,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]): boolean {
+function isExportAction(report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -335,10 +337,9 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportExported = isExportedUtils(reportActions);
     const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
 
-    return isAdmin && isReportFinished && syncEnabled && !isReportExported;
+    return isAdmin && isReportFinished && syncEnabled;
 }
 
 function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
@@ -457,12 +458,13 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return true;
     }
 
+    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-        return isOwner;
+        return isOwner && canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport) {
-        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing;
+        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
@@ -472,10 +474,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability =
-            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
-
-        if (isCardTransactionWithCorporateLiability) {
+        if (!canCardTransactionBeDeleted) {
             return false;
         }
 
@@ -535,11 +534,14 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
-    // Temporary hide merge action
-    return false;
-
     // Do not show merge action if there are multiple transactions
     if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    // Temporary disable merge action for IOU reports
+    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    if (isIOUReportUtils(parentReport)) {
         return false;
     }
 
@@ -663,6 +665,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
+    if (canRejectReportAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
+    }
+
     if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -677,6 +683,10 @@ function getSecondaryReportActions({
 
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
+    }
+
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
@@ -696,7 +706,7 @@ function getSecondaryExportReportActions(
     customInAppTemplates?: ExportTemplate[],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(report, policy, reportActions)) {
+    if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
@@ -738,6 +748,10 @@ function getSecondaryTransactionThreadActions(
 
     if (transactionThreadReport && isRemoveHoldActionForTransaction(transactionThreadReport, reportTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
+    if (canRejectReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     if (isSplitAction(parentReport, [reportTransaction], policy)) {

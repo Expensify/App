@@ -4,14 +4,13 @@ import reject from 'lodash/reject';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import NewChatListItem from '@components/SelectionList/NewChatListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -20,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -59,6 +59,7 @@ function useOptions() {
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -84,13 +85,13 @@ function useOptions() {
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
             selectedOptions,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, unselectedOptions, selectedOptions]);
+    }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const headerMessage = useMemo(() => {
         return getHeaderMessage(
@@ -172,6 +173,8 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+
+    const {singleExecution} = useSingleExecution();
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -292,9 +295,11 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
+            KeyboardUtils.dismiss().then(() => {
+                singleExecution(() => navigateToAndOpenReport([login]))();
+            });
         },
-        [selectedOptions, toggleOption],
+        [selectedOptions, toggleOption, singleExecution],
     );
 
     const itemRightSideComponent = useCallback(
@@ -305,18 +310,13 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
 
             if (item.isSelected) {
                 return (
-                    <PressableWithFeedback
+                    <Checkbox
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        disabled={item.isDisabled || item.isDisabledCheckbox}
+                        accessibilityLabel={CONST.ROLE.CHECKBOX}
+                        isChecked={item.isSelected}
                         onPress={() => toggleOption(item)}
-                        disabled={item.isDisabled}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
+                    />
                 );
             }
             const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
@@ -330,7 +330,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 />
             );
         },
-        [toggleOption, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
+        [toggleOption, styles.buttonDefaultHovered, styles.pl2, translate],
     );
 
     const createGroup = useCallback(() => {
@@ -385,7 +385,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         >
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}

@@ -22,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollBlocker from '@hooks/useScrollBlocker';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -120,6 +121,8 @@ function ReportActionItemMessageEdit(
 
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
+
+    const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
@@ -364,20 +367,28 @@ function ReportActionItemMessageEdit(
 
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
-            measureContainer((x, y, width, height) => {
-                callback({
-                    x,
-                    y,
-                    width,
-                    height,
-                    scrollValue,
-                    cursorCoordinates: {x: xPosition, y: yPosition},
+            const performMeasurement = () => {
+                const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+                const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
+                measureContainer((x, y, width, height) => {
+                    callback({
+                        x,
+                        y,
+                        width,
+                        height,
+                        scrollValue,
+                        cursorCoordinates: {x: xPosition, y: yPosition},
+                    });
                 });
-            });
+            };
+
+            if (isScrolling) {
+                return;
+            }
+
+            performMeasurement();
         },
-        [cursorPositionValue, measureContainer, selection],
+        [cursorPositionValue, measureContainer, selection, isScrolling],
     );
 
     useEffect(() => {
@@ -472,9 +483,11 @@ function ReportActionItemMessageEdit(
                                 if (textInputRef.current) {
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
+                                startScrollBlock();
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
+                                        endScrollBlock();
                                     });
                                 });
                                 if (isMobileChrome() && reportScrollManager.ref?.current) {
@@ -500,7 +513,12 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
-                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
+                            onLayout={(event) => {
+                                if (!isFocused) {
+                                    return;
+                                }
+                                reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)(event);
+                            }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}

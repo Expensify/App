@@ -43,7 +43,7 @@ Internet routers and third-party-services can see and store any information in t
 
 ### - SHOULD NOT use query parameters
 Exceptions:
-- When a URL needs to be encoded and added to the path (eg. `?backTo=URL`, `?forwardTo=URL`)
+- When a URL needs to be encoded and added to the path (eg. `?backTo=URL`, `?forwardTo=URL`) - **Note: `backTo` parameter is deprecated and should not be used in new implementations**
 - When complex data needs to be part of the path (eg. `/search?q=QUERY`)
 
 ### - SHOULD NOT use optional parameters

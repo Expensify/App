@@ -6,6 +6,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -13,7 +15,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -32,6 +34,12 @@ jest.mock('@libs/DraftCommentUtils', () => ({
     getDraftComment: jest.fn(),
     isValidDraftComment: jest.fn(),
     prepareDraftComment: jest.fn(),
+}));
+
+// Mock PolicyUtils
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    getConnectedIntegration: jest.fn(() => true),
 }));
 
 describe('SidebarUtils', () => {
@@ -344,6 +352,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -355,6 +365,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -736,6 +748,11 @@ describe('SidebarUtils', () => {
                 chatType: 'group',
                 type: 'chat',
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'email1@test.com'} as unknown as PersonalDetails,
+                {accountID: 2, avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+            ];
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
@@ -745,7 +762,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
                         expect(result.messageText).toBe('This chat is with One and Two.');
                     })
             );
@@ -756,6 +773,10 @@ describe('SidebarUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'One'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'Two'} as unknown as PersonalDetails,
+            ];
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
@@ -768,7 +789,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -781,6 +802,10 @@ describe('SidebarUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'one@example.com'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+            ];
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
@@ -790,7 +815,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -850,6 +875,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -909,6 +936,8 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -950,7 +979,9 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -985,7 +1016,10 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    isReportArchived: true,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1017,7 +1051,9 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1138,7 +1174,9 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
                 const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
@@ -1181,7 +1219,9 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1248,10 +1288,12 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 member`);
+                expect(result?.alternateText).toBe(`You: invited 1 member`);
             });
             it('returns the last action message as an alternate text if the action is MOVED type', async () => {
                 const report: Report = {
@@ -1271,6 +1313,7 @@ describe('SidebarUtils', () => {
                     ],
                     originalMessage: {
                         whisperedTo: [],
+                        toPolicyID: '12345',
                     },
                     actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                     created: DateUtils.getDBTime(),
@@ -1281,6 +1324,9 @@ describe('SidebarUtils', () => {
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
+                    name: "Three's Workspace",
+                });
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
@@ -1291,9 +1337,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
-                expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
+                expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
             });
 
             it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
@@ -1312,9 +1360,11 @@ describe('SidebarUtils', () => {
                     lastActorAccountID: undefined,
                 };
 
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction) as OriginalMessageIOU;
                 const linkedCreateAction: ReportAction = {
                     ...mockIOUAction,
-                    originalMessage: {...getOriginalMessage(mockIOUAction), IOUTransactionID},
+                    originalMessage: {...originalMessage, IOUTransactionID},
                     childReportID: report.reportID,
                     reportActionID: '3',
                 };
@@ -1356,6 +1406,8 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1468,6 +1520,8 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);

@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
@@ -19,7 +20,7 @@ import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Po
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, hasVBBA} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -93,7 +94,7 @@ function SettlementButton({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : (iouReport?.policyID ?? CONST.POLICY.ID_FAKE);
@@ -144,7 +145,7 @@ function SettlementButton({
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
 
     function getLatestBankAccountItem() {
-        if (!hasVBBA(policy?.id)) {
+        if (!policy?.achAccount?.bankAccountID) {
             return;
         }
         const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
@@ -186,7 +187,7 @@ function SettlementButton({
                 shouldUpdateSelectedIndex: false,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount}),
+                text: translate('iou.payElsewhere', {formattedAmount: ''}),
                 icon: Expensicons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 shouldUpdateSelectedIndex: false,
@@ -280,6 +281,15 @@ function SettlementButton({
                     iconWidth: formattedPaymentMethod?.iconSize,
                 }));
 
+            const addBankAccountItem = {
+                text: translate('bankAccount.addBankAccount'),
+                icon: Expensicons.Bank,
+                onSelected: () => {
+                    const bankAccountRoute = getBankAccountRoute(chatReport);
+                    Navigation.navigate(bankAccountRoute);
+                },
+            };
+
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
@@ -294,14 +304,7 @@ function SettlementButton({
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                         },
-                        {
-                            text: translate('bankAccount.addBankAccount'),
-                            icon: Expensicons.Bank,
-                            onSelected: () => {
-                                const bankAccountRoute = getBankAccountRoute(chatReport);
-                                Navigation.navigate(bankAccountRoute);
-                            },
-                        },
+                        ...(isCurrencySupported ? [addBankAccountItem] : []),
                     ],
                 });
             }
@@ -313,14 +316,7 @@ function SettlementButton({
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
                     ...(isCurrencySupported ? getPaymentSubitems(true) : []),
-                    {
-                        text: translate('bankAccount.addBankAccount'),
-                        icon: Expensicons.Bank,
-                        onSelected: () => {
-                            const bankAccountRoute = getBankAccountRoute(chatReport);
-                            Navigation.navigate(bankAccountRoute);
-                        },
-                    },
+                    ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
@@ -356,6 +352,7 @@ function SettlementButton({
         onlyShowPayElsewhere,
         latestBankItem,
         activeAdminPolicies,
+        latestBankItem,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
@@ -511,6 +508,7 @@ function SettlementButton({
             isDisabled={isOffline}
             source={CONST.KYC_WALL_SOURCE.REPORT}
             chatReportID={chatReportID}
+            addBankAccountRoute={isExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(iouReport?.policyID, undefined, Navigation.getActiveRoute()) : undefined}
             iouReport={iouReport}
             policy={lastPaymentPolicy}
             anchorAlignment={kycWallAnchorAlignment}

@@ -4,7 +4,6 @@ description: Learn how to edit, split, merge, or delete expenses in Expensify, i
 keywords: edit expenses, split expenses, merge expenses, delete expenses, Expensify Classic, expense permissions, company card, SmartScan, Workspace Admin
 ---
 
-<div id="expensify-classic" markdown="1">
 
 You can edit expenses in Expensify to update details like category, description, or attendees. You can also split or merge expenses to break up a larger expense or resolve duplicates. However, some fields have restrictions based on the expense type and report status.
 
@@ -200,4 +199,3 @@ No need to wait. Matching expenses can still merge post-submission.
 
 You can still merge expenses manually if both are **Unreported** or **Open** and exist in the same account.
 
-</div>

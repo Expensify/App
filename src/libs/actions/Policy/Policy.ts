@@ -15,6 +15,7 @@ import type {
     DeleteWorkspaceParams,
     DisablePolicyBillableModeParams,
     DowngradeToTeamParams,
+    DuplicateWorkspaceParams,
     EnablePolicyAutoApprovalOptionsParams,
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
@@ -24,8 +25,10 @@ import type {
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
+    InviteWorkspaceEmployeesToUberParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenDuplicatePolicyPageParams,
     OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
@@ -36,8 +39,8 @@ import type {
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
+    RemovePolicyReceiptPartnersConnectionParams,
     RequestExpensifyCardLimitIncreaseParams,
-    SetNameValuePairParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -52,7 +55,9 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
-    ToggleReceiptPartnersParams,
+    TogglePolicyReceiptPartnersParams,
+    TogglePolicyUberAutoInvitePageParams,
+    TogglePolicyUberAutoRemovePageParams,
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
@@ -64,7 +69,8 @@ import type {
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -78,7 +84,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage, navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -92,12 +98,15 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    CardFeeds,
+    DuplicateWorkspace,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
     LastPaymentMethodType,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
     PolicyCategory,
     PolicyEmployee,
     ReimbursementAccount,
@@ -109,13 +118,14 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
+import type {Participant} from '@src/types/onyx/IOU';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
+import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
 
 type ReportCreationData = Record<
     string,
@@ -162,6 +172,25 @@ type BuildPolicyDataOptions = {
     userReportedIntegration?: OnboardingAccounting;
     featuresMap?: Feature[];
     lastUsedPaymentMethod?: LastPaymentMethodType;
+    areDistanceRatesEnabled?: boolean;
+    adminParticipant?: Participant;
+};
+
+type DuplicatePolicyDataOptions = {
+    policyName: string;
+    policyID?: string;
+    targetPolicyID?: string;
+    welcomeNote: string;
+    parts: Record<string, boolean>;
+    file?: File | CustomRNImageManipulatorResult;
+    policyCategories?: PolicyCategories;
+};
+
+type SetWorkspaceReimbursementActionParams = {
+    policyID: string;
+    reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+    bankAccountID?: number;
+    reimburserEmail: string;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -281,7 +310,10 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
  * Checks if the currency is supported for global reimbursement
  */
 function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
-    return canUseGlobalReimbursementsOnND ? CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency) : currency === CONST.CURRENCY.USD;
+    if (canUseGlobalReimbursementsOnND) {
+        return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
+    }
+    return currency === CONST.CURRENCY.USD;
 }
 
 /**
@@ -343,12 +375,22 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorkspacePolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod) {
+function deleteWorkspace(
+    policyID: string,
+    policyName: string,
+    lastAccessedWorkspacePolicyID: string | undefined,
+    policyCardFeeds: CardFeeds | undefined,
+    lastUsedPaymentMethods?: LastPaymentMethod,
+) {
     if (!allPolicies) {
         return;
     }
 
-    const filteredPolicies = Object.values(allPolicies).filter((policy): policy is Policy => policy?.id !== policyID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
+    const policy = getPolicy(policyID);
+    const filteredPolicies = Object.values(allPolicies).filter((p): p is Policy => p?.id !== policyID);
+    const workspaceAccountID = policy?.workspaceAccountID;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -358,6 +400,11 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: null,
         },
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
@@ -372,9 +419,6 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
             : []),
     ];
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(policyID);
     // Restore the old report stateNum and statusNum
     const failureData: OnyxUpdate[] = [
         {
@@ -391,6 +435,11 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
                 avatarURL: policy?.avatarURL,
                 pendingAction: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: policyCardFeeds,
         },
     ];
 
@@ -616,7 +665,10 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+    if (!policyID) {
+        return;
+    }
     const value = JSON.stringify({autoReportingOffset});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -845,7 +897,7 @@ function clearQuickbooksOnlineAutoSyncErrorField(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {autoSync: null}}}}});
 }
 
-function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
+function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID, reimburserEmail}: SetWorkspaceReimbursementActionParams) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
@@ -858,7 +910,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
                 reimburser: reimburserEmail,
-                achAccount: {reimburser: reimburserEmail},
+                achAccount: {reimburser: reimburserEmail, bankAccountID},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
@@ -884,14 +936,14 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             value: {
                 isLoadingWorkspaceReimbursement: false,
                 reimbursementChoice: policy?.reimbursementChoice ?? null,
-                achAccount: {reimburser: policy?.achAccount?.reimburser ?? null},
+                achAccount: {reimburser: policy?.achAccount?.reimburser ?? null, bankAccountID: null},
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
         },
     ];
 
-    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice};
+    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice, bankAccountID};
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
@@ -989,37 +1041,6 @@ function leaveWorkspace(policyID?: string) {
         email: sessionEmail,
     };
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
-}
-
-function updateDefaultPolicy(newPolicyID?: string, oldPolicyID?: string) {
-    if (!newPolicyID) {
-        return;
-    }
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: newPolicyID,
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: oldPolicyID,
-        },
-    ];
-
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        value: newPolicyID,
-    };
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-        failureData,
-    });
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
@@ -1742,6 +1763,14 @@ function removeWorkspace(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
 }
 
+function setDuplicateWorkspaceData(data: Partial<DuplicateWorkspace>) {
+    Onyx.merge(ONYXKEYS.DUPLICATE_WORKSPACE, {...data});
+}
+
+function clearDuplicateWorkspace() {
+    Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
+}
+
 /**
  * Generate a policy name based on an email and policy list.
  * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
@@ -1940,6 +1969,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         userReportedIntegration,
         featuresMap,
         lastUsedPaymentMethod,
+        areDistanceRatesEnabled,
+        adminParticipant,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2000,7 +2031,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 areCategoriesEnabled: true,
                 areCompanyCardsEnabled: true,
                 areTagsEnabled: false,
-                areDistanceRatesEnabled: false,
+                areDistanceRatesEnabled,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
@@ -2012,6 +2043,16 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
+                    ...(adminParticipant?.login
+                        ? {
+                              [adminParticipant.login]: {
+                                  submitsTo: sessionEmail,
+                                  email: adminParticipant.login,
+                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  errors: {},
+                              },
+                          }
+                        : {}),
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
@@ -2024,6 +2065,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
                 defaultReimbursable: true,
@@ -2130,6 +2172,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: null,
                     type: null,
                     areReportFieldsEnabled: null,
+                    customRules: null,
                 },
                 ...optimisticMccGroupData.successData,
                 fieldList: {
@@ -2291,6 +2334,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
+        areDistanceRatesEnabled,
     };
 
     if (
@@ -2299,7 +2343,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
-        const {onboardingMessages} = getOnboardingMessages();
+        const {onboardingMessages} = getOnboardingMessages(true);
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2326,6 +2370,20 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);
+    }
+
+    if (adminParticipant?.login) {
+        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, true);
+        params.memberData = JSON.stringify({
+            accountID: Number(adminParticipant.accountID),
+            email: adminParticipant.login,
+            workspaceChatReportID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportID,
+            workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportActionID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        optimisticData.push(...employeeWorkspaceChat.onyxOptimisticData);
+        successData.push(...employeeWorkspaceChat.onyxSuccessData);
+        failureData.push(...employeeWorkspaceChat.onyxFailureData);
     }
 
     return {successData, optimisticData, failureData, params};
@@ -2463,6 +2521,291 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
     return params;
 }
 
+function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
+    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID(), policyCategories} = options;
+
+    const {
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        adminsCreatedReportActionID,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+        expenseCreatedReportActionID,
+        pendingChatMembers,
+    } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName);
+    const isMemberOptionSelected = parts?.people;
+    const isReportsOptionSelected = parts?.reports;
+    const isConnectionsOptionSelected = parts?.connections;
+    const isCategoriesOptionSelected = parts?.categories;
+    const isTaxesOptionSelected = parts?.taxes;
+    const isTagsOptionSelected = parts?.tags;
+    const isInvoicesOptionSelected = parts?.invoices;
+    const isCustomUnitsOptionSelected = parts?.customUnits;
+    const isRulesOptionSelected = parts?.expenses;
+    const isWorkflowsOptionSelected = parts?.exportLayouts;
+    const isPerDiemOptionSelected = parts?.perDiem;
+    const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false)) : [];
+    const {customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(policy?.outputCurrency);
+
+    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs]);
+    const announceRoomChat = optimisticAnnounceChat.announceChatData;
+
+    const optimisticCategoriesData = policyCategories
+        ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories)
+        : buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+
+    // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
+            value: {
+                ...policy,
+                areCategoriesEnabled: isCategoriesOptionSelected,
+                areTagsEnabled: isTagsOptionSelected,
+                areDistanceRatesEnabled: isCustomUnitsOptionSelected,
+                areInvoicesEnabled: isInvoicesOptionSelected,
+                areRulesEnabled: isRulesOptionSelected,
+                areWorkflowsEnabled: isWorkflowsOptionSelected,
+                areReportFieldsEnabled: isReportsOptionSelected,
+                areConnectionsEnabled: isConnectionsOptionSelected,
+                arePerDiemRatesEnabled: isPerDiemOptionSelected,
+                workspaceAccountID: undefined,
+                tax: isTaxesOptionSelected ? policy?.tax : undefined,
+                employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
+                id: targetPolicyID,
+                name: policyName,
+                fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
+                connections: isConnectionsOptionSelected ? policy?.connections : undefined,
+                customUnits: isCustomUnitsOptionSelected ? policy?.customUnits : undefined,
+                taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                pendingFields: {
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                avatarURL: file?.uri,
+                originalFileName: file?.name,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...adminsChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
+                pendingChatMembers,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: adminsReportActionData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...expenseChatData,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: expenseReportActionData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${targetPolicyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${adminsChatReportID}`,
+            value: null,
+        },
+        ...announceRoomChat.onyxOptimisticData,
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
+            value: {
+                pendingAction: null,
+                pendingFields: {
+                    autoReporting: null,
+                    approvalMode: null,
+                    reimbursementChoice: null,
+                    name: null,
+                    outputCurrency: null,
+                    address: null,
+                    description: null,
+                    type: null,
+                    areReportFieldsEnabled: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminsChatReportID}`,
+            value: {
+                isOptimisticReport: false,
+                pendingChatMembers: [],
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: {
+                [adminsCreatedReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: {
+                [expenseCreatedReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        ...announceRoomChat.onyxSuccessData,
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
+            value: {employeeList: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            value: null,
+        },
+        ...announceRoomChat.onyxFailureData,
+    ];
+
+    if (optimisticCategoriesData.optimisticData) {
+        optimisticData.push(...optimisticCategoriesData.optimisticData);
+    }
+
+    if (optimisticCategoriesData.failureData) {
+        failureData.push(...optimisticCategoriesData.failureData);
+    }
+
+    if (optimisticCategoriesData.successData) {
+        successData.push(...optimisticCategoriesData.successData);
+    }
+
+    // We need to clone the file to prevent non-indexable errors.
+    const clonedFile = file ? createFile(file as File) : undefined;
+
+    const params: DuplicateWorkspaceParams = {
+        policyID,
+        targetPolicyID,
+        adminsChatReportID,
+        expenseChatReportID,
+        policyName,
+        adminsCreatedReportActionID,
+        expenseCreatedReportActionID,
+        announceChatReportID: optimisticAnnounceChat.announceChatReportID,
+        announceChatReportActionID: optimisticAnnounceChat.announceChatReportActionID,
+        customUnitID,
+        parts: JSON.stringify(parts),
+        welcomeNote,
+        customUnitRateID,
+        file: clonedFile,
+    };
+
+    return {successData, optimisticData, failureData, params};
+}
+
+function duplicateWorkspace(policy: Policy, options: DuplicatePolicyDataOptions): DuplicateWorkspaceParams {
+    const {optimisticData, failureData, successData, params} = buildDuplicatePolicyData(policy, options);
+
+    API.write(WRITE_COMMANDS.DUPLICATE_POLICY, params, {optimisticData, successData, failureData});
+
+    return params;
+}
+
 function openPolicyWorkflowsPage(policyID: string) {
     if (!policyID) {
         Log.warn('openPolicyWorkflowsPage invalid params', {policyID});
@@ -2513,6 +2856,192 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     const params: OpenPolicyReceiptPartnersPageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
+}
+
+function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: {...receiptPartnerData, errorFields: {name: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}, pendingAction: null},
+                },
+            },
+        },
+    ];
+
+    const parameters: RemovePolicyReceiptPartnersConnectionParams = {
+        policyID,
+        partnerName,
+    };
+    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData, failureData, successData});
+}
+
+function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        Log.warn('togglePolicyUberAutoInvite invalid params', {policyID});
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                receiptPartners: {uber: {autoInvite: enabled, pendingFields: {autoInvite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {pendingFields: null}}},
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {autoInvite: !enabled, pendingFields: null}}},
+        },
+    ];
+
+    const params: TogglePolicyUberAutoInvitePageParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
+}
+
+function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        Log.warn('togglePolicyUberAutoRemove invalid params', {policyID});
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                receiptPartners: {uber: {autoRemove: enabled, pendingFields: {autoRemove: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {pendingFields: null}}},
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {autoRemove: !enabled, pendingFields: null}}},
+        },
+    ];
+
+    const params: TogglePolicyUberAutoRemovePageParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_REMOVE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Invites workspace employees to Uber for Business
+ */
+function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
+    if (!policyID || emails.length === 0) {
+        Log.warn('inviteWorkspaceEmployeesToUber invalid params', {policyID, emails});
+        return;
+    }
+
+    const params: InviteWorkspaceEmployeesToUberParams = {
+        policyID,
+        emailList: emails.join(','),
+    };
+
+    // Build optimistic employees mapping: mark invited emails as invited
+    const invitedEmployees = emails.reduce<Record<string, {status: string}>>((acc, email) => {
+        acc[email] = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED};
+        return acc;
+    }, {});
+
+    // Build map for resetting employees on failure
+    const resetEmployeesOnFailure = emails.reduce<Record<string, null>>((acc, email) => {
+        acc[email] = null;
+        return acc;
+    }, {});
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    uber: {
+                        employees: invitedEmployees,
+                        pendingFields: {employees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    uber: {
+                        pendingFields: {employees: null},
+                    },
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    uber: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
+                        employees: resetEmployeesOnFailure,
+                        pendingFields: {employees: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -3229,16 +3758,18 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldNavigateToReceiptPartnersPage?: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: enabled,
-                    pendingFields: {
-                        areReceiptPartnersEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    receiptPartners: {
+                        enabled,
+                        pendingFields: {
+                            enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -3248,8 +3779,10 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                    receiptPartners: {
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },
@@ -3259,18 +3792,25 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: !enabled,
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                    receiptPartners: {
+                        enabled: !enabled,
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },
         ],
     };
 
-    const parameters: ToggleReceiptPartnersParams = {policyID, enabled};
+    const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
+
+    if (enabled && shouldNavigateToReceiptPartnersPage) {
+        navigateToReceiptPartnersPage(policyID);
+        return;
+    }
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -3854,6 +4394,12 @@ function openPolicyProfilePage(policyID: string) {
     const params: OpenPolicyProfilePageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
+}
+
+function openDuplicatePolicyPage(policyID: string) {
+    const params: OpenDuplicatePolicyPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE, params);
 }
 
 function openPolicyInitialPage(policyID: string) {
@@ -4444,6 +4990,9 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customRules: parsedCustomRules,
+                    pendingFields: {
+                        customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             },
         ],
@@ -4453,6 +5002,7 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
+                        customRules: null,
                         // TODO
                         // maxExpenseAge: null,
                     },
@@ -4465,6 +5015,8 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customRules: originalCustomRules,
+                    pendingFields: {customRules: null},
+                    errorFields: {customRules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                     // TODO
                     // pendingFields: {maxExpenseAge: null},
                     // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
@@ -4871,8 +5423,12 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
                     [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, pendingFields: {defaultValue: null}},
                 },
                 errorFields: {
-                    fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                },
+                    fieldList: {
+                        [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                            defaultValue: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        },
+                    },
+                } as unknown as ErrorFields,
             },
         },
     ];
@@ -5191,7 +5747,10 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
         return;
     }
 
-    const autoApprovalValues = {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS};
+    const autoApprovalValues = {
+        auditRate: enabled ? CONST.POLICY.RANDOM_AUDIT_SUGGESTED_PERCENTAGE : 0,
+        limit: enabled ? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_SUGGESTED_CENTS : 0,
+    };
     const autoApprovalFailureValues = {autoApproval: {limit: policy?.autoApproval?.limit, auditRate: policy?.autoApproval?.auditRate, pendingFields: null}};
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5264,7 +5823,7 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
-    if (parsedLimit === (policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS)) {
+    if (parsedLimit === (policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS)) {
         return;
     }
 
@@ -5340,7 +5899,7 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
     }
 
     const autoReimbursementFailureValues = {autoReimbursement: {limit: policy?.autoReimbursement?.limit, pendingFields: null}};
-    const autoReimbursementValues = {limit: CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS};
+    const autoReimbursementValues = {limit: enabled ? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_SUGGESTED_CENTS : CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS};
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5608,7 +6167,9 @@ function calculateBillNewDot() {
             value: false,
         },
     ];
-    API.read(READ_COMMANDS.CALCULATE_BILL_NEW_DOT, null, {
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT, null, {
         optimisticData,
         successData,
         failureData,
@@ -5831,21 +6392,27 @@ export {
     setPolicyMaxExpenseAge,
     updateCustomRules,
     setPolicyProhibitedExpense,
+    setDuplicateWorkspaceData,
+    clearDuplicateWorkspace,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
-    updateDefaultPolicy,
     downgradeToTeam,
     getAccessiblePolicies,
     clearGetAccessiblePoliciesErrors,
     calculateBillNewDot,
     payAndDowngrade,
+    togglePolicyUberAutoInvite,
+    openDuplicatePolicyPage,
+    togglePolicyUberAutoRemove,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     setIsForcedToChangeCurrency,
+    duplicateWorkspace,
+    removePolicyReceiptPartnersConnection,
     openPolicyReceiptPartnersPage,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,
@@ -5853,4 +6420,5 @@ export {
     getCashExpenseReimbursableMode,
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
+    inviteWorkspaceEmployeesToUber,
 };

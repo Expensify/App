@@ -19,7 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getTransactionIDFromReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
@@ -97,9 +97,12 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportID);
+    const reportActions = useMemo(() => {
+        return getFilteredReportActionsForReportView(unfilteredReportActions);
+    }, [unfilteredReportActions]);
+
+    const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -133,18 +136,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
-    const reportHeaderView = useMemo(() => {
-        if (isTransactionThreadView) {
-            // Extract transaction ID from parent report action to get specific violations
-            const transactionID = getTransactionIDFromReportAction(parentReportAction);
-            const transactionViolations = transactionID && reportViolations ? reportViolations[transactionID] : undefined;
-
-            return (
+    const reportHeaderView = useMemo(
+        () =>
+            isTransactionThreadView ? (
                 <MoneyRequestHeader
                     report={report}
                     policy={policy}
                     parentReportAction={parentReportAction}
-                    transactionViolations={transactionViolations}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
                             goBackFromSearchMoneyRequest();
@@ -153,27 +151,25 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         Navigation.goBack(backToRoute);
                     }}
                 />
-            );
-        }
-
-        return (
-            <MoneyReportHeader
-                report={report}
-                policy={policy}
-                reportActions={reportActions}
-                transactionThreadReportID={transactionThreadReportID}
-                isLoadingInitialReportActions={isLoadingInitialReportActions}
-                shouldDisplayBackButton
-                onBackButtonPress={() => {
-                    if (!backToRoute) {
-                        goBackFromSearchMoneyRequest();
-                        return;
-                    }
-                    Navigation.goBack(backToRoute);
-                }}
-            />
-        );
-    }, [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, reportViolations, transactionThreadReportID]);
+            ) : (
+                <MoneyReportHeader
+                    report={report}
+                    policy={policy}
+                    reportActions={reportActions}
+                    transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                    shouldDisplayBackButton
+                    onBackButtonPress={() => {
+                        if (!backToRoute) {
+                            goBackFromSearchMoneyRequest();
+                            return;
+                        }
+                        Navigation.goBack(backToRoute);
+                    }}
+                />
+            ),
+        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+    );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
         return <InitialLoadingSkeleton styles={styles} />;
@@ -228,6 +224,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             transactions={visibleTransactions}
                             newTransactions={newTransactions}
                             reportActions={reportActions}
+                            violations={allReportViolations}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}

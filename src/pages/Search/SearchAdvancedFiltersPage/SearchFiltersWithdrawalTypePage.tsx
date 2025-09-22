@@ -41,7 +41,7 @@ function SearchFiltersWithdrawalTypePage() {
 
     const applyChanges = useCallback(() => {
         updateAdvancedFilters({withdrawalType: selectedItem ?? null});
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItem]);
 
     return (
@@ -54,7 +54,7 @@ function SearchFiltersWithdrawalTypePage() {
             <HeaderWithBackButton
                 title={translate('search.withdrawalType')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>

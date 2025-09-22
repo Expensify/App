@@ -111,17 +111,7 @@ function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
 }
 
-/**
- * Helper method to return the default avatar associated with the given accountID
- */
-function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
-    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        return ConciergeAvatar;
-    }
-    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
-        return NotificationsAvatar;
-    }
-
+function getAccountIDHashBucket(accountID = -1, avatarURL?: string) {
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
 
@@ -135,7 +125,21 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
     } else if (accountID > 0) {
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }
+    return accountIDHashBucket;
+}
 
+/**
+ * Helper method to return the default avatar associated with the given accountID
+ */
+function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return ConciergeAvatar;
+    }
+    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+        return NotificationsAvatar;
+    }
+
+    const accountIDHashBucket = getAccountIDHashBucket(accountID, avatarURL);
     if (!accountIDHashBucket) {
         return;
     }
@@ -146,13 +150,12 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
 /**
  * Helper method to return default avatar URL associated with the accountID
  */
-function getDefaultAvatarURL(accountID: string | number = ''): string {
+function getDefaultAvatarURL(accountID: string | number = '', avatarURL?: string): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const accountIDHashBucket = (Number(accountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
+    const accountIDHashBucket = getAccountIDHashBucket(Number(accountID) || -1, avatarURL);
     const avatarPrefix = `default-avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
@@ -196,7 +199,7 @@ function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSourc
  * @param accountID - the accountID of the user
  */
 function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID) : avatarSource;
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatarURL(accountID, avatarSource) : avatarSource;
 }
 
 /**

@@ -80,7 +80,7 @@ function SecuritySettingsPage() {
     });
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
@@ -126,12 +126,16 @@ function SecuritySettingsPage() {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
                 action: () => {
-                    if (isActingAsDelegate) {
+                    if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
                         return;
                     }
                     if (isAccountLocked) {
                         showLockedAccountModal();
+                        return;
+                    }
+                    if (!isUserValidated) {
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
                         return;
                     }
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
@@ -141,7 +145,7 @@ function SecuritySettingsPage() {
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
                 action: () => {
-                    if (isActingAsDelegate) {
+                    if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
                         return;
                     }
@@ -179,7 +183,7 @@ function SecuritySettingsPage() {
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
             action: () => {
-                if (isActingAsDelegate) {
+                if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
                     return;
                 }
@@ -200,7 +204,18 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, privateSubscription, currentUserPersonalDetails]);
+    }, [
+        isAccountLocked,
+        isDelegateAccessRestricted,
+        isUserValidated,
+        showDelegateNoAccessModal,
+        showLockedAccountModal,
+        privateSubscription?.type,
+        currentUserPersonalDetails.login,
+        waitForNavigate,
+        translate,
+        styles.sectionMenuItemTopDescription,
+    ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -242,7 +257,7 @@ function SecuritySettingsPage() {
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
-                        onPendingActionDismiss: () => clearDelegateErrorsByField(email, 'addDelegate'),
+                        onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                         error,
                         onPress,
                         success: selectedEmail === email,
@@ -279,7 +294,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: Expensicons.Pencil,
             onPress: () => {
-                if (isActingAsDelegate) {
+                if (isDelegateAccessRestricted) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -297,7 +312,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (isActingAsDelegate) {
+                if (isDelegateAccessRestricted) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -377,13 +392,13 @@ function SecuritySettingsPage() {
                                             <MenuItemList menuItems={delegateMenuItems} />
                                         </>
                                     )}
-                                    {!isActingAsDelegate && (
+                                    {!isDelegateAccessRestricted && (
                                         <MenuItem
                                             title={translate('delegate.addCopilot')}
                                             icon={Expensicons.UserPlus}
                                             onPress={() => {
                                                 if (!isUserValidated) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_DELEGATE));
+                                                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
                                                     return;
                                                 }
                                                 if (isAccountLocked) {
@@ -427,7 +442,7 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
-                                    removeDelegate(selectedDelegate?.email ?? '');
+                                    removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
                                 }}

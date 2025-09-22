@@ -37,9 +37,9 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             }
 
             const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
-            return selectedAccount?.name ?? translate('workspace.xero.notConfigured');
+            return selectedAccount?.name;
         },
-        [bankAccounts, translate],
+        [bankAccounts],
     );
 
     const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
@@ -101,7 +101,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={String(selectedBillPaymentAccountName)}
+                            title={selectedBillPaymentAccountName ? String(selectedBillPaymentAccountName) : undefined}
                             description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
@@ -112,7 +112,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], pendingFields)}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={String(selectedBankAccountName)}
+                            title={selectedBankAccountName ? String(selectedBankAccountName) : undefined}
                             description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}

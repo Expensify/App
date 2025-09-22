@@ -1,5 +1,7 @@
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
+import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
@@ -272,20 +274,138 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
 
 /** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
 function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
-    return fetch(fileUri)
-        .then((file) => file.arrayBuffer())
-        .then((arrayBuffer) => {
-            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
+    const MAGIC_BYTES_NEEDED = 16;
 
-            const hexString = Array.from(uintArray)
-                .map((b) => b.toString(16).padStart(2, '0'))
-                .join('');
+    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
+        return Promise.resolve(false);
+    }
 
-            return hexString;
-        })
-        .then((hexSignature) => {
-            return formatSignatures.some((signature) => hexSignature.startsWith(signature));
+    const cleanUri = fileUri.replace('file://', '');
+
+    if (Platform.OS === 'ios') {
+        return ReactNativeBlobUtil.fs.readFile(cleanUri, 'base64').then((fullBase64Data: string) => {
+            const base64CharsNeeded = Math.ceil((MAGIC_BYTES_NEEDED * 4) / 3);
+            const base64Data = fullBase64Data.substring(0, base64CharsNeeded);
+            if (!base64Data) {
+                return false;
+            }
+
+            try {
+                const binaryString = atob(base64Data);
+
+                const startOffset = 4;
+                const bytesToRead = 12;
+                const endOffset = startOffset + bytesToRead;
+
+                if (binaryString.length < endOffset) {
+                    return false;
+                }
+
+                const bytes = new Uint8Array(bytesToRead);
+                for (let i = 0; i < bytesToRead; i++) {
+                    bytes[i] = binaryString.charCodeAt(startOffset + i);
+                }
+
+                const hex = Array.from(bytes)
+                    .map((b) => b.toString(16).padStart(2, '0'))
+                    .join('');
+
+                const result = formatSignatures.some((signature) => hex.startsWith(signature));
+                return result;
+            } catch (e) {
+                return false;
+            }
         });
+    }
+
+    return new Promise<boolean>((resolve) => {
+        ReactNativeBlobUtil.fs
+            .readStream(cleanUri, 'base64', 64, 0)
+            .then((stream: ReactNativeBlobUtilReadStream) => {
+                let base64Data = '';
+                let hasEnoughData = false;
+
+                const processData = () => {
+                    if (!base64Data) {
+                        resolve(false);
+                        return;
+                    }
+
+                    try {
+                        const binaryString = atob(base64Data);
+
+                        const startOffset = 4;
+                        const bytesToRead = 12;
+                        const endOffset = startOffset + bytesToRead;
+
+                        if (binaryString.length < endOffset) {
+                            resolve(false);
+                            return;
+                        }
+
+                        const bytes = new Uint8Array(bytesToRead);
+                        for (let i = 0; i < bytesToRead; i++) {
+                            bytes[i] = binaryString.charCodeAt(startOffset + i);
+                        }
+
+                        const hex = Array.from(bytes)
+                            .map((b) => b.toString(16).padStart(2, '0'))
+                            .join('');
+
+                        const result = formatSignatures.some((signature) => hex.startsWith(signature));
+                        resolve(result);
+                    } catch (e) {
+                        resolve(false);
+                    }
+                };
+
+                stream.onData((chunk: string | number[]) => {
+                    if (hasEnoughData) {
+                        return;
+                    }
+
+                    try {
+                        let chunkStr: string;
+                        if (Array.isArray(chunk)) {
+                            chunkStr = chunk.map((code) => String.fromCharCode(code)).join('');
+                        } else {
+                            chunkStr = chunk;
+                        }
+                        base64Data += chunkStr;
+
+                        const decodedByteCount = Math.floor((base64Data.length * 3) / 4);
+                        if (decodedByteCount >= MAGIC_BYTES_NEEDED) {
+                            hasEnoughData = true;
+                            processData();
+                        }
+                    } catch (e) {
+                        if (!hasEnoughData) {
+                            hasEnoughData = true;
+                            resolve(false);
+                        }
+                    }
+                });
+
+                stream.onError(() => {
+                    if (hasEnoughData) {
+                        return;
+                    }
+                    hasEnoughData = true;
+                    resolve(false);
+                });
+
+                stream.onEnd(() => {
+                    if (hasEnoughData) {
+                        return;
+                    }
+                    hasEnoughData = true;
+                    processData();
+                });
+
+                stream.open();
+            })
+            .catch(() => resolve(false));
+    });
 }
 
 function isLocalFile(receiptUri?: string | number): boolean {
@@ -385,12 +505,9 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
-const isHeicOrHeifImage = (file: FileObject) => {
-    return (
-        file?.type?.startsWith('image') &&
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
-    );
+const hasHeicOrHeifExtension = (file: FileObject) => {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
 };
 
 /**
@@ -432,7 +549,7 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
 
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
+    if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
@@ -563,6 +680,6 @@ export {
     normalizeFileObject,
     isValidReceiptExtension,
     getFileValidationErrorText,
-    isHeicOrHeifImage,
+    hasHeicOrHeifExtension,
     getConfirmModalPrompt,
 };

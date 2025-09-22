@@ -5,6 +5,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
+import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
@@ -17,9 +18,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
+import Permissions from '@libs/Permissions';
+import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {createUnreportedExpenseSections} from '@libs/TransactionUtils';
+import {createUnreportedExpenseSections, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {convertBulkTrackedExpensesToIOU, startMoneyRequest} from '@userActions/IOU';
@@ -48,12 +51,31 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const policy = usePolicy(report?.policyID);
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const session = useSession();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
+
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
         if (!transactions) {
             return [];
         }
-        return Object.values(transactions || {}).filter((item) => item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '');
+        return Object.values(transactions || {}).filter((item) => {
+            const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+            if (!isUnreported) {
+                return false;
+            }
+
+            if (isPerDiemRequest(item)) {
+                // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
+                const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
+                const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
+
+                return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
+            }
+
+            return true;
+        });
     }
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -189,7 +211,15 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         if (report && isIOUReport(report)) {
                             convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
                         } else {
-                            changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy, reportNextStep);
+                            changeTransactionsReport(
+                                [...selectedIds],
+                                report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                                isASAPSubmitBetaEnabled,
+                                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                                session?.email ?? '',
+                                policy,
+                                reportNextStep,
+                            );
                         }
                     });
                     setErrorMessage('');

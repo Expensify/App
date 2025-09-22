@@ -85,7 +85,9 @@ describe('SidebarUtils', () => {
                 parentReportAction,
                 oneTransactionThreadReport: undefined,
                 card: undefined,
+                lastAction: undefined,
                 localeCompare,
+                lastActionReport: undefined,
             }),
         );
     });

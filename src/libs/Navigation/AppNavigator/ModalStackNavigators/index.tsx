@@ -1,5 +1,11 @@
+import {useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import React from 'react';
+import React, {useCallback, useContext} from 'react';
+import {View} from 'react-native';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,6 +27,7 @@ import type {
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
     ReferralDetailsNavigatorParamList,
+    ReportChangeApproverParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
@@ -40,11 +47,11 @@ import type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
+    WorkspaceDuplicateNavigatorParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import type {GetModalStackScreenOptions} from './useModalStackScreenOptions';
 import useModalStackScreenOptions from './useModalStackScreenOptions';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
@@ -53,31 +60,71 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.SEARCH.REPORT_RHP]: {
+        animation: Animations.NONE,
+    },
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
+        animation: Animations.NONE,
+    },
+    [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: {
+        animation: Animations.NONE,
+    },
+    [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: {
+        animation: Animations.NONE,
+    },
 };
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
  * @param screens key/value pairs where the key is the name of the screen and the value is a function that returns the lazy-loaded component
- * @param getScreenOptions optional function that returns the screen options, override the default options
  */
-function createModalStackNavigator<ParamList extends ParamListBase>(screens: Screens, getScreenOptions?: GetModalStackScreenOptions): React.ComponentType {
+function createModalStackNavigator<ParamList extends ParamListBase>(screens: Screens): React.ComponentType {
     const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
 
     function ModalStack() {
-        const screenOptions = useModalStackScreenOptions(getScreenOptions);
+        const styles = useThemeStyles();
+        const screenOptions = useModalStackScreenOptions();
+        const {secondOverlayProgress, shouldRenderSecondaryOverlay} = useContext(WideRHPContext);
+        const route = useRoute();
+
+        // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
+        // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+        const {isSmallScreenWidth} = useResponsiveLayout();
+
+        const getScreenOptions = useCallback<typeof screenOptions>(
+            ({route: optionRoute}) => {
+                // Extend common options if they are defined for the screen.
+                if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
+                    return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
+                }
+                return screenOptions({route: optionRoute});
+            },
+            [screenOptions],
+        );
 
         return (
-            <ModalStackNavigator.Navigator screenOptions={screenOptions}>
-                {Object.keys(screens as Required<Screens>).map((name) => (
-                    <ModalStackNavigator.Screen
-                        key={name}
-                        name={name}
-                        getComponent={(screens as Required<Screens>)[name as Screen]}
-                        options={OPTIONS_PER_SCREEN[name as Screen]}
+            // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
+            <View style={styles.modalStackNavigatorContainer(isSmallScreenWidth)}>
+                <ModalStackNavigator.Navigator>
+                    {Object.keys(screens as Required<Screens>).map((name) => (
+                        <ModalStackNavigator.Screen
+                            key={name}
+                            name={name}
+                            getComponent={(screens as Required<Screens>)[name as Screen]}
+                            // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
+                            options={getScreenOptions}
+                        />
+                    ))}
+                </ModalStackNavigator.Navigator>
+                {!isSmallScreenWidth && shouldRenderSecondaryOverlay && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? (
+                    // This overlay is necessary to cover the gap under the narrow format RHP screen
+                    <Overlay
+                        progress={secondOverlayProgress}
+                        hasMarginLeft
                     />
-                ))}
-            </ModalStackNavigator.Navigator>
+                ) : null}
+            </View>
         );
     }
 
@@ -112,6 +159,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepReport').default,
     [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCompanyInfo').default,
     [SCREENS.MONEY_REQUEST.HOLD]: () => require<ReactComponentModule>('../../../../pages/iou/HoldReasonPage').default,
+    [SCREENS.MONEY_REQUEST.REJECT]: () => require<ReactComponentModule>('../../../../pages/iou/RejectReasonPage').default,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePaymentsPage').default,
@@ -125,7 +173,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDestination').default,
     [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTime').default,
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepSubrate').default,
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/ReceiptViewModal').default,
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/ReceiptView').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseEditPage').default,
     [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/DistanceRequestStartPage').default,
@@ -144,6 +192,7 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: () => require<ReactComponentModule>('../../../../pages/Travel/DomainPermissionInfoPage').default,
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: () => require<ReactComponentModule>('../../../../pages/Travel/PublicDomainErrorPage').default,
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceAddressForTravelPage').default,
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
@@ -168,6 +217,11 @@ const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<Repor
     [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportChangeWorkspacePage').default,
 });
 
+const ReportChangeApproverModalStackNavigator = createModalStackNavigator<ReportChangeApproverParamList>({
+    [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportChangeApproverPage').default,
+    [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/ReportAddApproverPage').default,
+});
+
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
     [SCREENS.REPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportSettingsPage').default,
     [SCREENS.REPORT_SETTINGS.NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Report/NamePage').default,
@@ -178,6 +232,11 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
 
 const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<WorkspaceConfirmationNavigatorParamList>({
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationPage').default,
+});
+
+const WorkspaceDuplicateModalStackNavigator = createModalStackNavigator<WorkspaceDuplicateNavigatorParamList>({
+    [SCREENS.WORKSPACE_DUPLICATE.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/duplicate/WorkspaceDuplicatePage').default,
+    [SCREENS.WORKSPACE_DUPLICATE.SELECT_FEATURES]: () => require<ReactComponentModule>('../../../../pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesPage').default,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
@@ -291,6 +350,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.CONSOLE]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
     [SCREENS.SETTINGS.SHARE_LOG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ShareLogPage').default,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
+    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/VerifyAccountPage').default,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudConfirmationPage').default,
@@ -298,7 +358,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransferBalancePage').default,
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePayments').default,
+    [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements').default,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/NewBankAccountVerifyAccountPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/StatusPage').default,
@@ -315,6 +377,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVITE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInvitePage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportMembersPage').default,
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersPage').default,
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersConfirmationPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsCreatePage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: () =>
@@ -438,7 +501,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/import/QuickbooksDesktopCustomersDisplayedAsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ITEMS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/import/QuickbooksDesktopItemsPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsConnectExistingBankAccountPage').default,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
+    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/EnterSignerInfo').default,
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostPage').default,
     [SCREENS.KEYBOARD_SHORTCUTS]: () => require<ReactComponentModule>('../../../../pages/KeyboardShortcutsPage').default,
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default,
@@ -571,6 +637,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableCreditCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ACCOUNTING_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAccountingMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctPaymentAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
@@ -585,6 +654,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceTaxCodePage').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsName').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
+    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesVerifyAccountPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BankConnection').default,
@@ -635,6 +705,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/import/SageIntacctAddUserDimensionPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/import/SageIntacctEditUserDimensionsPage').default,
+    [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/AddDelegate/VerifyAccountPage').default,
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/AddDelegate/AddDelegatePage').default,
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/AddDelegate/SelectDelegateRolePage').default,
     [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: () =>
@@ -665,11 +736,14 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.PER_DIEM_EDIT_SUBRATE]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/EditPerDiemSubratePage').default,
     [SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/EditPerDiemAmountPage').default,
     [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/EditPerDiemCurrencyPage').default,
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/InviteReceiptPartnerPolicyPage').default,
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/EditInviteReceiptPartnerPolicyPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
     [SCREENS.TWO_FACTOR_AUTH.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
     [SCREENS.TWO_FACTOR_AUTH.VERIFY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyAccountPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default,
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
@@ -726,17 +800,12 @@ const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactio
     [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/ConfirmationPage').default,
 });
 
-const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>(
-    {
-        [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
-        [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
-        [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
-        [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
-    },
-    () => ({
-        animation: Animations.NONE,
-    }),
-);
+const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
+    [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
+    [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
+    [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
+});
 
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
@@ -751,10 +820,12 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_POSTED_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersPostedPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWN_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawnPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CURRENCY_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersCurrencyPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_GROUP_CURRENCY_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersGroupCurrencyPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIPTION_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersDescriptionPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_MERCHANT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersMerchantPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_ID_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersReportIDPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_AMOUNT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersAmountPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_TOTAL_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTotalPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CATEGORY_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersCategoryPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_KEYWORD_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersKeywordPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CARD_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage').default,
@@ -762,6 +833,7 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_EXPENSE_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersExpenseTypePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawalTypePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TAG_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTagPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersHasPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_FROM_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersFromPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersToPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersInPage').default,
@@ -770,6 +842,11 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_BILLABLE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersBillablePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_REIMBURSABLE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersReimbursablePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_WORKSPACE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersWorkspacePage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersPurchaseAmountPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersPurchaseCurrencyPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_ID_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawalIDPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_ACTION_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersActionPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_ATTENDEE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersAttendeePage').default,
 });
 
 const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSavedSearchParamList>({
@@ -827,6 +904,7 @@ export {
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,
+    ReportChangeApproverModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
     RoomMembersModalStackNavigator,
@@ -849,6 +927,7 @@ export {
     MissingPersonalDetailsModalStackNavigator,
     DebugModalStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
+    WorkspaceDuplicateModalStackNavigator,
     ConsoleModalStackNavigator,
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -10,6 +10,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
@@ -44,6 +45,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import Permissions from '@libs/Permissions';
 import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -74,6 +76,7 @@ function SearchPage({route}: SearchPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
     const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
@@ -88,6 +91,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -174,11 +178,16 @@ function SearchPage({route}: SearchPageProps) {
                         clearSelectedTransactions(undefined, true);
                     },
                     shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
                 },
                 {
                     text: translate('export.expenseLevelExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
@@ -200,6 +209,10 @@ function SearchPage({route}: SearchPageProps) {
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
                         // The report level export template is not policy specific, so we don't need to pass a policyID
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
                     },
@@ -256,11 +269,13 @@ function SearchPage({route}: SearchPageProps) {
                 }
             }
 
-            // Collate a list of the account level in-app export templates for the
-            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
-                ...layout,
-                templateName,
-            }));
+            // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
+                .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+                .map(([templateName, layout]) => ({
+                    ...layout,
+                    templateName,
+                }));
 
             if (accountInAppTemplates && accountInAppTemplates.length > 0) {
                 for (const template of accountInAppTemplates) {
@@ -300,7 +315,7 @@ function SearchPage({route}: SearchPageProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
+                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
@@ -331,7 +346,9 @@ function SearchPage({route}: SearchPageProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
+                ? selectedReports.every(
+                      (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                  )
                 : selectedTransactionsKeys.every(
                       (id) =>
                           selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
@@ -447,7 +464,10 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        // TODO: change this condition after the feature is ready to be deployed
+        const canAllTransactionsBeMoved = Permissions.canUseUnreportedExpense()
+            ? selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport) && !!activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL
+            : selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
             options.push({
@@ -528,11 +548,11 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         setIsDeleteExpensesConfirmModalVisible(false);
-        deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
 
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         InteractionManager.runAfterInteractions(() => {
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
@@ -544,6 +564,7 @@ function SearchPage({route}: SearchPageProps) {
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report: newReport,
             parentReport: newParentReport,
+            currentDate,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
@@ -661,6 +682,16 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
+    const footerData = useMemo(() => {
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected;
+
+        const currency = metadata?.currency;
+        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
+
+        return {count, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+
     if (shouldUseNarrowLayout) {
         return (
             <>
@@ -668,9 +699,11 @@ function SearchPage({route}: SearchPageProps) {
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
+                        metadata={metadata}
                         headerButtonsOptions={headerButtonsOptions}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -722,6 +755,7 @@ function SearchPage({route}: SearchPageProps) {
                                 setIsExportWithTemplateModalVisible(false);
                                 clearSelectedTransactions(undefined, true);
                             }}
+                            onCancel={() => setIsExportWithTemplateModalVisible(false)}
                             title={translate('export.exportInProgress')}
                             prompt={translate('export.conciergeWillSend')}
                             confirmText={translate('common.buttonConfirm')}
@@ -771,8 +805,21 @@ function SearchPage({route}: SearchPageProps) {
                                     searchResults={searchResults}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    onSearchListScroll={(e) => {
+                                        if (!e.nativeEvent.contentOffset.y) {
+                                            return;
+                                        }
+
+                                        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+                                    }}
                                 />
-                                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
+                                {shouldShowFooter && (
+                                    <SearchPageFooter
+                                        count={footerData.count}
+                                        total={footerData.total}
+                                        currency={footerData.currency}
+                                    />
+                                )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
                                         icon={Expensicons.SmartScan}
@@ -816,6 +863,7 @@ function SearchPage({route}: SearchPageProps) {
                         setIsExportWithTemplateModalVisible(false);
                         clearSelectedTransactions(undefined, true);
                     }}
+                    onCancel={() => setIsExportWithTemplateModalVisible(false)}
                     title={translate('export.exportInProgress')}
                     prompt={translate('export.conciergeWillSend')}
                     confirmText={translate('common.buttonConfirm')}

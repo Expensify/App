@@ -9,7 +9,7 @@ import type {ChangeTransactionsReportParams, DismissViolationParams, GetRoutePar
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -23,8 +23,9 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
+    hasViolations as hasViolationsReportUtils,
 } from '@libs/ReportUtils';
-import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,15 +52,6 @@ let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
-});
-
-let currentUserEmail = '';
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserEmail = value?.email ?? '';
-    },
 });
 
 const allTransactions: Record<string, Transaction> = {};
@@ -613,12 +605,22 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function changeTransactionsReport(transactionIDs: string[], reportID: string, policy?: OnyxEntry<Policy>, reportNextStep?: OnyxEntry<ReportNextStep>) {
+function changeTransactionsReport(
+    transactionIDs: string[],
+    reportID: string,
+    isASAPSubmitBetaEnabled: boolean,
+    accountID: number,
+    email: string,
+    policy?: OnyxEntry<Policy>,
+    reportNextStep?: OnyxEntry<ReportNextStep>,
+) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
+    const updatedReportNonReimbursableTotals: Record<string, number> = {};
+    const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
 
     // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
@@ -637,7 +639,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -790,9 +792,18 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             });
         }
 
+        let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
-            const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+            const violationData = ViolationsUtils.getViolationsOnyxData(
+                transaction,
+                currentTransactionViolations[transaction.transactionID] ?? [],
+                policy,
+                policyTagList,
+                policyCategories,
+                policyHasDependentTags,
+                false,
+            );
             optimisticData.push(violationData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -811,6 +822,23 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             if (transactionHasViolations && hasOtherViolationsBesideDuplicates) {
                 shouldFixViolations = true;
             }
+            if (policy?.disabledFields?.reimbursable) {
+                transactionReimbursable = policy?.defaultReimbursable;
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: {
+                        reimbursable: transactionReimbursable,
+                    },
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: {
+                        reimbursable: transaction?.reimbursable,
+                    },
+                });
+            }
         }
 
         // 3. Keep track of the new report totals
@@ -820,9 +848,21 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
 
         if (oldReport) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
+            updatedReportNonReimbursableTotals[oldReportID] =
+                (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
+                (transaction?.reimbursable ? 0 : transactionAmount);
+            updatedReportUnheldNonReimbursableTotals[oldReportID] =
+                (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
+                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
         if (reportID && newReport) {
             updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
+            updatedReportNonReimbursableTotals[targetReportID] =
+                (updatedReportNonReimbursableTotals[targetReportID] ? updatedReportNonReimbursableTotals[targetReportID] : (newReport.nonReimbursableTotal ?? 0)) -
+                (transactionReimbursable ? 0 : transactionAmount);
+            updatedReportUnheldNonReimbursableTotals[targetReportID] =
+                (updatedReportUnheldNonReimbursableTotals[targetReportID] ? updatedReportUnheldNonReimbursableTotals[targetReportID] : (newReport.unheldNonReimbursableTotal ?? 0)) -
+                (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
 
         // 4. Optimistically update the IOU action reportID
@@ -933,7 +973,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
             const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
-            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail);
+            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
             newIOUAction.childReportID = transactionThreadReportID;
@@ -1055,12 +1095,50 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         });
     });
 
+    Object.entries(updatedReportNonReimbursableTotals).forEach(([reportIDToUpdate, total]) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {nonReimbursableTotal: total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {nonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
+        });
+    });
+
+    Object.entries(updatedReportUnheldNonReimbursableTotals).forEach(([reportIDToUpdate, total]) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {unheldNonReimbursableTotal: total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {
+                unheldNonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
+            },
+        });
+    });
+
     const reportTransactions = getReportTransactions(reportID);
     reportTransactions.forEach((transaction) => {
         if (!isPaidGroupPolicy(policy) || !policy?.id) {
             return;
         }
-        const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+        const violationData = ViolationsUtils.getViolationsOnyxData(
+            transaction,
+            currentTransactionViolations[transaction.transactionID] ?? [],
+            policy,
+            policyTagList,
+            policyCategories,
+            policyHasDependentTags,
+            false,
+        );
         const hasOtherViolationsBesideDuplicates =
             Array.isArray(violationData.value) &&
             !violationData.value.every((violation) => {
@@ -1076,7 +1154,17 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
 
     // 9. Update next step for report
     const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
-    const optimisticNextStep = buildNextStep(nextStepReport, nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations);
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
+    const optimisticNextStep = buildNextStepNew(
+        nextStepReport,
+        policy,
+        accountID,
+        email,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        shouldFixViolations,
+    );
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
@@ -1101,8 +1189,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
     });
 }
 
-function getDraftTransactions(): Transaction[] {
-    return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): Transaction[] {
+    return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
 export {

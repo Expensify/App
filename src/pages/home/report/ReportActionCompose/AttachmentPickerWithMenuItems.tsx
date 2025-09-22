@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import {startMoneyRequest} from '@userActions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
@@ -129,6 +129,7 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {setIsLoaderVisible} = useFullScreenLoader();
@@ -177,7 +178,8 @@ function AttachmentPickerWithMenuItems({
                               icon: Expensicons.Location,
                               text: translate('quickAction.recordDistance'),
                               shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => null, true),
+                              onSelected: () =>
+                                  selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
                           },
                       ]
                     : []),
@@ -211,7 +213,8 @@ function AttachmentPickerWithMenuItems({
                               icon: Expensicons.Location,
                               text: translate('iou.trackDistance'),
                               shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => null, true),
+                              onSelected: () =>
+                                  selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
                           },
                       ]
                     : []),
@@ -240,6 +243,7 @@ function AttachmentPickerWithMenuItems({
         showDelegateNoAccessModal,
         isManualDistanceTrackingEnabled,
         isReportArchived,
+        lastDistanceExpenseType,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

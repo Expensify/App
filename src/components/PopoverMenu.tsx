@@ -4,7 +4,6 @@ import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -16,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -76,9 +76,9 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCloseModalOnSelect?: boolean;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> & Pick<ReanimatedModalProps, 'animationInDelay'>;
+type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
 
-type PopoverMenuProps = Partial<PopoverModalProps> & {
+type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
@@ -290,8 +290,9 @@ function BasePopoverMenu({
             <MenuItem
                 key={previouslySelectedItem?.text}
                 icon={Expensicons.BackArrow}
-                iconFill={theme.icon}
+                iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
+                additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
                 title={hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
@@ -340,6 +341,7 @@ function BasePopoverMenu({
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    hasSubMenuItems={!!subMenuItems?.length}
                     shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
             </OfflineWithFeedback>
@@ -438,7 +440,6 @@ function BasePopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-            useNativeDriver
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}

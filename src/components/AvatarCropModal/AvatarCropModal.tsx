@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
@@ -316,7 +316,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
         cropOrRotateImage(imageUri, [{rotate: rotation.get() % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
-                onClose?.();
+                InteractionManager.runAfterInteractions(() => {
+                    onClose?.();
+                });
                 onSave?.(newImage);
             })
             .catch(() => {
@@ -352,7 +354,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

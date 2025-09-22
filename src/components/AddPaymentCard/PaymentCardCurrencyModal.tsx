@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,7 +56,6 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                 onClose?.();
                 Navigation.dismissModal();
             }}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}
@@ -77,7 +76,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                     showScrollIndicator
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
             </ScreenWrapper>
         </Modal>

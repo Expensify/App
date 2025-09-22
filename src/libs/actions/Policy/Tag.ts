@@ -1,5 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -25,48 +25,14 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {ImportedSpreadsheet, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
-});
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -413,8 +379,8 @@ function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isR
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
 }
 
-function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(0);
+function deletePolicyTags(policyID: string, tagsToDelete: string[], policyTags: OnyxEntry<PolicyTagLists>) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(0);
 
     if (!policyTag) {
         return;
@@ -483,9 +449,16 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
 }
 
-function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: number) {
-    const tagListName = PolicyUtils.getTagListName(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`], tagListIndex);
-    const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
+type ClearPolicyTagErrorsProps = {
+    policyID: string;
+    tagName: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagErrors({policyID, tagName, tagListIndex, policyTags}: ClearPolicyTagErrorsProps) {
+    const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
+    const tag = policyTags?.[tagListName]?.tags?.[tagName];
     if (!tag) {
         return;
     }
