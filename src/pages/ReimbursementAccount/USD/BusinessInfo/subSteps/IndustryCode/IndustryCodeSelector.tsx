@@ -1,7 +1,7 @@
 import React, {forwardRef, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {ALL_NAICS, NAICS, NAICS_MAPPING_WITH_ID} from '@src/NAICS';
@@ -69,7 +69,7 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
         <View style={styles.flexGrow1}>
             <SelectionList
                 sections={sections}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={(item) => {
                     setSearchValue(item.value);
                     setShouldDisplayChildItems(true);
