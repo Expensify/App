@@ -6706,6 +6706,7 @@ const CONST = {
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
             GREATER_THAN: 'GreaterThan',
+            EQUAL_TO: 'EqualTo',
         },
         DATE_PRESETS: {
             NEVER: 'never',
@@ -6821,6 +6822,11 @@ const CONST = {
         },
     },
     DEFAULT_REPORT_METADATA: {isLoadingInitialReportActions: true},
+    UPGRADE_PATHS: {
+        CATEGORIES: 'categories',
+        REPORTS: 'reports',
+        DISTANCE_RATES: 'distance-rates',
+    },
     get UPGRADE_FEATURE_INTRO_MAPPING() {
         return {
             reportFields: {
@@ -6956,6 +6962,14 @@ const CONST = {
                 title: 'workspace.upgrade.distanceRates.title' as const,
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
+            },
+            reports: {
+                id: 'reports' as const,
+                alias: 'reports',
+                name: 'Reports',
+                title: 'workspace.upgrade.reports.title' as const,
+                description: 'workspace.upgrade.reports.description' as const,
+                icon: 'ReportReceipt',
             },
         };
     },
