@@ -92,7 +92,7 @@ function IOURequestStartPage({
     }, [allPolicies]);
     const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
     const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
-    const hasCurrentPolicyPerDiemEnabled = policy?.arePerDiemRatesEnabled;
+    const hasCurrentPolicyPerDiemEnabled = !!policy?.arePerDiemRatesEnabled;
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
