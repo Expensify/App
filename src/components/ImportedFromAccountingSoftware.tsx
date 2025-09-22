@@ -49,7 +49,6 @@ function ImportedFromAccountingSoftware({
     const {environmentURL} = useEnvironment();
     const icon = getIntegrationIcon(connectedIntegration);
 
-    console.log('ImportedFromAccountingSoftware: Calling translate with key:', 'workspace.tags.employeesSeeTagsAs', 'params:', {customTagName: customTagName ?? ''});
 
     if (!customTagName && isDisplayingTags) {
         return undefined;
