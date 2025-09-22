@@ -240,6 +240,7 @@ import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
+import type Report from '@src/types/onyx/Report';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -12806,6 +12807,10 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
+    const {holdReportActions} = getHoldReportActionsAndTransactions(expenseReport?.reportID);
+    const reportActions = getAllReportActions(holdReportActions.at(0)?.childReportID);
+    const holdReportAction = Object.values(reportActions)?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD);
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(expenseReport?.policyID);
@@ -12911,6 +12916,73 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         optimisticData.push(...(onyxData.optimisticData ?? []));
         successData.push(...(onyxData.successData ?? []));
         failureData.push(...(onyxData.failureData ?? []));
+
+        if (holdReportAction) {
+            const holdCreated = holdReportAction.created;
+            const originalMessage = getOriginalMessage(holdReportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD>);
+            const holdMessage = originalMessage?.message ?? '';
+
+            const createdHoldReportAction = buildOptimisticHoldReportAction(holdCreated);
+            const createdHoldReportActionComment = buildOptimisticHoldReportActionComment(holdMessage, DateUtils.addMillisecondsFromDateTime(holdCreated, 1));
+            const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
+            const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${splitExpense?.transactionID}`] ?? [];
+            const updatedViolations = [...transactionViolations, newViolation];
+
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                    value: {
+                        [createdHoldReportAction.reportActionID]: createdHoldReportAction as ReportAction,
+                        [createdHoldReportActionComment.reportActionID]: createdHoldReportActionComment as ReportAction,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`,
+                    value: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        comment: {
+                            hold: createdHoldReportAction.reportActionID,
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${splitExpense?.transactionID}`,
+                    value: updatedViolations,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
+                    value: {
+                        lastVisibleActionCreated: createdHoldReportActionComment.created,
+                    },
+                },
+            );
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`,
+                value: {
+                    pendingAction: null,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [createdHoldReportAction.reportActionID]: null,
+                    [createdHoldReportActionComment.reportActionID]: null,
+                },
+            });
+
+            if (split) {
+                split.holdReportActionID = holdReportAction?.reportActionID;
+                split.holdReportActionCommentID = createdHoldReportActionComment.reportActionID;
+            }
+        }
     });
 
     optimisticData.push({

@@ -546,6 +546,21 @@ type OriginalMessageJoinPolicy = {
     email?: string;
 };
 
+/** Model of hold report action */
+type OriginalMessageHold = {
+    /** ID of the account */
+    accountID?: number;
+
+    /** Date timestamp */
+    date?: string;
+
+    /** When was it last modified */
+    lastModified?: string;
+
+    /** The message of Hold */
+    message?: string;
+};
+
 /** Model of `modified expense` report action */
 type OriginalMessageModifiedExpense = {
     /** Old content of the comment */
@@ -964,8 +979,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;
-    [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
-    [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.HOLD]: OriginalMessageHold;
+    [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: OriginalMessageHold;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD]: never;

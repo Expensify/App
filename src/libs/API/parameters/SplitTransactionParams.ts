@@ -13,6 +13,8 @@ type SplitTransactionSplitsParam = Array<{
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
+    holdReportActionID?: string;
+    holdReportActionCommentID?: string;
 }>;
 
 type SplitTransactionParams = {
