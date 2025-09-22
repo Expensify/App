@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
@@ -23,6 +24,8 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    accessibilityState,
+    rightHandSideComponent = undefined,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
@@ -32,7 +35,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             <Checkbox
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
-                accessibilityLabel="SingleSelectListItem"
+                accessibilityLabel={CONST.ROLE.CHECKBOX}
                 isChecked={isSelected}
                 onPress={() => onSelectRow(item)}
             />
@@ -45,7 +48,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={radioCheckboxComponent}
+            rightHandSideComponent={rightHandSideComponent ?? radioCheckboxComponent}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
@@ -54,8 +57,9 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={[styles.optionRowCompact, wrapperStyle]}
             titleStyles={titleStyles}
+            accessibilityState={accessibilityState}
         />
     );
 }

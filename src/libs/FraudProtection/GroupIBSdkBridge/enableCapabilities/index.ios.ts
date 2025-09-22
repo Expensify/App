@@ -48,9 +48,6 @@ function enableCapabilities(fp: FP) {
     fp.enableCapability(Capability.Behavior, (e: string, isRun: boolean) => {
         logCapability('Behavior', e, isRun);
     });
-    fp.enableCapability(Capability.PreventScreenshots, (e: string, isRun: boolean) => {
-        logCapability('PreventScreenshots', e, isRun);
-    });
     fp.enableCapability(Capability.Security, (e: string, isRun: boolean) => {
         logCapability('Security', e, isRun);
     });

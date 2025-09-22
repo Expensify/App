@@ -1,15 +1,15 @@
-import {emailSelector} from '@selectors/Session';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
+import NewChatListItem from '@components/SelectionList/NewChatListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -102,6 +102,9 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
 const defaultListOptions = {
@@ -144,7 +147,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
         );
     }
     return (
-        <UserListItem
+        <NewChatListItem
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -153,25 +156,23 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
-function SearchAutocompleteList(
-    {
-        autocompleteQueryValue,
-        handleSearch,
-        searchQueryItem,
-        getAdditionalSections,
-        onListItemPress,
-        setTextQuery,
-        updateAutocompleteSubstitutions,
-        shouldSubscribeToArrowKeyEvents = true,
-        onHighlightFirstItem,
-        textInputRef,
-        personalDetails,
-        reports,
-        allFeeds,
-        allCards,
-    }: SearchAutocompleteListProps,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function SearchAutocompleteList({
+    autocompleteQueryValue,
+    handleSearch,
+    searchQueryItem,
+    getAdditionalSections,
+    onListItemPress,
+    setTextQuery,
+    updateAutocompleteSubstitutions,
+    shouldSubscribeToArrowKeyEvents = true,
+    onHighlightFirstItem,
+    textInputRef,
+    personalDetails,
+    reports,
+    allFeeds,
+    allCards,
+    ref,
+}: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -189,15 +190,23 @@ function SearchAutocompleteList(
     }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
-
+    const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+    const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    const currentType = typeFilter?.value;
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
-    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 
-    const statusAutocompleteList = useMemo(() => {
-        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
-        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
-        const currentType = typeFilter?.value;
+    const groupByAutocompleteList = (() => {
+        switch (currentType) {
+            case undefined:
+            case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            case CONST.SEARCH.DATA_TYPES.INVOICE:
+                return Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+            default:
+                return [];
+        }
+    })();
 
+    const statusAutocompleteList = (() => {
         let suggestedStatuses;
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -225,7 +234,7 @@ function SearchAutocompleteList(
                 });
         }
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
-    }, [autocompleteQueryValue]);
+    })();
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
@@ -251,6 +260,7 @@ function SearchAutocompleteList(
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
     const workspaceList = useMemo(
         () =>
@@ -271,10 +281,9 @@ function SearchAutocompleteList(
     const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags);
 
     const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
-        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
         return [parsedQuery, queryWithoutFilters];
-    }, [autocompleteQueryValue]);
+    }, [autocompleteQueryValue, parsedQuery]);
 
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
@@ -369,7 +378,7 @@ function SearchAutocompleteList(
 
                 return participants.map((participant) => ({
                     filterKey: autocompleteKey,
-                    text: participant.text ?? '',
+                    text: participant.login === currentUserLogin ? CONST.SEARCH.ME : (participant.text ?? ''),
                     autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
@@ -535,6 +544,7 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
+        currentUserLogin,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -544,7 +554,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
@@ -794,6 +804,6 @@ function SearchAutocompleteList(
     );
 }
 
-export default forwardRef(SearchAutocompleteList);
+export default SearchAutocompleteList;
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback};

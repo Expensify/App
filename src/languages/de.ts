@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -328,7 +327,7 @@ const translations = {
         dismiss: 'Verwerfen',
         proceed: 'Fortfahren',
         yes: 'Ja',
-        no: 'No',
+        no: 'Nein',
         ok: 'OK',
         notNow: 'Nicht jetzt',
         learnMore: 'Mehr erfahren',
@@ -362,7 +361,7 @@ const translations = {
         rotate: 'Drehen',
         zoom: 'Zoom',
         password: 'Passwort',
-        magicCode: 'Magic code',
+        magicCode: 'Verifizierungscode',
         twoFactorCode: 'Zwei-Faktor-Code',
         workspaces: 'Arbeitsbereiche',
         inbox: 'Posteingang',
@@ -375,7 +374,7 @@ const translations = {
         wallet: 'Brieftasche',
         preferences: 'Einstellungen',
         view: 'Ansicht',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
+        review: (reviewParams?: ReviewParams) => `Überprüfen${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Nicht',
         signIn: 'Anmelden',
         signInWithGoogle: 'Mit Google anmelden',
@@ -396,7 +395,7 @@ const translations = {
         details: 'Einzelheiten',
         privacy: 'Datenschutz',
         privacyPolicy: 'Datenschutzrichtlinie',
-        hidden: 'Hidden',
+        hidden: 'Versteckt',
         visible: 'Sichtbar',
         delete: 'Löschen',
         archived: 'archiviert',
@@ -418,7 +417,7 @@ const translations = {
         here: 'hier',
         date: 'Datum',
         dob: 'Geburtsdatum',
-        currentYear: 'Current year',
+        currentYear: 'Aktuelles Jahr',
         currentMonth: 'Aktueller Monat',
         ssnLast4: 'Letzte 4 Ziffern der SSN',
         ssnFull9: 'Vollständige 9 Ziffern der SSN',
@@ -605,7 +604,7 @@ const translations = {
         chooseFiles: 'Dateien auswählen',
         dropTitle: 'Lass es los',
         dropMessage: 'Datei hier ablegen',
-        ignore: 'Ignore',
+        ignore: 'Ignorieren',
         enabled: 'Aktiviert',
         disabled: 'Deaktiviert',
         import: 'Importieren',
@@ -642,7 +641,7 @@ const translations = {
         sharedIn: 'Geteilt in',
         unreported: 'Nicht gemeldet',
         explore: 'Erkunden',
-        todo: 'To-do',
+        todo: 'Aufgabe',
         invoice: 'Rechnung',
         expense: 'Ausgabe',
         chat: 'Chat',
@@ -898,7 +897,7 @@ const translations = {
         create: 'erstellen',
         iouTypes: {
             pay: 'bezahlen',
-            split: 'split',
+            split: 'aufteilen',
             submit: 'einreichen',
             track: 'verfolgen',
             invoice: 'Rechnung',
@@ -1039,8 +1038,8 @@ const translations = {
         dropTitle: 'Lass es los',
         dropMessage: 'Datei hier ablegen',
         flash: 'Blitz',
-        multiScan: 'multi-scan',
-        shutter: 'Shutter',
+        multiScan: 'Mehrfach-Scan',
+        shutter: 'Verschluss',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Möchten Sie diesen Beleg wirklich löschen?',
@@ -1315,6 +1314,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Keine nicht gemeldeten Ausgaben',
         emptyStateUnreportedExpenseSubtitle: 'Es sieht so aus, als hätten Sie keine nicht gemeldeten Ausgaben. Versuchen Sie, unten eine zu erstellen.',
         addUnreportedExpenseConfirm: 'Zum Bericht hinzufügen',
+        newReport: 'Neuer Bericht',
         explainHold: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
         retracted: 'zurückgezogen',
         retract: 'Zurückziehen',
@@ -1409,9 +1409,7 @@ const translations = {
             heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben bleiben zurück, wenn du einen gesamten Bericht genehmigst.',
             rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
-            reasonPageDescription1:
-                'Lehne eine Ausgabe ab, wenn du sie niemals genehmigen oder bezahlen möchtest. Andernfalls verwende "Halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',
-            reasonPageDescription2: 'Wenn du die Ausgabe ablehnen willst, füge bitte einen Kommentar hinzu, um den Grund zu erklären:',
+            reasonPageDescription: 'Erklären Sie, warum Sie diese Ausgabe ablehnen.',
             rejectReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
             rejectedStatus:
@@ -3347,7 +3345,7 @@ const translations = {
             class: 'Kabinenklasse',
             recordLocator: 'Buchungscode',
             cabinClasses: {
-                unknown: 'Unknown',
+                unknown: 'Unbekannt',
                 economy: 'Wirtschaft',
                 premiumEconomy: 'Premium Economy',
                 business: 'Geschäft',
@@ -3357,14 +3355,14 @@ const translations = {
         hotel: 'Hotel',
         hotelDetails: {
             guest: 'Gast',
-            checkIn: 'Check-in',
-            checkOut: 'Check-out',
+            checkIn: 'Einchecken',
+            checkOut: 'Auschecken',
             roomType: 'Zimmertyp',
             cancellation: 'Stornierungsbedingungen',
             cancellationUntil: 'Kostenlose Stornierung bis',
             confirmation: 'Bestätigungsnummer',
             cancellationPolicies: {
-                unknown: 'Unknown',
+                unknown: 'Unbekannt',
                 nonRefundable: 'Nicht erstattungsfähig',
                 freeCancellationUntil: 'Kostenlose Stornierung bis',
                 partiallyRefundable: 'Teilweise erstattungsfähig',
@@ -3466,7 +3464,7 @@ const translations = {
             card: 'Karten',
             expensifyCard: 'Expensify Card',
             companyCards: 'Unternehmenskarten',
-            workflows: 'Workflows',
+            workflows: 'Arbeitsabläufe',
             workspace: 'Arbeitsbereich',
             findWorkspace: 'Arbeitsbereich finden',
             edit: 'Arbeitsbereich bearbeiten',
@@ -3477,7 +3475,7 @@ const translations = {
             settings: 'Einstellungen',
             reimburse: 'Erstattungen',
             categories: 'Kategorien',
-            tags: 'Tags',
+            tags: 'Schlagwörter',
             customField1: 'Benutzerdefiniertes Feld 1',
             customField2: 'Benutzerdefiniertes Feld 2',
             customFieldHint: 'Fügen Sie benutzerdefinierten Code hinzu, der für alle Ausgaben dieses Mitglieds gilt.',
@@ -3633,9 +3631,6 @@ const translations = {
             emptyList: {
                 title: 'Tagegeld',
                 subtitle: 'Legen Sie Tagessätze fest, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren. Importieren Sie die Sätze aus einer Tabelle, um loszulegen.',
-            },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Ein Tarif mit dem Wert ${rate} existiert bereits.`,
             },
             importPerDiemRates: 'Tagespauschalen importieren',
             editPerDiemRate: 'Tagespauschale bearbeiten',
@@ -4528,7 +4523,7 @@ const translations = {
                 monthly: 'Monatlich',
             },
             cardDetails: 'Kartendetails',
-            virtual: 'Virtual',
+            virtual: 'Virtuell',
             physical: 'Physisch',
             deactivate: 'Karte deaktivieren',
             changeCardLimit: 'Kartenlimit ändern',
@@ -4722,7 +4717,7 @@ const translations = {
                 statementCloseDateDescription: 'Teilen Sie uns mit, wann Ihre Kartenabrechnung geschlossen wird, und wir erstellen eine passende Abrechnung in Expensify.',
             },
             workflows: {
-                title: 'Workflows',
+                title: 'Werkstrome',
                 subtitle: 'Konfigurieren Sie, wie Ausgaben genehmigt und bezahlt werden.',
                 disableApprovalPrompt:
                     'Expensify-Karten aus diesem Arbeitsbereich hängen derzeit von der Genehmigung ab, um ihre Smart Limits festzulegen. Bitte ändern Sie die Limitarten aller Expensify-Karten mit Smart Limits, bevor Sie Genehmigungen deaktivieren.',
@@ -4736,7 +4731,7 @@ const translations = {
                 subtitle: 'Verfolgen und organisieren Sie Ausgaben.',
             },
             tags: {
-                title: 'Tags',
+                title: 'Schlagwörter',
                 subtitle: 'Klassifizieren Sie Kosten und verfolgen Sie abrechenbare Ausgaben.',
             },
             taxes: {
@@ -5437,6 +5432,7 @@ const translations = {
             updateWorkspaceCurrency: 'Arbeitsbereichswährung aktualisieren',
             workspaceCurrencyNotSupported: 'Arbeitsbereichswährung wird nicht unterstützt',
             yourWorkspace: `Ihr Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sehen Sie sich die <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">Liste der unterstützten Währungen an</a>.`,
+            chooseAnExisting: 'Wählen Sie ein vorhandenes Bankkonto zur Zahlung von Ausgaben oder fügen Sie ein neues hinzu.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Besitzer übertragen',
@@ -5510,7 +5506,7 @@ const translations = {
             },
             categories: {
                 title: 'Kategorien',
-                description: `Kategorien helfen Ihnen, Ausgaben besser zu organisieren, um den Überblick darüber zu behalten, wo Sie Ihr Geld ausgeben. Verwenden Sie unsere vorgeschlagene Kategorienliste oder erstellen Sie Ihre eigene.`,
+                description: 'Kategorien ermöglichen es dir, Ausgaben zu verfolgen und zu organisieren. Verwende unsere Standardkategorien oder füge deine eigenen hinzu.',
                 onlyAvailableOnPlan: 'Kategorien sind im Collect-Plan verfügbar, beginnend bei',
             },
             glCodes: {
@@ -5550,11 +5546,22 @@ const translations = {
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
             },
+            reports: {
+                title: 'Berichte',
+                description:
+                    'Erstellen Sie organisierte Spesenabrechnungen, um Ihre Geschäftsausgaben zu verfolgen, zur Genehmigung einzureichen und Ihren Erstattungsprozess zu optimieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
+            },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
                     'Mehrstufige Tags helfen Ihnen, Ausgaben präziser zu verfolgen. Weisen Sie jedem Posten mehrere Tags zu – wie Abteilung, Kunde oder Kostenstelle – um den vollständigen Kontext jeder Ausgabe zu erfassen. Dies ermöglicht detailliertere Berichte, Genehmigungs-Workflows und Buchhaltungsexporte.',
                 onlyAvailableOnPlan: 'Mehrstufige Tags sind nur im Control-Plan verfügbar, beginnend bei',
+            },
+            distanceRates: {
+                title: 'Entfernungsraten',
+                description: 'Erstellen und verwalten Sie Ihre eigenen Tarife, verfolgen Sie in Meilen oder Kilometern und legen Sie Standardkategorien für Entfernungsausgaben fest.',
+                onlyAvailableOnPlan: 'Entfernungsraten sind im Collect-Plan verfügbar, beginnend bei',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Mehrere Genehmigungsstufen',
@@ -5567,15 +5574,17 @@ const translations = {
                 perMember: 'pro Mitglied pro Monat.',
             },
             note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>Aktualisieren Sie Ihren Arbeitsbereich, um auf diese Funktion zuzugreifen, oder <a href="${subscriptionLink}">erfahren Sie mehr</a> über unsere Pläne und Preise.</muted-text>`,
+                `<muted-text>Aktualisieren Sie, um auf diese Funktion zuzugreifen, oder <a href="${subscriptionLink}">erfahren Sie mehr</a> über unsere Pläne und Preise.</muted-text>`,
             upgradeToUnlock: 'Diese Funktion freischalten',
             completed: {
                 headline: `Sie haben Ihren Arbeitsbereich aktualisiert!`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Sie haben ${policyName} erfolgreich auf den Control-Tarif upgegradet! <a href="${subscriptionLink}">Sehen Sie sich Ihr Abonnement</a> für weitere Details an.</centered-text>`,
-                categorizeMessage: `Sie haben erfolgreich auf einen Workspace im Collect-Plan upgegradet. Jetzt können Sie Ihre Ausgaben kategorisieren!`,
-                travelMessage: `Sie haben erfolgreich auf einen Workspace im Collect-Plan aufgerüstet. Jetzt können Sie mit der Buchung und Verwaltung von Reisen beginnen!`,
+                categorizeMessage: `Sie haben erfolgreich auf den Collect-Plan aufgerüstet. Jetzt können Sie Ihre Ausgaben kategorisieren!`,
+                travelMessage: `Sie haben erfolgreich auf den Collect-Plan umgestellt. Jetzt können Sie mit der Buchung und Verwaltung von Reisen beginnen!`,
+                distanceRateMessage: `Sie haben erfolgreich auf den Collect-Plan umgestellt. Jetzt können Sie den Distanzsatz ändern!`,
                 gotIt: 'Verstanden, danke',
+                createdWorkspace: 'Sie haben einen Arbeitsbereich erstellt!',
             },
             commonFeatures: {
                 title: 'Zum Control-Plan upgraden',
@@ -6153,6 +6162,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Weniger als ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Größer als ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Zwischen ${greaterThan} und ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Gleich ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
@@ -6184,9 +6194,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
-            },
-            has: {
-                receipt: 'Quittung',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Einreichen',
@@ -7106,8 +7113,8 @@ const translations = {
         visibleInLHN: 'Sichtbar in LHN',
         GBR: 'GBR',
         RBR: 'RBR',
-        true: 'true',
-        false: 'false',
+        true: 'wahr',
+        false: 'falsch',
         viewReport: 'Bericht anzeigen',
         viewTransaction: 'Transaktion anzeigen',
         createTransactionViolation: 'Transaktionsverstoß erstellen',

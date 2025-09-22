@@ -1,5 +1,6 @@
 import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
+    AccessibilityState,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
@@ -108,6 +109,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
+
+    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
+    accessibilityState?: AccessibilityState;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -235,7 +239,7 @@ type ListItem<K extends string | number = string> = {
 type TransactionListItemType = ListItem &
     SearchTransaction & {
         /** Report to which the transaction belongs */
-        report: Report;
+        report: Report | undefined;
 
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
@@ -516,6 +520,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     accountID?: number;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
+    newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
