@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -1294,6 +1293,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: '没有未报告的费用',
         emptyStateUnreportedExpenseSubtitle: '看起来您没有未报告的费用。请尝试在下面创建一个。',
         addUnreportedExpenseConfirm: '添加到报告',
+        newReport: '新报告',
         explainHold: '请解释您为何保留此费用。',
         retracted: '撤回',
         retract: '撤回',
@@ -1387,8 +1387,7 @@ const translations = {
             heldExpenseLeftBehindTitle: '当你批准整个报销单时，已保留的报销会被忽略。',
             rejectExpenseTitle: '拒绝你不打算批准或支付的报销。',
             reasonPageTitle: '拒绝报销',
-            reasonPageDescription1: '如果你永远不打算批准或支付该报销，请拒绝它。否则，请使用“保留”来暂停报销并请求更多背景信息。',
-            reasonPageDescription2: '如果你要拒绝该报销，请添加评论解释原因：',
+            reasonPageDescription: '解释一下你拒绝这笔费用的原因。',
             rejectReason: '拒绝原因',
             markAsResolved: '标记为已解决',
             rejectedStatus: '该报销已被拒绝。请先解决问题并标记为已解决，才能重新提交。',
@@ -3596,9 +3595,6 @@ const translations = {
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工的每日支出。从电子表格导入费率以开始。',
             },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `值为${rate}的费率已存在`,
-            },
             importPerDiemRates: '导入每日津贴标准',
             editPerDiemRate: '编辑每日津贴费率',
             editPerDiemRates: '编辑每日津贴标准',
@@ -5420,7 +5416,7 @@ const translations = {
             },
             categories: {
                 title: '类别',
-                description: `类别帮助您更好地组织费用，以跟踪您的资金去向。使用我们建议的类别列表或创建您自己的类别。`,
+                description: '类别允许您跟踪和整理支出。使用我们的默认类别或添加您自己的类别。',
                 onlyAvailableOnPlan: '类别在 Collect 计划中可用，起价为',
             },
             glCodes: {
@@ -5458,10 +5454,20 @@ const translations = {
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
             },
+            reports: {
+                title: '报告',
+                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
+                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+            },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
                 onlyAvailableOnPlan: '多级标签仅在Control计划中提供，起价为',
+            },
+            distanceRates: {
+                title: '距离费率',
+                description: '创建和管理您自己的费率，以英里或公里为单位进行跟踪，并为距离费用设置默认类别。',
+                onlyAvailableOnPlan: '在 Collect 计划中提供的距离费率，起价为',
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
@@ -5472,16 +5478,17 @@ const translations = {
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
             },
-            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
-                `<muted-text>升级您的工作区即可使用该功能，或<a href="${subscriptionLink}">进一步了解</a>我们的计划和定价。</muted-text>`,
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) => `<muted-text>升级即可使用该功能，或<a href="${subscriptionLink}">进一步了解</a>我们的计划和定价。</muted-text>`,
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您的工作区已升级！`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>您已成功将 ${policyName} 升级到控制计划！<a href="${subscriptionLink}">查看订阅详情</a>。</centered-text>`,
-                categorizeMessage: `您已成功升级到 Collect 计划的工作区。现在您可以对费用进行分类了！`,
-                travelMessage: `您已成功升级到 Collect 计划的工作区。现在您可以开始预订和管理旅行了！`,
+                categorizeMessage: `您已成功升级到 Collect 计划。现在您可以对您的费用进行分类了！`,
+                travelMessage: `您已成功升级到 Collect 计划。现在您可以开始预订和管理旅行了！`,
+                distanceRateMessage: `您已成功升级到 Collect 计划。现在您可以更改距离费率了！`,
                 gotIt: '知道了，谢谢',
+                createdWorkspace: '您已创建工作区！',
             },
             commonFeatures: {
                 title: '升级到Control计划',
@@ -6037,6 +6044,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `少于${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `大于${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `在 ${greaterThan} 和 ${lessThan} 之间`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `等于${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
@@ -6068,9 +6076,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
-            },
-            has: {
-                receipt: '收据',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',

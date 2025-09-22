@@ -69,7 +69,7 @@ import type {
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -118,6 +118,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
@@ -171,6 +172,8 @@ type BuildPolicyDataOptions = {
     userReportedIntegration?: OnboardingAccounting;
     featuresMap?: Feature[];
     lastUsedPaymentMethod?: LastPaymentMethodType;
+    areDistanceRatesEnabled?: boolean;
+    adminParticipant?: Participant;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -662,7 +665,10 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+    if (!policyID) {
+        return;
+    }
     const value = JSON.stringify({autoReportingOffset});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -1963,6 +1969,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         userReportedIntegration,
         featuresMap,
         lastUsedPaymentMethod,
+        areDistanceRatesEnabled,
+        adminParticipant,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2023,7 +2031,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 areCategoriesEnabled: true,
                 areCompanyCardsEnabled: true,
                 areTagsEnabled: false,
-                areDistanceRatesEnabled: false,
+                areDistanceRatesEnabled,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
@@ -2035,6 +2043,16 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
+                    ...(adminParticipant?.login
+                        ? {
+                              [adminParticipant.login]: {
+                                  submitsTo: sessionEmail,
+                                  email: adminParticipant.login,
+                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  errors: {},
+                              },
+                          }
+                        : {}),
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
@@ -2316,6 +2334,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
+        areDistanceRatesEnabled,
     };
 
     if (
@@ -2351,6 +2370,20 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);
+    }
+
+    if (adminParticipant?.login) {
+        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, true);
+        params.memberData = JSON.stringify({
+            accountID: Number(adminParticipant.accountID),
+            email: adminParticipant.login,
+            workspaceChatReportID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportID,
+            workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportActionID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        optimisticData.push(...employeeWorkspaceChat.onyxOptimisticData);
+        successData.push(...employeeWorkspaceChat.onyxSuccessData);
+        failureData.push(...employeeWorkspaceChat.onyxFailureData);
     }
 
     return {successData, optimisticData, failureData, params};
@@ -2950,12 +2983,12 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
 
     const params: InviteWorkspaceEmployeesToUberParams = {
         policyID,
-        emails,
+        emailList: emails.join(','),
     };
 
     // Build optimistic employees mapping: mark invited emails as invited
     const invitedEmployees = emails.reduce<Record<string, {status: string}>>((acc, email) => {
-        acc[email] = {status: 'invited'};
+        acc[email] = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED};
         return acc;
     }, {});
 
@@ -3732,9 +3765,11 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: enabled,
-                    pendingFields: {
-                        areReceiptPartnersEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    receiptPartners: {
+                        enabled,
+                        pendingFields: {
+                            enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -3744,8 +3779,10 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                    receiptPartners: {
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },
@@ -3755,9 +3792,11 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldN
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReceiptPartnersEnabled: !enabled,
-                    pendingFields: {
-                        areReceiptPartnersEnabled: null,
+                    receiptPartners: {
+                        enabled: !enabled,
+                        pendingFields: {
+                            enabled: null,
+                        },
                     },
                 },
             },
@@ -6128,7 +6167,9 @@ function calculateBillNewDot() {
             value: false,
         },
     ];
-    API.read(READ_COMMANDS.CALCULATE_BILL_NEW_DOT, null, {
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT, null, {
         optimisticData,
         successData,
         failureData,

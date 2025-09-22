@@ -97,7 +97,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
+    const reportActions = useMemo(() => {
+        return getFilteredReportActionsForReportView(unfilteredReportActions);
+    }, [unfilteredReportActions]);
 
     const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
