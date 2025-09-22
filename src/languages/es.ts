@@ -4958,6 +4958,7 @@ const translations = {
             welcomeNote: 'Por favor, comience a utilizar mi nuevo espacio de trabajo.',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
+            error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
         emptyWorkspace: {
             title: 'No tienes espacios de trabajo',

@@ -4945,6 +4945,7 @@ const translations = {
             welcomeNote: '新しいワークスペースの使用を開始してください',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `${newWorkspaceName ?? ''} を作成し、元のワークスペースの ${totalMembers ?? 0} 人のメンバーと共有しようとしています。`,
+            error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',

@@ -4967,6 +4967,7 @@ const translations = {
             welcomeNote: 'Proszę rozpocząć korzystanie z mojego nowego obszaru roboczego',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Zamierzasz utworzyć i udostępnić ${newWorkspaceName ?? ''} członkom ${totalMembers ?? 0} z oryginalnej przestrzeni roboczej.`,
+            error: 'Wystąpił błąd podczas duplikowania nowego obszaru roboczego. Spróbuj ponownie.',
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',

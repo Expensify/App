@@ -4885,6 +4885,7 @@ const translations = {
             welcomeNote: '请开始使用我的新工作区',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `您即将创建并与原始工作区中的 ${totalMembers ?? 0} 名成员共享 ${newWorkspaceName ?? ''}。`,
+            error: '复制新工作区时出错。请重试。',
         },
         emptyWorkspace: {
             title: '您没有任何工作区',
