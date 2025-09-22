@@ -343,6 +343,9 @@ type SearchTransaction = {
 
         /** State of the receipt */
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+
+        /** The name of the file of the receipt */
+        filename?: string;
     };
 
     /** The transaction tag */
