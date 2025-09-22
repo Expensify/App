@@ -56,7 +56,7 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
                     <RadioButtonWithLabel
                         key={item.value}
                         isChecked={item.value === checkedValue}
-                        style={[styles.mb4, radioButtonStyle]}
+                        style={radioButtonStyle}
                         onPress={() => {
                             setCheckedValue(item.value);
                             onInputChange(item.value);

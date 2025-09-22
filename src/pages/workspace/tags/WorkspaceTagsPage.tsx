@@ -371,7 +371,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags);
+        deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -724,7 +724,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             listHeaderContent={headerContent}
                             shouldShowListEmptyContent={false}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors(policyID, item.value, 0)}
+                            onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
                             showScrollIndicator={false}
                             addBottomSafeAreaPadding
                         />
