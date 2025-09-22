@@ -2,7 +2,7 @@ import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getParentReportActionSelector from '@src/selectors/ReportAction';
+import {getParentReportActionSelector} from '@src/selectors/ReportAction';
 import type {Report, ReportActions} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
