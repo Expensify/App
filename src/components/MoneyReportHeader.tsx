@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
@@ -95,6 +96,7 @@ import {
     payMoneyRequest,
     reopenReport,
     retractReport,
+    startDistanceRequest,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -179,6 +181,7 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
+    const {isBetaEnabled} = usePermissions();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -192,6 +195,8 @@ function MoneyReportHeader({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
     // Collate the list of user-created in-app export templates
     const customInAppTemplates = useMemo(() => {
@@ -636,6 +641,22 @@ function MoneyReportHeader({
                 },
             },
             {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+                text: translate('iou.trackDistance'),
+                icon: Expensicons.Location,
+                onSelected: () => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
+                    startDistanceRequest(CONST.IOU.TYPE.CREATE, moneyRequestReport.reportID, lastDistanceExpenseType);
+                },
+                shouldShow: isManualDistanceTrackingEnabled,
+            },
+            {
                 value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
@@ -648,7 +669,7 @@ function MoneyReportHeader({
                 },
             },
         ],
-        [moneyRequestReport?.reportID, policy, translate],
+        [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, isManualDistanceTrackingEnabled, translate],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
