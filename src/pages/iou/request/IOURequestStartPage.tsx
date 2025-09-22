@@ -74,7 +74,6 @@ function IOURequestStartPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
 
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const amountInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -203,9 +202,7 @@ function IOURequestStartPage({
         // implementation, this fixes an animation glitch and matches the native internal delay
         InteractionManager.runAfterInteractions(() => {
             // 0 - Amount, 3 - PerDiem
-            if (index === 0) {
-                amountInputRef.current?.focus();
-            } else if (index === 3) {
+            if (index === 3) {
                 perDiemInputRef.current?.focus?.();
             }
         });
@@ -265,8 +262,6 @@ function IOURequestStartPage({
                                                 shouldKeepUserInput
                                                 route={route}
                                                 navigation={navigation}
-                                                shouldAutoFocusInput={false}
-                                                ref={amountInputRef}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}

@@ -64,11 +64,6 @@ type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
 
         /** Whether the user input should be kept or not */
         shouldKeepUserInput?: boolean;
-
-        ref?: ForwardedRef<IOURequestStepAmountRef>;
-
-        /** Whether the user input should be auto focused or not */
-        shouldAutoFocusInput?: boolean;
     };
 
 function IOURequestStepAmount({
@@ -79,8 +74,6 @@ function IOURequestStepAmount({
     transaction,
     currentUserPersonalDetails,
     shouldKeepUserInput = false,
-    shouldAutoFocusInput = true,
-    ref,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -112,10 +105,6 @@ function IOURequestStepAmount({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
-    useImperativeHandle(ref, () => ({
-        focus: () => textInput.current?.focus?.(),
-    }));
-
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
@@ -128,10 +117,6 @@ function IOURequestStepAmount({
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldAutoFocusInput) {
-                return;
-            }
-
             focusTimeoutRef.current = setTimeout(() => {
                 textInput.current?.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -143,7 +128,7 @@ function IOURequestStepAmount({
 
                 clearTimeout(focusTimeoutRef.current);
             };
-        }, [shouldAutoFocusInput]),
+        }, []),
     );
 
     useEffect(() => {
