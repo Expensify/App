@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -3637,9 +3636,6 @@ const translations = {
             emptyList: {
                 title: 'Per diem',
                 subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés. Importez les taux depuis une feuille de calcul pour commencer.',
-            },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Un taux avec la valeur ${rate} existe déjà`,
             },
             importPerDiemRates: 'Importer les taux de per diem',
             editPerDiemRate: 'Modifier le taux de per diem',
