@@ -105,6 +105,7 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
+    const shouldShowIcon = !!icon || (!isActive && !!iconChecked);
     const labelText =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
         text || textChecked ? (
@@ -113,7 +114,7 @@ function PressableWithDelayToggle({
                 style={textStyles}
             >
                 {!isActive && textChecked ? textChecked : text}
-                {!icon || (!isActive && !!iconChecked && <>&nbsp;</>)}
+                {shouldShowIcon && <>&nbsp;</>}
             </Text>
         ) : null;
 
@@ -155,7 +156,7 @@ function PressableWithDelayToggle({
                         {({hovered, pressed}) => (
                             <>
                                 {!inline && displayLabelText}
-                                {(!!icon || (!isActive && !!iconChecked)) && (
+                                {shouldShowIcon && (
                                     <Icon
                                         src={!isActive ? iconChecked : (icon ?? iconChecked)}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
