@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -47,6 +48,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
 
 type RateForList = ListItem & {value: string; rate?: number};
@@ -68,7 +70,7 @@ function PolicyDistanceRatesPage({
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
 
     const selectableRates = useMemo(
@@ -80,10 +82,27 @@ function PolicyDistanceRatesPage({
         [customUnitRates],
     );
 
-    const rateIDs = new Set(Object.keys(selectableRates));
+    const rateIDs = useMemo(() => new Set(Object.keys(selectableRates)), [selectableRates]);
 
-    const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        [policyID],
+    );
+
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: policyReportsSelector,
+        canBeMissing: true,
+    });
+
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
             if (!customUnit?.customUnitID || rateIDs.size === 0) {
                 return undefined;
             }
@@ -91,6 +110,8 @@ function PolicyDistanceRatesPage({
                 (transactionsData, transaction) => {
                     if (
                         transaction &&
+                        transaction.reportID &&
+                        policyReports?.has(transaction.reportID) &&
                         customUnit?.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
@@ -108,6 +129,11 @@ function PolicyDistanceRatesPage({
                 {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
+        [customUnit, rateIDs, policyReports],
+    );
+
+    const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionsSelector,
         canBeMissing: true,
     });
 

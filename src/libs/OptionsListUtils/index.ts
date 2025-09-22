@@ -16,7 +16,7 @@ import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
-import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -162,6 +162,7 @@ import type {
     GetUserToInviteConfig,
     GetValidReportsConfig,
     GetValidReportsReturnTypeCombined,
+    IsValidReportsConfig,
     MemberForList,
     Option,
     OptionList,
@@ -546,7 +547,21 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
+function getLastMessageTextForReport({
+    report,
+    lastActorDetails,
+    movedFromReport,
+    movedToReport,
+    policy,
+    isReportArchived = false,
+}: {
+    report: OnyxEntry<Report>;
+    lastActorDetails: Partial<PersonalDetails> | null;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    isReportArchived?: boolean;
+}): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
@@ -611,7 +626,12 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
+        const properSchemaForModifiedExpenseMessage = getForReportAction({
+            reportAction: lastReportAction,
+            policyID: report?.policyID,
+            movedFromReport,
+            movedToReport,
+        });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
@@ -685,7 +705,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         lastMessageTextFromReport = getDeletedTransactionMessage(lastReportAction);
-    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
         lastMessageTextFromReport = getChangedApproverActionMessage(lastReportAction);
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = getMovedActionMessage(lastReportAction, report);
@@ -809,8 +829,9 @@ function createOption(
         }
 
         // Type/category flags already set in initialization above, but update brickRoadIndicator
-        result.allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const reportAttribute = reportAttributesDerived?.[report.reportID];
+        result.allReportErrors = reportAttribute?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
@@ -1469,7 +1490,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfig): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1604,6 +1625,8 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateWorkspaceChat,
         isPerDiemRequest = false,
         showRBR = true,
+        shouldShowGBR = false,
+        includeSelectedOptions = false,
     } = config;
 
     const validReportOptions: SearchOptionData[] = [];
@@ -1622,6 +1645,9 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
          */
         const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
         const isSelected = isReportSelected(option, selectedOptions);
+        if (isSelected && !includeSelectedOptions) {
+            continue;
+        }
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
         let lastIOUCreationDate;
 
@@ -1647,6 +1673,10 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             lastIOUCreationDate,
             brickRoadIndicator: showRBR ? option.brickRoadIndicator : null,
         };
+
+        if (newReportOption.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            newReportOption.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : null;
+        }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
             newReportOption.text = getPolicyName({report});
@@ -1750,7 +1780,7 @@ function getValidOptions(
             loginsToExclude[option.login] = true;
         });
     }
-    const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, ...getValidReportsConfig} = config;
+    const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
 
     let filteredReports = options.reports;
 
@@ -1784,11 +1814,7 @@ function getValidOptions(
                 ...getValidReportsConfig,
                 includeP2P,
                 includeDomainEmail,
-                selectedOptions,
                 loginsToExclude,
-                shouldBoldTitleByDefault,
-                shouldSeparateSelfDMChat,
-                shouldSeparateWorkspaceChat,
             });
         };
 
@@ -1797,10 +1823,10 @@ function getValidOptions(
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
             selectedOptions,
-            loginsToExclude,
             shouldBoldTitleByDefault,
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
+            shouldShowGBR,
         });
 
         recentReportOptions = recentReports;
@@ -1865,6 +1891,9 @@ function getValidOptions(
                 currentUserRef.current = personalDetail;
             }
             personalDetail.isBold = shouldBoldTitleByDefault;
+            if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+                personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
+            }
         }
     }
 
@@ -1900,9 +1929,11 @@ function getSearchOptions(
     includeUserToInvite?: boolean,
     includeRecentReports = true,
     includeCurrentUser = false,
+    shouldShowGBR = false,
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
+
     const optionList = getValidOptions(options, {
         betas,
         includeRecentReports,
@@ -1921,6 +1952,7 @@ function getSearchOptions(
         includeCurrentUser,
         searchString: searchQuery,
         includeUserToInvite,
+        shouldShowGBR,
     });
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1929,7 +1961,7 @@ function getSearchOptions(
     return optionList;
 }
 
-function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
+function getShareLogOptions(options: OptionList, betas: Beta[] = [], searchString = '', maxElements?: number, includeUserToInvite = false): Options {
     return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
@@ -1939,6 +1971,9 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
         includeSelfDM: true,
         includeThreads: true,
         includeReadOnly: false,
+        searchString,
+        maxElements,
+        includeUserToInvite,
     });
 }
 
@@ -2034,6 +2069,9 @@ function getShareDestinationOptions(
     selectedOptions: Array<Partial<SearchOptionData>> = [],
     excludeLogins: Record<string, boolean> = {},
     includeOwnedWorkspaceChats = true,
+    searchString = '',
+    maxElements?: number,
+    includeUserToInvite = false,
 ) {
     return getValidOptions(
         {reports, personalDetails},
@@ -2049,6 +2087,9 @@ function getShareDestinationOptions(
             excludeLogins,
             includeOwnedWorkspaceChats,
             includeSelfDM: true,
+            searchString,
+            maxElements,
+            includeUserToInvite,
         },
     );
 }
@@ -2081,6 +2122,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 
 /**
  * Build the options for the Workspace Member Invite view
+ * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
  */
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
@@ -2089,8 +2131,10 @@ function getMemberInviteOptions(
     includeSelectedOptions = false,
     reports: Array<SearchOption<Report>> = [],
     includeRecentReports = false,
+    searchString = '',
+    maxElements?: number,
 ): Options {
-    const options = getValidOptions(
+    return getValidOptions(
         {reports, personalDetails},
         {
             betas,
@@ -2098,15 +2142,10 @@ function getMemberInviteOptions(
             excludeLogins,
             includeSelectedOptions,
             includeRecentReports,
+            searchString,
+            maxElements,
         },
     );
-
-    const orderedOptions = orderOptions(options);
-    return {
-        ...options,
-        personalDetails: orderedOptions.personalDetails,
-        recentReports: orderedOptions.recentReports,
-    };
 }
 
 /**

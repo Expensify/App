@@ -18,7 +18,6 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
-import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -38,12 +37,27 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
-const getDefaultItemHeight = () => variables.optionRowHeight;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getDefaultItemHeight = (ListItem: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    switch (ListItem?.displayName) {
+        case 'SingleSelectListItem':
+        case 'MultiSelectListItem':
+        case 'UserSelectionListItem':
+            return variables.optionRowHeightCompact;
+        case 'UserListItem':
+        case 'NewChatListItem':
+        case 'InviteMemberListItem':
+        default:
+            return variables.optionRowHeight;
+    }
+};
 
 function BaseSelectionList<TItem extends ListItem>({
     sections,
@@ -55,7 +69,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onCheckboxPress,
     onSelectAll,
     onDismissError,
-    getItemHeight = getDefaultItemHeight,
+    getItemHeight,
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
@@ -112,9 +126,8 @@ function BaseSelectionList<TItem extends ListItem>({
     includeSafeAreaPaddingBottom = true,
     shouldTextInputInterceptSwipe = false,
     listHeaderContent,
-    onEndReached = () => {},
+    onEndReached,
     onEndReachedThreshold,
-    shouldSkipShowMoreButton = false,
     windowSize = 5,
     updateCellsBatchingPeriod = 50,
     removeClippedSubviews = true,
@@ -146,9 +159,10 @@ function BaseSelectionList<TItem extends ListItem>({
     loaderSpeed,
     errorText,
     shouldUseDefaultRightHandSideCheckmark,
-    selectedItems = [],
+    selectedItems = getEmptyArray<string>(),
     isSelected,
     canShowProductTrainingTooltip,
+    renderScrollComponent,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -192,7 +206,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const [currentPage, setCurrentPage] = useState(() => calculateInitialCurrentPage());
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
-    const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const itemHeights = useRef<Record<string, number>>({});
     const pendingScrollIndexRef = useRef<number | null>(null);
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
@@ -201,14 +215,11 @@ function BaseSelectionList<TItem extends ListItem>({
         }
 
         const {height} = event.nativeEvent.layout;
-
-        setItemHeights((prevHeights) => ({
-            ...prevHeights,
+        itemHeights.current = {
+            ...itemHeights.current,
             [itemKey]: height,
-        }));
+        };
     };
-
-    const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
     const canShowProductTrainingTooltipMemo = useMemo(() => {
         return canShowProductTrainingTooltip && isFocused;
@@ -259,8 +270,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 }
                 disabledIndex += 1;
 
+                const defaultItemHeight = getItemHeight ? getItemHeight(item) : getDefaultItemHeight(ListItem);
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : getItemHeight(item);
+                const fullItemHeight = item?.keyForList && itemHeights.current[item.keyForList] ? itemHeights.current[item.keyForList] : defaultItemHeight;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -284,7 +296,6 @@ function BaseSelectionList<TItem extends ListItem>({
             );
         }
         const totalSelectable = allOptions.length - disabledOptionsIndexes.length;
-
         return {
             allOptions,
             selectedOptions,
@@ -293,18 +304,20 @@ function BaseSelectionList<TItem extends ListItem>({
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
+            ListItem,
         };
-    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
-    const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
-        if (shouldSkipShowMoreButton) {
-            // When skipping the Show More button, return all sections without any slicing
-            const processedSections = getSectionsWithIndexOffset(sections as Array<SectionListDataType<TItem>>);
-            return [processedSections, null];
+    const incrementPage = useCallback(() => {
+        if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            return;
         }
+        setCurrentPage((prev) => prev + 1);
+    }, [flattenedSections.allOptions.length, currentPage]);
 
+    const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
-        const processedSections = getSectionsWithIndexOffset(
+        return getSectionsWithIndexOffset(
             sections.map((section) => {
                 const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
                 remainingOptionsLimit -= data.length;
@@ -315,21 +328,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 };
             }),
         );
-
-        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
-        const showMoreButton = shouldShowMoreButton ? (
-            <ShowMoreButton
-                containerStyle={[styles.mt2, styles.mb5]}
-                currentCount={CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage}
-                totalCount={flattenedSections.allOptions.length}
-                onPress={incrementPage}
-            />
-        ) : null;
-        return [processedSections, showMoreButton];
-        // we don't need to add styles here as they change
-        // we don't need to add flattenedSections here as they will change along with sections
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, currentPage, shouldSkipShowMoreButton]);
+    }, [sections, currentPage]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
@@ -368,9 +367,9 @@ function BaseSelectionList<TItem extends ListItem>({
             // the top of the viewable area at all times by adjusting the viewOffset.
             if (shouldKeepFocusedItemAtTopOfViewableArea) {
                 const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
-                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
+                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights.current[firstPreviousItem.keyForList] : 0;
                 const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
-                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights[secondPreviousItem.keyForList] : 0;
+                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights.current[secondPreviousItem.keyForList] : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
@@ -381,6 +380,27 @@ function BaseSelectionList<TItem extends ListItem>({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [flattenedSections.allOptions, currentPage],
     );
+
+    // this function is used specifically for scrolling to the focused input to prevent it from appearing below opened keyboard
+    // and ensures the entire list item element is visible, not just the input field inside it
+    const scrollToFocusedInput = useCallback((index: number) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        if (index < 0) {
+            return;
+        }
+
+        // Perform scroll to specific position in SectionList to show entire item
+        listRef.current.scrollToLocation({
+            sectionIndex: 0, // Scroll to first section (index 0) as this function is designed for specific SplitExpenseItem.tsx list
+            itemIndex: index + 2, // Scroll to item at index + 2 (because first two items is reserved for optional header and content above the selectionList)
+            animated: true,
+            viewOffset: 4, // scrollToLocation scrolls 4 pixels more than the specified list item, so we need to subtract this using viewOffset
+            viewPosition: 1.0, // Item position: 1.0 = bottom of screen
+        });
+    }, []);
 
     const [disabledArrowKeyIndexes, setDisabledArrowKeyIndexes] = useState(flattenedSections.disabledArrowKeyOptionsIndexes);
     useEffect(() => {
@@ -639,9 +659,9 @@ function BaseSelectionList<TItem extends ListItem>({
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
-        const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
+        const isItemFocused = (selected ? hasKeyBeenPressed.current : !isDisabled) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
-
+        const accessibilityState = {selected: hasKeyBeenPressed.current ? isItemFocused : selected};
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
@@ -676,6 +696,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    accessibilityState={accessibilityState}
                 />
             </View>
         );
@@ -921,8 +942,17 @@ function BaseSelectionList<TItem extends ListItem>({
 
     useImperativeHandle(
         ref,
-        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
-        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
+        () => ({
+            scrollAndHighlightItem,
+            clearInputAfterSelect,
+            updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            scrollToIndex,
+            getFocusedOption,
+            focusTextInput,
+            scrollToFocusedInput,
+        }),
+        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput, scrollToFocusedInput],
     );
 
     /** Selects row when pressing Enter */
@@ -968,6 +998,11 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const shouldHideContentBottomSafeAreaPadding = showConfirmButton || !!footerContent;
 
+    const handleOnEndReached = useCallback(() => {
+        onEndReached?.();
+        incrementPage();
+    }, [onEndReached, incrementPage]);
+
     // TODO: test _every_ component that uses SelectionList
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
@@ -982,6 +1017,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 <>
                     {!listHeaderContent && header()}
                     <SectionList
+                        renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
                         sections={slicedSections}
@@ -1026,10 +1062,10 @@ function BaseSelectionList<TItem extends ListItem>({
                         ListFooterComponent={
                             <>
                                 {footerContentAbovePagination}
-                                {listFooterContent ?? ShowMoreButtonInstance}
+                                {listFooterContent}
                             </>
                         }
-                        onEndReached={onEndReached}
+                        onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
                         addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}

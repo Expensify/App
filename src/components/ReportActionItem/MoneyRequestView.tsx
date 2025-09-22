@@ -28,6 +28,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -36,6 +37,7 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getReportName,
+    getReportOrDraftReport,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -48,11 +50,11 @@ import {
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
-    getAmount,
     getBillable,
     getCurrency,
     getDescription,
     getDistanceInMeters,
+    getFormattedCreated,
     getReimbursable,
     getTagForDisplay,
     getTaxName,
@@ -130,7 +132,7 @@ function MoneyRequestView({
         canBeMissing: true,
     });
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-
+    const isFromMergeTransaction = !!mergeTransactionID;
     const linkedTransactionID = useMemo(() => {
         if (!parentReportAction) {
             return undefined;
@@ -189,7 +191,8 @@ function MoneyRequestView({
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
-    const actualAmount = updatedTransaction ? getAmount(updatedTransaction) : transactionAmount;
+    // Use the updated transaction amount in merge flow to have correct positive/negative sign
+    const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
     const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
@@ -212,6 +215,7 @@ function MoneyRequestView({
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
+    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
@@ -224,6 +228,7 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived) && isEditable;
+
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived);
     const canEditMerchant = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
@@ -260,7 +265,7 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = shouldShowPolicySpecificFields && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}));
+    const shouldShowCategory = (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || isExpenseUnreported;
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = shouldShowPolicySpecificFields && (transactionTag || hasEnabledTags(policyTagLists));
@@ -311,12 +316,12 @@ function MoneyRequestView({
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (!isExpenseUnreported || newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
+            if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
             updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
         },
-        [isExpenseUnreported, transaction, report?.reportID, policy, policyTagList, policyCategories],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories],
     );
 
     const saveReimbursable = useCallback(
@@ -443,6 +448,14 @@ function MoneyRequestView({
                         if (!transaction?.transactionID || !report?.reportID) {
                             return;
                         }
+
+                        if (isManualDistanceRequest) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                            );
+                            return;
+                        }
+
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                         );
@@ -552,6 +565,9 @@ function MoneyRequestView({
         );
     });
 
+    const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
+    const shouldShowReport = !!parentReportID || !!actualParentReport;
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -652,7 +668,7 @@ function MoneyRequestView({
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
                     <MenuItemWithTopDescription
                         description={dateDescription}
-                        title={transactionDate}
+                        title={actualTransactionDate}
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
@@ -682,9 +698,22 @@ function MoneyRequestView({
                                 if (!transaction?.transactionID || !report?.reportID) {
                                     return;
                                 }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
-                                );
+                                if (!policy) {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            iouType,
+                                            transactionID: transaction.transactionID,
+                                            reportID: report.reportID,
+                                            backTo: getReportRHPActiveRoute(),
+                                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                        }),
+                                    );
+                                } else {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                    );
+                                }
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
@@ -807,11 +836,11 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReportID && (
+                {shouldShowReport && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={getReportName(parentReport) || parentReport?.reportName}
+                            title={isExpenseUnreported ? '' : getReportName(actualParentReport) || actualParentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -819,6 +848,20 @@ function MoneyRequestView({
                                 if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
                                     return;
                                 }
+
+                                if (!policy) {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                            iouType,
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            transactionID: transaction?.transactionID,
+                                            reportID: report.reportID,
+                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                        }),
+                                    );
+                                    return;
+                                }
+
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );

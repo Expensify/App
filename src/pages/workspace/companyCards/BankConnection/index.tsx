@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,6 +62,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
+    const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const {isBetaEnabled} = usePermissions();
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
 
@@ -121,6 +123,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (feed) {
             if (!isFeedExpired) {
                 customWindow?.close();
+                if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
+                    Navigation.closeRHPFlow();
+                    return;
+                }
                 setAssignCardStepAndData({
                     currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
@@ -164,7 +171,21 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 customWindow = openBankConnection(url);
             }
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard?.data?.dateOption, isPlaid, onImportPlaidAccounts]);
+    }, [
+        isNewFeedConnected,
+        shouldBlockWindowOpen,
+        newFeed,
+        policyID,
+        url,
+        feed,
+        isFeedExpired,
+        isOffline,
+        assignCard?.data?.dateOption,
+        isPlaid,
+        onImportPlaidAccounts,
+        isFeedConnectionBroken,
+        updateBrokenConnection,
+    ]);
 
     return (
         <ScreenWrapper

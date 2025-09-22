@@ -65,6 +65,7 @@ autocompleteKey "key"
       / to
       / taxRate
       / from
+      / attendee
       / payer
       / exporter
       / createdBy
@@ -87,13 +88,14 @@ autocompleteKey "key"
       / exported
       / withdrawn
       / posted
+      / has
       / purchaseCurrency
       / purchaseAmount
     )
 
 filterKey
   = k:autocompleteKey {
-      nameOperator = (k === "from" || k === "to");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }
 
