@@ -505,12 +505,9 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
-const isHeicOrHeifImage = (file: FileObject) => {
-    return (
-        file?.type?.startsWith('image') &&
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
-    );
+const hasHeicOrHeifExtension = (file: FileObject) => {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
 };
 
 /**
@@ -552,7 +549,7 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
 
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
+    if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
@@ -683,6 +680,6 @@ export {
     normalizeFileObject,
     isValidReceiptExtension,
     getFileValidationErrorText,
-    isHeicOrHeifImage,
+    hasHeicOrHeifExtension,
     getConfirmModalPrompt,
 };

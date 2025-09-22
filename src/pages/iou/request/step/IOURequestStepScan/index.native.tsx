@@ -24,6 +24,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
@@ -44,6 +45,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -68,6 +70,7 @@ import type {GpsPoint} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -112,8 +115,7 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const defaultExpensePolicy = useDefaultExpensePolicy();
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -457,8 +459,13 @@ function IOURequestStepScan({
 
             // If there was no reportID, then that means the user started this flow from the global + menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            if (
+                iouType === CONST.IOU.TYPE.CREATE &&
+                isPaidGroupPolicy(defaultExpensePolicy) &&
+                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
+            ) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
                 // If the initial transaction has different participants selected that means that the user has changed the participant in the confirmation step
                 if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== activePolicyExpenseChat?.reportID) {
@@ -498,7 +505,7 @@ function IOURequestStepScan({
             initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
-            activePolicy,
+            defaultExpensePolicy,
             report,
             initialTransactionID,
             navigateToConfirmationPage,
@@ -518,10 +525,23 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            navigateBack();
+            // Fix for the issue where the navigation state is lost after returning from device settings https://github.com/Expensify/App/issues/65992
+            const navigationState = navigationRef.current?.getState();
+            const reportsSplitNavigator = navigationState?.routes?.find((route) => route.name === 'ReportsSplitNavigator');
+            const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
+            if (hasLostNavigationsState) {
+                if (backTo) {
+                    Navigation.navigate(backTo as Route);
+                } else {
+                    Navigation.navigate(ROUTES.HOME);
+                }
+            } else {
+                navigateBack();
+            }
+
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source});
         },
-        [initialTransactionID],
+        [initialTransactionID, backTo],
     );
 
     /**

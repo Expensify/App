@@ -22,6 +22,7 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
+    canDeleteCardTransactionByLiabilityType,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
@@ -54,7 +55,6 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCardTransaction as isCardTransactionUtils,
     isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -458,8 +458,9 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return true;
     }
 
+    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-        return isOwner;
+        return isOwner && canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport) {
@@ -473,10 +474,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability =
-            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
-
-        if (isCardTransactionWithCorporateLiability) {
+        if (!canCardTransactionBeDeleted) {
             return false;
         }
 

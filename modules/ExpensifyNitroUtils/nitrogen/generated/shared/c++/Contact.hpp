@@ -21,10 +21,10 @@
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
-#include <optional>
 #include <string>
-#include <vector>
+#include <optional>
 #include "StringHolder.hpp"
+#include <vector>
 
 namespace margelo::nitro::utils {
 
@@ -48,27 +48,25 @@ namespace margelo::nitro::utils {
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::utils;
-
   // C++ Contact <> JS Contact (object)
   template <>
-  struct JSIConverter<Contact> final {
-    static inline Contact fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::utils::Contact> final {
+    static inline margelo::nitro::utils::Contact fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
-      return Contact(
+      return margelo::nitro::utils::Contact(
         JSIConverter<std::optional<std::string>>::fromJSI(runtime, obj.getProperty(runtime, "firstName")),
         JSIConverter<std::optional<std::string>>::fromJSI(runtime, obj.getProperty(runtime, "lastName")),
-        JSIConverter<std::optional<std::vector<StringHolder>>>::fromJSI(runtime, obj.getProperty(runtime, "phoneNumbers")),
-        JSIConverter<std::optional<std::vector<StringHolder>>>::fromJSI(runtime, obj.getProperty(runtime, "emailAddresses")),
+        JSIConverter<std::optional<std::vector<margelo::nitro::utils::StringHolder>>>::fromJSI(runtime, obj.getProperty(runtime, "phoneNumbers")),
+        JSIConverter<std::optional<std::vector<margelo::nitro::utils::StringHolder>>>::fromJSI(runtime, obj.getProperty(runtime, "emailAddresses")),
         JSIConverter<std::optional<std::string>>::fromJSI(runtime, obj.getProperty(runtime, "imageData"))
       );
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const Contact& arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::utils::Contact& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, "firstName", JSIConverter<std::optional<std::string>>::toJSI(runtime, arg.firstName));
       obj.setProperty(runtime, "lastName", JSIConverter<std::optional<std::string>>::toJSI(runtime, arg.lastName));
-      obj.setProperty(runtime, "phoneNumbers", JSIConverter<std::optional<std::vector<StringHolder>>>::toJSI(runtime, arg.phoneNumbers));
-      obj.setProperty(runtime, "emailAddresses", JSIConverter<std::optional<std::vector<StringHolder>>>::toJSI(runtime, arg.emailAddresses));
+      obj.setProperty(runtime, "phoneNumbers", JSIConverter<std::optional<std::vector<margelo::nitro::utils::StringHolder>>>::toJSI(runtime, arg.phoneNumbers));
+      obj.setProperty(runtime, "emailAddresses", JSIConverter<std::optional<std::vector<margelo::nitro::utils::StringHolder>>>::toJSI(runtime, arg.emailAddresses));
       obj.setProperty(runtime, "imageData", JSIConverter<std::optional<std::string>>::toJSI(runtime, arg.imageData));
       return obj;
     }
@@ -79,8 +77,8 @@ namespace margelo::nitro {
       jsi::Object obj = value.getObject(runtime);
       if (!JSIConverter<std::optional<std::string>>::canConvert(runtime, obj.getProperty(runtime, "firstName"))) return false;
       if (!JSIConverter<std::optional<std::string>>::canConvert(runtime, obj.getProperty(runtime, "lastName"))) return false;
-      if (!JSIConverter<std::optional<std::vector<StringHolder>>>::canConvert(runtime, obj.getProperty(runtime, "phoneNumbers"))) return false;
-      if (!JSIConverter<std::optional<std::vector<StringHolder>>>::canConvert(runtime, obj.getProperty(runtime, "emailAddresses"))) return false;
+      if (!JSIConverter<std::optional<std::vector<margelo::nitro::utils::StringHolder>>>::canConvert(runtime, obj.getProperty(runtime, "phoneNumbers"))) return false;
+      if (!JSIConverter<std::optional<std::vector<margelo::nitro::utils::StringHolder>>>::canConvert(runtime, obj.getProperty(runtime, "emailAddresses"))) return false;
       if (!JSIConverter<std::optional<std::string>>::canConvert(runtime, obj.getProperty(runtime, "imageData"))) return false;
       return true;
     }

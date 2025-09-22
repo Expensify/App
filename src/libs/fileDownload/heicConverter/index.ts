@@ -1,3 +1,4 @@
+import {hasHeicOrHeifExtension} from '../FileUtils';
 import type {HeicConverterFunction} from './types';
 
 type HeicConverter = {
@@ -8,6 +9,7 @@ type HeicConverter = {
 const getHeicConverter = () => {
     // Use the CSP variant to ensure the library is loaded in a secure context. See https://github.com/hoppergee/heic-to?tab=readme-ov-file#cotent-security-policy
     // Use webpackMode: "eager" to ensure the library is loaded immediately without evaluating the code. See https://github.com/Expensify/App/pull/68727#issuecomment-3227196372
+    // @ts-expect-error - heic-to/csp is not correctly typed but exists
     return import(/* webpackMode: "eager" */ 'heic-to/csp').then(({heicTo, isHeic}: HeicConverter) => ({heicTo, isHeic}));
 };
 
@@ -17,10 +19,7 @@ const getHeicConverter = () => {
  * @param callbacks - Object containing callback functions for different stages of conversion
  */
 const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, onError = () => {}, onStart = () => {}, onFinish = () => {}} = {}) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const needsConversion = file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
-
-    if (!needsConversion || !file.uri || !file.type?.startsWith('image')) {
+    if (!file.uri || !hasHeicOrHeifExtension(file)) {
         onSuccess(file);
         return;
     }
@@ -47,7 +46,7 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
             const fileFromBlob = new File([blob], file.name ?? 'temp-file', {type: blob.type});
 
             return isHeic(fileFromBlob).then((isHEIC) => {
-                if (isHEIC || needsConversion) {
+                if (isHEIC || hasHeicOrHeifExtension(file)) {
                     return heicTo({
                         blob,
                         type: 'image/jpeg',
