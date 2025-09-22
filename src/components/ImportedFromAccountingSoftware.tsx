@@ -49,7 +49,6 @@ function ImportedFromAccountingSoftware({
     const {environmentURL} = useEnvironment();
     const icon = getIntegrationIcon(connectedIntegration);
 
-
     if (!customTagName && isDisplayingTags) {
         return undefined;
     }
