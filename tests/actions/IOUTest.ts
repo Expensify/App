@@ -1628,7 +1628,6 @@ describe('actions/IOU', () => {
             const amount = 5000;
             const comment = 'Shared tracked expense test';
 
-
             // Setup test data - create a self DM report and policy expense chat
             const selfDMReport: Report = {
                 reportID: '1',
@@ -1700,7 +1699,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
             });
-            
+
             mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
