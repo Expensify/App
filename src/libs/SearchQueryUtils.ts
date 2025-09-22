@@ -1050,7 +1050,10 @@ function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
     const lastSearchNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
-    const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+    let lastSearchNavigatorState = lastSearchNavigator?.state;
+    if (!lastSearchNavigatorState) {
+        lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+    }
     if (!lastSearchNavigatorState) {
         return;
     }
