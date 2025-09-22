@@ -334,10 +334,15 @@ function getFilterDisplayTitle(
     if (AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys)) {
         const lessThanKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
         const greaterThanKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
+        const equalToKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
 
         const lessThan = filters[lessThanKey];
         const greaterThan = filters[greaterThanKey];
+        const equalTo = filters[equalToKey];
 
+        if (equalTo) {
+            return translate('search.filters.amount.equalTo', {amount: convertToDisplayStringWithoutCurrency(Number(equalTo))});
+        }
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', {
                 lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
@@ -408,7 +413,7 @@ function getFilterDisplayTitle(
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         const filterValue = filters[key];
-        return filterValue ? filterValue.map((value) => translate(`search.filters.has.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
     }
 
     const filterValue = filters[key];

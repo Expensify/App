@@ -1,13 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,25 +25,8 @@ type EditReportFieldDropdownPageProps = {
 function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [], [recentlyUsedReportFields, fieldKey, localeCompare]);
-
-    const itemRightSideComponent = useCallback(
-        (item: ListItem) => {
-            if (item.text === fieldValue) {
-                return (
-                    <Icon
-                        src={Expensicons.Checkmark}
-                        fill={theme.iconSuccessFill}
-                    />
-                );
-            }
-
-            return null;
-        },
-        [theme.iconSuccessFill, fieldValue],
-    );
 
     const [sections, headerMessage] = useMemo(() => {
         const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
@@ -81,9 +60,8 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             onChangeText={setSearchValue}
             headerMessage={headerMessage}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             isRowMultilineSupported
-            rightHandSideComponent={itemRightSideComponent}
         />
     );
 }
