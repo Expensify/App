@@ -4,7 +4,7 @@ import url from "node:url";
 
 const dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
-const SRC_CAR = path.resolve(dirname, "../Assets.car");
+const SRC_CAR = path.resolve(dirname, "./Assets.car");
 
 // This will copy Assets.car with MacOS Liquid Glass icon
 // and will be removed after Electron supports this natively
