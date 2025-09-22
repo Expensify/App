@@ -507,6 +507,9 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
         if (!created) {
             return;
         }
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
         if (oldestDate && created >= oldestDate) {
             return;
         }
@@ -537,6 +540,9 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     transactions.forEach((transaction) => {
         const created = getCreated(transaction);
         if (!created) {
+            return;
+        }
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
         if (newestDate && created <= newestDate) {
