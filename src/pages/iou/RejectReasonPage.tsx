@@ -28,7 +28,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         removeTransaction(transactionID);
         Navigation.dismissModal();
         if (urlToNavigateBack) {
-            Navigation.goBack(urlToNavigateBack);
+            Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack));
         }
     };
 
