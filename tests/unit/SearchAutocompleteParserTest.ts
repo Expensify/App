@@ -509,6 +509,121 @@ const nameFieldContinuationTests = [
         },
         description: 'Quoted full name should provide autocomplete normally',
     },
+    {
+        query: 'type:chat is:read',
+        expected: {
+            autocomplete: {
+                key: 'is',
+                value: 'read',
+                start: 13,
+                length: 4,
+            },
+            ranges: [
+                {key: 'type', value: 'chat', start: 5, length: 4},
+                {key: 'is', value: 'read', start: 13, length: 4},
+            ],
+        },
+        description: 'Is field with read value should provide autocomplete',
+    },
+    {
+        query: 'type:chat is:unread',
+        expected: {
+            autocomplete: {
+                key: 'is',
+                value: 'unread',
+                start: 13,
+                length: 6,
+            },
+            ranges: [
+                {key: 'type', value: 'chat', start: 5, length: 4},
+                {key: 'is', value: 'unread', start: 13, length: 6},
+            ],
+        },
+        description: 'Is field with unread value should provide autocomplete',
+    },
+    {
+        query: 'type:chat is:pinned',
+        expected: {
+            autocomplete: {
+                key: 'is',
+                value: 'pinned',
+                start: 13,
+                length: 6,
+            },
+            ranges: [
+                {key: 'type', value: 'chat', start: 5, length: 4},
+                {key: 'is', value: 'pinned', start: 13, length: 6},
+            ],
+        },
+        description: 'Is field with pinned value should provide autocomplete',
+    },
+    {
+        query: 'type:chat is:pinned,read,unread',
+        expected: {
+            autocomplete: {
+                key: 'is',
+                value: 'unread',
+                start: 25,
+                length: 6,
+            },
+            ranges: [
+                {key: 'type', value: 'chat', start: 5, length: 4},
+                {key: 'is', value: 'pinned', start: 13, length: 6},
+                {key: 'is', value: 'read', start: 20, length: 4},
+                {key: 'is', value: 'unread', start: 25, length: 6},
+            ],
+        },
+        description: 'Is field with pinned,read,unread values should provide autocomplete',
+    },
+    {
+        query: 'type:chat has:attachment',
+        expected: {
+            autocomplete: {
+                key: 'has',
+                value: 'attachment',
+                start: 14,
+                length: 10,
+            },
+            ranges: [
+                {key: 'type', value: 'chat', start: 5, length: 4},
+                {key: 'has', value: 'attachment', start: 14, length: 10},
+            ],
+        },
+        description: 'Has field with attachment value should provide autocomplete',
+    },
+    {
+        query: 'type:chat has:link',
+        expected: {
+            autocomplete: {
+                key: 'has',
+                value: 'link',
+                start: 14,
+                length: 4,
+            },
+            ranges: [
+                {key: 'type', value: 'chat', start: 5, length: 4},
+                {key: 'has', value: 'link', start: 14, length: 4},
+            ],
+        },
+        description: 'Has field with link value should provide autocomplete',
+    },
+    {
+        query: 'type:chat has:link,attachment',
+        expected: {
+            autocomplete: {
+                key: 'has',
+                value: 'attachment',
+                start: 19,
+                length: 10,
+            },
+            ranges: [
+                {key: 'type', value: 'chat', start: 5, length: 4},
+                {key: 'has', value: 'link', start: 14, length: 4},
+                {key: 'has', value: 'attachment', start: 19, length: 10},
+            ],
+        },
+        description: 'Has field with link,attachment values should provide autocomplete',
+    },
 ];
 
 describe('autocomplete parser', () => {
