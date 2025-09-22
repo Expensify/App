@@ -31,7 +31,7 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
     return Object.values(actions ?? {}).filter(isMoneyRequestAction);
 };
 
-const getSplitsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[] => {
+const getSplitsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
     return Object.values(actions ?? {})
         .filter(isMoneyRequestAction)
         .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
@@ -71,9 +71,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const attendeesIDs = transactions
         // If the transaction is a split, then attendees are not present as a property so we need to use a helper function.
         ?.flatMap<number | undefined>((tr) =>
-            tr.comment?.attendees?.map?.((att) =>
-                tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits as Array<ReportAction<'IOU'>>) : getPersonalDetailByEmail(att.email)?.accountID,
-            ),
+            tr.comment?.attendees?.map?.((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
         )
         .filter((accountID) => !!accountID);
 

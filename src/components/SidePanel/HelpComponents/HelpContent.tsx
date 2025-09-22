@@ -48,7 +48,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
 
     const getParentIOUReportActionSelector = useCallback(
-        (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+        (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
             return Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
                 .filter(isMoneyRequestAction)
@@ -64,7 +64,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     const transactionID = useMemo(() => {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
-        return getOriginalMessage((parentIOUReportAction as ReportAction<'IOU'>) ?? transactionThreadReportAction)?.IOUTransactionID;
+        return getOriginalMessage(parentIOUReportAction ?? transactionThreadReportAction)?.IOUTransactionID;
     }, [report, chatReport, reportActions, parentIOUReportAction]);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
