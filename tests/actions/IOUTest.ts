@@ -1627,27 +1627,7 @@ describe('actions/IOU', () => {
         it('correctly implements RedBrickRoad error handling for ShareTrackedExpense when inviting new user to workspace', async () => {
             const amount = 5000;
             const comment = 'Shared tracked expense test';
-            let selfDMReportID: string | undefined;
-            let policyExpenseChatReportID: string | undefined;
-            let transactionID: string | undefined;
-            let linkedTrackedExpenseReportAction: OnyxEntry<ReportAction>;
-            let linkedTrackedExpenseReportID: string | undefined;
-            let actionableWhisperReportActionID: string | undefined;
-            let moneyRequestReportID: string | undefined;
 
-            // Helper function to promisify Onyx.connect
-            const waitForOnyxData = <T>(key: string, waitForCollection = false): Promise<T> => {
-                return new Promise<T>((resolve) => {
-                    const connection = Onyx.connect({
-                        key,
-                        waitForCollectionCallback: waitForCollection,
-                        callback: (data) => {
-                            Onyx.disconnect(connection);
-                            resolve(data as T);
-                        },
-                    });
-                });
-            };
 
             // Setup test data - create a self DM report and policy expense chat
             const selfDMReport: Report = {
@@ -1724,21 +1704,38 @@ describe('actions/IOU', () => {
             mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
+            // Helper for collection data that requires waitForCollectionCallback
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const waitForCollectionData = <T>(key: string): Promise<T> => {
+                return new Promise<T>((resolve) => {
+                    const connection = Onyx.connect({
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        key: key as any,
+                        waitForCollectionCallback: true,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        callback: (data: any) => {
+                            Onyx.disconnect(connection);
+                            resolve(data as T);
+                        },
+                    });
+                });
+            };
+
             // Capture the created tracked expense data
-            const allReports = await waitForOnyxData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT, true);
+            const allReports = await waitForCollectionData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT);
             const reports = Object.values(allReports ?? {});
             const selfDMReportOnyx = reports.find((report) => report?.reportID === selfDMReport.reportID);
-            selfDMReportID = selfDMReportOnyx?.reportID;
+            const selfDMReportID = selfDMReportOnyx?.reportID;
 
-            const reportActions = await waitForOnyxData<OnyxCollection<ReportAction>>(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`);
             const actions = Object.values(reportActions ?? {});
-            linkedTrackedExpenseReportAction = actions.find((action) => isMoneyRequestAction(action));
-            actionableWhisperReportActionID = actions.find((action) => isActionableTrackExpense(action))?.reportActionID;
+            const linkedTrackedExpenseReportAction = actions.find((action) => action && isMoneyRequestAction(action));
+            const actionableWhisperReportActionID = actions.find((action) => action && isActionableTrackExpense(action))?.reportActionID;
 
-            const allTransactions = await waitForOnyxData<OnyxCollection<Transaction>>(ONYXKEYS.COLLECTION.TRANSACTION, true);
+            const allTransactions = await waitForCollectionData<OnyxCollection<Transaction>>(ONYXKEYS.COLLECTION.TRANSACTION);
             const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-            transactionID = transaction?.transactionID;
-            linkedTrackedExpenseReportID = transaction?.reportID;
+            const transactionID = transaction?.transactionID;
+            const linkedTrackedExpenseReportID = transaction?.reportID;
 
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
@@ -1772,15 +1769,15 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Verify optimistic data is created with pending status
-            const allReportsAfterShare = await waitForOnyxData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT, true);
+            const allReportsAfterShare = await waitForCollectionData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT);
             const reportsAfterShare = Object.values(allReportsAfterShare ?? {});
 
             // Find the policy expense chat and money request report
             const policyExpenseChatOnyx = reportsAfterShare.find((report) => report?.reportID === policyExpenseChat.reportID);
             const moneyRequestReport = reportsAfterShare.find((report) => report?.type === CONST.REPORT.TYPE.IOU);
 
-            policyExpenseChatReportID = policyExpenseChatOnyx?.reportID;
-            moneyRequestReportID = moneyRequestReport?.reportID;
+            const policyExpenseChatReportID = policyExpenseChatOnyx?.reportID;
+            const moneyRequestReportID = moneyRequestReport?.reportID;
 
             // Verify accountant was added to the expense chat
             expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
@@ -1790,25 +1787,25 @@ describe('actions/IOU', () => {
             expect(moneyRequestReport?.type).toBe(CONST.REPORT.TYPE.IOU);
 
             // Verify money request report actions are pending
-            const moneyRequestReportActions = await waitForOnyxData<OnyxCollection<ReportAction>>(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`);
+            const moneyRequestReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`);
             const moneyRequestActions = Object.values(moneyRequestReportActions ?? {});
-            const createdAction = moneyRequestActions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-            const iouAction = moneyRequestActions.find((action) => isMoneyRequestAction(action));
+            const createdAction = moneyRequestActions.find((action) => action && action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            const iouAction = moneyRequestActions.find((action) => action && isMoneyRequestAction(action));
 
             // Both actions should be pending
             expect(createdAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(iouAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
             // Verify policy expense chat report preview is pending
-            const policyExpenseChatActions = await waitForOnyxData<OnyxCollection<ReportAction>>(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatReportID}`);
+            const policyExpenseChatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChatReportID}`);
             const policyExpenseActions = Object.values(policyExpenseChatActions ?? {});
-            const reportPreviewAction = policyExpenseActions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            const reportPreviewAction = policyExpenseActions.find((action) => action && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
 
             // Report preview should be pending
             expect(reportPreviewAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
             // Verify transaction is pending
-            const transactionData = await waitForOnyxData<Transaction>(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transactionData = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
             // Transaction should be pending
             expect(transactionData?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -1818,7 +1815,7 @@ describe('actions/IOU', () => {
             await (mockFetch?.resume?.() as Promise<unknown>);
 
             // Verify error handling after failure - focus on workspace invitation error
-            const policyData = await waitForOnyxData<Policy>(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
 
             // The new accountant should have been added to the employee list with error
             const accountantEmployee = policyData?.employeeList?.[accountant.email];
