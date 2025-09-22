@@ -13,7 +13,6 @@ import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

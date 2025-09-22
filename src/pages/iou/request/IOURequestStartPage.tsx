@@ -22,7 +22,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
