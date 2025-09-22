@@ -48,6 +48,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {transactionViolationsSelector} from '@src/selectors/Transaction';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
 
@@ -141,17 +142,7 @@ function PolicyDistanceRatesPage({
     const eligibleTransactionIDs = eligibleTransactionsData?.transactionIDs;
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (violations) => {
-            if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
-                return undefined;
-            }
-            return Object.fromEntries(
-                Object.entries(violations ?? {}).filter(([key]) => {
-                    const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
-                    return eligibleTransactionIDs?.has(id);
-                }),
-            );
-        },
+        selector: (violations) => transactionViolationsSelector(violations, eligibleTransactionIDs),
         canBeMissing: true,
     });
 
