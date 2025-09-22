@@ -646,6 +646,9 @@ const translations = {
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
         purchaseAmount: 'Importe de compra',
+        link: 'Enlace',
+        pinned: 'Fijado',
+        read: 'Leído',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -6146,9 +6149,6 @@ const translations = {
             keyword: 'Palabra clave',
             keywords: 'Palabras clave',
             currency: 'Divisa',
-            link: 'Enlace',
-            pinned: 'Fijado',
-            unread: 'No leído',
             completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
@@ -6187,6 +6187,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
             },
+            is: 'Es',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
