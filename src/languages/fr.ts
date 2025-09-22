@@ -1315,6 +1315,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Aucune dépense non déclarée',
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
+        newReport: 'Nouveau rapport',
         explainHold: 'Expliquez pourquoi vous retenez cette dépense.',
         retracted: 'retraité',
         retract: 'Retirer',
@@ -5520,7 +5521,7 @@ const translations = {
             },
             categories: {
                 title: 'Catégories',
-                description: `Les catégories vous aident à mieux organiser vos dépenses pour suivre où vous dépensez votre argent. Utilisez notre liste de catégories suggérées ou créez les vôtres.`,
+                description: "Les catégories vous permettent de suivre et d'organiser les dépenses. Utilisez nos catégories par défaut ou ajoutez les vôtres.",
                 onlyAvailableOnPlan: 'Les catégories sont disponibles sur le plan Collect, à partir de',
             },
             glCodes: {
@@ -5560,6 +5561,12 @@ const translations = {
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
                 onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
             },
+            reports: {
+                title: 'Rapports',
+                description:
+                    'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
+                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
+            },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',
                 description:
@@ -5592,6 +5599,7 @@ const translations = {
                 travelMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant commencer à réserver et à gérer vos voyages !`,
                 distanceRateMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant modifier le taux de distance !`,
                 gotIt: 'Compris, merci',
+                createdWorkspace: 'Vous avez créé un espace de travail !',
             },
             commonFeatures: {
                 title: 'Passez au plan Control',
@@ -6168,6 +6176,7 @@ const translations = {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Moins de ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Supérieur à ${amount ?? ''}`,
                 between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Entre ${greaterThan} et ${lessThan}`,
+                equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Égal à ${amount ?? ''}`,
             },
             card: {
                 expensify: 'Expensify',
@@ -6199,9 +6208,6 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
-            },
-            has: {
-                receipt: 'Reçu',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
