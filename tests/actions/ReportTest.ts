@@ -2106,7 +2106,7 @@ describe('actions/Report', () => {
             expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
         });
 
-        it('correctly implements RedBrickRoad error handling when network fails', async () => {
+        it('correctly implements RedBrickRoad error handling for MoveIOUReportToPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
             const ownerAccountID = 999;
             const ownerEmail = 'submitter@test.com';
             const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
