@@ -803,7 +803,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const shouldShowWideRHP =
         route.name === SCREENS.SEARCH.REPORT_RHP &&
         !isSmallScreenWidth &&
-        (isTransactionThread(parentReportAction) || parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE || parentReportAction?.childType === CONST.REPORT.TYPE.IOU);
+        (isTransactionThread(parentReportAction) ||
+            parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
+            parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
+            report?.type === CONST.REPORT.TYPE.EXPENSE ||
+            report?.type === CONST.REPORT.TYPE.IOU);
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
