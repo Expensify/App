@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -171,6 +171,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
+
+    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
+    accessibilityState?: AccessibilityState;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -249,4 +252,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-export type {BaseListItemProps, ExtendedTargetedEvent, ListItem, ListItemProps, ListItemFocusEventHandler, RadioListItemProps, ValidListItem};
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+export type {BaseListItemProps, ExtendedTargetedEvent, ListItem, ListItemProps, ListItemFocusEventHandler, RadioListItemProps, SingleSelectListItemProps, ValidListItem};
