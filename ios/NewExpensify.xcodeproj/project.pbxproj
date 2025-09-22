@@ -2037,7 +2037,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1DBCEBFB324A784D74DCC642 /* Pods-NewExpensify.debugadhoc.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
@@ -2285,7 +2285,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = AFCFBB84F5C2C2B61BCF3DDF /* Pods-NewExpensify.releaseadhoc.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconAdHoc;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
