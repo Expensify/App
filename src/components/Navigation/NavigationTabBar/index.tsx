@@ -30,11 +30,11 @@ import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScr
 import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
-import type {NavigationPartialRoute, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -42,7 +42,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -143,15 +143,21 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
-            const lastSearchRoute = lastSearchNavigatorState?.routes.at(-1) as NavigationPartialRoute<keyof SearchFullscreenNavigatorParamList> | undefined;
-            if (lastSearchRoute && lastSearchRoute.params) {
-                navigationRef.dispatch(
-                    StackActions.push(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {
-                        screen: lastSearchRoute.name,
-                        params: lastSearchRoute.params,
-                    }),
-                );
-                return;
+            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+
+            if (lastSearchRoute) {
+                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+                const queryJSON = buildSearchQueryJSON(q);
+                if (queryJSON) {
+                    const query = buildSearchQueryString(queryJSON);
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query,
+                            ...rest,
+                        }),
+                    );
+                    return;
+                }
             }
 
             const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
