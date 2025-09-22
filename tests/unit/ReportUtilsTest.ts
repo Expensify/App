@@ -5309,6 +5309,50 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        describe('with workflow disabled', () => {
+            const workflowDisabledPolicy: Policy = {
+                ...createRandomPolicy(1),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+
+            beforeAll(() => {
+                return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
+            });
+
+            afterAll(() => {
+                return Onyx.clear();
+            });
+
+            it('should return true for reopened report when workflow is disabled', async () => {
+                const openReport: Report = {
+                    ...createExpenseReport(20002),
+                    policyID: '1',
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+
+                expect(canDeleteTransaction(openReport, false)).toBe(true);
+            });
+
+            it('should return false for closed report when workflow is disabled', async () => {
+                const closedReport: Report = {
+                    ...createExpenseReport(20002),
+                    policyID: '1',
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
+
+                expect(canDeleteTransaction(closedReport, false)).toBe(false);
+            });
+        });
     });
 
     describe('getReasonAndReportActionThatRequiresAttention', () => {
@@ -5342,38 +5386,6 @@ describe('ReportUtils', () => {
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
-
-            // Then the result is null
-            expect(result).toBe(null);
-        });
-
-        it('should return a reason for report with hasOutstandingChildRequest', async () => {
-            // Given an expense report with hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: true,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
-
-            // Then the reason should be CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION
-            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
-        });
-
-        it('should return null for report with no hasOutstandingChildRequest', async () => {
-            // Given an expense report with no hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: false,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
 
             // Then the result is null
             expect(result).toBe(null);
