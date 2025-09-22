@@ -206,7 +206,7 @@ function IOURequestStartPage({
             if (index === 0) {
                 amountInputRef.current?.focus();
             } else if (index === 3) {
-                perDiemInputRef.current?.focus?.();
+                perDiemInputRef.current?.focus();
             }
         });
     };
