@@ -30,17 +30,15 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import variables from '@styles/variables';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportFieldForList = ListItem & {
     fieldID: string;
@@ -73,7 +71,7 @@ function WorkspaceReportFieldsPage({
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const hasReportAccountingConnections = hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
             return {};
@@ -81,15 +79,14 @@ function WorkspaceReportFieldsPage({
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
-    const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
-        if (!hasAccountingConnection) {
+        if (!hasAccountingConnections) {
             return;
         }
         setIsOrganizeWarningModalOpen(true);
-    }, [hasAccountingConnection]);
+    }, [hasAccountingConnections]);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -269,7 +266,7 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasAccountingConnection}
+                                disabled={hasAccountingConnections}
                                 disabledAction={onDisabledOrganizeSwitchPress}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
@@ -278,11 +275,10 @@ function WorkspaceReportFieldsPage({
                                                 <FlashList
                                                     data={reportFieldsSections}
                                                     renderItem={renderItem}
-                                                    estimatedItemSize={variables.optionRowHeight}
                                                     keyExtractor={keyExtractor}
                                                 />
                                             </View>
-                                            {!hasReportAccountingConnections && (
+                                            {!hasAccountingConnections && (
                                                 <MenuItem
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                                                     title={translate('workspace.reportFields.addField')}

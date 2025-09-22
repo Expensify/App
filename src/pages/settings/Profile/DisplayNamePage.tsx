@@ -27,8 +27,13 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 /**
  * Submit form to update user's first and last name (and display name)
  */
-const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
-    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber);
+const updateDisplayName = (
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserAccountID: number,
+    currentUserEmail: string,
+) => {
+    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, currentUserAccountID, currentUserEmail);
     Navigation.goBack();
 };
 
@@ -82,7 +87,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber)}
+                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber, currentUserDetails?.accountID, currentUserDetails?.email ?? '')}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur

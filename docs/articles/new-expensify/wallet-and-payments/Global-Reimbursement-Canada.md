@@ -30,7 +30,7 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Set Your Workspace Currency and Enable Payments
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Overview**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, choose **CAD$**.
 3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
 4. Click **Connect bank account**, then confirm your **currency and country** (Canada – CAD$).
@@ -50,7 +50,7 @@ To comply with financial regulations, the following documents are needed:
    * Address
    * Phone number
    * Business Number (BN), 9 digits (e.g., 123456789)
-   * Incorporation country and province 
+   * Incorporation country and province
 4. **Complete Business Details**
    * Incorporation country and province
    * Incorporation type
@@ -65,7 +65,7 @@ To comply with financial regulations, the following documents are needed:
      - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
    - If **you are not** a Director/Senior Officer:
      - Enter details for someone who is.
-     - Expensify will send a message to the Director/Senior Officer outlining what's required. 
+     - Expensify will send a message to the Director/Senior Officer outlining what's required.
      - They must also provide ID and proof of address.
 
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
@@ -101,7 +101,7 @@ To reimburse members:
 
 ## How do members add their deposit-only accounts?
 
-1. In the left-hand menu, go to **Account > Wallet**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
 2. Click **Add deposit-only bank account**.
 3. Enter personal bank details.
 
