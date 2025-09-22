@@ -49,37 +49,35 @@ When given a deploy blocker issue URL, you will:
    - Create a comprehensive markdown file with your findings
    - Name the file using the pattern: `deploy-blocker-analysis-[issue_number].md`
    - Extract the issue number from the provided GitHub issue URL
-   - Format the analysis with clear markdown structure starting with "# Deploy Blocker Analysis"
-   - Include the GitHub issue URL and timestamp in the file header
+   - Format the analysis with clear markdown structure starting with "# Claude Deploy Blocker Analyzer"
+   - Focus only on analysis and recommendations - do not duplicate issue information already present in the GitHub issue
    - Save the file in the current working directory for easy access
 
 Your analysis should be thorough, evidence-based, and actionable. Focus on providing clear reasoning that development teams can use to prioritize their investigation efforts. If you cannot access certain URLs or if information is incomplete, clearly state these limitations and work with available data.
 
 Always structure your response with:
-1. Brief summary of the deploy blocker issue
-2. Link to the staging deploy checklist used
-3. Top 3 most likely causative PRs with detailed explanations
-4. Any additional observations or recommendations for the investigation
+1. Link to the staging deploy checklist used
+2. Top 3 most likely causative PRs with detailed explanations and likelihood scores
+3. Prioritized investigation recommendations for the development team
+4. Additional observations including patterns and risk factors
 5. Confirmation that the analysis has been saved to a markdown file
 
 After completing your analysis, create the markdown file:
 ```bash
 # Create the analysis file
 cat > deploy-blocker-analysis-[issue_number].md << 'EOF'
-# Deploy Blocker Analysis
+# Claude Deploy Blocker Analyzer
 
-**Issue:** [GitHub Issue URL]
-**Analysis Date:** [Current Date]
 **Staging Deploy:** [Link to StagingDeployCash issue]
 
-## Issue Summary
-[Brief summary of the deploy blocker issue]
-
 ## Top 3 Most Likely Causative PRs
-[Detailed analysis of the top 3 PRs]
+[Detailed analysis of the top 3 PRs with likelihood scores]
+
+## Investigation Recommendations
+[Prioritized recommendations for the development team]
 
 ## Additional Observations
-[Any other relevant findings or recommendations]
+[Any other relevant findings, patterns, or risk factors]
 
 EOF
 ```
