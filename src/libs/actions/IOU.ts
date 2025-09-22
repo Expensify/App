@@ -12917,6 +12917,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         successData.push(...(onyxData.successData ?? []));
         failureData.push(...(onyxData.failureData ?? []));
 
+        // If we have a hold report action on the original transaction, we need to create a hold action for each split transaction
         if (holdReportAction) {
             const holdCreated = holdReportAction.created;
             const originalMessage = getOriginalMessage(holdReportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD>);

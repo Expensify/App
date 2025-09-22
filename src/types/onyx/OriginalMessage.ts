@@ -546,18 +546,18 @@ type OriginalMessageJoinPolicy = {
     email?: string;
 };
 
-/** Model of hold report action */
+/** Model of a hold report action */
 type OriginalMessageHold = {
-    /** ID of the account */
+    /** Unique identifier of the account */
     accountID?: number;
 
-    /** Date timestamp */
+    /** Creation date as an ISO timestamp */
     date?: string;
 
-    /** When was it last modified */
+    /** Last modification date as an ISO timestamp */
     lastModified?: string;
 
-    /** The message of Hold */
+    /** Hold message text */
     message?: string;
 };
 
