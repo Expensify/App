@@ -1704,38 +1704,33 @@ describe('actions/IOU', () => {
             mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            // Helper for collection data that requires waitForCollectionCallback
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const waitForCollectionData = <T>(key: string): Promise<T> => {
-                return new Promise<T>((resolve) => {
-                    const connection = Onyx.connect({
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        key: key as any,
-                        waitForCollectionCallback: true,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        callback: (data: any) => {
-                            Onyx.disconnect(connection);
-                            resolve(data as T);
-                        },
-                    });
-                });
-            };
-
             // Capture the created tracked expense data
-            const allReports = await waitForCollectionData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT);
-            const reports = Object.values(allReports ?? {});
-            const selfDMReportOnyx = reports.find((report) => report?.reportID === selfDMReport.reportID);
-            const selfDMReportID = selfDMReportOnyx?.reportID;
+            let selfDMReportID: string | undefined;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    const selfDMReportOnyx = Object.values(reports ?? {}).find((report) => report?.reportID === selfDMReport.reportID);
+                    selfDMReportID = selfDMReportOnyx?.reportID;
+                },
+            });
 
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`);
             const actions = Object.values(reportActions ?? {});
             const linkedTrackedExpenseReportAction = actions.find((action) => action && isMoneyRequestAction(action));
             const actionableWhisperReportActionID = actions.find((action) => action && isActionableTrackExpense(action))?.reportActionID;
 
-            const allTransactions = await waitForCollectionData<OnyxCollection<Transaction>>(ONYXKEYS.COLLECTION.TRANSACTION);
-            const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-            const transactionID = transaction?.transactionID;
-            const linkedTrackedExpenseReportID = transaction?.reportID;
+            let transactionID: string | undefined;
+            let linkedTrackedExpenseReportID: string | undefined;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
+                    transactionID = transaction?.transactionID;
+                    linkedTrackedExpenseReportID = transaction?.reportID;
+                },
+            });
 
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
@@ -1769,15 +1764,24 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Verify optimistic data is created with pending status
-            const allReportsAfterShare = await waitForCollectionData<OnyxCollection<Report>>(ONYXKEYS.COLLECTION.REPORT);
-            const reportsAfterShare = Object.values(allReportsAfterShare ?? {});
+            let policyExpenseChatReportID: string | undefined;
+            let moneyRequestReportID: string | undefined;
+            let policyExpenseChatOnyx: Report | undefined;
+            let moneyRequestReport: Report | undefined;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReportsAfterShare) => {
+                    const reportsAfterShare = Object.values(allReportsAfterShare ?? {});
+                    
+                    // Find the policy expense chat and money request report
+                    policyExpenseChatOnyx = reportsAfterShare.find((report) => report?.reportID === policyExpenseChat.reportID);
+                    moneyRequestReport = reportsAfterShare.find((report) => report?.type === CONST.REPORT.TYPE.IOU);
 
-            // Find the policy expense chat and money request report
-            const policyExpenseChatOnyx = reportsAfterShare.find((report) => report?.reportID === policyExpenseChat.reportID);
-            const moneyRequestReport = reportsAfterShare.find((report) => report?.type === CONST.REPORT.TYPE.IOU);
-
-            const policyExpenseChatReportID = policyExpenseChatOnyx?.reportID;
-            const moneyRequestReportID = moneyRequestReport?.reportID;
+                    policyExpenseChatReportID = policyExpenseChatOnyx?.reportID;
+                    moneyRequestReportID = moneyRequestReport?.reportID;
+                },
+            });
 
             // Verify accountant was added to the expense chat
             expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
