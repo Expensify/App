@@ -644,7 +644,7 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: true,
+                isLoading: false,
                 delegatedAccess: {
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
