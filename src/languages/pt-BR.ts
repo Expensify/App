@@ -4907,11 +4907,11 @@ const translations = {
                 prompt6: 'sobre os níveis de tag.',
             },
             overrideMultiTagWarning: {
-                title: '',
-                prompt1: '',
-                prompt2: '',
-                prompt3: '',
-                prompt4: '',
+                title: 'Importar tags',
+                prompt1: 'Você tem certeza?',
+                prompt2: ' As tags existentes serão substituídas, mas você pode',
+                prompt3: ' baixar um backup',
+                prompt4: ' primeiro.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Encontramos *${columnCounts} colunas* na sua planilha. Selecione *Nome* ao lado da coluna que contém os nomes das tags. Você também pode selecionar *Ativado* ao lado da coluna que define o status das tags.`,

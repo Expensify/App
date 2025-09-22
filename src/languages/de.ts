@@ -4895,11 +4895,11 @@ const translations = {
                 prompt6: 'about tag levels.',
             },
             overrideMultiTagWarning: {
-                title: '',
-                prompt1: '',
-                prompt2: '',
-                prompt3: '',
-                prompt4: '',
+                title: 'Tags importieren',
+                prompt1: 'Bist du sicher?',
+                prompt2: ' Die vorhandenen Tags werden überschrieben, aber Sie können',
+                prompt3: ' ein Backup herunterladen',
+                prompt4: ' zuerst.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Wir haben *${columnCounts} Spalten* in Ihrer Tabelle gefunden. Wählen Sie *Name* neben der Spalte, die die Tag-Namen enthält. Sie können auch *Aktiviert* neben der Spalte auswählen, die den Tag-Status festlegt.`,

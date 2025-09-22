@@ -4821,11 +4821,11 @@ const translations = {
                 prompt6: '关于标签级别。',
             },
             overrideMultiTagWarning: {
-                title: '',
-                prompt1: '',
-                prompt2: '',
-                prompt3: '',
-                prompt4: '',
+                title: '导入标签',
+                prompt1: '你确定吗？',
+                prompt2: ' 现有标签将被覆盖，但您可以',
+                prompt3: ' 下载备份文件',
+                prompt4: ' 第一。',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `我们在您的电子表格中找到了*${columnCounts} 列*。在包含标签名称的列旁边选择*名称*。您还可以在设置标签状态的列旁边选择*启用*。`,

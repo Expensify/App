@@ -4901,12 +4901,11 @@ const translations = {
                 prompt6: 'o poziomach tagów.',
             },
             overrideMultiTagWarning: {
-                title: '',
-                prompt1: '',
-                prompt2: '',
-                prompt3: '',
-                prompt4: '',
-            },
+                title: 'Importuj tagi',
+                prompt1: 'Czy jesteś pewien?',
+                prompt2: ' Istniejące tagi zostaną nadpisane, ale możesz',
+                prompt3: ' pobierz kopię zapasową',
+                prompt4: ' pierwszy.',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Znaleźliśmy *${columnCounts} kolumny* w Twoim arkuszu kalkulacyjnym. Wybierz *Nazwa* obok kolumny, która zawiera nazwy tagów. Możesz również wybrać *Włączone* obok kolumny, która ustawia status tagów.`,
             cannotDeleteOrDisableAllTags: {

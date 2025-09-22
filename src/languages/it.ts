@@ -4910,11 +4910,11 @@ const translations = {
                 prompt6: 'about tag levels.',
             },
             overrideMultiTagWarning: {
-                title: '',
-                prompt1: '',
-                prompt2: '',
-                prompt3: '',
-                prompt4: '',
+                title: 'Importa tag',
+                prompt1: 'Sei sicuro?',
+                prompt2: ' I tag esistenti verranno sovrascritti, ma puoi',
+                prompt3: ' scarica un backup',
+                prompt4: ' primo.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Abbiamo trovato *${columnCounts} colonne* nel tuo foglio di calcolo. Seleziona *Nome* accanto alla colonna che contiene i nomi dei tag. Puoi anche selezionare *Abilitato* accanto alla colonna che imposta lo stato dei tag.`,

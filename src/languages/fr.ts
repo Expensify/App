@@ -4912,11 +4912,11 @@ const translations = {
                 prompt6: 'à propos des niveaux de balises.',
             },
             overrideMultiTagWarning: {
-                title: '',
-                prompt1: '',
-                prompt2: '',
-                prompt3: '',
-                prompt4: '',
+                title: 'Importer des étiquettes',
+                prompt1: 'Êtes-vous sûr ?',
+                prompt2: ' Les balises existantes seront remplacées, mais vous pouvez',
+                prompt3: ' télécharger une sauvegarde',
+                prompt4: ' premier.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Nous avons trouvé *${columnCounts} colonnes* dans votre feuille de calcul. Sélectionnez *Nom* à côté de la colonne contenant les noms des balises. Vous pouvez également sélectionner *Activé* à côté de la colonne qui définit le statut des balises.`,
