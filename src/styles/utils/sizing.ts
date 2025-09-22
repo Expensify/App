@@ -143,10 +143,6 @@ export default {
         maxWidth: '100%',
     },
 
-    mwFitContent: {
-        maxWidth: 'fit-content',
-    },
-
     wAuto: {
         width: 'auto',
     },

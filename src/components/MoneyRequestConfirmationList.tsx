@@ -71,8 +71,8 @@ import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFo
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import SelectionList from './SelectionList';
+import NewChatListItem from './SelectionList/NewChatListItem';
 import type {SectionListDataType} from './SelectionList/types';
-import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -1185,7 +1185,7 @@ function MoneyRequestConfirmationList({
         <MouseProvider>
             <SelectionList<MoneyRequestConfirmationListItem>
                 sections={sections}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}

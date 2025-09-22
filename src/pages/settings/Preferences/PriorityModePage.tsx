@@ -4,13 +4,13 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
+import {updateChatPriorityMode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,11 +22,9 @@ type PriorityModeItem = {
     isSelected: boolean;
 };
 
-const priorityModeSelector = (mode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => mode ?? CONST.PRIORITY_MODE.DEFAULT;
-
 function PriorityModePage() {
     const {translate} = useLocalize();
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: priorityModeSelector});
+    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const styles = useThemeStyles();
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
@@ -42,7 +40,7 @@ function PriorityModePage() {
                 Navigation.goBack();
                 return;
             }
-            User.updateChatPriorityMode(mode.value);
+            updateChatPriorityMode(mode.value);
         },
         [priorityMode],
     );
@@ -59,7 +57,7 @@ function PriorityModePage() {
             <Text style={[styles.mh5, styles.mv3]}>{translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={updateMode}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
