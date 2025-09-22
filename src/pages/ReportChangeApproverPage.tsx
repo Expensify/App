@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -109,7 +109,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 sections={sections}
                 isAlternateTextMultilineSupported
                 onSelectRow={(option) => {

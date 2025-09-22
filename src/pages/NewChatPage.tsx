@@ -4,14 +4,13 @@ import reject from 'lodash/reject';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
+import NewChatListItem from '@components/SelectionList/NewChatListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -312,18 +311,13 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
 
             if (item.isSelected) {
                 return (
-                    <PressableWithFeedback
+                    <Checkbox
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        disabled={item.isDisabled || item.isDisabledCheckbox}
+                        accessibilityLabel={CONST.ROLE.CHECKBOX}
+                        isChecked={item.isSelected}
                         onPress={() => toggleOption(item)}
-                        disabled={item.isDisabled}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
+                    />
                 );
             }
             const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
@@ -337,7 +331,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 />
             );
         },
-        [toggleOption, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
+        [toggleOption, styles.buttonDefaultHovered, styles.pl2, translate],
     );
 
     const createGroup = useCallback(() => {
@@ -392,7 +386,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         >
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
