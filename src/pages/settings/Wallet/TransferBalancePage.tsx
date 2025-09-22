@@ -146,7 +146,7 @@ function TransferBalancePage() {
     const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
 
     return (
-        <ScreenWrapper 
+        <ScreenWrapper
             testID={TransferBalancePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
         >
