@@ -1,4 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import lastVisitedPathSelector from '@selectors/LastVisitedPath';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +16,7 @@ type UserTypingEventListenerProps = {
     report: OnyxTypes.Report;
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {selector: (path) => path ?? ''});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {selector: lastVisitedPathSelector});
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();

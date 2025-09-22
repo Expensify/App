@@ -1,3 +1,4 @@
+import {hasIntroSelectedSelector} from '@selectors/IntroSelected';
 import {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -6,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 export default function useOnboardingMessages() {
     const {preferredLocale} = useLocalize();
-    const [hasIntroSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true, selector: (introSelected) => !!introSelected?.choice});
+    const [hasIntroSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true, selector: hasIntroSelectedSelector});
     const onboardingMessages = useMemo(() => getOnboardingMessages(hasIntroSelected, preferredLocale), [hasIntroSelected, preferredLocale]);
     return onboardingMessages;
 }

@@ -1,3 +1,4 @@
+import hasVBASelector from '@selectors/ReimbursementAccount';
 import React from 'react';
 import type {TupleToUnion} from 'type-fest';
 import CurrencySelectionList from '@components/CurrencySelectionList';
@@ -33,7 +34,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [isForcedToChangeCurrency] = useOnyx(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, {canBeMissing: true});
-    const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: (value) => value?.achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN, canBeMissing: true});
+    const [hasVBA = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: hasVBASelector, canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const onSelectCurrency = (item: CurrencyListItem) => {
