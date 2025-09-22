@@ -4584,9 +4584,10 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
 /**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
- NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
+ *
+ * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: SearchTransaction[]) {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: SearchTransaction[]): OnyxEntry<Transaction> | SearchTransaction {
     let transactionID: string | undefined;
 
     if (isMoneyRequestAction(reportAction)) {
