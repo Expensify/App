@@ -5,10 +5,40 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 // eslint-disable-next-line import/no-cycle
 import {getAdaptedState, getRoutesWithIndex} from './getAdaptedStateFromPath';
+// eslint-disable-next-line import/no-cycle
 import getStateFromPath from './getStateFromPath';
 
 function addVerifyAccountRoute(path: string) {
-    const pathWithoutVerifyAccount = path.replace('/verify-account', '');
+    const verifyAccountState = {
+        routes: [
+            {
+                name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                state: {
+                    routes: [
+                        {
+                            name: SCREENS.RIGHT_MODAL.SETTINGS,
+                            state: {
+                                routes: [
+                                    {
+                                        name: SCREENS.SETTINGS.VERIFY_ACCOUNT,
+                                        path,
+                                    },
+                                ],
+                                index: 0,
+                            },
+                        },
+                    ],
+                    index: 0,
+                },
+            },
+        ],
+    };
+
+    return verifyAccountState;
+}
+
+const addVerifyAccountState = (path: string) => {
+    const pathWithoutVerifyAccount = path.replace('/verify-account', '').replace('/Settings_Verify_Account', '/Settings');
 
     const baseState = getStateFromPath(pathWithoutVerifyAccount as Route) as PartialState<NavigationState<RootNavigatorParamList>>;
 
@@ -62,10 +92,8 @@ function addVerifyAccountRoute(path: string) {
 
     const finalState = getRoutesWithIndex([...adaptedBaseState.routes, rightModalNavigator]);
 
-    // Remove keys from all routes to avoid RESET action in getActionFromState
-    // getActionFromState returns RESET if routes have keys (existing routes)
-
     return finalState;
-}
+};
 
 export default addVerifyAccountRoute;
+export {addVerifyAccountState};

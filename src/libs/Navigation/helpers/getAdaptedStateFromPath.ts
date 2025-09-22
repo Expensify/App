@@ -14,7 +14,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 // eslint-disable-next-line import/no-cycle
-import addVerifyAccountRoute from './addVerifyAccountRoute';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 // eslint-disable-next-line import/no-cycle
@@ -72,6 +71,29 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         }
         // If not, get the matching full screen route for the back to state.
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
+    }
+
+    if (route.path?.includes('/verify-account')) {
+        const pathWithoutVerifyAccount = route.path.replace('/verify-account', '');
+        const stateUnderVerifyAccount = getStateFromPath(pathWithoutVerifyAccount as RouteString);
+        const lastRoute = stateUnderVerifyAccount?.routes.at(-1);
+        if (!stateUnderVerifyAccount || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
+            return undefined;
+        }
+
+        const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
+
+        if (isLastRouteFullScreen) {
+            return lastRoute;
+        }
+
+        const focusedStateForVerifyAccountRoute = findFocusedRoute(stateUnderVerifyAccount);
+
+        if (!focusedStateForVerifyAccountRoute) {
+            return undefined;
+        }
+
+        return getMatchingFullScreenRoute(focusedStateForVerifyAccountRoute);
     }
 
     if (RHP_TO_SEARCH[route.name]) {
@@ -245,11 +267,6 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
     if (normalizedPath === CONST.SIGNIN_ROUTE) {
         normalizedPath = '/';
-    }
-
-    if (path.includes('/verify-account')) {
-        const verifyAccountState = addVerifyAccountRoute(normalizedPath);
-        return verifyAccountState;
     }
 
     const state = getStateFromPath(normalizedPath as RouteString) as PartialState<NavigationState<RootNavigatorParamList>>;

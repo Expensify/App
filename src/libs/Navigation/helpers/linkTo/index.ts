@@ -81,37 +81,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
     const currentState = navigation.getRootState() as PlatformStackNavigationState<RootNavigatorParamList>;
 
-    if (normalizedPathAfterRedirection.includes('/verify-account')) {
-        const existingRightModalIndex = currentState.routes.findIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-
-        if (existingRightModalIndex !== -1) {
-            navigation.dispatch({
-                type: 'NAVIGATE',
-                payload: {
-                    name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-                    params: {
-                        screen: SCREENS.RIGHT_MODAL.SETTINGS,
-                        params: {
-                            screen: SCREENS.SETTINGS.VERIFY_ACCOUNT,
-                            path: normalizedPathAfterRedirection,
-                        },
-                    },
-                },
-            });
-        } else {
-            navigation.dispatch(
-                StackActions.push(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
-                    screen: SCREENS.RIGHT_MODAL.SETTINGS,
-                    params: {
-                        screen: SCREENS.SETTINGS.VERIFY_ACCOUNT,
-                        path: normalizedPathAfterRedirection,
-                    },
-                }),
-            );
-        }
-        return;
-    }
-
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
 
