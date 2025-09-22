@@ -153,7 +153,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                         iconChecked={Expensicons.Checkmark}
                         inline={false}
                         accessible={false}
-                        shouldAddNonBreakingSpace={false}
                     />
                 );
             } else {

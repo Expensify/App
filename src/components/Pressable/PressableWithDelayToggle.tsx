@@ -67,9 +67,6 @@ type PressableWithDelayToggleProps = PressableProps & {
 
     /** Icon height */
     iconHeight?: number;
-
-    /** Whether to add non-breaking space after text */
-    shouldAddNonBreakingSpace?: boolean;
 };
 
 function PressableWithDelayToggle({
@@ -90,7 +87,6 @@ function PressableWithDelayToggle({
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
-    shouldAddNonBreakingSpace = true,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -117,7 +113,7 @@ function PressableWithDelayToggle({
                 style={textStyles}
             >
                 {!isActive && textChecked ? textChecked : text}
-                {shouldAddNonBreakingSpace && <>&nbsp;</>}
+                {!icon || (!isActive && !!iconChecked && <>&nbsp;</>)}
             </Text>
         ) : null;
 
