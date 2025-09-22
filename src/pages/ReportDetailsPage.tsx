@@ -1,4 +1,4 @@
-import {reportsSelector} from '@selectors/Attributes';
+import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';

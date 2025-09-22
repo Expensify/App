@@ -1,4 +1,4 @@
-import {reportsSelector} from '@selectors/Attributes';
+import reportsSelector from '@selectors/Attributes';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';

@@ -1,4 +1,4 @@
-import {reportsSelector} from '@selectors/Attributes';
+import reportsSelector from '@selectors/Attributes';
 import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';

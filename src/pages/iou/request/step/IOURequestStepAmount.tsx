@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {reportsSelector} from '@selectors/Attributes';
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';

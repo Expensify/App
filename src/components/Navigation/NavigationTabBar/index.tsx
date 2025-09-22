@@ -1,5 +1,5 @@
 import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
-import {reportsSelector} from '@selectors/Attributes';
+import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';

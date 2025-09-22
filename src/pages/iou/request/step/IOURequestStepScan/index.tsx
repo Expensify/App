@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {reportsSelector} from '@selectors/Attributes';
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {ActivityIndicator, InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
