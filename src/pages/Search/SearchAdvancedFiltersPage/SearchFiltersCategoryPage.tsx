@@ -28,18 +28,24 @@ function SearchFiltersCategoryPage() {
         return {name: category, value: category};
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        canBeMissing: false,
-        selector: (policyCategories) =>
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const policyCategoriesSelector = useCallback(
+        (policyCategories: OnyxCollection<PolicyCategories>) =>
             Object.fromEntries(
                 Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
-                    if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getPersonalPolicy()?.id}`) {
+                    if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getPersonalPolicy(policies)?.id}`) {
                         return false;
                     }
                     const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                     return availableCategories.length > 0;
                 }),
             ),
+        [policies],
+    );
+
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        canBeMissing: false,
+        selector: policyCategoriesSelector,
     });
 
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
