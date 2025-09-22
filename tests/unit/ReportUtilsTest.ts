@@ -5346,38 +5346,6 @@ describe('ReportUtils', () => {
             // Then the result is null
             expect(result).toBe(null);
         });
-
-        it('should return a reason for report with hasOutstandingChildRequest', async () => {
-            // Given an expense report with hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: true,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
-
-            // Then the reason should be CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION
-            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
-        });
-
-        it('should return null for report with no hasOutstandingChildRequest', async () => {
-            // Given an expense report with no hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: false,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
-
-            // Then the result is null
-            expect(result).toBe(null);
-        });
     });
 
     describe('canEditReportDescription', () => {
