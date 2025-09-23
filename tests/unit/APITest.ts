@@ -801,10 +801,11 @@ describe('APITests', () => {
             });
     });
 
-    test('Write request with supportal insufficient permissions (666) suppresses retry and applies failureData', () => {
-        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: 666, message: 'You do not have the permission to do the requested action.'});
+    test('Write request with supportal insufficient permissions (411) suppresses retry, applies failureData, and triggers modal', () => {
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: 411, message: 'You are not authorized to take this action when support logged in.'});
 
         const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+        const onyxSetSpy = jest.spyOn(Onyx, 'set');
 
         const failureData = [
             {
@@ -822,6 +823,7 @@ describe('APITests', () => {
                 API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
                 return waitForNetworkPromises();
             })
+            .then(waitForBatchedUpdates)
             .then(() => {
                 // Should only call once (no retries)
                 expect(xhr).toHaveBeenCalledTimes(1);
@@ -834,6 +836,18 @@ describe('APITests', () => {
                     ([updates]) => Array.isArray(updates) && updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed'),
                 );
                 expect(failureApplied).toBe(true);
+
+                // Supportal permission middleware should have set the modal payload via Onyx.set
+                const supportalModalSet = onyxSetSpy.mock.calls.some(([key, payload]) => {
+                    if (key !== ONYXKEYS.SUPPORTAL_PERMISSION_DENIED) {
+                        return false;
+                    }
+                    if (typeof payload !== 'object' || payload === null) {
+                        return false;
+                    }
+                    return (payload as {command?: string}).command === 'MockCommand';
+                });
+                expect(supportalModalSet).toBe(true);
             });
     });
 });
