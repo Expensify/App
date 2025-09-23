@@ -42,6 +42,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
         ? updateHandler(response.onyxData).catch((error: unknown) => {
               // Sometimes we get a SQL error here if the previous queued write failed. In that case, we want to still apply the Onyx update
               // This is temporary fix until we can identify what causes SQL errors. Ideally we would only like to catch errors here.
+              // Related issue - https://github.com/Expensify/App/issues/69808
               if (String(error).includes('[SqlExecutionError]') && request.command === READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE && response.onyxData !== undefined) {
                   Log.warn(`${String(error)}, retrying Onyx update`);
                   return updateHandler(response.onyxData);
