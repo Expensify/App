@@ -590,6 +590,12 @@ describe('CardUtils', () => {
             const feedName = getBankName(feed);
             expect(feedName).toBe('');
         });
+
+        it('Should return empty string if feed is not provided (instead of TypeError crashing the app)', () => {
+            const feed = undefined;
+            const feedName = getBankName(feed as unknown as CompanyCardFeed);
+            expect(feedName).toBe("");
+        });
     });
 
     describe('getCardFeedIcon', () => {
