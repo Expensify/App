@@ -6,10 +6,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateExpensifyCardTitle} from '@libs/actions/Card';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -28,7 +28,7 @@ type WorkspaceEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigator
 
 function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const {policyID, cardID, backTo} = route.params;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const workspaceAccountID = useDefaultFundID(policyID);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

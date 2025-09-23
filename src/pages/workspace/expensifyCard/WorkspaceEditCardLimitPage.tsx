@@ -8,10 +8,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateExpensifyCardLimit} from '@libs/actions/Card';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -39,7 +39,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const workspaceAccountID = useDefaultFundID(policyID);
 
     const currency = useCurrencyForExpensifyCard({policyID});
 
