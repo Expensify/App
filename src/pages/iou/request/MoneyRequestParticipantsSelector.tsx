@@ -1,3 +1,5 @@
+import reportsSelector from '@selectors/Attributes';
+import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
@@ -110,14 +112,15 @@ function MoneyRequestParticipantsSelector(
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -216,7 +219,7 @@ function MoneyRequestParticipantsSelector(
             };
         }
 
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {
             canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -225,7 +228,7 @@ function MoneyRequestParticipantsSelector(
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, countryCode]);
 
     const inputHelperText = useMemo(
         () =>

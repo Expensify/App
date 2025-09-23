@@ -3,28 +3,159 @@ name: Generate static translations
 on:
   pull_request:
     types: [opened, synchronize]
-    paths-ignore: ['docs/articles/**/*.md', 'docs/redirects.csv', 'docs/assets/images/**']
+    paths: ['src/languages/en.ts']
 
 jobs:
-  # We always run dry-run the script to verify that it still works.
-  # The generateTranslations script runs with ts-node, which can't handle Flow
-  # (the specialized JS that React Native is written in).
-  # Therefore, adding an import in the wrong place could break the script, even if you didn't modify the script.
-  dryRun:
+  generateTranslations:
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     steps:
       # v4
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Run generateTranslations dry run
-        run: npx ts-node ./scripts/generateTranslations.ts --dry-run
-
-      - name: Explain failure
-        if: failure()
+      - name: Check if English translations were modified
+        id: check-en-changes
         run: |
-          echo '::error:: 😦 Something you did broke scripts/generateTranslations.ts. Most likely, this means you added an import that caused react-native to be directly or indirectly imported into the script.'
-          exit 1
+          if [[ "${{ github.event.action }}" == "opened" ]]; then
+            # For newly opened PRs, check if en.ts was changed in the entire PR
+            echo "🆕 PR was just opened - checking entire PR for en.ts changes"
+            if gh pr diff ${{ github.event.pull_request.number }} --name-only | grep -q "^src/languages/en\.ts$"; then
+              echo "EN_CHANGED=true" >> "$GITHUB_OUTPUT"
+              echo "✅ English translations were modified in this PR - will generate translations"
+            else
+              echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
+              echo "⏭️ English translations were not modified in this PR - skipping translation generation"
+            fi
+          else
+            # For synchronize events, only check the new commits that were just pushed
+            echo "🔄 PR was updated - checking only the new commits for en.ts changes"
+            git fetch --no-tags --depth=1 --no-recurse-submodules origin ${{ github.event.before }}
+            if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "^src/languages/en\.ts$"; then
+              echo "EN_CHANGED=true" >> "$GITHUB_OUTPUT"
+              echo "✅ English translations were modified in the new commits - will generate translations"
+            else
+              echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
+              echo "⏭️ English translations were not modified in the new commits - skipping translation generation"
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Fetch base ref
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
+        run: git fetch --no-tags --depth=1 --no-recurse-submodules origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/heads/${{ github.event.pull_request.base.ref }}
+
+      - name: Run generateTranslations for added translations
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
+        run: npx ts-node ./scripts/generateTranslations.ts --verbose --compare-ref=${{ github.event.pull_request.base.ref }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
+
+      - name: Check if there are any changes after running generateTranslations
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
+        id: checkDiff
+        run: |
+          if git diff --quiet HEAD; then
+            echo "✅ No changes detected"
+            echo "HAS_DIFF=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "🦜 Polyglot Parrot detected changes! 🦜"
+            echo "HAS_DIFF=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Hide any existing Polyglot Parrot comments
+        continue-on-error: true
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
+        run: |
+          EXISTING_COMMENTS="$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')"
+          if [[ -z "$EXISTING_COMMENTS" ]]; then
+            echo "🦗 No existing Polyglot Parrot comments found"
+          else
+            echo "Found existing Polyglot Parrot comment(s), hiding as outdated..."
+            echo "$EXISTING_COMMENTS" | while read -r comment_id; do
+              # shellcheck disable=SC2016
+              gh api graphql -f query='
+                mutation($commentId: ID!) {
+                  minimizeComment(input: {
+                    subjectId: $commentId,
+                    classifier: OUTDATED
+                  }) {
+                    minimizedComment {
+                      isMinimized
+                    }
+                  }
+                }' -f commentId="$comment_id" || echo "Failed to minimize comment $comment_id"
+            done
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Post diff in PR as a comment
+        if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
+        run: |
+          # Create temp files and set up cleanup
+          TEMP_COMMENT_FILE=$(mktemp)
+          TEMP_PATCH_FILE=$(mktemp --suffix=.patch)
+          trap 'rm -f "$TEMP_COMMENT_FILE" "$TEMP_PATCH_FILE"' EXIT
+
+          # Generate the diff and save to patch file
+          git diff HEAD > "$TEMP_PATCH_FILE"
+
+          # Ensure the patch ends with a newline to prevent "corrupt patch" errors
+          echo "" >> "$TEMP_PATCH_FILE"
+
+          # Check file size (65536 chars is ~64KB, let's use 60KB as safety margin)
+          PATCH_SIZE=$(wc -c < "$TEMP_PATCH_FILE")
+          readonly MAX_COMMENT_SIZE=61440  # 60KB in bytes
+
+          readonly PARROT_HEADER="## 🦜 Polyglot Parrot! 🦜"
+          readonly PARROT_INTRO="_Squawk!_ Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
+          PARROT_FOOTER="$(cat <<'EOF'
+          > [!NOTE]
+          > You can apply these changes to your branch by copying the patch to your clipboard, then running `pbpaste | git apply` 😉
+          EOF
+          )"
+          readonly PARROT_FOOTER
+
+          if [ "$PATCH_SIZE" -le "$MAX_COMMENT_SIZE" ]; then
+            # Small diff - include in comment
+            {
+              echo "$PARROT_HEADER"
+              echo
+              echo "$PARROT_INTRO"
+              echo
+              echo '```diff'
+              cat "$TEMP_PATCH_FILE"
+              echo '```'
+              echo
+              echo "$PARROT_FOOTER"
+            } > "$TEMP_COMMENT_FILE"
+          else
+            # Large diff - upload as gist and link
+            echo "📁 Creating gist for large diff..."
+            GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --desc "🦜 Polyglot Parrot translations for PR #${{ github.event.pull_request.number }}" --filename "translations.patch")
+            {
+              echo "$PARROT_HEADER"
+              echo
+              echo "$PARROT_INTRO"
+              echo
+              echo "The diff is too large to include in this comment _($((PATCH_SIZE / 1000))KB)_, so I've created a gist for you:"
+              echo
+              echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
+              echo
+              echo "$PARROT_FOOTER"
+            } > "$TEMP_COMMENT_FILE"
+          fi
+
+          # Post comment using the temp file
+          gh pr comment ${{ github.event.pull_request.number }} --body-file "$TEMP_COMMENT_FILE"
+        env:
+          # Use OS_BOTIFY_TOKEN so that we can create a gist
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}

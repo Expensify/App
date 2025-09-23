@@ -645,12 +645,36 @@ function isValidCARegistrationNumber(registrationNumber: string): boolean {
     return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
 }
 
+type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+
+/**
+ * Validates the given value if it is EU member country
+ * @param country
+ */
+function isEUMember(country: Country | ''): boolean {
+    return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+}
+
+/**
+ * Validates the given values if its is correct registration number for given EU member country
+ * @param registrationNumber
+ * @param country
+ */
+function isValidEURegistrationNumber(registrationNumber: string, country: EUCountry): boolean {
+    const regex = CONST.EU_REGISTRATION_NUMBER_REGEX[country];
+    return !!regex && regex.test(registrationNumber);
+}
+
 /**
  * Validates the given value if it is correct registration number for the given country.
  * @param registrationNumber
  * @param country
  */
 function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    if (isEUMember(country)) {
+        return isValidEURegistrationNumber(registrationNumber, country as EUCountry);
+    }
+
     switch (country) {
         case CONST.COUNTRY.AU:
             return isValidAURegistrationNumber(registrationNumber);

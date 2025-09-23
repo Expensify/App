@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -26,16 +25,7 @@ import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {
-    isAdminRoom,
-    isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
-    isConciergeChatReport,
-    isGroupChat,
-    isOneOnOneChat,
-    isPolicyExpenseChat,
-    isSystemChat,
-    isThread,
-} from '@libs/ReportUtils';
+import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -52,7 +42,6 @@ function OptionRowLHN({
     onSelectRow = () => {},
     optionItem,
     viewMode = 'default',
-    activePolicyID,
     onboardingPurpose,
     isFullscreenVisible,
     isReportsSplitNavigatorLast,
@@ -70,31 +59,22 @@ function OptionRowLHN({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const session = useSession();
-    const shouldShowWorkspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurpose);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
 
-    const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
-        let tooltip: ProductTrainingTooltipName;
-        if (shouldShowRBRorGBRTooltip) {
-            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
-        } else if (shouldShowWorkspaceChatTooltip) {
-            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
-        } else {
-            // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
-            // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR;
-        }
-        const shouldShowTooltips = shouldShowRBRorGBRTooltip || shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
+    const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+        const tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR;
+        const shouldShowTooltips = shouldShowRBRorGBRTooltip || shouldShowGetStartedTooltip;
         const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
 
         return {
             tooltipToRender: tooltip,
             shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible,
-            shouldTooltipBeLeftAligned: shouldShowWorkspaceChatTooltip && !shouldShowRBRorGBRTooltip && !shouldShowGetStartedTooltip,
         };
-    }, [shouldShowRBRorGBRTooltip, shouldShowGetStartedTooltip, shouldShowWorkspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
+    }, [shouldShowRBRorGBRTooltip, shouldShowGetStartedTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
@@ -206,11 +186,11 @@ function OptionRowLHN({
                 shouldRender={shouldShowProductTrainingTooltip}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
-                    horizontal: shouldTooltipBeLeftAligned ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                shiftHorizontal={shouldTooltipBeLeftAligned ? variables.workspaceLHNTooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
-                shiftVertical={shouldTooltipBeLeftAligned ? 0 : variables.gbrTooltipShiftVertical}
+                shiftHorizontal={variables.gbrTooltipShiftHorizontal}
+                shiftVertical={variables.gbrTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onOptionPress}
                 shouldHideOnScroll
@@ -312,6 +292,7 @@ function OptionRowLHN({
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
@@ -326,7 +307,10 @@ function OptionRowLHN({
                                             )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
-                                            <View style={[styles.flexWrap]}>
+                                            <View
+                                                style={[styles.flexWrap]}
+                                                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                            >
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
                                         ) : null}

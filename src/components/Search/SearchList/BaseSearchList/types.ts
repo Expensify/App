@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionList/types';
+import type {Transaction} from '@src/types/onyx';
 
 type BaseSearchListProps = Pick<
     FlashListProps<SearchListItem>,
@@ -20,10 +21,13 @@ type BaseSearchListProps = Pick<
     data: SearchListItem[];
 
     /** The function to render each item in the list */
-    renderItem: (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
+    renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The columns that might change to trigger re-render via extraData */
     columns: SearchColumnType[];
+
+    /** The transactions that might trigger re-render via extraData */
+    newTransactions: Transaction[];
 
     /** The length of the flattened items in the list */
     flattenedItemsLength: number;

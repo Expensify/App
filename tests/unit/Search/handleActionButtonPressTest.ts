@@ -139,6 +139,8 @@ const mockReportItemWithHold = {
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
         {
             report: {
@@ -195,6 +197,8 @@ const mockReportItemWithHold = {
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
     ],
     isSelected: false,

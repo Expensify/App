@@ -100,7 +100,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef?: ForwardedRef<FormRef>;
+    ref?: ForwardedRef<FormRef>;
 };
 
 function FormProvider({
@@ -117,7 +117,7 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
-    forwardedRef,
+    ref,
     ...rest
 }: FormProviderProps) {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -306,7 +306,7 @@ function FormProvider({
         [errors, formID],
     );
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
