@@ -20,6 +20,18 @@ const macIcon = {
     adhoc: './desktop/icon-adhoc.png',
 };
 
+const getMacIconBundleName = () => {
+    if (process.env.ELECTRON_ENV === "staging") {
+        return "AppIconStaging";
+    }
+
+    if (process.env.ELECTRON_ENV === "adhoc") {
+        return "AppIconAdhoc";
+    }
+
+    return "AppIcon";
+};
+
 const isCorrectElectronEnv = ['production', 'staging', 'adhoc'].includes(process.env.ELECTRON_ENV);
 
 if (!isCorrectElectronEnv) {
@@ -49,7 +61,7 @@ module.exports = {
             },
         ],
         extendInfo: {
-            "CFBundleIconName": "AppIcon"
+            "CFBundleIconName": getMacIconBundleName(),
         },
     },
     dmg: {
