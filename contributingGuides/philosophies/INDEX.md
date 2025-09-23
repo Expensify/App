@@ -10,6 +10,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 * [Data Binding Philosophy](/contributingGuides/philosophies/DATA-BINDING.md)
 * [Directory Structure and File Naming Philosophy](/contributingGuides/philosophies/DIRECTORIES.md)
 * [Internationalization Philosophy](/contributingGuides/philosophies/INTERNATIONALIZATION.md)
+* [HybridApp Philosophy](/contributingGuides/philosophies/HYBRID-APP.md)
 * [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md)
 * [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
 * [Routing Philosophy](/contributingGuides/philosophies/ROUTING.md)
