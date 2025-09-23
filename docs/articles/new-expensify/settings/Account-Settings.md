@@ -68,7 +68,7 @@ Expensify supports multiple languages, making it easier for members across the g
 ## Notifications
 
 To manage notification settings:
-1. Go to **Account > Preferences**.
+1. Go to **Account > Preferences > App preferences**.
 2. Adjust the notification toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
