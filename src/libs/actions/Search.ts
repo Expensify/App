@@ -11,12 +11,12 @@ import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
+import {getActivePaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent} from '@libs/PaymentUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -709,30 +709,14 @@ function handleBulkPayItemSelected(
         return;
     }
 
-    const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
-    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
-
-    const paymentMethod = item.key as PaymentMethod;
-    let paymentType;
-    switch (paymentMethod) {
-        case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
-            paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            break;
-        case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
-            paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
-            break;
-        default:
-            paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-            break;
-    }
+    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
 
     if (!!selectedPolicy || shouldSelectPaymentMethod) {
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
             return;
         }
-        triggerKYCFlow(undefined, paymentType, paymentMethod, selectedPolicy);
+        triggerKYCFlow(undefined, paymentType, item.key as PaymentMethod, selectedPolicy);
 
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
