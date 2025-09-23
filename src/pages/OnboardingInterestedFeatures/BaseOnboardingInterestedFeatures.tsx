@@ -117,7 +117,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             },
             {
                 id: FEATURE_IDS.EXPENSIFY_CARD,
-                title: translate('workspace.moreFeatures.expensifyCard.title'),
+                title: translate('common.expensifyCard'),
                 icon: Illustrations.HandCard,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },

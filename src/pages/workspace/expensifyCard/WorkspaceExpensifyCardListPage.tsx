@@ -214,7 +214,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             <HeaderWithBackButton
                 icon={HandCard}
                 shouldUseHeadlineHeader
-                title={translate('workspace.common.expensifyCard')}
+                title={translate('common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={handleBackButtonPress}
             >
@@ -226,7 +226,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     <FeedSelector
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
                         cardIcon={ExpensifyCardImage}
-                        feedName={translate('workspace.common.expensifyCard')}
+                        feedName={translate('common.expensifyCard')}
                         supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '')}
                     />
                     {isBankAccountVerified && getHeaderButtons()}

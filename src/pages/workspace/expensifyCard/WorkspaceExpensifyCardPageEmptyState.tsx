@@ -89,7 +89,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         <WorkspacePageWithSections
             shouldUseScrollView
             icon={Illustrations.HandCard}
-            headerText={translate('workspace.common.expensifyCard')}
+            headerText={translate('common.expensifyCard')}
             route={route}
             showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -123,7 +123,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     titleStyles={styles.textHeadlineH1}
                 />
                 <ConfirmModal
-                    title={translate('workspace.common.expensifyCard')}
+                    title={translate('common.expensifyCard')}
                     isVisible={isCurrencyModalOpen}
                     onConfirm={confirmCurrencyChangeAndHideModal}
                     onCancel={() => setIsCurrencyModalOpen(false)}

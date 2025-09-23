@@ -658,6 +658,7 @@ const translations = {
         link: 'Link',
         pinned: 'Pinned',
         read: 'Read',
+        expensifyCard: 'Expensify Card',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1904,7 +1905,6 @@ const translations = {
         addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
-        expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
         addYourBankAccount: 'Add your bank account',
@@ -1916,7 +1916,6 @@ const translations = {
         businessBankAccounts: 'Business bank accounts',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: 'Remaining limit',
         smartLimit: {
@@ -3436,7 +3435,6 @@ const translations = {
     workspace: {
         common: {
             card: 'Cards',
-            expensifyCard: 'Expensify Card',
             companyCards: 'Company cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
@@ -4592,7 +4590,6 @@ const translations = {
                 subtitle: 'Set per diem rates to control daily employee spend.',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: 'Gain insights and control over spend.',
                 disableCardTitle: 'Disable Expensify Card',
                 disableCardPrompt: 'You can’t disable the Expensify Card because it’s already in use. Reach out to Concierge for next steps.',

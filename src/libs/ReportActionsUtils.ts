@@ -2985,7 +2985,7 @@ function getCardIssuedMessage({
 
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink =
-        shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
+        shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('common.expensifyCard')}</a>` : translateLocal('common.expensifyCard');
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard

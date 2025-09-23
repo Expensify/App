@@ -285,7 +285,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
             protectedMenuItems.push({
-                translationKey: 'workspace.common.expensifyCard',
+                translationKey: 'common.expensifyCard',
                 icon: ExpensifyCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
