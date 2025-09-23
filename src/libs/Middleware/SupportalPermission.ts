@@ -14,10 +14,7 @@ const SupportalPermission: Middleware = (responsePromise: Promise<Response | voi
         const res = response as Response | undefined;
         const message = res?.message;
         const isUnauthorizedSupportalAction =
-            isSupportAuthToken() &&
-            res?.jsonCode === 411 &&
-            typeof message === 'string' &&
-            message.includes('You are not authorized to take this action when support logged in.');
+            isSupportAuthToken() && res?.jsonCode === 411 && typeof message === 'string' && message.includes('You are not authorized to take this action when support logged in.');
 
         if (isUnauthorizedSupportalAction) {
             if (request?.data) {
