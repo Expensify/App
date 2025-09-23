@@ -8,7 +8,7 @@ coverage:
       default:
         informational: true
 
-comment: false
+comment: true
 
 flags:
   unit:
