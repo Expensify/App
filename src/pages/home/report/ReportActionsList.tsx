@@ -1,5 +1,6 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
@@ -183,7 +184,7 @@ function ReportActionsList({
     const participantsContext = useContext(PersonalDetailsContext);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
@@ -359,8 +360,6 @@ function ReportActionsList({
     // initialHeight - windowHeight gives us the height of the keyboard when it's open on mobile Chrome.
     const topOffset = useMemo(() => safariViewportOffsetTop || (isMobileChrome() ? initialHeight - windowHeight : 0), [safariViewportOffsetTop, initialHeight, windowHeight]);
     const prevTopOffset = useRef(0);
-
-    const {isInNarrowPaneModal} = useResponsiveLayout();
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
@@ -850,15 +849,10 @@ function ReportActionsList({
             // When using FlatList for money requests, we need to manually add top padding (pt4) and remove bottom padding (pb0)
             // to maintain consistent spacing and visual appearance at the top of the list.
             baseStyles.push(styles.pb0, styles.pt4);
-
-            // For money requests, we want the content to be vertically aligned to the bottom of the screen, but only on wide screens.
-            if (!isInNarrowPaneModal) {
-                baseStyles.push(styles.justifyContentEnd);
-            }
         }
 
         return baseStyles;
-    }, [isInNarrowPaneModal, shouldFocusToTopOnMount, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
+    }, [shouldFocusToTopOnMount, styles.chatContentScrollView, styles.pb0, styles.pt4]);
 
     /**
      * Wraps the provided renderScrollComponent to pass isInvertedScrollView prop.
