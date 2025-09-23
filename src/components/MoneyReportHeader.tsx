@@ -447,6 +447,7 @@ function MoneyReportHeader({
             moneyRequestReport,
             startAnimation,
             existingB2BInvoiceReport,
+            shouldCalculateTotals,
             currentSearchQueryJSON,
             currentSearchKey,
         ],
