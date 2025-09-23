@@ -2,7 +2,6 @@ import {findFocusedRoute} from '@react-navigation/native';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import type {Route} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
-// eslint-disable-next-line import/no-cycle
 import getStateFromPath from './getStateFromPath';
 
 const FORWARD_TO_VERIFY_ACCOUNT_MAPPINGS = {

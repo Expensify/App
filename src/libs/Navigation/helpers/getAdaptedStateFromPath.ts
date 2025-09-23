@@ -13,10 +13,8 @@ import type {Route as RouteString} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
-// eslint-disable-next-line import/no-cycle
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
-// eslint-disable-next-line import/no-cycle
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -48,7 +46,6 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const stateForBackTo = getStateFromPath(route.params.backTo as RouteString);
 
         // This may happen if the backTo url is invalid.
