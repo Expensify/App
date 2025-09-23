@@ -81,7 +81,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -498,7 +497,6 @@ const translations = {
         decline: 'Ablehnen',
         reject: 'Ablehnen',
         transferBalance: 'Guthaben übertragen',
-        cantFindAddress: 'Können Sie Ihre Adresse nicht finden?',
         enterManually: 'Manuell eingeben',
         message: 'Nachricht',
         leaveThread: 'Thread verlassen',
@@ -666,6 +664,9 @@ const translations = {
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
         purchaseAmount: 'Kaufbetrag',
+        link: 'Link',
+        pinned: 'Angeheftet',
+        read: 'Gelesen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1199,8 +1200,12 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als bezahlt markieren` : `Als bezahlt markieren`),
         settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Privatkonto ${last4Digits} bezahlt` : `Mit Privatkonto bezahlt`),
         settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `${formattedAmount} über ${policyName} bezahlen` : `Über ${policyName} bezahlen`,
+        payWithPolicy: ({
+            formattedAmount,
+            policyName,
+        }: SettleExpensifyCardParams & {
+            policyName: string;
+        }) => (formattedAmount ? `${formattedAmount} über ${policyName} bezahlen` : `Über ${policyName} bezahlen`),
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Bankkonto ${last4Digits} bezahlt.` : `mit Bankkonto ${last4Digits} bezahlt.`),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `heeft ${amount} betaald met bankrekening ${last4Digits}. via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
@@ -3181,21 +3186,6 @@ const translations = {
         codiceFiscaleDescription:
             'Bitte laden Sie ein Video eines Vor-Ort-Besuchs oder eines aufgezeichneten Anrufs mit dem unterzeichnenden Beamten hoch. Der Beamte muss folgende Angaben machen: vollständiger Name, Geburtsdatum, Firmenname, Registrierungsnummer, Steuercodenummer, registrierte Adresse, Art des Geschäfts und Zweck des Kontos.',
     },
-    validationStep: {
-        headerTitle: 'Bankkonto validieren',
-        buttonText: 'Einrichtung abschließen',
-        maxAttemptsReached: 'Die Validierung für dieses Bankkonto wurde aufgrund zu vieler falscher Versuche deaktiviert.',
-        description: `Innerhalb von 1-2 Werktagen werden wir drei (3) kleine Transaktionen an Ihr Bankkonto senden, von einem Namen wie "Expensify, Inc. Validation".`,
-        descriptionCTA: 'Bitte geben Sie jeden Transaktionsbetrag in die untenstehenden Felder ein. Beispiel: 1,51.',
-        reviewingInfo: 'Danke! Wir überprüfen Ihre Informationen und werden uns in Kürze bei Ihnen melden. Bitte überprüfen Sie Ihren Chat mit Concierge.',
-        forNextStep: 'für die nächsten Schritte, um die Einrichtung Ihres Bankkontos abzuschließen.',
-        letsChatCTA: 'Ja, lass uns chatten.',
-        letsChatText: 'Fast geschafft! Wir benötigen Ihre Hilfe, um ein paar letzte Informationen im Chat zu überprüfen. Bereit?',
-        letsChatTitle: 'Lass uns plaudern!',
-        enable2FATitle: 'Betrug verhindern, Zwei-Faktor-Authentifizierung (2FA) aktivieren',
-        enable2FAText: 'Wir nehmen Ihre Sicherheit ernst. Bitte richten Sie jetzt die Zwei-Faktor-Authentifizierung (2FA) ein, um Ihrem Konto eine zusätzliche Schutzschicht hinzuzufügen.',
-        secureYourAccount: 'Sichern Sie Ihr Konto',
-    },
     completeVerificationStep: {
         completeVerification: 'Überprüfung abschließen',
         confirmAgreements: 'Bitte bestätigen Sie die untenstehenden Vereinbarungen.',
@@ -3206,18 +3196,13 @@ const translations = {
         termsAndConditions: 'Allgemeine Geschäftsbedingungen',
     },
     connectBankAccountStep: {
-        finishButtonText: 'Einrichtung abschließen',
         validateYourBankAccount: 'Bestätigen Sie Ihr Bankkonto',
         validateButtonText: 'Validieren',
         validationInputLabel: 'Transaktion',
         maxAttemptsReached: 'Die Validierung für dieses Bankkonto wurde aufgrund zu vieler falscher Versuche deaktiviert.',
         description: `Innerhalb von 1-2 Werktagen werden wir drei (3) kleine Transaktionen an Ihr Bankkonto senden, von einem Namen wie "Expensify, Inc. Validation".`,
         descriptionCTA: 'Bitte geben Sie jeden Transaktionsbetrag in die untenstehenden Felder ein. Beispiel: 1,51.',
-        reviewingInfo: 'Danke! Wir überprüfen Ihre Informationen und werden uns in Kürze bei Ihnen melden. Bitte überprüfen Sie Ihren Chat mit Concierge.',
-        forNextSteps: 'für die nächsten Schritte, um die Einrichtung Ihres Bankkontos abzuschließen.',
-        letsChatCTA: 'Ja, lass uns chatten.',
         letsChatText: 'Fast geschafft! Wir benötigen Ihre Hilfe, um ein paar letzte Informationen im Chat zu überprüfen. Bereit?',
-        letsChatTitle: 'Lass uns plaudern!',
         enable2FATitle: 'Betrug verhindern, Zwei-Faktor-Authentifizierung (2FA) aktivieren',
         enable2FAText: 'Wir nehmen Ihre Sicherheit ernst. Bitte richten Sie jetzt die Zwei-Faktor-Authentifizierung (2FA) ein, um Ihrem Konto eine zusätzliche Schutzschicht hinzuzufügen.',
         secureYourAccount: 'Sichern Sie Ihr Konto',
@@ -3634,9 +3619,6 @@ const translations = {
             emptyList: {
                 title: 'Tagegeld',
                 subtitle: 'Legen Sie Tagessätze fest, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren. Importieren Sie die Sätze aus einer Tabelle, um loszulegen.',
-            },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Ein Tarif mit dem Wert ${rate} existiert bereits.`,
             },
             importPerDiemRates: 'Tagespauschalen importieren',
             editPerDiemRate: 'Tagespauschale bearbeiten',
@@ -4970,6 +4952,7 @@ const translations = {
             welcomeNote: 'Bitte beginnen Sie mit der Nutzung meines neuen Arbeitsbereichs',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Sie sind dabei, ${newWorkspaceName ?? ''} zu erstellen und mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Arbeitsbereich zu teilen.`,
+            error: 'Beim Duplizieren Ihres neuen Arbeitsbereichs ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         },
         emptyWorkspace: {
             title: 'Sie haben keine Arbeitsbereiche',
@@ -6160,9 +6143,6 @@ const translations = {
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
             currency: 'Währung',
-            link: 'Link',
-            pinned: 'Angeheftet',
-            unread: 'Ungelesen',
             completed: 'Abgeschlossen',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Weniger als ${amount ?? ''}`,
@@ -6201,6 +6181,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
             },
+            is: 'Ist',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Einreichen',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
@@ -7184,12 +7165,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Loslegen <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Benennen Sie Ihre gespeicherten Suchen um</strong> hier!</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>Ausgaben erstellen</strong>, beginnen Sie zu chatten, und mehr. Probieren Sie es aus!</tooltip>',
-        bottomNavInboxTooltip: '<tooltip>Überprüfen Sie was <strong>benötigt Ihre Aufmerksamkeit</strong> und <strong>über Ausgaben chatten.</strong></tooltip>',
-        workspaceChatTooltip: '<tooltip>Chatten mit <strong>Genehmigern</strong></tooltip>',
-        GBRRBRChat: '<tooltip>Du wirst 🟢 auf sehen <strong>Maßnahmen ergreifen</strong>, und 🔴 auf <strong>Elemente zur Überprüfung.</strong></tooltip>',
         accountSwitcher: '<tooltip>Zugriff auf Ihre <strong>Copilot-Konten</strong> hier</tooltip>',
-        expenseReportsFilter: '<tooltip>Willkommen! Finden Sie alle Ihre <strong>Berichte des Unternehmens</strong> hier.</tooltip>',
         scanTestTooltip: {
             main: '<tooltip><strong>Möchten Sie sehen, wie Scan funktioniert?</strong> Probieren Sie einen Testbeleg aus!</tooltip>',
             manager: '<tooltip>Wählen Sie unsere <strong>Testmanager</strong>, um es auszuprobieren!</tooltip>',
