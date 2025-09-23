@@ -8529,13 +8529,6 @@ function reasonForReportToBeInOptionList({
 
     const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
     const reportActionValues = Object.values(currentReportActions);
-    const hasOnlyCreatedAction = reportActionValues.length === 1 && reportActionValues.at(0)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-
-    // Hide empty reports that have only a `CREATED` action, a total of 0, and are in a submitted state
-    // These reports should be hidden because they appear empty to users and there is nothing actionable for them to do
-    if (report?.total === 0 && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && hasOnlyCreatedAction) {
-        return null;
-    }
 
     // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
     // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
@@ -8564,6 +8557,14 @@ function reasonForReportToBeInOptionList({
     // a sense of context.
     if (report.reportID === currentReportId) {
         return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
+    }
+
+    const hasOnlyCreatedAction = reportActionValues.length === 1 && reportActionValues.at(0)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+
+    // Hide empty reports that have only a `CREATED` action, a total of 0, and are in a submitted state
+    // These reports should be hidden because they appear empty to users and there is nothing actionable for them to do
+    if (report?.total === 0 && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && hasOnlyCreatedAction) {
+        return null;
     }
 
     // Retrieve the draft comment for the report and convert it to a boolean
