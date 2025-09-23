@@ -1,5 +1,4 @@
 import {render, screen} from '@testing-library/react-native';
-import {VideoPlayer} from 'expo-video';
 import type {ViewProps} from 'react-native';
 import type ReactNative from 'react-native';
 import Onyx from 'react-native-onyx';
