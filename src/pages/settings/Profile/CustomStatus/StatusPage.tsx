@@ -244,11 +244,8 @@ function StatusPage() {
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
                             title={translate('statusPage.clearStatus')}
-                            titleStyle={styles.ml0}
                             icon={Expensicons.Trashcan}
                             onPress={clearStatus}
-                            iconFill={theme.danger}
-                            wrapperStyle={[styles.pl2]}
                         />
                     )}
                 </View>
