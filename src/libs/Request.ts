@@ -1,7 +1,6 @@
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import HttpUtils from './HttpUtils';
-import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';

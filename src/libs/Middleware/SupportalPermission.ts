@@ -11,11 +11,13 @@ import type Middleware from './types';
  */
 const SupportalPermission: Middleware = (responsePromise: Promise<Response | void>, request: Request) =>
     responsePromise.then((response) => {
+        const res = response as Response | undefined;
+        const message = res?.message;
         const isUnauthorizedSupportalAction =
             isSupportAuthToken() &&
-            Number((response as Response | undefined)?.jsonCode) === 411 &&
-            typeof (response as Response | undefined)?.message === 'string' &&
-            ((response as Response).message as string).includes('You are not authorized to take this action when support logged in.');
+            res?.jsonCode === 411 &&
+            typeof message === 'string' &&
+            message!.includes('You are not authorized to take this action when support logged in.');
 
         if (isUnauthorizedSupportalAction) {
             if (request?.data) {
