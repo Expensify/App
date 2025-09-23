@@ -13,6 +13,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -76,8 +77,6 @@ type ReportFooterProps = {
     onComposerBlur?: () => void;
 };
 
-const isAnonymousUserSelector = (session: OnyxEntry<OnyxTypes.Session>) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
-
 function ReportFooter({
     lastReportAction,
     pendingAction,
@@ -99,7 +98,7 @@ function ReportFooter({
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousUserSelector, canBeMissing: false});
+    const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
         canBeMissing: true,

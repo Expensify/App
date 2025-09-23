@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -61,7 +61,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksExportDateSelectPage.displayName}
             sections={[{data}]}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportDate}
