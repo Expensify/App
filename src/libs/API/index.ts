@@ -5,6 +5,7 @@ import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@
 import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
+import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import * as OptimisticReportNames from '@libs/OptimisticReportNames';
@@ -43,6 +44,9 @@ use(Pagination);
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 use(SaveResponseInOnyx);
+
+// FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
+use(FraudMonitoring);
 
 // Initialize OptimisticReportNames context on module load
 initializeOptimisticReportNamesContext().catch(() => {

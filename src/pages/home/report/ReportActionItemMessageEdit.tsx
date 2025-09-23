@@ -16,7 +16,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -67,6 +66,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string | undefined;
 
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID: string;
+
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
@@ -91,7 +93,7 @@ const DEFAULT_MODAL_VALUE = {
 };
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, originalReportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -119,8 +121,6 @@ function ReportActionItemMessageEdit(
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
-
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
@@ -221,7 +221,6 @@ function ReportActionItemMessageEdit(
      */
     const updateDraft = useCallback(
         (newDraftInput: string) => {
-            raiseIsScrollLayoutTriggered();
             const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
             emojisPresentBefore.current = emojis;
@@ -244,7 +243,7 @@ function ReportActionItemMessageEdit(
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [raiseIsScrollLayoutTriggered, debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -287,12 +286,12 @@ function ReportActionItemMessageEdit(
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
+            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReportID ?? reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, originalReportID, reportID]);
 
     /**
      * @param emoji
@@ -322,14 +321,11 @@ function ReportActionItemMessageEdit(
     }, [suggestionsRef]);
     const onSaveScrollAndHideSuggestionMenu = useCallback(
         (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
-            if (isScrollLayoutTriggered.current) {
-                return;
-            }
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
 
             hideSuggestionMenu();
         },
-        [isScrollLayoutTriggered, hideSuggestionMenu],
+        [hideSuggestionMenu],
     );
 
     /**
@@ -520,7 +516,12 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
-                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
+                            onLayout={(event) => {
+                                if (!isFocused) {
+                                    return;
+                                }
+                                reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)(event);
+                            }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
