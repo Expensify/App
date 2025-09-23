@@ -11,8 +11,9 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import {askToJoinPolicy} from '@src/libs/actions/Policy/Member';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Onboarding, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Onboarding, Policy as PolicyType, PolicyJoinMember, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -1128,6 +1129,40 @@ describe('actions/Policy', () => {
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                 },
             });
+        });
+    });
+
+    describe('askToJoinPolicy', () => {
+        it('correctly implements RedBrickRoad error handling for askToJoinPolicy when the request fails', async () => {
+            const policyID = 'policy456';
+
+            mockFetch.pause?.();
+
+            // Call askToJoinPolicy
+            askToJoinPolicy(policyID);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+            await waitForBatchedUpdates();
+
+            // Verify error handling after failure - focus on policy join member error
+            const policyJoinData = await new Promise<OnyxEntry<PolicyJoinMember>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+
+            // The policy join should have the genericAdd error
+            expect(policyJoinData?.errors).toBeTruthy();
+            expect(Object.values(policyJoinData?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            mockFetch.succeed?.();
         });
     });
 });
