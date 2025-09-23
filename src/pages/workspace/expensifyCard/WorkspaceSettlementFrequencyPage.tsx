@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +27,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
     const shouldShowMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
@@ -78,7 +78,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementFrequencyDescription')}</Text>
                 <SelectionList
                     sections={[{data}]}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementFrequency(value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={selectedFrequency}
