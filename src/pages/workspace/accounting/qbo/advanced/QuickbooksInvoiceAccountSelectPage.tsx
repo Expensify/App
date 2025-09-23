@@ -1,15 +1,15 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import * as Illustrations from '@components/Icon/Illustrations';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateQuickbooksOnlineCollectionAccountID} from '@libs/actions/connections/QuickbooksOnline';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -27,7 +27,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? '-1';
     const {bankAccounts, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -56,7 +56,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
 
     const updateAccount = useCallback(
         ({value}: SelectorType) => {
-            updateQuickbooksOnlineCollectionAccountID(policyID, value, qboConfig?.collectionAccountID);
+            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(policyID, value, qboConfig?.collectionAccountID);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
         },
         [policyID, qboConfig?.collectionAccountID],
@@ -65,7 +65,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={TeleScope}
+                icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
@@ -83,7 +83,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksInvoiceAccountSelectPage.displayName}
             sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             headerContent={listHeaderComponent}
             onSelectRow={updateAccount}
             shouldSingleExecuteRowSelect
@@ -93,7 +93,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields)}
-            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.mv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
         />

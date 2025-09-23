@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -76,7 +76,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
                 textInputLabel={translate('common.country')}
                 textInputValue={searchValue}
                 sections={[{data: searchResults}]}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 shouldSingleExecuteRowSelect
                 onChangeText={setSearchValue}
