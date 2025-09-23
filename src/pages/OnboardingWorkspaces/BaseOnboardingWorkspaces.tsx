@@ -69,6 +69,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 firstName: onboardingPersonalDetails?.firstName ?? '',
                 lastName: onboardingPersonalDetails?.lastName ?? '',
+                shouldSkipTestDriveModal: !!(policy.automaticJoiningEnabled ? policy.policyID : undefined),
             });
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);

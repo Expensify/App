@@ -140,7 +140,7 @@ In Sage Intacct, go to **Company > Subscriptions > Customization Services** to a
 
 # Step 6: Download the Expensify Package
 
-1. In Expensify, from the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. In Expensify, from the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Select **Sage Intacct > Connect to Sage Intacct**
 3. Click **Download Package**
 

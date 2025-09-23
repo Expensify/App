@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -67,30 +67,31 @@ type SearchAutocompleteInputProps = {
 
     /** Map of autocomplete suggestions. Required for highlighting to work properly */
     substitutionMap: SubstitutionMap;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
-function SearchAutocompleteInput(
-    {
-        value,
-        onSearchQueryChange,
-        onSubmit = () => {},
-        autocompleteListRef,
-        isFullWidth,
-        disabled = false,
-        shouldShowOfflineMessage = false,
-        autoFocus = true,
-        onFocus,
-        onBlur,
-        caretHidden = false,
-        wrapperStyle,
-        wrapperFocusedStyle = {},
-        outerWrapperStyle,
-        isSearchingForReports,
-        selection,
-        substitutionMap,
-    }: SearchAutocompleteInputProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function SearchAutocompleteInput({
+    value,
+    onSearchQueryChange,
+    onSubmit = () => {},
+    autocompleteListRef,
+    isFullWidth,
+    disabled = false,
+    shouldShowOfflineMessage = false,
+    autoFocus = true,
+    onFocus,
+    onBlur,
+    caretHidden = false,
+    wrapperStyle,
+    wrapperFocusedStyle = {},
+    outerWrapperStyle,
+    isSearchingForReports,
+    selection,
+    substitutionMap,
+    ref,
+}: SearchAutocompleteInputProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -197,10 +198,7 @@ function SearchAutocompleteInput(
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
-                <View
-                    style={styles.flex1}
-                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                >
+                <View style={styles.flex1}>
                     <TextInput
                         testID="search-autocomplete-text-input"
                         value={value}
@@ -234,7 +232,7 @@ function SearchAutocompleteInput(
                             onBlur?.();
                         }}
                         isLoading={isSearchingForReports}
-                        ref={forwardedRef}
+                        ref={ref}
                         type="markdown"
                         multiline={false}
                         parser={parser}
@@ -242,6 +240,7 @@ function SearchAutocompleteInput(
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
                         onClearInput={clearFilters}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                     />
                 </View>
             </Animated.View>
@@ -257,4 +256,4 @@ function SearchAutocompleteInput(
 SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
 
 export type {SearchAutocompleteInputProps};
-export default forwardRef(SearchAutocompleteInput);
+export default SearchAutocompleteInput;

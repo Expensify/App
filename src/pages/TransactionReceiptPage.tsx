@@ -4,6 +4,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
+import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
+import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -30,16 +32,26 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
-    // If we have a merge transaction, we need to use the receipt from the merge transaction
     const mergeTransactionID = 'mergeTransactionID' in route.params ? route.params.mergeTransactionID : undefined;
     const isFromReviewDuplicates = 'isFromReviewDuplicates' in route.params ? route.params.isFromReviewDuplicates === 'true' : undefined;
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
-    if (mergeTransactionID && mergeTransaction && transactionMain) {
-        transactionMain.receipt = mergeTransaction.receipt;
-    }
 
     const isDraftTransaction = !!action;
-    const transaction = isDraftTransaction ? transactionDraft : transactionMain;
+
+    // Determine which transaction to use based on the scenario
+    let transaction;
+    if (isDraftTransaction) {
+        transaction = transactionDraft;
+    } else if (mergeTransactionID && mergeTransaction && transactionMain) {
+        // If we have a merge transaction, we need to use the receipt from the merge transaction
+        transaction = {
+            ...transactionMain,
+            receipt: mergeTransaction.receipt,
+            filename: getReceiptFileName(mergeTransaction.receipt),
+        };
+    } else {
+        transaction = transactionMain;
+    }
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = route.params.readonly === 'true';
@@ -68,7 +80,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         }
 
         const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
-        const receiptFilename = transaction?.filename;
+        const receiptFilename = getReceiptFilenameFromTransaction(transaction);
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
             receiptFilename,
@@ -114,7 +126,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
-            originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}
+            originalFileName={isDraftTransaction ? getReceiptFilenameFromTransaction(transaction) : receiptURIs?.filename}
             defaultOpen
             iouAction={action}
             iouType={iouType}

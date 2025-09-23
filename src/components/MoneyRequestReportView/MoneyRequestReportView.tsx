@@ -19,7 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
@@ -46,6 +46,9 @@ type MoneyRequestReportViewProps = {
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
+
+    /** Whether we should wait for the report to sync */
+    shouldWaitForReportSync: boolean;
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
@@ -86,7 +89,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, shouldWaitForReportSync}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -97,17 +100,20 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const reportActions = useMemo(() => {
+        return getFilteredReportActionsForReportView(unfilteredReportActions);
+    }, [unfilteredReportActions]);
+
+    const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
-
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, shouldWaitForReportSync ? [] : transactions);
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
@@ -168,7 +174,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
-    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
+    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions || shouldWaitForReportSync) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
@@ -194,6 +200,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         pendingAction={reportPendingAction}
                         isComposerFullSize={!!isComposerFullSize}
                         lastReportAction={lastReportAction}
+                        // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
+                        transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                     />
                 ) : null}
             </View>
@@ -221,6 +229,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             transactions={visibleTransactions}
                             newTransactions={newTransactions}
                             reportActions={reportActions}
+                            violations={allReportViolations}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
@@ -246,6 +255,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 isComposerFullSize={!!isComposerFullSize}
                                 lastReportAction={lastReportAction}
                                 reportTransactions={transactions}
+                                // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
+                                transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                             />
                             <PortalHost name="suggestions" />
                         </>

@@ -5,7 +5,7 @@ permissions:
   pull-requests: write
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, labeled]
   pull_request_review_comment:
     types: [created]
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'AI Review')
     steps:
-      - name: Checkout code
+      - name: Checkout main to read rules
         uses: actions/checkout@v4
 
       - name: Check required secrets
@@ -35,14 +35,7 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Print RULES.md
-        run: |
-          echo "📋 RULES.md"
-          echo "======================================"
-          echo "${{ steps.read-rules.outputs.content }}"
-          echo "======================================"
-
-      - uses: aldo-expensify/ai-reviewer-hackaton@c91b349b41efdf1eeaa290716628d76068148f0b
+      - uses: Expensify/ai-reviewer@987adce514aa144560f36710225ea1c6164bf1af
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}

@@ -5,7 +5,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
-import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -14,7 +13,6 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
-    isMemberPolicyAdmin,
     isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
@@ -26,6 +24,7 @@ import {
     canAddTransaction,
     canEditReportPolicy,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -214,7 +213,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, true));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -537,11 +536,14 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
-    // Temporary hide merge action
-    return false;
-
     // Do not show merge action if there are multiple transactions
     if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    // Temporary disable merge action for IOU reports
+    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    if (isIOUReportUtils(parentReport)) {
         return false;
     }
 
@@ -665,6 +667,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
+    if (canRejectReportAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
+    }
+
     if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -681,14 +687,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
-    // @todo we will remove checking whether current manager is admin in PR #68353
-    // When report manager is not the policy admin and current user is policy admin, allow changing the approver
-    if (
-        !isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID)) &&
-        isExpenseReportUtils(report) &&
-        isProcessingReportUtils(report) &&
-        isPolicyAdmin(policy)
-    ) {
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
@@ -751,6 +750,10 @@ function getSecondaryTransactionThreadActions(
 
     if (transactionThreadReport && isRemoveHoldActionForTransaction(transactionThreadReport, reportTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
+    if (canRejectReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     if (isSplitAction(parentReport, [reportTransaction], policy)) {

@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
@@ -142,7 +143,7 @@ const baseFilterConfig = {
     },
     keyword: {
         getTitle: getFilterDisplayTitle,
-        description: 'search.filters.hasKeywords' as const,
+        description: 'search.filters.keywords' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
     },
     cardID: {
@@ -180,6 +181,11 @@ const baseFilterConfig = {
         description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
     },
+    is: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.is' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.IS),
+    },
     from: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from' as const,
@@ -189,6 +195,11 @@ const baseFilterConfig = {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.to' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO),
+    },
+    attendee: {
+        getTitle: getFilterParticipantDisplayTitle,
+        description: 'iou.attendees' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ATTENDEE),
     },
     in: {
         getTitle: getFilterInDisplayTitle,
@@ -328,10 +339,15 @@ function getFilterDisplayTitle(
     if (AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys)) {
         const lessThanKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
         const greaterThanKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
+        const equalToKey = `${key}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
 
         const lessThan = filters[lessThanKey];
         const greaterThan = filters[greaterThanKey];
+        const equalTo = filters[equalToKey];
 
+        if (equalTo) {
+            return translate('search.filters.amount.equalTo', {amount: convertToDisplayStringWithoutCurrency(Number(equalTo))});
+        }
         if (lessThan && greaterThan) {
             return translate('search.filters.amount.between', {
                 lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
@@ -402,7 +418,12 @@ function getFilterDisplayTitle(
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         const filterValue = filters[key];
-        return filterValue ? filterValue.map((value) => translate(`search.filters.has.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+        const filterValue = filters[key];
+        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.IS_VALUES>}`)).join(', ') : undefined;
     }
 
     const filterValue = filters[key];
@@ -484,7 +505,7 @@ function AdvancedSearchFilters() {
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: emailSelector});
 
     const {sections: workspaces} = useWorkspaceList({
         policies,
@@ -535,7 +556,12 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
+            } else if (
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
+            ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);

@@ -11,6 +11,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {isMobileSafari as isMobileSafariBrowser} from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getPlatform from '@libs/getPlatform';
+import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -135,7 +136,7 @@ function IOURequestStepParticipants({
         if (isMovingTransactionFromTrackExpense) {
             return;
         }
-        const firstReceiptFilename = initialTransaction?.filename ?? '';
+        const firstReceiptFilename = getReceiptFilenameFromTransaction(initialTransaction) ?? '';
         const firstReceiptPath = initialTransaction?.receipt?.source ?? '';
         const firstReceiptType = initialTransaction?.receipt?.type ?? '';
         navigateToStartStepIfScanFileCannotBeRead(firstReceiptFilename, firstReceiptPath, () => {}, iouRequestType, iouType, initialTransactionID, reportID, firstReceiptType);
@@ -223,7 +224,11 @@ function IOURequestStepParticipants({
 
             // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
-            if (val.filter((item) => !!item.login).length !== 1 && !isInvoice) {
+            // For invoices, a valid participant must have a login.
+
+            const hasOneValidParticipant = iouType === CONST.IOU.TYPE.INVOICE ? val.filter((item) => !!item.login).length !== 1 : val.length !== 1;
+
+            if (hasOneValidParticipant && !isInvoice) {
                 selectedReportID.current = reportID;
                 return;
             }
@@ -276,11 +281,9 @@ function IOURequestStepParticipants({
             return;
         }
 
-        // If coming from the combined submit/track flow and the user proceeds to submit the expense
-        // we will use the submit IOU type in the confirmation flow.
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
-            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+            iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
             initialTransactionID,
             newReportID,
             undefined,

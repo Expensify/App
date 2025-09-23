@@ -67,9 +67,8 @@ type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
 type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
-type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -89,7 +88,7 @@ type SearchContextData = {
     shouldResetSearchQuery: boolean;
 };
 
-type SearchContext = SearchContextData & {
+type SearchContextProps = SearchContextData & {
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
@@ -126,6 +125,14 @@ type QueryFilter = {
 };
 
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
+
+type SearchTextFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
 
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
@@ -195,6 +202,7 @@ type SearchParams = {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset: number;
+    prevReportsLength?: number;
     shouldCalculateTotals: boolean;
 };
 
@@ -209,7 +217,7 @@ export type {
     SearchQueryJSON,
     SearchQueryString,
     SortOrder,
-    SearchContext,
+    SearchContextProps,
     SearchContextData,
     ASTNode,
     QueryFilter,
@@ -219,7 +227,6 @@ export type {
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
-    ChatSearchStatus,
     TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
@@ -233,4 +240,5 @@ export type {
     SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
+    SearchTextFilterKeys,
 };
