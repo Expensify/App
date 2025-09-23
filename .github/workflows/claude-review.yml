@@ -6,7 +6,7 @@ permissions:
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled]
+    types: [opened]
 
 jobs:
   review:
