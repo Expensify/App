@@ -13,6 +13,10 @@ export default {
         height: '100%',
     },
 
+    h7: {
+        height: 28,
+    },
+
     h10: {
         height: 40,
     },
@@ -141,10 +145,6 @@ export default {
 
     mw100: {
         maxWidth: '100%',
-    },
-
-    mwFitContent: {
-        maxWidth: 'fit-content',
     },
 
     wAuto: {
