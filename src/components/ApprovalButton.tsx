@@ -1,9 +1,11 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getApprovalDropdownOptions from '@libs/ApprovalUtils';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import * as Expensicons from './Icon/Expensicons';
+import type {LocaleContextProps} from './LocaleContextProvider';
 
 type ApprovalButtonProps = {
     /** Whether any transaction is on hold */
@@ -30,6 +32,58 @@ type ApprovalButtonProps = {
     /** Callback for simple approval confirmation */
     onConfirmApproval: () => void;
 };
+
+type ApprovalOption = {
+    value: string;
+    text: string;
+    icon: IconAsset;
+    onSelected: () => void;
+};
+
+type ApprovalDropdownOptions = {
+    options: ApprovalOption[];
+    menuHeaderText: string;
+    shouldShowDropdown: boolean;
+};
+
+/**
+ * Generates dropdown options for approve button when there are held expenses
+ */
+function getApprovalDropdownOptions(
+    nonHeldAmount: string | undefined,
+    fullAmount: string,
+    hasValidNonHeldAmount: boolean,
+    hasOnlyHeldExpenses: boolean,
+    onApprovePartial: () => void,
+    onApproveFull: () => void,
+    translate: LocaleContextProps['translate'],
+): ApprovalDropdownOptions {
+    const options: ApprovalOption[] = [];
+
+    if (nonHeldAmount && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
+        options.push({
+            value: 'approve_partial',
+            text: `${translate('iou.approveOnly')} ${nonHeldAmount}`,
+            icon: Expensicons.ThumbsUp,
+            onSelected: onApprovePartial,
+        });
+    }
+
+    options.push({
+        value: 'approve_full',
+        text: `${translate('iou.approve')} ${fullAmount}`,
+        icon: Expensicons.DocumentCheck,
+        onSelected: onApproveFull,
+    });
+
+    const shouldShowDropdown = options.length > 1;
+
+    return {
+        options,
+        menuHeaderText: translate('iou.confirmApprovalWithHeldAmount'),
+        shouldShowDropdown,
+    };
+}
 
 function ApprovalButton({
     isAnyTransactionOnHold,
@@ -83,3 +137,4 @@ function ApprovalButton({
 }
 
 export default ApprovalButton;
+export {getApprovalDropdownOptions};
