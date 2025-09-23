@@ -445,8 +445,6 @@ function main() {
     const {remote} = cli.namedArgs;
     const {report: shouldGenerateReport} = cli.flags;
 
-    console.log(command, file, remote, shouldGenerateReport);
-
     let isPassed = false;
     try {
         switch (command) {
