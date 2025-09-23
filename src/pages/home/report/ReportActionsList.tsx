@@ -53,6 +53,7 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
+    isMoneyRequestReport,
     isTaskReport,
     isUnread,
 } from '@libs/ReportUtils';
@@ -185,6 +186,10 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
+
+    const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction), [parentReportAction]);
+    const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
+    const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -391,8 +396,7 @@ function ReportActionsList({
             return;
         }
 
-        const shouldScrollToEnd =
-            (isExpenseReport(report) || isTransactionThread(parentReportAction)) && isSearchTopmostFullScreenRoute() && hasNewestReportAction && !unreadMarkerReportActionID;
+        const shouldScrollToEnd = shouldFocusToTopOnMount && hasNewestReportAction && !unreadMarkerReportActionID;
 
         if (shouldScrollToEnd) {
             setShouldScrollToEndAfterLayout(true);
@@ -780,6 +784,7 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
+                {shouldScrollToEndAfterLayout && <ReportActionsSkeletonView />}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
@@ -788,7 +793,7 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1]}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
