@@ -919,6 +919,7 @@ function PureReportActionItem({
         formatPhoneNumber,
         resolveActionableMentionWhisper,
         isReportArchived,
+        isOriginalReportArchived,
     ]);
 
     /**
