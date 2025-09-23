@@ -565,7 +565,7 @@ function MoneyRequestView({
     const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
     const shouldShowReport = !!parentReportID || !!actualParentReport;
 
-    if (!report || !transaction) {
+    if (!report?.reportID || !transaction?.transactionID) {
         return (
             <View style={styles.pRelative}>
                 <AnimatedEmptyStateBackground />
