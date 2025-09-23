@@ -124,16 +124,23 @@ function BaseVideoPlayer({
             updateCurrentURLAndReportID(url, reportID);
             return;
         }
-        if (isLoading) {
+
+        const player = videoPlayerRef.current;
+        if (isLoading || !player) {
             return;
         }
-        if (videoPlayerRef.current.playing) {
+
+        if (player.playing) {
             pauseVideo();
-        } else if (isEnded) {
-            replayVideo();
-        } else {
-            playVideo();
+            return;
         }
+
+        if (isEnded) {
+            replayVideo();
+            return;
+        }
+
+        playVideo();
     }, [isCurrentlyURLSet, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, isEnded, playVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
@@ -243,17 +250,17 @@ function BaseVideoPlayer({
         setDuration(videoPlayerRef.current.duration);
     }, [videoPlayerRef.current.duration]);
 
-    // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
-    // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
-
     useEffect(() => {
         mountedVideoPlayersRef.current.push(url);
         return () => {
-            const urlIndex = mountedVideoPlayersRef.current.indexOf(url);
-            mountedVideoPlayersRef.current.splice(urlIndex, 1);
+            const mountedVideoPlayersCurrentRef = mountedVideoPlayersRef;
+            const urlIndex = mountedVideoPlayersCurrentRef.current.indexOf(url);
+            mountedVideoPlayersCurrentRef.current.splice(urlIndex, 1);
         };
     }, [mountedVideoPlayersRef, url]);
 
+    // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
+    // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
     useLayoutEffect(
         () => () => {
             if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
@@ -346,7 +353,8 @@ function BaseVideoPlayer({
             if (!newParentRef || !('childNodes' in newParentRef)) {
                 return;
             }
-            if (mountedVideoPlayersRef.current.filter((u) => u === url).length > 0) {
+            const mountedVideoPlayersCurrentRef = mountedVideoPlayersRef;
+            if (mountedVideoPlayersCurrentRef.current.filter((u) => u === url).length > 0) {
                 return;
             }
             newParentRef.childNodes[0]?.remove();
