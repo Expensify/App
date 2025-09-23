@@ -27,12 +27,9 @@ function BaseSearchList({
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
-    estimatedItemSize,
-    overrideItemLayout,
-    estimatedListSize,
     contentContainerStyle,
-    calculatedListHeight,
     flattenedItemsLength,
+    newTransactions,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
 
@@ -104,7 +101,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, isFocused, columns], [focusedIndex, isFocused, columns]);
+    const extraData = useMemo(() => [focusedIndex, isFocused, columns, newTransactions], [focusedIndex, isFocused, columns, newTransactions]);
 
     return (
         <AnimatedFlashListComponent
@@ -122,11 +119,8 @@ function BaseSearchList({
             onLayout={onLayout}
             removeClippedSubviews
             drawDistance={1000}
-            estimatedItemSize={estimatedItemSize}
-            overrideItemLayout={overrideItemLayout}
-            estimatedListSize={estimatedListSize}
             contentContainerStyle={contentContainerStyle}
-            overrideProps={{estimatedHeightSize: calculatedListHeight}}
+            maintainVisibleContentPosition={{disabled: true}}
         />
     );
 }

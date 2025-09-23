@@ -3,6 +3,7 @@ import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -32,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
+import type {Account} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
@@ -58,11 +60,13 @@ const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUN
     return null;
 };
 
+const getValidateCodeForAccountMergeSelector = (account: OnyxEntry<Account>) => account?.getValidateCodeForAccountMerge;
+
 function AccountDetailsPage() {
     const formRef = useRef<FormRef>(null);
     const navigation = useNavigation();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
-    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge, canBeMissing: true});
+    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getValidateCodeForAccountMergeSelector, canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
