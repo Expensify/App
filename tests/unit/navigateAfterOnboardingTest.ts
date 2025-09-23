@@ -34,7 +34,6 @@ jest.mock('@libs/ReportUtils', () => ({
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
     isArchivedReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReport,
     isThread: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isThread,
-    generateReportName: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportName,
     getAllPolicyReports: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllPolicyReports,
     isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
     generateReportAttributes: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportAttributes,
