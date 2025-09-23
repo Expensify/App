@@ -8,9 +8,9 @@ Async code is everywhere in our app: API calls, storage access, background tasks
 - Performance: Parallelizing independent work avoids unnecessary delays.
 - Consistency: Shared rules make it easier for contributors inside and outside Expensify to write reliable code.
 
-## Principles
+## Rules
 
-1. **Use async/await for sequential flows**
+### -Use async/await for sequential flows
    When order matters, `async/await` expresses intent in a clear, linear style.
    Example: Upload a file → Parse it → Save results.
 
@@ -20,7 +20,7 @@ Async code is everywhere in our app: API calls, storage access, background tasks
     await saveExpense(parsed);
     ```
 
-2. **Run independent steps in parallel**
+### - Independent steps MUST be run in parallel
    If two operations don’t depend on each other, start them together.
    Example: Fetch user data and permissions concurrently with `Promise.all`.
 
@@ -31,16 +31,16 @@ Async code is everywhere in our app: API calls, storage access, background tasks
     ]);
     ```
 
-3. **UI should launch independent async calls in parallel**
+### - UI SHOULD launch independent async calls in parallel
    Components should not wait for one API call before starting another unless there is a dependency. Rendering must never be blocked by network requests.
 
    Refer to [DATA-BINDING.md](./DATA-BINDING.md) for full details.
 
-4. **Encapsulate sequential logic outside the UI**
+### - Sequential logic SHOULD be encapsulated outside the UI
    If a flow really must happen in order, write it in `src/libs/` or an action/helper. The UI should call that as a single logical operation.
 
 
-5. **Prefer async/await over `.then/.catch`**
+### - `async/await `SHOULD be preferred over `.then/.catch`
    Use `async/await` unless you’re:
 
    * Wrapping callback-based APIs.
