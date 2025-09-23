@@ -129,12 +129,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
-        // If we have a transition URL, don't restore last visited path - let React Navigation handle it
-        // This prevents reusing deep links after logout regardless of authentication status
-        if (isTransitioning) {
-            return undefined;
-        }
-
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
@@ -150,20 +144,20 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             );
         }
 
-        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
-            // Only skip restoration if there's a specific deep link that's not the root
-            // This allows restoration when app is killed and reopened without a deep link
-            const isRootPath = !path || path === '' || path === '/';
-            const isSpecificDeepLink = path && !isRootPath;
-
-            if (!isSpecificDeepLink) {
-                Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
-            }
+        // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
+        // The same applies to HybridApp, as we always define the route to which we want to transition.
+        if (!shouldOpenLastVisitedPath(lastVisitedPath) || CONFIG.IS_HYBRID_APP) {
+            return undefined;
         }
 
-        // Default behavior - let React Navigation handle the initial state
-        return undefined;
+        // If the user opens the root of app "/" it will be parsed to empty string "".
+        // If the path is defined and different that empty string we don't want to modify the default behavior.
+        if (path) {
+            return;
+        }
+
+        // Otherwise we want to redirect the user to the last visited path.
+        return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
 
         // The initialState value is relevant only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
