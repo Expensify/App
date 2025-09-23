@@ -184,6 +184,7 @@ function prepareTransactionsList(
             amount: Math.abs(item.modifiedAmount || item.amount),
             convertedAmount: item.convertedAmount,
             convertedCurrency: item.convertedCurrency,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
         },
     };
 }
