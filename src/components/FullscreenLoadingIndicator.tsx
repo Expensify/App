@@ -8,8 +8,13 @@ import ActivityIndicator from './ActivityIndicator';
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 
 type FullScreenLoadingIndicatorProps = {
+    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
+
+    /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The ID of the test to be used for testing */
     testID?: string;
 };
 

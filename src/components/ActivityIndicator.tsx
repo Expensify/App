@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import React, {useEffect} from 'react';
 import type {ActivityIndicatorProps as RNActivityIndicatorProps} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {ActivityIndicator as RNActivityIndicator} from 'react-native';
@@ -7,7 +7,10 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 type ActivityIndicatorProps = RNActivityIndicatorProps & {
+    /** The ID of the test to be used for testing */
     testID?: string;
+
+    /** Timeout for the activity indicator after which we fire a log about abnormally long loading */
     timeout?: number;
 };
 
@@ -18,9 +21,6 @@ function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, .
         const timeoutId = setTimeout(() => {
             Log.warn('ActivityIndicator has been shown for longer than expected', {
                 timeoutMs: timeout,
-                context: {
-                    /** TODO: Add context */
-                },
             });
         }, timeout);
 
