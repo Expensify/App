@@ -1,5 +1,5 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -245,6 +245,18 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [filterFormValues]);
+
+    const isFormInitializedRef = useRef(false);
+
+    useEffect(() => {
+        if (isFormInitializedRef.current) {
+            return;
+        }
+        if (filterFormValues && Object.keys(filterFormValues).length > 0) {
+            updateAdvancedFilters(filterFormValues, true);
+            isFormInitializedRef.current = true;
+        }
+    }, [queryJSON, filterFormValues]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {

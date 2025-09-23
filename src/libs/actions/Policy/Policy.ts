@@ -2735,7 +2735,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: {employeeList: null},
+            value: {employeeList: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.duplicateWorkspace.error')},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
