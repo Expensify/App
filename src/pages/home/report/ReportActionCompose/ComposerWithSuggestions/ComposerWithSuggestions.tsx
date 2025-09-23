@@ -3,6 +3,7 @@ import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
+    BlurEvent,
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
@@ -77,7 +78,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     onFocus: () => void;
 
     /** Callback to blur composer */
-    onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onBlur: (event: BlurEvent) => void;
 
     /** Callback when layout of composer changes */
     onLayout?: (event: LayoutChangeEvent) => void;

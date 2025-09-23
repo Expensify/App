@@ -1,6 +1,6 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {FocusEvent, NativeSyntheticEvent, TextInput as RNTextInput, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
@@ -256,13 +256,13 @@ function MagicCodeInput(
     /**
      * Focuses on the input when it is pressed.
      */
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (e: FocusEvent) => {
         if (shouldFocusLast.current) {
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
         onFocusProps?.();
-        event.preventDefault();
+        e.preventDefault();
     };
 
     /**

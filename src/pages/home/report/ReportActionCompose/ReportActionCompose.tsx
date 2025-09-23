@@ -1,7 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
@@ -358,7 +358,7 @@ function ReportActionCompose({
     }, []);
 
     const onBlur = useCallback(
-        (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        (event: BlurEvent) => {
             const webEvent = event as unknown as FocusEvent;
             setIsFocused(false);
             onComposerBlur?.();

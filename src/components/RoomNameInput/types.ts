@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, ReturnKeyTypeOptions, TextInputFocusEventData, TextInputSubmitEditingEventData} from 'react-native';
+import type {BlurEvent, NativeSyntheticEvent, ReturnKeyTypeOptions, TextInputFocusEventData, TextInputSubmitEditingEventData} from 'react-native';
 
 type RoomNameInputProps = {
     value?: string;
@@ -9,7 +9,7 @@ type RoomNameInputProps = {
     onInputChange?: (value: string) => void;
     returnKeyType?: ReturnKeyTypeOptions;
     inputID?: string;
-    onBlur?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onBlur?: (event: BlurEvent) => void;
     autoFocus?: boolean;
     isFocused: boolean;
 };

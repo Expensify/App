@@ -1,5 +1,5 @@
 import '@testing-library/react-native';
-import { NativeModulesProxy } from 'expo-modules-core';
+import {NativeModulesProxy} from 'expo-modules-core';
 
 // Create a fake implementation of all ExponentAV methods
 NativeModulesProxy.ExponentAV = {

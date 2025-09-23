@@ -1,7 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {BlurEvent, InteractionManager, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
@@ -508,9 +508,9 @@ function ReportActionItemMessageEdit(
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
                             }}
-                            onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+                            onBlur={(event: BlurEvent) => {
                                 setIsFocused(false);
-                                const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
+                                const relatedTargetId = event.nativeEvent?.target;
                                 if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || isEmojiPickerVisible()) {
                                     return;
                                 }

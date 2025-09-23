@@ -1,5 +1,7 @@
 import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
+    BlurEvent,
+    FocusEvent,
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
@@ -110,7 +112,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onLongPressRow?: (item: TItem) => void;
 } & TRightHandSideComponent<TItem>;
 
-type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
+type ListItemFocusEventHandler = (event: FocusEvent) => void;
 
 type ExtendedTargetedEvent = TargetedEvent & {
     /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
@@ -409,7 +411,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     onInputFocus?: (index: number) => void;
 
     /** Callback when the input inside the item is blurred (if input exists) */
-    onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onInputBlur?: (e: BlurEvent) => void;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
