@@ -1,13 +1,16 @@
+import {translateLocal} from '@libs/Localize';
 import {
     buildMergedTransactionData,
+    getDisplayValue,
     getMergeableDataAndConflictFields,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -98,10 +101,11 @@ describe('MergeTransactionUtils', () => {
     describe('getMergeFieldValue', () => {
         it('should return empty string when transaction is undefined', () => {
             // Given an undefined transaction
+            const transactionDetails = undefined;
             const transaction = undefined;
 
             // When we try to get a merge field value
-            const result = getMergeFieldValue(transaction, 'merchant');
+            const result = getMergeFieldValue(transactionDetails, transaction, 'merchant');
 
             // Then it should return an empty string because the transaction is undefined
             expect(result).toBe('');
@@ -114,7 +118,7 @@ describe('MergeTransactionUtils', () => {
             transaction.modifiedMerchant = 'Test Merchant';
 
             // When we get the merchant field value
-            const result = getMergeFieldValue(transaction, 'merchant');
+            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'merchant');
 
             // Then it should return the merchant value from the transaction
             expect(result).toBe('Test Merchant');
@@ -126,7 +130,7 @@ describe('MergeTransactionUtils', () => {
             transaction.category = 'Food';
 
             // When we get the category field value
-            const result = getMergeFieldValue(transaction, 'category');
+            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'category');
 
             // Then it should return the category value from the transaction
             expect(result).toBe('Food');
@@ -138,7 +142,7 @@ describe('MergeTransactionUtils', () => {
             transaction.currency = CONST.CURRENCY.EUR;
 
             // When we get the currency field value
-            const result = getMergeFieldValue(transaction, 'currency');
+            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'currency');
 
             // Then it should return the currency value from the transaction
             expect(result).toBe(CONST.CURRENCY.EUR);
@@ -147,27 +151,25 @@ describe('MergeTransactionUtils', () => {
         it('should handle amount field for unreported expense correctly', () => {
             // Given a transaction that is an unreported expense (no reportID or unreported reportID)
             const transaction = createRandomTransaction(0);
-            transaction.amount = 1000;
+            transaction.amount = -1000; // Stored as negative
             transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
 
             // When we get the amount field value
-            const result = getMergeFieldValue(transaction, 'amount');
+            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'amount');
 
             // Then it should return the amount as positive because it's an unreported expense
             expect(result).toBe(1000);
         });
 
-        it('should handle amount field for reported expense correctly', () => {
-            // Given a transaction that is part of a report
-            const transaction = createRandomTransaction(0);
-            transaction.amount = 1000;
-            transaction.reportID = 'report123';
+        it('should return empty string when merchant is missing', () => {
+            // Given a transaction with a missing merchant
+            const transaction = {...createRandomTransaction(0), merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, modifiedMerchant: ''};
 
-            // When we get the amount field value
-            const result = getMergeFieldValue(transaction, 'amount');
+            // When we get the merchant field value
+            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'merchant');
 
-            // Then it should return the amount as negative because it's a reported expense
-            expect(result).toBe(-1000);
+            // Then it should return an empty string because the merchant is missing
+            expect(result).toBe('');
         });
     });
 
@@ -303,6 +305,8 @@ describe('MergeTransactionUtils', () => {
                 comment: {comment: 'Different description 1'},
                 reimbursable: true,
                 billable: false,
+                managedCard: false,
+                created: '2025-01-01T00:00:00.000Z',
             };
             const sourceTransaction = {
                 ...createRandomTransaction(1),
@@ -315,12 +319,14 @@ describe('MergeTransactionUtils', () => {
                 comment: {comment: 'Different description 2'}, // Different
                 reimbursable: false, // Different
                 billable: undefined, // Undefined value
+                managedCard: false,
+                created: '2025-01-02T00:00:00.000Z',
             };
 
             const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
             // Only the different values are in the conflict fields
-            expect(result.conflictFields).toEqual(['amount', 'description', 'reimbursable']);
+            expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
 
             // The same values or either target or source has value are in the mergeable data
             expect(result.mergeableData).toEqual({
@@ -347,7 +353,30 @@ describe('MergeTransactionUtils', () => {
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
-                amount: -1000,
+                amount: 1000, // Unreported expenses return positive values
+            });
+        });
+
+        it('should merge amount field when target transaction is card transaction', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                managedCard: true,
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                amount: 1000,
+                currency: CONST.CURRENCY.AUD,
+                managedCard: false,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+
+            expect(result.conflictFields).not.toContain('amount');
+            expect(result.mergeableData).toMatchObject({
+                amount: 1000, // Card transactions also return positive values when unreported
+                currency: CONST.CURRENCY.USD,
             });
         });
     });
@@ -366,7 +395,7 @@ describe('MergeTransactionUtils', () => {
                 },
                 reimbursable: true,
                 billable: false,
-                receipt: {receiptID: 1234, source: 'original.jpg'},
+                receipt: {receiptID: 1234, source: 'original.jpg', filename: 'original.jpg'},
             };
 
             const mergeTransaction = {
@@ -378,7 +407,9 @@ describe('MergeTransactionUtils', () => {
                 description: 'Merged description',
                 reimbursable: false,
                 billable: true,
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
+                created: '2025-01-02T00:00:00.000Z',
+                reportID: '1',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -400,18 +431,21 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false,
                 billable: true,
                 filename: 'merged.jpg',
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
+                created: '2025-01-02T00:00:00.000Z',
+                modifiedCreated: '2025-01-02T00:00:00.000Z',
+                reportID: '1',
             });
         });
     });
 
-    describe('selectTargetAndSourceTransactionIDsForMerge', () => {
+    describe('selectTargetAndSourceTransactionsForMerge', () => {
         it('should handle undefined transactions gracefully', () => {
-            const result = selectTargetAndSourceTransactionIDsForMerge(undefined, undefined);
+            const result = selectTargetAndSourceTransactionsForMerge(undefined, undefined);
 
             expect(result).toEqual({
-                targetTransactionID: undefined,
-                sourceTransactionID: undefined,
+                targetTransaction: undefined,
+                sourceTransaction: undefined,
             });
         });
 
@@ -427,11 +461,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: true,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction, cardTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction, cardTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -447,11 +481,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cardTransaction, cashTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cardTransaction, cashTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -467,12 +501,109 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction1, cashTransaction2);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction1, cashTransaction2);
 
             expect(result).toEqual({
-                targetTransactionID: 'cash1',
-                sourceTransactionID: 'cash2',
+                targetTransaction: cashTransaction1,
+                sourceTransaction: cashTransaction2,
             });
+        });
+    });
+
+    describe('getDisplayValue', () => {
+        it('should return empty string for empty values', () => {
+            // Given a transaction with empty merchant
+            const transaction = {
+                ...createRandomTransaction(0),
+                merchant: '',
+                modifiedMerchant: '',
+            };
+
+            // When we get display value for merchant
+            const result = getDisplayValue('merchant', transaction, translateLocal);
+
+            // Then it should return empty string
+            expect(result).toBe('');
+        });
+
+        it('should return "Yes"/"No" for boolean values', () => {
+            // Given a transaction with boolean fields
+            const transaction = {
+                ...createRandomTransaction(0),
+                reimbursable: true,
+                billable: false,
+            };
+
+            // When we get display values for boolean fields
+            const reimbursableResult = getDisplayValue('reimbursable', transaction, translateLocal);
+            const billableResult = getDisplayValue('billable', transaction, translateLocal);
+
+            // Then it should return translated Yes/No values
+            expect(reimbursableResult).toBe('common.yes');
+            expect(billableResult).toBe('common.no');
+        });
+
+        it('should format amount with currency', () => {
+            // Given a transaction with amount and USD currency
+            const transaction = {
+                ...createRandomTransaction(0),
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // When we get display value for amount
+            const result = getDisplayValue('amount', transaction, translateLocal);
+
+            // Then it should return formatted currency string
+            expect(result).toBe('$10.00');
+        });
+
+        it('should clean HTML and line breaks from description', () => {
+            // Given a transaction with HTML description containing line breaks
+            const transaction = {
+                ...createRandomTransaction(0),
+                comment: {
+                    comment: '<p>This is a <strong>test</strong> description</p>\nwith line breaks\r\nand more text',
+                },
+            };
+
+            // When we get display value for description
+            const result = getDisplayValue('description', transaction, translateLocal);
+
+            // Then it should return cleaned text without HTML and with spaces instead of line breaks
+            expect(result).toBe('This is a test description with line breaks and more text');
+        });
+
+        it('should sanitize tag with colons', () => {
+            // Given a transaction with tag containing colons
+            const transaction = {
+                ...createRandomTransaction(0),
+                tag: 'Department::Engineering::Frontend',
+            };
+
+            // When we get display value for tag
+            const result = getDisplayValue('tag', transaction, translateLocal);
+
+            // Then it should return sanitized tag names separated by commas
+            expect(result).toBe('Department, Engineering, Frontend');
+        });
+
+        it('should return string values directly', () => {
+            // Given a transaction with string fields
+            const transaction = {
+                ...createRandomTransaction(0),
+                merchant: 'Starbucks Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+            };
+
+            // When we get display values for string fields
+            const merchantResult = getDisplayValue('merchant', transaction, translateLocal);
+            const categoryResult = getDisplayValue('category', transaction, translateLocal);
+
+            // Then it should return the string values
+            expect(merchantResult).toBe('Starbucks Coffee');
+            expect(categoryResult).toBe('Food & Dining');
         });
     });
 });

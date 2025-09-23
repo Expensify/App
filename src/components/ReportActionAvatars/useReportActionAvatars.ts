@@ -5,6 +5,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import RandomAvatarUtils from '@libs/RandomAvatarUtils';
 import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
@@ -14,6 +15,7 @@ import {
     getWorkspaceIcon,
     isChatThread,
     isInvoiceReport,
+    isInvoiceRoom,
     isPolicyExpenseChat,
     isTripRoom,
     shouldReportShowSubscript,
@@ -33,6 +35,7 @@ function useReportActionAvatars({
     policyID: passedPolicyID,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
+    shouldUseCustomFallbackAvatar = false,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -42,6 +45,7 @@ function useReportActionAvatars({
     policyID?: string;
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
+    shouldUseCustomFallbackAvatar?: boolean;
 }) {
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
@@ -114,6 +118,7 @@ function useReportActionAvatars({
             type: CONST.ICON_TYPE_AVATAR,
             source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
+            fallbackIcon: shouldUseCustomFallbackAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
         };
     });
 
@@ -151,7 +156,8 @@ function useReportActionAvatars({
     const isWorkspacePolicy = !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const isATripRoom = isTripRoom(chatReport);
     const isWorkspaceWithoutChatReportProp = !chatReport && isWorkspacePolicy;
-    const isAWorkspaceChat = isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp;
+    const isAnInvoiceRoom = isInvoiceRoom(chatReport);
+    const isAWorkspaceChat = (isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp) && !isAnInvoiceRoom;
     const isATripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
     const isReportPreviewOrNoAction = !action || isAReportPreviewAction;
     const isReportPreviewInTripRoom = isAReportPreviewAction && isATripRoom;
@@ -193,12 +199,12 @@ function useReportActionAvatars({
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
-    const isNestedInInvoiceReport = !!invoiceReport;
+    const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
     const isChatReportOnlyProp = !iouReport && chatReport;
     const isWorkspaceChatWithoutChatReport = !chatReport && isAWorkspaceChat;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview;
+    const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
@@ -258,7 +264,7 @@ function useReportActionAvatars({
     }
 
     if (!primaryAvatar?.id) {
-        primaryAvatar = isNestedInInvoiceReport ? invoiceFallbackAvatar : userFallbackAvatar;
+        primaryAvatar = isNestedInInvoiceReport && !isAnInvoiceRoom ? invoiceFallbackAvatar : userFallbackAvatar;
     }
 
     let secondaryAvatar;

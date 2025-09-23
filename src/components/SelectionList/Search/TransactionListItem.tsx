@@ -14,10 +14,13 @@ import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -34,6 +37,7 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     areAllOptionalColumnsHidden,
+    violations,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -72,6 +76,12 @@ function TransactionListItem<TItem extends ListItem>({
             dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
     }, [transactionItem]);
+
+    const transactionViolations = useMemo(() => {
+        return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
+            (violation: TransactionViolation) => !isViolationDismissed(transactionItem, violation) && shouldShowViolation(snapshotReport, snapshotPolicy as Policy, violation.name, false),
+        );
+    }, [snapshotPolicy, snapshotReport, transactionItem, violations]);
 
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
@@ -147,6 +157,7 @@ function TransactionListItem<TItem extends ListItem>({
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                    violations={transactionViolations}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

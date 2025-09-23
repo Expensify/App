@@ -129,6 +129,7 @@ key "key"
       / taxRate
       / cardID
       / from
+      / attendee
       / payer
       / exporter
       / expenseType
@@ -147,11 +148,15 @@ key "key"
       / reimbursable
       / billable
       / action
+      / has
+      / is
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
   = k:key {
-      nameOperator = (k === "from" || k === "to");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }
 

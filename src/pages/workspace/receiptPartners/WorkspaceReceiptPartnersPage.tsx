@@ -11,13 +11,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -38,7 +39,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
@@ -52,21 +52,16 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
-    const [isConnected, setIsConnected] = useState(false);
-    const isUberConnected = !!integrations?.uber?.organizationID || isConnected;
+    const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
+
+    // Track focus and connection change to route to the invite flow once after successful connection
+    const prevIsUberConnected = usePrevious(isUberConnected);
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
-            // TODO remove this when integration flow will be ready
-            setIsConnected(true);
             switch (name) {
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
-                    const {connectFormData} = integrations?.uber ?? {};
-                    const hash = connectFormData?.hash;
-                    const query = connectFormData?.query;
-                    const userName = connectFormData?.name;
-                    const id = connectFormData?.id;
-                    openExternalLink(`${CONST.UBER_CONNECT_URL}?query=${query}&hash=${hash}&name=${userName}&id=${id}`);
+                    openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
                     break;
                 }
                 default: {
@@ -86,6 +81,14 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // When Uber connection status flips from false -> true, navigate to the invite flow once
+    useEffect(() => {
+        if (!isUberConnected || prevIsUberConnected) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+    }, [prevIsUberConnected, isUberConnected, policyID]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
@@ -149,9 +152,9 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
             return;
         }
         removePolicyReceiptPartnersConnection(policyID, selectedPartner, integrations?.[selectedPartner]);
-        setIsConnected(false);
+        fetchReceiptPartners();
         onCloseModal();
-    }, [policyID, selectedPartner, integrations, onCloseModal]);
+    }, [policyID, selectedPartner, integrations, onCloseModal, fetchReceiptPartners]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (policyID) {
@@ -197,6 +200,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 small
+                                isLoading={!policy?.receiptPartners?.uber}
                                 isDisabled={isOffline}
                             />
                         ),
@@ -214,7 +218,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         styles.sectionMenuItemTopDescription,
         styles.pr2,
         styles.justifyContentCenter,
-        policy?.receiptPartners?.uber?.errorFields,
+        policy?.receiptPartners?.uber,
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         isOffline,
@@ -243,7 +247,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={Illustrations.ReceiptPartners}
                         shouldUseHeadlineHeader
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
                         onBackButtonPress={Navigation.popToSidebar}
                     />
                     <ScrollView
