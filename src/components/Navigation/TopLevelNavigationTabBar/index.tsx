@@ -70,7 +70,6 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 2. We need to hide tooltips as well if they were displayed. */}
             <NavigationTabBar
                 selectedTab={selectedTab}
-                isTooltipAllowed={isReadyToDisplayBottomBar}
                 isTopLevelBar
             />
         </View>

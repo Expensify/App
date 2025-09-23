@@ -25,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -642,7 +643,15 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
 
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current;
+    const [isSorting, setIsSorting] = useState(false);
+
+    let searchResults;
+    if (currentSearchResults?.data) {
+        searchResults = currentSearchResults;
+    } else if (isSorting) {
+        searchResults = lastNonEmptySearchResults.current;
+    }
+
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
     const shouldShowFooter = !!metadata?.count;
@@ -673,6 +682,16 @@ function SearchPage({route}: SearchPageProps) {
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
+
+    useEffect(() => {
+        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
+            return;
+        }
+
+        setIsSorting(false);
+    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
@@ -811,6 +830,9 @@ function SearchPage({route}: SearchPageProps) {
                                         }
 
                                         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+                                    }}
+                                    onSortPressedCallback={() => {
+                                        setIsSorting(true);
                                     }}
                                 />
                                 {shouldShowFooter && (
