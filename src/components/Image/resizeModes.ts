@@ -1,3 +1,4 @@
+// Image resize mode constants
 const RESIZE_MODES = {
     contain: 'contain',
     cover: 'cover',
