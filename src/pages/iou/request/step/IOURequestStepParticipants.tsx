@@ -222,9 +222,13 @@ function IOURequestStepParticipants({
                 });
             }
 
-            // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
+            // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
-            if (val.length !== 1 && !isInvoice) {
+            // For invoices, a valid participant must have a login.
+
+            const hasOneValidParticipant = iouType === CONST.IOU.TYPE.INVOICE ? val.filter((item) => !!item.login).length !== 1 : val.length !== 1;
+
+            if (hasOneValidParticipant && !isInvoice) {
                 selectedReportID.current = reportID;
                 return;
             }
@@ -341,7 +345,7 @@ function IOURequestStepParticipants({
             )}
             {transactions.length > 0 && (
                 <MoneyRequestParticipantsSelector
-                    participants={participants}
+                    participants={isSplitRequest ? participants : []}
                     onParticipantsAdded={addParticipant}
                     onFinish={goToNextStep}
                     iouType={iouType}

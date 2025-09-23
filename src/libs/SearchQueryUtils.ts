@@ -555,6 +555,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
                     filterKey === FILTER_KEYS.HAS ||
+                    filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.ATTENDEE) &&
                 Array.isArray(filterValue) &&
@@ -641,6 +642,10 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
             filtersForm[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+            const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
+            filtersForm[filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
