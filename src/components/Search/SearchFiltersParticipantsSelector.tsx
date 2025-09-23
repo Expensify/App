@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import memoize from '@libs/memoize';
 import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getParticipantsOption, getPolicyExpenseReportOption, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option, SearchOptionData} from '@libs/OptionsListUtils';
@@ -40,7 +39,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -163,15 +162,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
         let sortedSectionData = sectionData.sort((a, b) => {
-            const nameComparison = localeCompare(a?.text?.toLowerCase() ?? '', b?.text?.toLowerCase() ?? '');
-
-            if (nameComparison !== 0) {
-                return nameComparison;
-            }
-
             const accountID1 = a?.accountID ?? CONST.DEFAULT_NUMBER_ID;
             const accountID2 = b?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-            return accountID1 - accountID2;
+            return localeCompare(`${a?.text?.toLowerCase() ?? ''}${accountID1}`, `${b?.text?.toLowerCase() ?? ''}${accountID2}`);
         });
 
         if (initialSelectedOptions.length) {
@@ -198,7 +191,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             ],
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, initialSelectedOptions, translate]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, initialSelectedOptions, translate, localeCompare]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
