@@ -594,7 +594,7 @@ describe('CardUtils', () => {
         it('Should return empty string if feed is not provided (instead of TypeError crashing the app)', () => {
             const feed = undefined;
             const feedName = getBankName(feed as unknown as CompanyCardFeed);
-            expect(feedName).toBe("");
+            expect(feedName).toBe('');
         });
     });
 
