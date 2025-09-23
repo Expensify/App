@@ -168,7 +168,6 @@ function setIsAuthenticating(val: boolean) {
     authenticating = val;
 }
 
-
 export {
     getAuthToken,
     setAuthToken,
