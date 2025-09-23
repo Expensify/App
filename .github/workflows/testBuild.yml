@@ -428,15 +428,6 @@ jobs:
         # v1
         uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
-      - name: Load files from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
-
       - name: Load iOS credentials from 1Password
         id: load-credentials
         # v2
@@ -446,13 +437,9 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           APPLE_CERTIFICATE_BASE64: op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/base64
-          # We need to add the provisioning profile to the 1Password vault
-          # APPLE_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/base64
-      
-      - name: Load provisioning profile and convert to base64
-        id: load-provisioning-profile
-        run: |
-          echo "profile-base64=$(base64 -i ./OldApp_AdHoc.mobileprovision)" >> "$GITHUB_OUTPUT"
+          MAIN_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision
+          SHARE_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision
+          NOTIFICATION_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
@@ -469,14 +456,14 @@ jobs:
           scheme: 'Expensify AdHoc'
           configuration: 'DebugAdHoc'
           certificate-base64: ${{ steps.load-credentials.outputs.APPLE_CERTIFICATE_BASE64}}
-          # NEED to take it from load-credentials
-          # provisioning-profile-base64: ${{ steps.load-provisioning-profile.outputs.APPLE_PROVISIONING_PROFILE_BASE64}}
-          # not sure if we have in the secrets on gh
+          provisioning-profile-base64: ${{ steps.load-credentials.outputs.MAIN_PROVISIONING_PROFILE_BASE64}}
           certificate-password: ${{ secrets.CERTIFICATE_PASSWORD || '' }}
-          # not sure if we have in the secrets on gh
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD || '' }}
           provisioning-profile-name: '(OldApp) AdHoc'
           comment-bot: true
+          rock-build-extra-params: |
+            PROVISIONING_PROFILE_SPECIFIER_ShareExtension=${{ steps.load-credentials.outputs.SHARE_PROVISIONING_PROFILE_BASE64 }}
+            PROVISIONING_PROFILE_SPECIFIER_NotificationService=${{ steps.load-credentials.outputs.NOTIFICATION_PROVISIONING_PROFILE_BASE64 }}
 
   postGithubComment:
     runs-on: ubuntu-latest
