@@ -666,6 +666,13 @@ function clearSupportalPermissionDenied() {
     Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
 }
 
+/**
+ * Shows a top-level modal informing that a supportal-auth user attempted an unauthorized command.
+ */
+function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDenied) {
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
@@ -687,6 +694,7 @@ export {
     setIsUsingImportedState,
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
+    showSupportalPermissionDenied,
     setPreservedUserSession,
     KEYS_TO_PRESERVE,
 };
