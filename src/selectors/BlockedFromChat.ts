@@ -2,9 +2,6 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-/**
- * Selector for blocked from chat status that checks if the block date is still valid
- */
 const isBlockedFromChatSelector = (dateString?: string): boolean => {
     if (!dateString) {
         return false;

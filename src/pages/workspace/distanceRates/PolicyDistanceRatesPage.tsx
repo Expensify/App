@@ -49,7 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {transactionViolationsSelector} from '@src/selectors/Transaction';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
 
 type RateForList = ListItem & {value: string; rate?: number};
@@ -141,8 +141,13 @@ function PolicyDistanceRatesPage({
 
     const eligibleTransactionIDs = eligibleTransactionsData?.transactionIDs;
 
+    const transactionViolationSelector = useCallback(
+        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDs),
+        [eligibleTransactionIDs],
+    );
+
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (violations) => transactionViolationsSelector(violations, eligibleTransactionIDs),
+        selector: transactionViolationSelector,
         canBeMissing: true,
     });
 

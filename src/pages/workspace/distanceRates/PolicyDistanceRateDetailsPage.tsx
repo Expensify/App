@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {transactionViolationsSelector} from '@src/selectors/Transaction';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
@@ -87,8 +87,13 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         canBeMissing: true,
     });
 
+    const transactionViolationSelector = useCallback(
+        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDs),
+        [eligibleTransactionIDs],
+    );
+
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (violations) => transactionViolationsSelector(violations, eligibleTransactionIDs),
+        selector: transactionViolationSelector,
         canBeMissing: true,
     });
 
