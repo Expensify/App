@@ -1,4 +1,4 @@
-import type { ForwardedRef } from 'react';
+import type {ForwardedRef} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -59,24 +59,22 @@ type InteractiveStepWrapperProps = {
     ref?: ForwardedRef<View>;
 };
 
-function InteractiveStepWrapper(
-    {
-        children,
-        wrapperID,
-        handleBackButtonPress,
-        headerTitle,
-        headerSubtitle,
-        startStepIndex,
-        stepNames,
-        shouldEnableMaxHeight,
-        shouldShowOfflineIndicator,
-        shouldEnablePickerAvoiding = false,
-        offlineIndicatorStyle,
-        shouldKeyboardOffsetBottomSafeAreaPadding,
-        enableEdgeToEdgeBottomSafeAreaPadding,
-        ref,
-    }: InteractiveStepWrapperProps,
-) {
+function InteractiveStepWrapper({
+    children,
+    wrapperID,
+    handleBackButtonPress,
+    headerTitle,
+    headerSubtitle,
+    startStepIndex,
+    stepNames,
+    shouldEnableMaxHeight,
+    shouldShowOfflineIndicator,
+    shouldEnablePickerAvoiding = false,
+    offlineIndicatorStyle,
+    shouldKeyboardOffsetBottomSafeAreaPadding,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    ref,
+}: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
 
     return (
