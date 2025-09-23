@@ -76,8 +76,6 @@ function checkChangedFiles(remote: string): boolean {
         const changedFiles = getChangedFiles(remote);
         const filesToCheck = [...new Set(changedFiles)];
 
-        console.log(filesToCheck);
-
         if (filesToCheck.length === 0) {
             logSuccess('No React files changed, skipping check.');
             return true;
