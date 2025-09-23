@@ -244,11 +244,9 @@ function AddPlaidBankAccount({
 
     return (
         <FullPageOfflineBlockingView>
-            <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                {translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
-            </Text>
-            {!!text && <Text style={[styles.mh5, styles.mb6, styles.textSupporting]}>{text}</Text>}
-            <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
+            {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                 <Icon
                     src={icon}
                     height={iconSize}
@@ -262,12 +260,12 @@ function AddPlaidBankAccount({
                     )}
                 </View>
             </View>
-            <Text style={[styles.mh5, styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+            <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
             <RadioButtons
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
                 onPress={handleSelectingPlaidAccount}
-                radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
+                radioButtonStyle={[styles.mb6]}
             />
             <FormHelpMessage message={errorText} />
         </FullPageOfflineBlockingView>
