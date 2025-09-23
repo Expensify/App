@@ -1039,7 +1039,8 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: OnyxEntry<number>) {
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchTerm), countryCode ?? 1));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchTerm), countryCode || CONST.DEFAULT_COUNTRY_CODE));
     return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }
 
@@ -1621,7 +1622,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         isPerDiemRequest = false,
         showRBR = true,
         shouldShowGBR = false,
-        includeSelectedOptions = false,
     } = config;
 
     const validReportOptions: SearchOptionData[] = [];
@@ -1640,9 +1640,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
          */
         const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
         const isSelected = isReportSelected(option, selectedOptions);
-        if (isSelected && !includeSelectedOptions) {
-            continue;
-        }
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
         let lastIOUCreationDate;
 
@@ -2416,7 +2413,8 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
 }
 
 function filterOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config?: FilterUserToInviteConfig): Options {
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchInputValue), countryCode ?? 1));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchInputValue), countryCode || CONST.DEFAULT_COUNTRY_CODE));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
