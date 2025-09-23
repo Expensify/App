@@ -47,6 +47,7 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyCategoriesData} from './Policy/Category';
 import {getPolicyTagsData} from './Policy/Tag';
+import {getCurrentUserAccountID} from './Report';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -635,6 +636,7 @@ function changeTransactionsReport(
     const existingSelfDMReportID = findSelfDMReportID();
     let selfDMReport: Report;
     let selfDMCreatedReportAction: ReportAction;
+    const currentUserAccountID = getCurrentUserAccountID();
 
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
@@ -953,6 +955,7 @@ function changeTransactionsReport(
                 parentReportID: targetReportID,
                 parentReportActionID: optimisticMoneyRequestReportActionID,
                 policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                ...(isUnreported ? {participants: {[currentUserAccountID]: {notificationPreference: ''}}} : {}),
             },
         });
 
