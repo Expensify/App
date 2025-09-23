@@ -463,7 +463,6 @@ function SearchPage({route}: SearchPageProps) {
         integrationsExportTemplates,
         csvExportLayouts,
         policies,
-        activePolicy,
     ]);
 
     const handleDeleteExpenses = () => {
