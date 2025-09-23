@@ -1,0 +1,7 @@
+import SCREENS from '@src/SCREENS';
+
+const MAPPINGS = {
+    VERIFY_ACCOUNT: [SCREENS.REPORT, SCREENS.SEARCH.REPORT_RHP],
+};
+
+export default MAPPINGS;
