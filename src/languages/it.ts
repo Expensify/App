@@ -1752,8 +1752,9 @@ const translations = {
         reportSuspiciousActivity: 'Segnala attività sospetta',
         lockAccount: 'Blocca account',
         unlockAccount: 'Sblocca account',
-        compromisedDescription: 'Notato qualcosa di strano nel tuo account? Segnalandolo lo bloccherai immediatamente, fermerai le transazioni con la carta Expensify e impedirai modifiche.',
-        domainAdminsDescription: 'Per gli amministratori di dominio: questo sospende anche tutta l’attività delle carte Expensify e le azioni amministrative.',
+        compromisedDescription:
+            "Hai notato qualcosa di strano nel tuo account? Segnalando il problema, il tuo account verrà immediatamente bloccato, verranno bloccate le nuove transazioni con la carta Expensify e verranno impedite eventuali modifiche all'account.",
+        domainAdminsDescription: 'Per gli amministratori di dominio: Questo sospende anche tutte le attività della carta Expensify e le azioni amministrative nel tuo dominio.',
         areYouSure: 'Sei sicuro di voler bloccare il tuo account Expensify?',
         ourTeamWill: 'Il nostro team indagherà e rimuoverà eventuali accessi non autorizzati. Per riottenere l’accesso, dovrai collaborare con Concierge.',
     },
@@ -2081,7 +2082,7 @@ const translations = {
         error: {
             thatDidNotMatch: 'Quello non corrispondeva alle ultime 4 cifre della tua carta. Per favore riprova.',
             throttled:
-                'Hai inserito in modo errato le ultime 4 cifre della tua Expensify Card troppe volte. Se sei sicuro che i numeri siano corretti, contatta Concierge per risolvere il problema. Altrimenti, riprova più tardi.',
+                'Hai inserito troppe volte in modo errato le ultime 4 cifre della tua carta Expensify. Se sei sicuro che i numeri siano corretti, contatta Concierge per risolvere. Altrimenti, riprova più tardi.',
         },
     },
     getPhysicalCard: {
@@ -2748,7 +2749,7 @@ const translations = {
         connectManually: 'Connetti manualmente',
         desktopConnection: 'Nota: Per connettersi con Chase, Wells Fargo, Capital One o Bank of America, fare clic qui per completare questo processo in un browser.',
         yourDataIsSecure: 'I tuoi dati sono al sicuro',
-        toGetStarted: 'Aggiungi un conto bancario per rimborsare le spese, emettere le carte Expensify, riscuotere i pagamenti delle fatture e pagare le bollette tutto da un unico posto.',
+        toGetStarted: 'Aggiungi un conto bancario per rimborsare le spese, emettere carte Expensify, riscuotere i pagamenti delle fatture e pagare le bollette tutto da un unico posto.',
         plaidBodyCopy: 'Offri ai tuoi dipendenti un modo più semplice per pagare - e farsi rimborsare - le spese aziendali.',
         checkHelpLine: 'Il tuo numero di instradamento e il numero di conto possono essere trovati su un assegno per il conto.',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
@@ -2790,7 +2791,7 @@ const translations = {
             fullName: 'Per favore, inserisci un nome completo valido',
             ownershipPercentage: 'Per favore, inserisci un numero percentuale valido',
             deletePaymentBankAccount:
-                'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con la carta Expensify. Se desideri comunque eliminare questo conto, contatta il Concierge.',
+                'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con la carta Expensify. Se desideri comunque eliminare questo conto, contatta Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3573,7 +3574,7 @@ const translations = {
             defaultCategory: 'Categoria predefinita',
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
-            deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente in un “Conto di responsabilità della carta Expensify” creato con la <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nostra integrazione</a>.</muted-text-label>`,
+            deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente su un "Conto di responsabilità della carta Expensify" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
         },
         receiptPartners: {
             connect: 'Connettiti ora',
@@ -3637,7 +3638,7 @@ const translations = {
             exportDescription: 'Configura come i dati di Expensify vengono esportati su QuickBooks Desktop.',
             date: 'Data di esportazione',
             exportInvoices: 'Esporta fatture su',
-            exportExpensifyCard: 'Esporta le transazioni della Expensify Card come',
+            exportExpensifyCard: 'Esporta le transazioni della carta Expensify come',
             account: 'Account',
             accountDescription: 'Scegli dove pubblicare le registrazioni contabili.',
             accountsPayable: 'Conti da pagare',
@@ -3747,7 +3748,7 @@ const translations = {
             exportDescription: 'Configura come i dati di Expensify vengono esportati su QuickBooks Online.',
             date: 'Data di esportazione',
             exportInvoices: 'Esporta fatture su',
-            exportExpensifyCard: 'Esporta le transazioni della Expensify Card come',
+            exportExpensifyCard: 'Esporta le transazioni della carta Expensify come',
             exportDate: {
                 label: 'Data di esportazione',
                 description: 'Usa questa data quando esporti i rapporti su QuickBooks Online.',
@@ -4479,7 +4480,7 @@ const translations = {
             issueAndManageCards: 'Emetti e gestisci le tue carte Expensify',
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
             verificationInProgress: 'Verifica in corso...',
-            verifyingTheDetails: 'Stiamo verificando alcuni dettagli. Concierge ti farà sapere quando le Expensify Card saranno pronte per essere emesse.',
+            verifyingTheDetails: 'Stiamo verificando alcuni dettagli. Concierge ti farà sapere quando le carte Expensify sono pronte per essere emesse.',
             disclaimer:
                 'La Expensify Visa® Commercial Card è emessa da The Bancorp Bank, N.A., Membro FDIC, in base a una licenza di Visa U.S.A. Inc. e potrebbe non essere accettata da tutti i commercianti che accettano carte Visa. Apple® e il logo Apple® sono marchi di Apple Inc., registrati negli Stati Uniti e in altri paesi. App Store è un marchio di servizio di Apple Inc. Google Play e il logo di Google Play sono marchi di Google LLC.',
             euUkDisclaimer:
@@ -4491,7 +4492,7 @@ const translations = {
             lastFour: 'Ultimi 4',
             limit: 'Limite',
             currentBalance: 'Saldo attuale',
-            currentBalanceDescription: "Il saldo attuale è la somma di tutte le transazioni con la carta Expensify registrate che sono avvenute dalla data dell'ultimo saldo.",
+            currentBalanceDescription: "Il saldo attuale è la somma di tutte le transazioni con la carta Expensify registrate che sono avvenute dalla data dell'ultimo regolamento.",
             balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `Il saldo sarà regolato il ${settlementDate}`,
             settleBalance: 'Regola il saldo',
             cardLimit: 'Limite della carta',
@@ -4500,19 +4501,19 @@ const translations = {
             remainingLimitDescription:
                 'Consideriamo diversi fattori quando calcoliamo il tuo limite rimanente: la tua anzianità come cliente, le informazioni aziendali fornite durante la registrazione e la liquidità disponibile nel conto bancario della tua azienda. Il tuo limite rimanente può variare su base giornaliera.',
             earnedCashback: 'Rimborso',
-            earnedCashbackDescription: 'Il saldo del cashback si basa sulla spesa mensile regolata con la Expensify Card nel tuo spazio di lavoro.',
+            earnedCashbackDescription: 'Il saldo del cashback si basa sulla spesa mensile regolata con la Carta Expensify nel tuo spazio di lavoro.',
             issueNewCard: 'Emetti nuova carta',
             finishSetup: 'Completa la configurazione',
             chooseBankAccount: 'Scegli conto bancario',
-            chooseExistingBank: 'Scegli un conto bancario aziendale esistente per pagare il saldo della tua Expensify Card, oppure aggiungi un nuovo conto bancario',
+            chooseExistingBank: 'Scegli un conto bancario aziendale esistente per pagare il saldo della tua carta Expensify, oppure aggiungi un nuovo conto bancario.',
             accountEndingIn: 'Account con terminazione in',
             addNewBankAccount: 'Aggiungi un nuovo conto bancario',
             settlementAccount: 'Conto di regolamento',
-            settlementAccountDescription: 'Scegli un account per pagare il saldo della tua Expensify Card.',
+            settlementAccountDescription: 'Scegli un account per pagare il saldo della tua carta Expensify.',
             settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
                 `Assicurarsi che questo conto corrisponda al <a href="${reconciliationAccountSettingsLink}">conto Riconciliazione</a> (${accountNumber}) in modo che la Riconciliazione continua funzioni correttamente.`,
             settlementFrequency: 'Frequenza di liquidazione',
-            settlementFrequencyDescription: 'Scegli la frequenza con cui pagherai il saldo della tua Expensify Card.',
+            settlementFrequencyDescription: 'Scegli con quale frequenza pagherai il saldo della tua carta Expensify.',
             settlementFrequencyInfo: 'Se desideri passare al regolamento mensile, dovrai collegare il tuo conto bancario tramite Plaid e avere uno storico del saldo positivo di 90 giorni.',
             frequency: {
                 daily: 'Quotidiano',
@@ -4535,16 +4536,16 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `Se cambi il tipo di limite di questa carta a Mensile, le nuove transazioni verranno rifiutate perché il limite mensile di ${limit} è già stato raggiunto.`,
             addShippingDetails: 'Aggiungi dettagli di spedizione',
-            issuedCard: ({assignee}: AssigneeParams) => `ha emesso a ${assignee} una Expensify Card! La carta arriverà in 2-3 giorni lavorativi.`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `ha emesso una Expensify Card per ${assignee}! La carta verrà spedita una volta aggiunti i dettagli di spedizione.`,
+            issuedCard: ({assignee}: AssigneeParams) => `ha emesso a ${assignee} una carta Expensify! La carta arriverà in 2-3 giorni lavorativi.`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `ha emesso una Carta Expensify a ${assignee}! La carta verrà spedita una volta aggiunti i dettagli di spedizione.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `ha emesso ${assignee} una ${link} virtuale! La carta può essere utilizzata immediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} ha aggiunto i dettagli di spedizione. La carta Expensify arriverà in 2-3 giorni lavorativi.`,
             verifyingHeader: 'Verifica in corso',
             bankAccountVerifiedHeader: 'Conto bancario verificato',
             verifyingBankAccount: 'Verifica del conto bancario in corso...',
-            verifyingBankAccountDescription: 'Attendere mentre confermiamo che questo account possa essere utilizzato per emettere le carte Expensify.',
+            verifyingBankAccountDescription: 'Attendere mentre confermiamo che questo account possa essere utilizzato per emettere carte Expensify.',
             bankAccountVerified: 'Conto bancario verificato!',
-            bankAccountVerifiedDescription: 'Ora puoi emettere le Expensify Card ai membri del tuo spazio di lavoro.',
+            bankAccountVerifiedDescription: 'Ora puoi emettere carte Expensify ai membri del tuo spazio di lavoro.',
             oneMoreStep: 'Un altro passo...',
             oneMoreStepDescription: 'Sembra che dobbiamo verificare manualmente il tuo conto bancario. Per favore, vai su Concierge dove le tue istruzioni ti stanno aspettando.',
             gotIt: 'Capito',
@@ -4625,11 +4626,11 @@ const translations = {
             },
             expensifyCard: {
                 subtitle: 'Ottieni informazioni e controllo sulle spese.',
-                disableCardTitle: 'Disabilita Expensify Card',
-                disableCardPrompt: 'Non puoi disabilitare la Expensify Card perché è già in uso. Contatta Concierge per i prossimi passi.',
+                disableCardTitle: 'Disabilita la carta Expensify',
+                disableCardPrompt: 'Non puoi disabilitare la carta Expensify perché è già in uso. Contatta Concierge per i prossimi passi.',
                 disableCardButton: 'Chatta con Concierge',
                 feed: {
-                    title: 'Ottieni la Expensify Card',
+                    title: 'Ottieni la carta Expensify',
                     subTitle: 'Ottimizza le spese aziendali e risparmia fino al 50% sulla tua fattura Expensify, inoltre:',
                     features: {
                         cashBack: 'Cashback su ogni acquisto negli Stati Uniti',
@@ -4699,11 +4700,11 @@ const translations = {
                 noAccountsFound: 'Nessun account trovato',
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,
-                downgradeSubTitleFirstPart: `Questo workspace non può essere declassato perché sono collegati più flussi di carte (escludendo le carte Expensify). Per favore`,
+                downgradeSubTitleFirstPart: `Questo spazio di lavoro non può essere declassato perché sono collegati più flussi di carte (escluse le Carte Expensify). Per favore`,
                 downgradeSubTitleMiddlePart: `mantieni solo un feed di carte`,
                 downgradeSubTitleLastPart: 'per procedere.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Per favore, aggiungi l'account in ${connection} e sincronizza nuovamente la connessione.`,
-                expensifyCardBannerTitle: 'Ottieni la Expensify Card',
+                expensifyCardBannerTitle: 'Ottieni la carta Expensify',
                 expensifyCardBannerSubtitle:
                     'Goditi il cashback su ogni acquisto negli Stati Uniti, fino al 50% di sconto sulla tua fattura Expensify, carte virtuali illimitate e molto altro ancora.',
                 expensifyCardBannerLearnMoreButton: 'Scopri di più',
@@ -4714,7 +4715,7 @@ const translations = {
                 title: 'Flussi di lavoro',
                 subtitle: 'Configura come viene approvata e pagata la spesa.',
                 disableApprovalPrompt:
-                    "Le carte Expensify di questo spazio di lavoro attualmente si basano sull'approvazione per definire i loro limiti intelligenti. Si prega di modificare i tipi di limiti di qualsiasi carta Expensify con limiti intelligenti prima di disabilitare le approvazioni.",
+                    "Le carte Expensify di questo spazio di lavoro attualmente si basano sull'approvazione per definire i loro Limiti Intelligenti. Si prega di modificare i tipi di limite di qualsiasi carta Expensify con Limiti Intelligenti prima di disabilitare le approvazioni.",
             },
             invoices: {
                 title: 'Fatture',
@@ -4759,8 +4760,8 @@ const translations = {
             workflowWarningModal: {
                 featureEnabledTitle: 'Non così in fretta...',
                 featureEnabledText:
-                    'Le carte Expensify in questo spazio di lavoro si basano su flussi di approvazione per definire i loro Limiti Intelligenti.\n\nSi prega di modificare i tipi di limite di qualsiasi carta con Limiti Intelligenti prima di disabilitare i flussi di lavoro.',
-                confirmText: 'Vai a Expensify Cards',
+                    'Le carte Expensify in questo spazio di lavoro si basano su flussi di approvazione per definire i loro limiti intelligenti.\n\nSi prega di cambiare i tipi di limiti di qualsiasi carta con limiti intelligenti prima di disabilitare i flussi di lavoro.',
+                confirmText: 'Vai a Carte Expensify',
             },
             rules: {
                 title: 'Regole',
@@ -4974,7 +4975,7 @@ const translations = {
         },
         new: {
             newWorkspace: 'Nuovo spazio di lavoro',
-            getTheExpensifyCardAndMore: 'Ottieni la Expensify Card e altro ancora',
+            getTheExpensifyCardAndMore: 'Ottieni la carta Expensify e altro ancora',
             confirmWorkspace: 'Conferma Workspace',
             myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Il mio spazio di lavoro di gruppo${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Spazio di lavoro di ${userName}${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
@@ -5289,7 +5290,7 @@ const translations = {
             reconciliationAccount: 'Conto di riconciliazione',
             continuousReconciliation: 'Riconciliazione Continua',
             saveHoursOnReconciliation:
-                'Risparmia ore di riconciliazione ogni periodo contabile facendo riconciliare continuamente a Expensify gli estratti conto e i regolamenti della Expensify Card per tuo conto.',
+                'Risparmia ore nella riconciliazione di ogni periodo contabile facendo in modo che Expensify riconcili continuamente gli estratti conto e i regolamenti della carta Expensify per tuo conto.',
             enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
                 `<muted-text-label>Per abilitare la riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
@@ -5454,7 +5455,7 @@ const translations = {
             hasFailedSettlementsTitle: 'Impossibile trasferire la proprietà',
             hasFailedSettlementsButtonText: 'Capito',
             hasFailedSettlementsText: ({email}: ChangeOwnerHasFailedSettlementsParams) =>
-                `Non puoi assumere la gestione della fatturazione perché ${email} ha un saldo scaduto della Expensify Card. Per favore chiedi loro di contattare concierge@expensify.com per risolvere il problema. Successivamente, potrai assumere la gestione della fatturazione per questo workspace.`,
+                `Non puoi assumere il controllo della fatturazione perché ${email} ha un saldo scaduto della carta Expensify. Per favore, chiedi loro di contattare concierge@expensify.com per risolvere il problema. Poi, potrai assumere il controllo della fatturazione per questo spazio di lavoro.`,
             failedToClearBalanceTitle: 'Impossibile azzerare il saldo',
             failedToClearBalanceButtonText: 'OK',
             failedToClearBalanceText: 'Non siamo riusciti a saldare il saldo. Per favore riprova più tardi.',
@@ -6890,8 +6891,8 @@ const translations = {
             collect: {
                 title: 'Raccogliere',
                 description: 'Il piano per piccole imprese che ti offre spese, viaggi e chat.',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la Expensify Card, ${upper}/membro attivo senza la Expensify Card.`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la Expensify Card, ${upper}/membro attivo senza la Expensify Card.`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la carta Expensify, ${upper}/membro attivo senza la carta Expensify.`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la carta Expensify, ${upper}/membro attivo senza la carta Expensify.`,
                 benefit1: 'Scansione delle ricevute',
                 benefit2: 'Rimborsi',
                 benefit3: 'Gestione delle carte aziendali',
@@ -6904,8 +6905,8 @@ const translations = {
             control: {
                 title: 'Controllo',
                 description: 'Spese, viaggi e chat per aziende più grandi.',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la Expensify Card, ${upper}/membro attivo senza la Expensify Card.`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la Expensify Card, ${upper}/membro attivo senza la Expensify Card.`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la carta Expensify, ${upper}/membro attivo senza la carta Expensify.`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower}/membro attivo con la carta Expensify, ${upper}/membro attivo senza la carta Expensify.`,
                 benefit1: 'Tutto nel piano Collect',
                 benefit2: 'Flussi di lavoro di approvazione multilivello',
                 benefit3: 'Regole personalizzate per le spese',
@@ -6919,8 +6920,8 @@ const translations = {
             downgrade: 'Effettua il downgrade a Collect',
             upgrade: 'Aggiorna a Control',
             addMembers: 'Aggiungi membri',
-            saveWithExpensifyTitle: 'Risparmia con la Expensify Card',
-            saveWithExpensifyDescription: 'Usa il nostro calcolatore di risparmio per vedere come il cashback dalla Expensify Card può ridurre la tua fattura Expensify.',
+            saveWithExpensifyTitle: 'Risparmia con la carta Expensify',
+            saveWithExpensifyDescription: 'Usa il nostro calcolatore di risparmio per vedere come il cashback della carta Expensify può ridurre la tua fattura Expensify.',
             saveWithExpensifyButton: 'Scopri di più',
         },
         compareModal: {
@@ -6980,7 +6981,7 @@ const translations = {
             helpUsImprove: 'Aiutaci a migliorare Expensify',
             whatsMainReason: 'Qual è il motivo principale per cui stai disabilitando il rinnovo automatico?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Rinnova il ${date}.`,
-            pricingConfiguration: 'Il prezzo dipende dalla configurazione. Per il prezzo più basso, scegli un abbonamento annuale e ottieni la Expensify Card.',
+            pricingConfiguration: 'Il prezzo dipende dalla configurazione. Per il prezzo più basso, scegli un abbonamento annuale e ottieni la carta Expensify.',
             learnMore: {
                 part1: 'Scopri di più sul nostro',
                 pricingPage: 'pagina dei prezzi',
@@ -6988,7 +6989,7 @@ const translations = {
                 adminsRoom: '#admins room.',
             },
             estimatedPrice: 'Prezzo stimato',
-            changesBasedOn: "Questo cambia in base all'uso della tua Expensify Card e alle opzioni di abbonamento qui sotto.",
+            changesBasedOn: "Questo cambia in base all'uso della tua carta Expensify e alle opzioni di abbonamento qui sotto.",
         },
         requestEarlyCancellation: {
             title: 'Richiedi cancellazione anticipata',

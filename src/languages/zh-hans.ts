@@ -1732,8 +1732,8 @@ const translations = {
         reportSuspiciousActivity: '报告可疑活动',
         lockAccount: '锁定账户',
         unlockAccount: '解锁账户',
-        compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
-        domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
+        compromisedDescription: '注意到您的账户有异常吗？报告问题将立即锁定您的账户，阻止新的Expensify卡交易，并防止任何账户更改。',
+        domainAdminsDescription: '对于域管理员：这也会暂停您域内所有Expensify Card活动和管理员操作。',
         areYouSure: '您确定要锁定您的Expensify账户吗?',
         ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
     },
@@ -2053,7 +2053,7 @@ const translations = {
         activatePhysicalCard: '激活实体卡',
         error: {
             thatDidNotMatch: '这与您卡上的最后四位数字不匹配。请再试一次。',
-            throttled: '您多次错误输入了您的 Expensify Card 的最后四位数字。如果您确认数字正确，请联系 Concierge 解决。否则，请稍后再试。',
+            throttled: '您多次错误输入了您的Expensify卡的最后4位数字。如果您确定数字正确，请联系Concierge解决。否则，请稍后再试。',
         },
     },
     getPhysicalCard: {
@@ -2712,7 +2712,7 @@ const translations = {
         connectManually: '手动连接',
         desktopConnection: '注意：要连接Chase、Wells Fargo、Capital One或Bank of America，请点击此处在浏览器中完成此过程。',
         yourDataIsSecure: '您的数据是安全的',
-        toGetStarted: '添加一个银行账户以报销费用、发行Expensify卡、收取发票付款并从一个地方支付账单。',
+        toGetStarted: '添加银行账户以报销费用、发行Expensify卡、收取发票付款并从一个地方支付账单。',
         plaidBodyCopy: '为您的员工提供一种更简单的方式来支付公司费用并获得报销。',
         checkHelpLine: '您的银行路由号码和账户号码可以在该账户的支票上找到。',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
@@ -2752,7 +2752,7 @@ const translations = {
             validationAmounts: '您输入的验证金额不正确。请仔细检查您的银行对账单，然后重试。',
             fullName: '请输入有效的全名',
             ownershipPercentage: '请输入一个有效的百分比数字',
-            deletePaymentBankAccount: '由于该银行账户用于Expensify卡支付，因此无法删除。如果您仍希望删除此账户，请联系Concierge。',
+            deletePaymentBankAccount: '无法删除此银行账户，因为它用于Expensify Card付款。如果您仍想删除此账户，请联系Concierge。',
         },
     },
     addPersonalBankAccount: {
@@ -3519,7 +3519,7 @@ const translations = {
             defaultCategory: '默认类别',
             viewTransactions: '查看交易记录',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
-            deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify Card 交易将自动导出到通过<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify Card Liability Account”。</muted-text-label>`,
         },
         receiptPartners: {
             connect: '立即连接',
@@ -3583,7 +3583,7 @@ const translations = {
             exportDescription: '配置如何将Expensify数据导出到QuickBooks Desktop。',
             date: '导出日期',
             exportInvoices: '导出发票到',
-            exportExpensifyCard: '将 Expensify 卡交易导出为',
+            exportExpensifyCard: '导出 Expensify Card 交易为',
             account: '账户',
             accountDescription: '选择发布分录的位置。',
             accountsPayable: '应付账款',
@@ -3685,7 +3685,7 @@ const translations = {
             exportDescription: '配置如何将Expensify数据导出到QuickBooks Online。',
             date: '导出日期',
             exportInvoices: '导出发票到',
-            exportExpensifyCard: '将 Expensify 卡交易导出为',
+            exportExpensifyCard: '导出 Expensify Card 交易为',
             exportDate: {
                 label: '导出日期',
                 description: '在导出报告到QuickBooks Online时使用此日期。',
@@ -4389,10 +4389,10 @@ const translations = {
                 'Expensify, Inc. 是 Plaid Financial Ltd. 的代理商，Plaid Financial Ltd. 是一家授权支付机构，受金融行为监管局根据2017年支付服务条例的监管（公司参考编号：804718）。Plaid 通过 Expensify Limited 作为其代理商为您提供受监管的账户信息服务。',
         },
         expensifyCard: {
-            issueAndManageCards: '发行和管理您的Expensify卡片',
+            issueAndManageCards: '发行和管理您的Expensify卡',
             getStartedIssuing: '通过申请您的第一张虚拟或实体卡来开始。',
             verificationInProgress: '正在验证中...',
-            verifyingTheDetails: '我们正在核实一些细节。Concierge 会在 Expensify 卡准备好发行时通知您。',
+            verifyingTheDetails: '我们正在验证一些细节。Concierge 会通知您 Expensify 卡何时可以发行。',
             disclaimer:
                 'The Expensify Visa® Commercial Card 是由 The Bancorp Bank, N.A. 发行的，FDIC 成员，根据 Visa U.S.A. Inc. 的许可，并且可能无法在所有接受 Visa 卡的商户使用。Apple® 和 Apple logo® 是 Apple Inc. 在美国和其他国家注册的商标。App Store 是 Apple Inc. 的服务标志。Google Play 和 Google Play logo 是 Google LLC 的商标。',
             issueCard: '发卡',
@@ -4404,7 +4404,7 @@ const translations = {
             lastFour: '最后4位数',
             limit: '限制',
             currentBalance: '当前余额',
-            currentBalanceDescription: '当前余额是自上次结算日期以来发生的所有已发布Expensify卡交易的总和。',
+            currentBalanceDescription: '当前余额是自上次结算日期以来发生的所有已发布Expensify Card交易的总和。',
             balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `余额将在${settlementDate}结清`,
             settleBalance: '结算余额',
             cardLimit: '卡片限额',
@@ -4412,7 +4412,7 @@ const translations = {
             requestLimitIncrease: '请求增加限制额度',
             remainingLimitDescription: '在计算您的剩余额度时，我们会考虑多个因素：您作为客户的任期、您在注册时提供的业务相关信息以及您企业银行账户中的可用现金。您的剩余额度可能会每天波动。',
             earnedCashback: '现金返还',
-            earnedCashbackDescription: '返现余额基于您的工作区内已结算的每月Expensify卡消费。',
+            earnedCashbackDescription: '返现余额基于您工作区内已结算的每月Expensify卡消费。',
             issueNewCard: '发行新卡',
             finishSetup: '完成设置',
             chooseBankAccount: '选择银行账户',
@@ -4420,11 +4420,11 @@ const translations = {
             accountEndingIn: '账户末尾为',
             addNewBankAccount: '添加新的银行账户',
             settlementAccount: '结算账户',
-            settlementAccountDescription: '选择一个账户来支付您的Expensify卡余额。',
+            settlementAccountDescription: '选择一个账户来支付您的Expensify Card余额。',
             settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
                 `确保该账户与<a href="${reconciliationAccountSettingsLink}">对账账户</a> (${accountNumber}) 一致，以便连续对账正常工作。`,
             settlementFrequency: '结算频率',
-            settlementFrequencyDescription: '选择您支付 Expensify Card 余额的频率。',
+            settlementFrequencyDescription: '选择您支付Expensify Card余额的频率。',
             settlementFrequencyInfo: '如果您想切换到每月结算，您需要通过Plaid连接您的银行账户，并拥有90天的正余额历史记录。',
             frequency: {
                 daily: '每日',
@@ -4444,10 +4444,10 @@ const translations = {
             changeCardSmartLimitTypeWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额类型更改为智能限额，新交易将被拒绝，因为未批准的限额${limit}已达到。`,
             changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额类型更改为每月，由于已达到${limit}的每月限额，新交易将被拒绝。`,
             addShippingDetails: '添加运输详情',
-            issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！一旦添加了运送详情，卡片将被寄出。`,
+            issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！卡将在2-3个工作日内送达。`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！一旦添加了运输详情，卡片将被寄出。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 添加了送货详情。Expensify Card 将在2-3个工作日内送达。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 添加了运输详情。Expensify卡将在2-3个工作日内到达。`,
             verifyingHeader: '验证中',
             bankAccountVerifiedHeader: '银行账户已验证',
             verifyingBankAccount: '正在验证银行账户...',
@@ -4533,8 +4533,8 @@ const translations = {
             },
             expensifyCard: {
                 subtitle: '获取支出洞察和控制权。',
-                disableCardTitle: '禁用 Expensify Card',
-                disableCardPrompt: '您无法禁用 Expensify Card，因为它已在使用中。请联系 Concierge 以获取下一步操作。',
+                disableCardTitle: '停用Expensify卡',
+                disableCardPrompt: '您无法停用Expensify卡，因为它已在使用中。请联系Concierge以获取下一步操作。',
                 disableCardButton: '与Concierge聊天',
                 feed: {
                     title: '获取Expensify卡',
@@ -4605,7 +4605,7 @@ const translations = {
                 noAccountsFound: '未找到账户',
                 defaultCard: '默认卡片',
                 downgradeTitle: `无法降级工作区`,
-                downgradeSubTitleFirstPart: `由于连接了多个卡片馈送（不包括Expensify卡），此工作区无法降级。请`,
+                downgradeSubTitleFirstPart: `由于连接了多个卡片数据源（不包括Expensify卡），此工作区无法降级。请`,
                 downgradeSubTitleMiddlePart: `仅保留一个卡片信息流`,
                 downgradeSubTitleLastPart: '继续。',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `请在${connection}中添加账户并再次同步连接。`,
@@ -4618,7 +4618,7 @@ const translations = {
             workflows: {
                 title: '工作流程',
                 subtitle: '配置支出如何被批准和支付。',
-                disableApprovalPrompt: '此工作区的Expensify卡目前依赖审批来定义其智能限额。在禁用审批之前，请修改任何具有智能限额的Expensify卡的限额类型。',
+                disableApprovalPrompt: '此工作区的Expensify卡目前依赖审批来定义其智能限额。请在禁用审批之前修改任何具有智能限额的Expensify卡的限额类型。',
             },
             invoices: {
                 title: '发票',
@@ -4662,7 +4662,7 @@ const translations = {
             },
             workflowWarningModal: {
                 featureEnabledTitle: '慢着...',
-                featureEnabledText: '此工作区的Expensify卡片依赖审批工作流程来定义其智能限额。\n\n请在禁用工作流程之前更改任何具有智能限额的卡片的限额类型。',
+                featureEnabledText: '此工作区中的Expensify卡依赖审批工作流程来定义其智能限额。\n\n请在禁用工作流程之前更改任何具有智能限额的卡的限额类型。',
                 confirmText: '前往Expensify卡片',
             },
             rules: {
@@ -5188,13 +5188,13 @@ const translations = {
             cardReconciliation: '卡片对账',
             reconciliationAccount: '对账账户',
             continuousReconciliation: '持续对账',
-            saveHoursOnReconciliation: '通过让Expensify持续为您对账Expensify卡的对账单和结算，您可以在每个会计期间节省数小时的对账时间。',
+            saveHoursOnReconciliation: '通过让Expensify持续为您对账Expensify Card对账单和结算，每个会计期间节省数小时的对账时间。',
             enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
                 `<muted-text-label>要启用持续对账，请启用 ${connectionName} 的<a href="${accountingAdvancedSettingsLink}">自动同步</a>功能。</muted-text-label>`,
             chooseReconciliationAccount: {
-                chooseBankAccount: '选择用于对账您的 Expensify Card 支付的银行账户。',
+                chooseBankAccount: '选择用于对账Expensify Card付款的银行账户。',
                 accountMatches: '确保此账户与您的账户匹配',
-                settlementAccount: 'Expensify Card 结算账户',
+                settlementAccount: 'Expensify Card结算账户',
                 reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `（以 ${lastFourPAN} 结尾）以便持续对账正常工作。`,
             },
         },
@@ -5348,7 +5348,7 @@ const translations = {
             hasFailedSettlementsTitle: '无法转移所有权',
             hasFailedSettlementsButtonText: '明白了',
             hasFailedSettlementsText: ({email}: ChangeOwnerHasFailedSettlementsParams) =>
-                `您无法接管账单，因为${email}有一笔逾期的Expensify Card结算。请让他们联系concierge@expensify.com解决此问题。然后，您就可以接管此工作区的账单。`,
+                `您无法接管账单，因为${email}有一笔逾期的Expensify卡结算。请让他们联系concierge@expensify.com解决问题。然后，您可以接管此工作区的账单。`,
             failedToClearBalanceTitle: '清除余额失败',
             failedToClearBalanceButtonText: '好的',
             failedToClearBalanceText: '我们无法清除余额。请稍后再试。',
@@ -6042,7 +6042,7 @@ const translations = {
             },
             feed: '通道',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
             },
             is: '是',
@@ -6733,8 +6733,8 @@ const translations = {
             collect: {
                 title: '收集',
                 description: '为小型企业提供费用、旅行和聊天功能的计划。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify卡，${upper}/活跃成员未使用Expensify卡。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify卡，${upper}/活跃成员未使用Expensify卡。`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify Card，${upper}/活跃成员不使用Expensify Card。`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify Card，${upper}/活跃成员不使用Expensify Card。`,
                 benefit1: '收据扫描',
                 benefit2: '报销',
                 benefit3: '公司卡管理',
@@ -6747,8 +6747,8 @@ const translations = {
             control: {
                 title: '控制',
                 description: '适用于大型企业的费用、差旅和聊天。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify卡，${upper}/活跃成员未使用Expensify卡。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify卡，${upper}/活跃成员未使用Expensify卡。`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify Card，${upper}/活跃成员不使用Expensify Card。`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `从${lower}/活跃成员使用Expensify Card，${upper}/活跃成员不使用Expensify Card。`,
                 benefit1: 'Collect 计划中的所有内容',
                 benefit2: '多级审批工作流程',
                 benefit3: '自定义费用规则',
@@ -6762,8 +6762,8 @@ const translations = {
             downgrade: '降级到Collect',
             upgrade: '升级到Control',
             addMembers: '添加成员',
-            saveWithExpensifyTitle: '使用Expensify卡节省费用',
-            saveWithExpensifyDescription: '使用我们的储蓄计算器查看Expensify卡的现金返还如何减少您的Expensify账单。',
+            saveWithExpensifyTitle: '使用Expensify卡省钱',
+            saveWithExpensifyDescription: '使用我们的储蓄计算器查看来自Expensify卡的现金返还如何减少您的Expensify账单。',
             saveWithExpensifyButton: '了解更多',
         },
         compareModal: {
@@ -6821,7 +6821,7 @@ const translations = {
             helpUsImprove: '帮助我们改进Expensify',
             whatsMainReason: '您禁用自动续订的主要原因是什么？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `续订日期为${date}。`,
-            pricingConfiguration: '定价取决于配置。为了获得最低价格，请选择年度订阅并获取Expensify卡。',
+            pricingConfiguration: '价格取决于配置。要获得最低价格，请选择年度订阅并获取Expensify卡。',
             learnMore: {
                 part1: '在我们的网页上了解更多信息',
                 pricingPage: '定价页面',
@@ -6829,7 +6829,7 @@ const translations = {
                 adminsRoom: '#admins room.',
             },
             estimatedPrice: '预估价格',
-            changesBasedOn: '这会根据您的 Expensify 卡使用情况和以下订阅选项而有所变化。',
+            changesBasedOn: '这会根据您的Expensify卡使用情况和以下订阅选项而变化。',
         },
         requestEarlyCancellation: {
             title: '请求提前取消',

@@ -1751,8 +1751,8 @@ const translations = {
         reportSuspiciousActivity: '疑わしい活動を報告',
         lockAccount: 'アカウントをロックする',
         unlockAccount: 'アカウントをアンロック',
-        compromisedDescription: 'アカウントに不安を感じましたか？報告すると、すぐにアカウントがロックされ、Expensifyカードの新しい取引が停止され、変更も防止されます。',
-        domainAdminsDescription: 'ドメイン管理者へ：これにより、ドメイン全体のExpensifyカード活動と管理操作も一時停止されます。',
+        compromisedDescription: 'アカウントに何か異常を感じましたか？報告すると、アカウントが即座にロックされ、新しいExpensify Cardの取引がブロックされ、アカウントの変更が防止されます。',
+        domainAdminsDescription: 'ドメイン管理者向け: これにより、ドメイン全体のすべてのExpensify Cardのアクティビティと管理者の操作も一時停止されます。',
         areYouSure: '本当にExpensifyアカウントをロックしますか？',
         ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
     },
@@ -2074,7 +2074,7 @@ const translations = {
         error: {
             thatDidNotMatch: 'それはカードの最後の4桁と一致しませんでした。もう一度お試しください。',
             throttled:
-                'Expensifyカードの最後の4桁を間違えて入力しました。数字が正しいと確信している場合は、Conciergeに連絡して解決してください。それ以外の場合は、後でもう一度試してください。',
+                'Expensifyカードの最後の4桁を誤って入力しすぎました。番号が正しいと確信している場合は、Conciergeに連絡して解決してください。それ以外の場合は、後でもう一度お試しください。',
         },
     },
     getPhysicalCard: {
@@ -2740,7 +2740,7 @@ const translations = {
         connectManually: '手動で接続',
         desktopConnection: '注: Chase、Wells Fargo、Capital One、または Bank of America と接続するには、こちらをクリックしてブラウザでこのプロセスを完了してください。',
         yourDataIsSecure: 'あなたのデータは安全です',
-        toGetStarted: '銀行口座を追加して、経費を払い戻し、Expensifyカードを発行し、請求書の支払いを受け取り、すべてを一箇所で支払います。',
+        toGetStarted: '経費を払い戻し、Expensifyカードを発行し、請求書の支払いを集め、すべてを一箇所で支払うために銀行口座を追加します。',
         plaidBodyCopy: '従業員に会社の経費を支払う、そして払い戻しを受ける、より簡単な方法を提供しましょう。',
         checkHelpLine: '口座の小切手にルーティング番号と口座番号が記載されています。',
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
@@ -2780,7 +2780,7 @@ const translations = {
             validationAmounts: '入力された検証金額が正しくありません。銀行の明細をもう一度確認して、再試行してください。',
             fullName: '有効なフルネームを入力してください',
             ownershipPercentage: '有効なパーセンテージの数字を入力してください',
-            deletePaymentBankAccount: 'この銀行口座はExpensifyカードの支払いに使用されているため、削除できません。それでもこの口座を削除したい場合は、コンシェルジュにお問い合わせください。',
+            deletePaymentBankAccount: 'この銀行口座はExpensify Cardの支払いに使用されているため、削除できません。この口座を削除したい場合は、Conciergeにお問い合わせください。',
         },
     },
     addPersonalBankAccount: {
@@ -3557,7 +3557,7 @@ const translations = {
             defaultCategory: 'デフォルトカテゴリ',
             viewTransactions: '取引を表示',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}の経費`,
-            deepDiveExpensifyCard: `<muted-text-label>Expensify Cardの取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">弊社の統合</a>で作成された 「Expensify Card Liability Account 」に自動的にエクスポートされます。</muted-text-label>`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify Cardの取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">当社の統合</a>で作成された「Expensify Card負債勘定」に自動的にエクスポートされます。</muted-text-label>`,
         },
         receiptPartners: {
             connect: '今すぐ接続',
@@ -3621,7 +3621,7 @@ const translations = {
             exportDescription: 'ExpensifyデータをQuickBooks Desktopにエクスポートする方法を設定します。',
             date: 'エクスポート日付',
             exportInvoices: '請求書をエクスポート',
-            exportExpensifyCard: 'Expensifyカードの取引をエクスポートする',
+            exportExpensifyCard: 'Expensify Cardの取引をエクスポート',
             account: 'アカウント',
             accountDescription: '仕訳を投稿する場所を選択してください。',
             accountsPayable: '買掛金',
@@ -3728,7 +3728,7 @@ const translations = {
             exportDescription: 'ExpensifyデータをQuickBooks Onlineにエクスポートする方法を設定します。',
             date: 'エクスポート日付',
             exportInvoices: '請求書をエクスポート',
-            exportExpensifyCard: 'Expensifyカードの取引をエクスポートする',
+            exportExpensifyCard: 'Expensify Cardの取引をエクスポート',
             exportDate: {
                 label: 'エクスポート日付',
                 description: 'この日付を使用してレポートをQuickBooks Onlineにエクスポートしてください。',
@@ -4442,10 +4442,10 @@ const translations = {
                 'Expensify, Inc.は、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
         },
         expensifyCard: {
-            issueAndManageCards: 'Expensifyカードを発行および管理する',
+            issueAndManageCards: 'Expensifyカードを発行して管理する',
             getStartedIssuing: '最初のバーチャルカードまたは物理カードを発行して始めましょう。',
             verificationInProgress: '確認中...',
-            verifyingTheDetails: 'いくつかの詳細を確認しています。Expensifyカードの発行準備が整ったら、Conciergeがお知らせします。',
+            verifyingTheDetails: 'いくつかの詳細を確認しています。Expensifyカードの発行準備が整ったら、Conciergeが通知します。',
             disclaimer:
                 'The Expensify Visa® Commercial Cardは、Visa U.S.A. Inc.からのライセンスに基づき、FDICメンバーであるThe Bancorp Bank, N.A.によって発行されており、Visaカードを受け付けるすべての加盟店で使用できるわけではありません。Apple®およびAppleロゴ®は、米国およびその他の国で登録されたApple Inc.の商標です。App StoreはApple Inc.のサービスマークです。Google PlayおよびGoogle Playロゴは、Google LLCの商標です。',
             issueCard: 'カードを発行',
@@ -4457,7 +4457,7 @@ const translations = {
             lastFour: '最後の4つ',
             limit: '制限',
             currentBalance: '現在の残高',
-            currentBalanceDescription: '現在の残高は、前回の決済日以降に発生したすべてのExpensifyカード取引の合計です。',
+            currentBalanceDescription: '現在の残高は、最後の決済日以降に発生したすべての投稿済みExpensify Card取引の合計です。',
             balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `残高は${settlementDate}に決済されます。`,
             settleBalance: '残高を清算する',
             cardLimit: 'カード限度額',
@@ -4466,11 +4466,11 @@ const translations = {
             remainingLimitDescription:
                 '残りの限度額を計算する際には、いくつかの要因を考慮します。お客様としてのご利用期間、サインアップ時に提供されたビジネス関連情報、そしてビジネス銀行口座の利用可能な現金です。残りの限度額は日々変動する可能性があります。',
             earnedCashback: 'キャッシュバック',
-            earnedCashbackDescription: 'キャッシュバック残高は、ワークスペース全体での毎月のExpensifyカード利用額に基づいています。',
+            earnedCashbackDescription: 'キャッシュバック残高は、ワークスペース全体での月間の確定済みExpensifyカード支出に基づいています。',
             issueNewCard: '新しいカードを発行する',
             finishSetup: 'セットアップを完了する',
             chooseBankAccount: '銀行口座を選択',
-            chooseExistingBank: 'Expensifyカードの残高を支払うために既存のビジネス銀行口座を選択するか、新しい銀行口座を追加してください。',
+            chooseExistingBank: '既存のビジネス銀行口座を選択してExpensifyカードの残高を支払うか、新しい銀行口座を追加してください。',
             accountEndingIn: '末尾が',
             addNewBankAccount: '新しい銀行口座を追加',
             settlementAccount: '決済口座',
@@ -4478,7 +4478,7 @@ const translations = {
             settlementAccountInfo: ({reconciliationAccountSettingsLink, accountNumber}: SettlementAccountInfoParams) =>
                 `継続的な照合が正しく機能するように、この口座が<a href="${reconciliationAccountSettingsLink}">照合口座</a>（${accountNumber}）と一致していることを確認してください。`,
             settlementFrequency: '決済頻度',
-            settlementFrequencyDescription: 'Expensifyカードの残高をどのくらいの頻度で支払うか選択してください。',
+            settlementFrequencyDescription: 'Expensify Cardの残高を支払う頻度を選択してください。',
             settlementFrequencyInfo: '月次決済に切り替えたい場合は、Plaidを通じて銀行口座を接続し、90日間のプラス残高履歴が必要です。',
             frequency: {
                 daily: '毎日',
@@ -4500,16 +4500,16 @@ const translations = {
             changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) =>
                 `このカードの限度額タイプを月次に変更すると、${limit} の月次限度額にすでに達しているため、新しい取引は拒否されます。`,
             addShippingDetails: '配送詳細を追加',
-            issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは発送情報が追加され次第、発送されます。`,
+            issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で届きます。`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは配送情報が追加され次第、発送されます。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee}が配送情報を追加しました。Expensify Cardは2～3営業日で到着します。`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee}が配送詳細を追加しました。Expensifyカードは2～3営業日で到着します。`,
             verifyingHeader: '確認中',
             bankAccountVerifiedHeader: '銀行口座が確認されました',
             verifyingBankAccount: '銀行口座を確認しています...',
             verifyingBankAccountDescription: 'このアカウントがExpensifyカードを発行できることを確認するまでお待ちください。',
             bankAccountVerified: '銀行口座が確認されました！',
-            bankAccountVerifiedDescription: 'ワークスペースメンバーにExpensifyカードを発行できるようになりました。',
+            bankAccountVerifiedDescription: 'あなたは今、ワークスペースメンバーにExpensifyカードを発行できます。',
             oneMoreStep: 'あと一歩...',
             oneMoreStepDescription: 'お客様の銀行口座を手動で確認する必要があるようです。指示が用意されているConciergeにアクセスしてください。',
             gotIt: '了解しました。',
@@ -4663,7 +4663,7 @@ const translations = {
                 noAccountsFound: 'アカウントが見つかりません',
                 defaultCard: 'デフォルトカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,
-                downgradeSubTitleFirstPart: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。どうぞ`,
+                downgradeSubTitleFirstPart: `このワークスペースは、複数のカードフィードが接続されているため（Expensifyカードを除く）、ダウングレードできません。`,
                 downgradeSubTitleMiddlePart: `カードフィードを1つだけ保持`,
                 downgradeSubTitleLastPart: '続行する。',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `${connection}にアカウントを追加し、再度接続を同期してください。`,
@@ -4677,7 +4677,7 @@ const translations = {
                 title: 'ワークフロー',
                 subtitle: '支出の承認と支払い方法を設定します。',
                 disableApprovalPrompt:
-                    'このワークスペースのExpensifyカードは現在、承認に依存してスマートリミットを定義しています。承認を無効にする前に、スマートリミットを持つExpensifyカードの制限タイプを修正してください。',
+                    'このワークスペースのExpensifyカードは現在、承認に基づいてスマート制限を定義しています。承認を無効にする前に、スマート制限を持つExpensifyカードの制限タイプを修正してください。',
             },
             invoices: {
                 title: '請求書',
@@ -4937,7 +4937,7 @@ const translations = {
         },
         new: {
             newWorkspace: '新しいワークスペース',
-            getTheExpensifyCardAndMore: 'Expensifyカードを取得して、さらに多くの特典を享受しましょう。',
+            getTheExpensifyCardAndMore: 'Expensifyカードとその他を手に入れましょう',
             confirmWorkspace: 'ワークスペースを確認',
             myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `マイグループワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}のワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
@@ -5409,7 +5409,7 @@ const translations = {
             hasFailedSettlementsTitle: '所有権を移転できません',
             hasFailedSettlementsButtonText: '了解しました。',
             hasFailedSettlementsText: ({email}: ChangeOwnerHasFailedSettlementsParams) =>
-                `${email} は未払いの Expensify Card 決済があるため、請求を引き継ぐことができません。問題を解決するために、concierge@expensify.com に連絡するように依頼してください。その後、このワークスペースの請求を引き継ぐことができます。`,
+                `${email} は未払いのExpensify Cardの決済があるため、請求を引き継ぐことができません。問題を解決するために、concierge@expensify.com に連絡するように依頼してください。その後、このワークスペースの請求を引き継ぐことができます。`,
             failedToClearBalanceTitle: '残高をクリアできませんでした',
             failedToClearBalanceButtonText: 'OK',
             failedToClearBalanceText: '残高をクリアできませんでした。後でもう一度お試しください。',
@@ -6119,7 +6119,7 @@ const translations = {
             },
             feed: 'フィード',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensifyカード',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
             },
             is: '状態',
@@ -6826,8 +6826,8 @@ const translations = {
             collect: {
                 title: '収集する',
                 description: '経費、旅行、チャットを提供する小規模ビジネスプラン。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバーまで。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバーまで。`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバー。`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバー。`,
                 benefit1: '領収書スキャン',
                 benefit2: '払い戻し',
                 benefit3: '法人カード管理',
@@ -6840,8 +6840,8 @@ const translations = {
             control: {
                 title: 'コントロール',
                 description: '大企業向けの経費、旅行、チャット。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバーまで。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバーまで。`,
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバー。`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `${lower}/Expensifyカードを持つアクティブメンバーから、${upper}/Expensifyカードを持たないアクティブメンバー。`,
                 benefit1: 'Collectプランのすべて',
                 benefit2: 'マルチレベル承認ワークフロー',
                 benefit3: 'カスタム経費ルール',
@@ -6855,8 +6855,8 @@ const translations = {
             downgrade: 'Collectにダウングレード',
             upgrade: 'Controlにアップグレード',
             addMembers: 'メンバーを追加',
-            saveWithExpensifyTitle: 'Expensifyカードで節約',
-            saveWithExpensifyDescription: 'ExpensifyカードのキャッシュバックがExpensifyの請求をどのように削減できるか、節約計算機を使用して確認してください。',
+            saveWithExpensifyTitle: 'Expensifyカードで節約する',
+            saveWithExpensifyDescription: 'Expensify CardのキャッシュバックがどのようにExpensifyの請求額を削減できるか、私たちの節約計算機を使って確認してください。',
             saveWithExpensifyButton: '詳細を確認',
         },
         compareModal: {
@@ -6916,7 +6916,7 @@ const translations = {
             helpUsImprove: 'Expensifyの改善にご協力ください',
             whatsMainReason: '自動更新を無効にする主な理由は何ですか？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `${date}に更新されます。`,
-            pricingConfiguration: '価格は構成によって異なります。最も安い価格を得るには、年次サブスクリプションを選択し、Expensifyカードを取得してください。',
+            pricingConfiguration: '価格は設定に依存します。最も低価格にするには、年間サブスクリプションを選択し、Expensifyカードを取得してください。',
             learnMore: {
                 part1: '詳細については、こちらをご覧ください',
                 pricingPage: '価格ページ',
