@@ -5,7 +5,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 "OPTIONAL" are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
 ## Contents
-* [App Structure and Conventions Philosophy](/contributingGuides/philosophies/APP-STRUCTURE-AND-CONVENTIONS.md)
 * [Cross-Platform Philosophy](/contributingGuides/philosophies/CROSS-PLATFORM.md)
 * [Data Flow Philosophy](/contributingGuides/philosophies/DATA-FLOW.md)
 * [Data Binding Philosophy](/contributingGuides/philosophies/DATA-BINDING.md)
