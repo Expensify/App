@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,7 +10,6 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
@@ -29,7 +29,6 @@ function getInputComponent(field: CorpayFormField) {
 function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
@@ -134,7 +133,6 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                     <View style={[styles.flexGrow4, styles.alignItemsCenter]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            color={theme.spinner}
                             style={styles.flexGrow1}
                         />
                     </View>
