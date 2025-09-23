@@ -376,8 +376,8 @@ function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isR
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
 }
 
-function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(0);
+function deletePolicyTags(policyID: string, tagsToDelete: string[], policyTags: OnyxEntry<PolicyTagLists>) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(0);
 
     if (!policyTag) {
         return;
@@ -446,9 +446,16 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
 }
 
-function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: number) {
-    const tagListName = PolicyUtils.getTagListName(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`], tagListIndex);
-    const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
+type ClearPolicyTagErrorsProps = {
+    policyID: string;
+    tagName: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagErrors({policyID, tagName, tagListIndex, policyTags}: ClearPolicyTagErrorsProps) {
+    const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
+    const tag = policyTags?.[tagListName]?.tags?.[tagName];
     if (!tag) {
         return;
     }
