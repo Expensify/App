@@ -7169,12 +7169,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Commencer <strong>ici !</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>Créer des dépenses</strong>, commencer à discuter, et plus. Essayez-le !</tooltip>',
-        bottomNavInboxTooltip: '<tooltip>Vérifier quoi <strong>nécessite votre attention</strong> et <strong>discuter des dépenses.</strong></tooltip>',
-        workspaceChatTooltip: '<tooltip>Discuter avec <strong>approbateurs</strong></tooltip>',
-        GBRRBRChat: '<tooltip>Vous verrez 🟢 sur <strong>actions à entreprendre</strong>,\net 🔴 sur <strong>éléments à examiner.</strong></tooltip>',
         accountSwitcher: '<tooltip>Accédez à votre <strong>Comptes Copilot</strong> ici</tooltip>',
-        expenseReportsFilter: "<tooltip>Bienvenue ! Trouvez tous vos <strong>rapports de l'entreprise</strong> ici.</tooltip>",
         scanTestTooltip: {
             main: '<tooltip><strong>Vous voulez voir comment fonctionne Scan ?</strong> Essayez un reçu de test !</tooltip>',
             manager: "<tooltip>Choisissez notre <strong>responsable des tests</strong> pour l'essayer !</tooltip>",
