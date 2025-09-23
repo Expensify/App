@@ -1133,8 +1133,12 @@ describe('actions/Policy', () => {
     });
 
     describe('askToJoinPolicy', () => {
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
         it('correctly implements RedBrickRoad error handling for askToJoinPolicy when the request fails', async () => {
-            const policyID = 'policy456';
+            const policyID = 'policy123';
 
             mockFetch.pause?.();
 
