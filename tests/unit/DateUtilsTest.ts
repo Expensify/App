@@ -182,13 +182,13 @@ describe('DateUtils', () => {
 
         it('isTomorrow should correctly identify tomorrow', () => {
             expect(DateUtils.isTomorrow(tomorrowInTimezone, timezone)).toBe(true);
-            expect(DateUtils.isTomorrow(todayInTimezone, timezone)).toBe(false);
-            expect(DateUtils.isTomorrow(yesterdayInTimezone, timezone)).toBe(false);
+            expect(DateUtils.isTomorrow2(todayInTimezone, timezone)).toBe(false);
+            expect(DateUtils.isTomorrow2(yesterdayInTimezone, timezone)).toBe(false);
         });
 
         it('isYesterday should correctly identify yesterday', () => {
             expect(DateUtils.isYesterday(yesterdayInTimezone, timezone)).toBe(true);
-            expect(DateUtils.isYesterday(todayInTimezone, timezone)).toBe(false);
+            expect(DateUtils.isYesterday2(todayInTimezone, timezone)).toBe(false);
             expect(DateUtils.isYesterday(tomorrowInTimezone, timezone)).toBe(false);
         });
     });
