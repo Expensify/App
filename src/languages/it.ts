@@ -678,7 +678,6 @@ const translations = {
             command?: string;
         } = {}) =>
             `Non sei autorizzato a eseguire questa azione quando il supporto è connesso (comando: ${
-                //_/\__/_/  \_,_/\__/\__/\_,_/
                 command ?? ''
             }). Se ritieni che Success debba essere in grado di eseguire questa azione, avvia una conversazione su Slack.`,
     },
