@@ -13,9 +13,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {buildTravelDotURL, openExternalLink} from '@libs/actions/Link';
+import {buildTravelDotURL} from '@libs/actions/Link';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
-import {isSafari} from '@libs/Browser';
+import asyncOpenURL from '@libs/asyncOpenURL';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
@@ -44,13 +44,8 @@ function TravelTerms({route}: TravelTermsPageProps) {
             cleanupTravelProvisioningSession();
         }
         if (travelProvisioning?.spotnanaToken) {
-            if (!isSafari()) {
-                Navigation.closeRHPFlow();
-            }
+            Navigation.closeRHPFlow();
             cleanupTravelProvisioningSession();
-
-            // TravelDot is a standalone white-labeled implementation of Spotnana so it has to be opened in a new tab
-            openExternalLink(buildTravelDotURL(travelProvisioning.spotnanaToken, travelProvisioning.isTestAccount ?? false));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
@@ -106,7 +101,17 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                 setErrorMessage('');
                             }
 
-                            acceptSpotnanaTerms(domain);
+                            asyncOpenURL(
+                                acceptSpotnanaTerms(domain).then((response) => {
+                                    if (response?.jsonCode !== 200) {
+                                        return;
+                                    }
+                                    if (response?.spotnanaToken) {
+                                        return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
+                                    }
+                                }),
+                                (travelDotURL) => travelDotURL ?? '',
+                            );
                         }}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
