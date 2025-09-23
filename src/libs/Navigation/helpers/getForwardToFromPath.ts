@@ -11,7 +11,7 @@ const FORWARD_TO_VERIFY_ACCOUNT_MAPPINGS = {
 function getForwardToFromPath(path: string): string {
     const pathWithoutParams = path.split('?').at(0);
     if (!pathWithoutParams) {
-        return path.replace('/verify-account', '');
+        throw new Error('Failed to parse the path, path is empty');
     }
 
     const pathWithoutVerifyAccount = pathWithoutParams.replace('/verify-account', '');
@@ -19,7 +19,7 @@ function getForwardToFromPath(path: string): string {
     const screenName = findFocusedRoute(getStateFromPath(pathWithoutVerifyAccount as Route) ?? {});
 
     if (!screenName?.name) {
-        return pathWithoutVerifyAccount;
+        throw new Error('Failed to parse the path, screen name is missing');
     }
 
     const routeConfig = normalizedConfigs[screenName.name as Screen];
