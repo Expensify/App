@@ -22,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollBlocker from '@hooks/useScrollBlocker';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,6 +66,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string | undefined;
 
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID: string;
+
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
@@ -89,7 +93,7 @@ const DEFAULT_MODAL_VALUE = {
 };
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, originalReportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -120,6 +124,8 @@ function ReportActionItemMessageEdit(
 
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
+
+    const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
@@ -280,12 +286,12 @@ function ReportActionItemMessageEdit(
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
+            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReportID ?? reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, originalReportID, reportID]);
 
     /**
      * @param emoji
@@ -364,20 +370,28 @@ function ReportActionItemMessageEdit(
 
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
-            measureContainer((x, y, width, height) => {
-                callback({
-                    x,
-                    y,
-                    width,
-                    height,
-                    scrollValue,
-                    cursorCoordinates: {x: xPosition, y: yPosition},
+            const performMeasurement = () => {
+                const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+                const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
+                measureContainer((x, y, width, height) => {
+                    callback({
+                        x,
+                        y,
+                        width,
+                        height,
+                        scrollValue,
+                        cursorCoordinates: {x: xPosition, y: yPosition},
+                    });
                 });
-            });
+            };
+
+            if (isScrolling) {
+                return;
+            }
+
+            performMeasurement();
         },
-        [cursorPositionValue, measureContainer, selection],
+        [cursorPositionValue, measureContainer, selection, isScrolling],
     );
 
     useEffect(() => {
@@ -472,9 +486,11 @@ function ReportActionItemMessageEdit(
                                 if (textInputRef.current) {
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
+                                startScrollBlock();
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
+                                        endScrollBlock();
                                     });
                                 });
                                 if (isMobileChrome() && reportScrollManager.ref?.current) {
@@ -500,7 +516,12 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
-                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
+                            onLayout={(event) => {
+                                if (!isFocused) {
+                                    return;
+                                }
+                                reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)(event);
+                            }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}

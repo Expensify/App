@@ -4,6 +4,7 @@ import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
@@ -342,6 +343,9 @@ type SearchTransaction = {
 
         /** State of the receipt */
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+
+        /** The name of the file of the receipt */
+        filename?: string;
     };
 
     /** The transaction tag */
@@ -379,6 +383,9 @@ type SearchTransaction = {
 
     /** The transaction recipient ID */
     managerID: number;
+
+    /** Used during the creation flow before the transaction is saved to the server */
+    iouRequestType?: IOURequestType;
 
     /** If the transaction has violations */
     hasViolation?: boolean;
@@ -428,11 +435,11 @@ type SearchTransaction = {
     /** The display name of the purchaser card, if any */
     cardName?: string;
 
-    /** The converted amount of the transaction, if a currency conversion is used */
-    convertedAmount?: number;
+    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
+    convertedAmount: number;
 
     /** The currency that the converted amount is in */
-    convertedCurrency?: string;
+    convertedCurrency: string;
 };
 
 /** Model of tasks search result */

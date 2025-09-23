@@ -6,20 +6,14 @@ import type {ListItem, TransactionMemberGroupListItemType} from '@components/Sel
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The member currently being looked at */
     member: TransactionMemberGroupListItemType;
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -29,27 +23,38 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSelectRow, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
+function MemberListItemHeader<TItem extends ListItem>({
+    member: memberItem,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isLargeScreenWidth} = useResponsiveLayout();
     const [formattedDisplayName, formattedLogin] = useMemo(
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
         [memberItem, formatPhoneNumber],
     );
-    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.ph3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
-                            isChecked={memberItem.isSelected}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                         />
@@ -83,15 +88,6 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
                         currency={memberItem.currency}
                     />
                 </View>
-                {shouldShowAction && (
-                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                        <ActionCell
-                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
-                            goToItem={() => onSelectRow(memberItem as unknown as TItem)}
-                            isSelected={memberItem.isSelected}
-                        />
-                    </View>
-                )}
             </View>
         </View>
     );

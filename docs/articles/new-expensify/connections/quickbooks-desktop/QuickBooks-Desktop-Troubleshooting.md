@@ -24,7 +24,7 @@ If you're seeing connection errors, it's likely due to an issue between QuickBoo
    - Try syncing your Expensify workspace again.
 4. Still not working?
    - Quit and reopen QuickBooks Desktop.
-   - From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**.
+   - From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
    - Click the three dots next to **QuickBooks Desktop**, then select **Sync now**.
    - If none of the above works, reinstall the Web Connector using the official link from QuickBooks.
 
