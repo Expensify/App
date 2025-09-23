@@ -6,8 +6,7 @@ import type {Route} from '@src/ROUTES';
 import VerifyAccountPageBase from './settings/VerifyAccountPageBase';
 
 function VerifyAccountPage() {
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    const state = useNavigationState((state) => findFocusedRoute(state));
+    const state = useNavigationState((focusedRoute) => findFocusedRoute(focusedRoute));
     const path = state?.path ?? '';
 
     const backTo = path ? (path.replace(`/${VERIFY_ACCOUNT}`, '') as Route) : ROUTES.HOME;
