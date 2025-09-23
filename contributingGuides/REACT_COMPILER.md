@@ -6,34 +6,47 @@
 
 At Expensify, we are early adopters of this tool and aim to fully leverage its capabilities.
 
-## React Compiler compatibility check
+## React Compiler compliance checker
 
-To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can use the React Compiler Compliance Checker tools:
+We provide a script, `scripts/react-compiler-compliance-check.ts`, which checks for "Rules of React" compliance locally and enforces these in PRs adding or changing React code through a CI check.
 
-### Quick Development Checks
+### What it does
+
+Runs `react-compiler-healthcheck` in verbose mode, parses output, and summarizes which files compiled and which failed, including file, line, column, and reason. It can:
+
+- Check all files or a specific file/glob
+- Check only files changed relative to a base branch
+- Optionally generate a machine-readable report `react-compiler-report.json`
+- Exit with non-zero code when failures are found (useful for CI)
+
+### Usage
+
+> [!NOTE]
+> This script uses `origin` as the base remote by default. If your GH remote is named differently, use the `--remote <name>` flag.
+
+
+#### Check entire codebase or a specific file/glob
 
 ```bash
-# Check a specific file
-npm run react-compiler-tracker check-file src/components/MyComponent.tsx
-
-# Quick check with optimization suggestions
-npm run react-compiler-dev-tool suggest src/components/MyComponent.tsx
-
-# Check all changed files (before submitting PR)
-npm run react-compiler-tracker check-changed
+npm run react-compiler-compliance-check check                        # Check all files
+npm run react-compiler-compliance-check check src/path/Component.tsx # Check specific file
+npm run react-compiler-compliance-check check "src/**/*.tsx"         # Check glob pattern
 ```
 
-### Detailed Analysis
+#### Check only changed files against a remote main (default remote is `origin`)
 
 ```bash
-# Generate detailed report
-npm run react-compiler-tracker report
-
-# Legacy detailed check (saves to react-compiler-output.txt)
-npm run react-compiler-healthcheck-test
+npm run react-compiler-compliance-check check-changed
 ```
 
-For more information about the React Compiler Compliance Checker tools, see [REACT_COMPILER_TRACKER.md](./REACT_COMPILER_TRACKER.md).
+#### Generate a detailed report (saved as `./react-compiler-report.json`):
+
+You can use the `--report` flag with both of the above commands:
+
+```bash
+npm run react-compiler-compliance-check check --report
+npm run react-compiler-compliance-check check-changed --report
+```
 
 ## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
 
