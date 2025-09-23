@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -67,31 +67,30 @@ type SearchAutocompleteInputProps = {
 
     /** Map of autocomplete suggestions. Required for highlighting to work properly */
     substitutionMap: SubstitutionMap;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
-function SearchAutocompleteInput({
-    value,
-    onSearchQueryChange,
-    onSubmit = () => {},
-    autocompleteListRef,
-    isFullWidth,
-    disabled = false,
-    shouldShowOfflineMessage = false,
-    autoFocus = true,
-    onFocus,
-    onBlur,
-    caretHidden = false,
-    wrapperStyle,
-    wrapperFocusedStyle = {},
-    outerWrapperStyle,
-    isSearchingForReports,
-    selection,
-    substitutionMap,
-    ref,
-}: SearchAutocompleteInputProps) {
+function SearchAutocompleteInput(
+    {
+        value,
+        onSearchQueryChange,
+        onSubmit = () => {},
+        autocompleteListRef,
+        isFullWidth,
+        disabled = false,
+        shouldShowOfflineMessage = false,
+        autoFocus = true,
+        onFocus,
+        onBlur,
+        caretHidden = false,
+        wrapperStyle,
+        wrapperFocusedStyle = {},
+        outerWrapperStyle,
+        isSearchingForReports,
+        selection,
+        substitutionMap,
+    }: SearchAutocompleteInputProps,
+    forwardedRef: ForwardedRef<BaseTextInputRef>,
+) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -232,7 +231,7 @@ function SearchAutocompleteInput({
                             onBlur?.();
                         }}
                         isLoading={isSearchingForReports}
-                        ref={ref}
+                        ref={forwardedRef}
                         type="markdown"
                         multiline={false}
                         parser={parser}
@@ -256,4 +255,4 @@ function SearchAutocompleteInput({
 SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
 
 export type {SearchAutocompleteInputProps};
-export default SearchAutocompleteInput;
+export default forwardRef(SearchAutocompleteInput);

@@ -2,12 +2,13 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
+import type {Camera} from 'react-native-vision-camera';
 import Webcam from 'react-webcam';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {NavigationAwareCameraProps} from './types';
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-function WebCamera({itemRef, ref, ...props}: NavigationAwareCameraProps) {
+function WebCamera(props: NavigationAwareCameraProps, ref: ForwardedRef<Webcam | Camera>) {
     const [isInitialized, setIsInitialized] = useState(false);
     const shouldShowCamera = useIsFocused();
     const styles = useThemeStyles();
@@ -31,4 +32,4 @@ function WebCamera({itemRef, ref, ...props}: NavigationAwareCameraProps) {
 
 WebCamera.displayName = 'NavigationAwareCamera';
 
-export default WebCamera;
+export default React.forwardRef(WebCamera);

@@ -40,9 +40,6 @@ type BaseEmojiPickerMenuProps = {
 
     /** Whether the list should always bounce vertically */
     alwaysBounceVertical?: boolean;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
 };
 
 /**
@@ -80,18 +77,10 @@ function ListEmptyComponent() {
     return <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>;
 }
 
-function BaseEmojiPickerMenu({
-    headerEmojis,
-    scrollToHeader,
-    isFiltered,
-    listWrapperStyle = [],
-    data,
-    renderItem,
-    stickyHeaderIndices = [],
-    extraData = [],
-    alwaysBounceVertical = false,
-    ref,
-}: BaseEmojiPickerMenuProps) {
+function BaseEmojiPickerMenu(
+    {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle = [], data, renderItem, stickyHeaderIndices = [], extraData = [], alwaysBounceVertical = false}: BaseEmojiPickerMenuProps,
+    ref: ForwardedRef<FlashListRef<EmojiPickerListItem>>,
+) {
     const styles = useThemeStyles();
     return (
         <>
@@ -134,4 +123,4 @@ function BaseEmojiPickerMenu({
 
 BaseEmojiPickerMenu.displayName = 'BaseEmojiPickerMenu';
 
-export default BaseEmojiPickerMenu;
+export default React.forwardRef(BaseEmojiPickerMenu);

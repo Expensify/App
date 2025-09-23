@@ -1,12 +1,13 @@
-import React, {useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useImperativeHandle, useRef} from 'react';
 import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
-import type {QRShareHandle} from '@components/QRShare/types';
+import type {QRShareHandle, QRShareProps} from '@components/QRShare/types';
 import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
-import type {QRShareWithDownloadProps} from './types';
+import type QRShareWithDownloadHandle from './types';
 
-function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
+function QRShareWithDownload(props: QRShareProps, ref: ForwardedRef<QRShareWithDownloadHandle>) {
     const {isOffline} = useNetwork();
     const qrShareRef = useRef<QRShareHandle>(null);
 
@@ -40,4 +41,4 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
 
 QRShareWithDownload.displayName = 'QRShareWithDownload';
 
-export default QRShareWithDownload;
+export default forwardRef(QRShareWithDownload);

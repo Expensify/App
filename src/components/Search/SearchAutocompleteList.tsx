@@ -1,6 +1,6 @@
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -103,9 +103,6 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<SelectionListHandle>;
 };
 
 const defaultListOptions = {
@@ -157,23 +154,25 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
-function SearchAutocompleteList({
-    autocompleteQueryValue,
-    handleSearch,
-    searchQueryItem,
-    getAdditionalSections,
-    onListItemPress,
-    setTextQuery,
-    updateAutocompleteSubstitutions,
-    shouldSubscribeToArrowKeyEvents = true,
-    onHighlightFirstItem,
-    textInputRef,
-    personalDetails,
-    reports,
-    allFeeds,
-    allCards,
-    ref,
-}: SearchAutocompleteListProps) {
+function SearchAutocompleteList(
+    {
+        autocompleteQueryValue,
+        handleSearch,
+        searchQueryItem,
+        getAdditionalSections,
+        onListItemPress,
+        setTextQuery,
+        updateAutocompleteSubstitutions,
+        shouldSubscribeToArrowKeyEvents = true,
+        onHighlightFirstItem,
+        textInputRef,
+        personalDetails,
+        reports,
+        allFeeds,
+        allCards,
+    }: SearchAutocompleteListProps,
+    ref: ForwardedRef<SelectionListHandle>,
+) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -819,6 +818,6 @@ function SearchAutocompleteList({
     );
 }
 
-export default SearchAutocompleteList;
+export default forwardRef(SearchAutocompleteList);
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback};

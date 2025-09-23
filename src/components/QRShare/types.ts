@@ -1,5 +1,4 @@
 import type React from 'react';
-import type {ForwardedRef} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import type {Svg, SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
@@ -67,9 +66,6 @@ type QRShareProps = {
      * The size of the QR code
      */
     size?: ValueOf<typeof CONST.QR_CODE_SIZE>;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<QRShareHandle>;
 };
 
 type QRShareHandle = {

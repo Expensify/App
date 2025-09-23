@@ -1,10 +1,12 @@
-import React, {Suspense} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, Suspense} from 'react';
 import Deferred from '@components/Deferred';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import type {SearchAutocompleteInputProps} from '@components/Search/SearchAutocompleteInput';
 import SearchInputSelectionSkeleton from '@components/Skeletons/SearchInputSelectionSkeleton';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-function SearchInputSelectionWrapper({ref, ...props}: SearchAutocompleteInputProps) {
+function SearchInputSelectionWrapper(props: SearchAutocompleteInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     return (
         <Suspense fallback={<SearchInputSelectionSkeleton />}>
             <Deferred>
@@ -21,4 +23,4 @@ function SearchInputSelectionWrapper({ref, ...props}: SearchAutocompleteInputPro
 
 SearchInputSelectionWrapper.displayName = 'SearchInputSelectionWrapper';
 
-export default SearchInputSelectionWrapper;
+export default forwardRef(SearchInputSelectionWrapper);

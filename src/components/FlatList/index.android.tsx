@@ -1,12 +1,12 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useRef} from 'react';
+import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import type {CustomFlatListProps} from './index';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
+function CustomFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
     const lastScrollOffsetRef = useRef(0);
 
     const onScreenFocus = useCallback(() => {
@@ -44,4 +44,4 @@ function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
 }
 
 CustomFlatList.displayName = 'CustomFlatListWithRef';
-export default CustomFlatList;
+export default forwardRef(CustomFlatList);

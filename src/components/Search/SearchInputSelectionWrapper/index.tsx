@@ -1,8 +1,10 @@
-import React from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef} from 'react';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import type {SearchAutocompleteInputProps} from '@components/Search/SearchAutocompleteInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-function SearchInputSelectionWrapper({selection, ref, ...props}: SearchAutocompleteInputProps) {
+function SearchInputSelectionWrapper({selection, ...props}: SearchAutocompleteInputProps, ref: ForwardedRef<BaseTextInputRef>) {
     return (
         <SearchAutocompleteInput
             selection={selection}
@@ -15,4 +17,4 @@ function SearchInputSelectionWrapper({selection, ref, ...props}: SearchAutocompl
 
 SearchInputSelectionWrapper.displayName = 'SearchInputSelectionWrapper';
 
-export default SearchInputSelectionWrapper;
+export default forwardRef(SearchInputSelectionWrapper);

@@ -17,7 +17,7 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type {ButtonWithDropdownMenuProps} from './types';
+import type {ButtonWithDropdownMenuProps, ButtonWithDropdownMenuRef} from './types';
 
 const defaultAnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -25,7 +25,7 @@ const defaultAnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
+function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
         success = true,
         isSplitButton = true,
@@ -296,6 +296,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
 }
 
-ButtonWithDropdownMenu.displayName = 'ButtonWithDropdownMenu';
-
+ButtonWithDropdownMenuInner.displayName = 'ButtonWithDropdownMenu';
+const ButtonWithDropdownMenu = ButtonWithDropdownMenuInner as <IValueType>(
+    props: ButtonWithDropdownMenuProps<IValueType> & {ref?: React.Ref<ButtonWithDropdownMenuRef>},
+) => ReturnType<typeof ButtonWithDropdownMenuInner>;
 export default ButtonWithDropdownMenu;

@@ -1,6 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -87,10 +87,9 @@ type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
-    ref?: React.Ref<View>;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchContext();
@@ -539,4 +538,4 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
 SearchRouter.displayName = 'SearchRouter';
 
-export default SearchRouter;
+export default forwardRef(SearchRouter);

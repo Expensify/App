@@ -1,5 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
@@ -28,10 +28,9 @@ const DEFAULT_ANCHOR_ORIGIN = {
 
 type EmojiPickerProps = {
     viewportOffsetTop: number;
-    ref?: ForwardedRef<EmojiPickerRef>;
 };
 
-function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
+function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
@@ -247,4 +246,4 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 }
 
 EmojiPicker.displayName = 'EmojiPicker';
-export default withViewportOffsetTop(EmojiPicker);
+export default withViewportOffsetTop(forwardRef(EmojiPicker));

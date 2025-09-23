@@ -1,11 +1,13 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
+import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -21,7 +23,7 @@ import type EmojiPickerMenuProps from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -149,4 +151,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
 }
 
 EmojiPickerMenu.displayName = 'EmojiPickerMenu';
-export default EmojiPickerMenu;
+export default React.forwardRef(EmojiPickerMenu);

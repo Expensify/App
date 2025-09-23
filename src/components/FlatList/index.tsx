@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
-import type {ForwardedRef, RefObject} from 'react';
+import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
@@ -9,8 +9,8 @@ import {isMobileSafari} from '@libs/Browser';
 // We do a best effort to avoid content jumping by using some hacks on mobile Safari only.
 const IS_MOBILE_SAFARI = isMobileSafari();
 
-function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
-    return function (node: FlatList) {
+function mergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
+    return function forwardRef(node: FlatList) {
         args.forEach((ref) => {
             if (ref == null) {
                 return;
@@ -29,7 +29,7 @@ function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> |
     };
 }
 
-function useMergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
+function useMergeRefs(...args: Array<MutableRefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return useMemo(
         () => mergeRefs(...args),
         // eslint-disable-next-line
@@ -41,11 +41,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-type CustomFlatListProps<T> = FlatListProps<T> & {
-    ref?: ForwardedRef<FlatList>;
-};
-
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ref, ...props}: CustomFlatListProps<TItem>) {
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: FlatListProps<TItem>, ref: ForwardedRef<FlatList>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -201,7 +197,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
-    const setMergedRef = useMergeRefs(scrollRef, ref as ForwardedRef<FlatList>);
+    const setMergedRef = useMergeRefs(scrollRef, ref);
 
     const onRef = useCallback(
         (newRef: FlatList) => {
@@ -257,6 +253,4 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 
 MVCPFlatList.displayName = 'MVCPFlatList';
 
-export default MVCPFlatList;
-
-export type {CustomFlatListProps};
+export default React.forwardRef(MVCPFlatList);

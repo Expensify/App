@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
@@ -26,49 +26,51 @@ import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
 import type BaseModalProps from './types';
 
-function BaseModal({
-    isVisible,
-    onClose,
-    shouldSetModalVisibility = true,
-    onModalHide = () => {},
-    type,
-    popoverAnchorPosition = {},
-    innerContainerStyle = {},
-    outerStyle,
-    onModalShow = () => {},
-    onModalWillShow,
-    onModalWillHide,
-    fullscreen = true,
-    animationIn,
-    animationOut,
-    hideModalContentWhileAnimating = false,
-    animationInTiming,
-    animationOutTiming,
-    animationInDelay,
-    statusBarTranslucent = true,
-    navigationBarTranslucent = true,
-    onLayout,
-    avoidKeyboard = false,
-    children,
-    shouldUseCustomBackdrop = false,
-    onBackdropPress,
-    modalId,
-    shouldEnableNewFocusManagement = false,
-    restoreFocusType,
-    shouldUseModalPaddingStyle = true,
-    initialFocus = false,
-    swipeThreshold = 150,
-    swipeDirection,
-    shouldPreventScrollOnFocus = false,
-    enableEdgeToEdgeBottomSafeAreaPadding,
-    shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-    hasBackdrop,
-    backdropOpacity,
-    shouldDisableBottomSafeAreaPadding = false,
-    shouldIgnoreBackHandlerDuringTransition = false,
-    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
-    ref,
-}: BaseModalProps) {
+function BaseModal(
+    {
+        isVisible,
+        onClose,
+        shouldSetModalVisibility = true,
+        onModalHide = () => {},
+        type,
+        popoverAnchorPosition = {},
+        innerContainerStyle = {},
+        outerStyle,
+        onModalShow = () => {},
+        onModalWillShow,
+        onModalWillHide,
+        fullscreen = true,
+        animationIn,
+        animationOut,
+        hideModalContentWhileAnimating = false,
+        animationInTiming,
+        animationOutTiming,
+        animationInDelay,
+        statusBarTranslucent = true,
+        navigationBarTranslucent = true,
+        onLayout,
+        avoidKeyboard = false,
+        children,
+        shouldUseCustomBackdrop = false,
+        onBackdropPress,
+        modalId,
+        shouldEnableNewFocusManagement = false,
+        restoreFocusType,
+        shouldUseModalPaddingStyle = true,
+        initialFocus = false,
+        swipeThreshold = 150,
+        swipeDirection,
+        shouldPreventScrollOnFocus = false,
+        enableEdgeToEdgeBottomSafeAreaPadding,
+        shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        hasBackdrop,
+        backdropOpacity,
+        shouldDisableBottomSafeAreaPadding = false,
+        shouldIgnoreBackHandlerDuringTransition = false,
+        forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
+    }: BaseModalProps,
+    ref: React.ForwardedRef<View>,
+) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
@@ -372,4 +374,4 @@ function BaseModal({
 
 BaseModal.displayName = 'BaseModalWithRef';
 
-export default BaseModal;
+export default forwardRef(BaseModal);
