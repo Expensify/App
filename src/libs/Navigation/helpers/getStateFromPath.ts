@@ -4,8 +4,9 @@ import type {TupleToUnion} from 'type-fest';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import MAPPINGS from '@libs/Navigation/VerifyAccountMappings';
 import type {Route} from '@src/ROUTES';
-import addVerifyAccountRoute from './addVerifyAccountRoute';
+import {VERIFY_ACCOUNT} from '@src/ROUTES';
 import getMatchingNewRoute from './getMatchingNewRoute';
+import getStateForVerifyAccountRoute from './getStateForVerifyAccountRoute';
 
 /**
  * @param path - The path to parse
@@ -15,12 +16,12 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
-    if (path.includes('/verify-account')) {
-        const pathWithoutVerifyAccount = path.replace('/verify-account', '');
+    if (path.includes(`/${VERIFY_ACCOUNT}`)) {
+        const pathWithoutVerifyAccount = path.replace(`/${VERIFY_ACCOUNT}`, '');
 
         const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutVerifyAccount as Route) ?? {});
         if (focusedRoute?.name && MAPPINGS.VERIFY_ACCOUNT.includes(focusedRoute.name as TupleToUnion<typeof MAPPINGS.VERIFY_ACCOUNT>)) {
-            const verifyAccountState = addVerifyAccountRoute(normalizedPath);
+            const verifyAccountState = getStateForVerifyAccountRoute(normalizedPath);
             return verifyAccountState;
         }
     }

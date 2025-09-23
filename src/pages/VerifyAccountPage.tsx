@@ -1,7 +1,7 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import React from 'react';
 import getForwardToFromPath from '@libs/Navigation/helpers/getForwardToFromPath';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {VERIFY_ACCOUNT} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import VerifyAccountPageBase from './settings/VerifyAccountPageBase';
 
@@ -10,12 +10,12 @@ function VerifyAccountPage() {
     const state = useNavigationState((state) => findFocusedRoute(state));
     const path = state?.path ?? '';
 
-    const backTo = path ? path.replace('/verify-account', '') : ROUTES.HOME;
+    const backTo = path ? (path.replace(`/${VERIFY_ACCOUNT}`, '') as Route) : ROUTES.HOME;
     const forwardTo = getForwardToFromPath(path ?? '');
     return (
         <VerifyAccountPageBase
-            navigateBackTo={backTo as Route}
-            navigateForwardTo={forwardTo as Route}
+            navigateBackTo={backTo}
+            navigateForwardTo={forwardTo}
         />
     );
 }

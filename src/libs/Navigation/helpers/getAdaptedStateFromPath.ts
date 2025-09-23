@@ -9,8 +9,8 @@ import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigat
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route as RouteString} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import type {Route as RoutePath} from '@src/ROUTES';
+import ROUTES, {VERIFY_ACCOUNT} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
@@ -46,7 +46,7 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
-        const stateForBackTo = getStateFromPath(route.params.backTo as RouteString);
+        const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
@@ -70,9 +70,9 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
-    if (route.path?.includes('/verify-account')) {
-        const pathWithoutVerifyAccount = route.path.replace('/verify-account', '');
-        const stateUnderVerifyAccount = getStateFromPath(pathWithoutVerifyAccount as RouteString);
+    if (route.path?.includes(`/${VERIFY_ACCOUNT}`)) {
+        const pathWithoutVerifyAccount = route.path.replace(`/${VERIFY_ACCOUNT}`, '');
+        const stateUnderVerifyAccount = getStateFromPath(pathWithoutVerifyAccount as RoutePath);
         const lastRoute = stateUnderVerifyAccount?.routes.at(-1);
         if (!stateUnderVerifyAccount || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
             return undefined;
@@ -266,7 +266,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    const state = getStateFromPath(normalizedPath as RouteString) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }

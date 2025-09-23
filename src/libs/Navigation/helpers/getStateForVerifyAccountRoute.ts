@@ -1,8 +1,8 @@
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-function addVerifyAccountRoute(path: string) {
-    const verifyAccountState = {
+function getStateForVerifyAccountRoute(path: string) {
+    return {
         routes: [
             {
                 name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
@@ -26,8 +26,6 @@ function addVerifyAccountRoute(path: string) {
             },
         ],
     };
-
-    return verifyAccountState;
 }
 
-export default addVerifyAccountRoute;
+export default getStateForVerifyAccountRoute;
