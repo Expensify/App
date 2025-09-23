@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -56,7 +56,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <SelectionList
                         sections={[{data: items}]}
-                        ListItem={SingleSelectListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={onRoleChange}
                         isAlternateTextMultilineSupported
                         shouldSingleExecuteRowSelect
