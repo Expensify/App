@@ -917,7 +917,7 @@ function PureReportActionItem({
         resolveActionableReportMentionWhisper,
         formatPhoneNumber,
         resolveActionableMentionWhisper,
-        isReportArchived,
+        isOriginalReportArchived,
     ]);
 
     /**
