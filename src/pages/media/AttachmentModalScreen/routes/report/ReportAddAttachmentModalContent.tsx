@@ -4,13 +4,11 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import validateAttachmentFile from '@libs/AttachmentUtils';
 import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
-import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentContentProps, AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -23,32 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-function cleanFileObject(fileObject: FileObject): FileObject {
-    if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
-        return fileObject.getAsFile() as FileObject;
-    }
-
-    return fileObject;
-}
-
-function cleanFileObjectName(fileObject: FileObject): FileObject {
-    if (fileObject instanceof File) {
-        const cleanName = cleanFileName(fileObject.name);
-        if (fileObject.name !== cleanName) {
-            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
-            const inputSource = URL.createObjectURL(updatedFile);
-            updatedFile.uri = inputSource;
-            return updatedFile;
-        }
-        if (!fileObject.uri) {
-            const inputSource = URL.createObjectURL(fileObject);
-            // eslint-disable-next-line no-param-reassign
-            fileObject.uri = inputSource;
-        }
-    }
-    return fileObject;
-}
 
 const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
     if (!file) {
@@ -65,7 +37,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const {
         attachmentID,
         file,
-        dataTransferItems,
         source: sourceParam,
         isAuthTokenRequired,
         attachmentLink,
@@ -115,40 +86,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     }, [reportID, fetchReport, shouldFetchReport]);
 
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
-    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
-    const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(setValidFilesToUpload, false);
-
-    useEffect(() => {
-        if (!file) {
-            return;
-        }
-
-        const files = Array.isArray(file) ? file : [file];
-        if (files.length === 0) {
-            return;
-        }
-
-        const validIndices: number[] = [];
-        const fileObjects = files
-            .map((item, index) => {
-                const fileObject = cleanFileObject(item);
-                const cleanedFileObject = cleanFileObjectName(fileObject);
-                if (cleanedFileObject !== null) {
-                    validIndices.push(index);
-                }
-                return cleanedFileObject;
-            })
-            .filter((fileObject) => fileObject !== null);
-
-        if (!fileObjects.length) {
-            return;
-        }
-
-        // Create a filtered items array that matches the fileObjects
-        const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
-
-        validateFiles(fileObjects, filteredItems);
-    }, [dataTransferItems, file, validateFiles]);
 
     // Validates the attachment file and renders the appropriate modal type or errors
     const onValidateFile: OnValidateFileCallback = useCallback((fileToValidate, setFile) => {
@@ -176,30 +113,25 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         validateAttachmentFile(fileToValidate).then(updateState);
     }, []);
 
-    const modalType = useReportAttachmentModalType(source, validFilesToUpload ?? file);
+    const modalType = useReportAttachmentModalType(source, file);
 
     const isLoading = useMemo(() => {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
-        return (
-            !!isLoadingApp ||
-            isEmptyReport ||
-            (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport) ||
-            (Array.isArray(validFilesToUpload) && validFilesToUpload.length === 0)
-        );
-    }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, validFilesToUpload]);
+        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport) || (Array.isArray(file) && file.length === 0);
+    }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, file]);
 
     const onConfirm = useCallback(
         (f: FileObject | FileObject[]) => {
-            if (Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0) {
-                onConfirmParam?.(validFilesToUpload);
+            if (Array.isArray(file) && file.length > 0) {
+                onConfirmParam?.(file);
             } else {
                 onConfirmParam?.(f);
             }
         },
-        [onConfirmParam, validFilesToUpload],
+        [onConfirmParam, file],
     );
 
     const onDownloadAttachment = useDownloadAttachment({
@@ -207,14 +139,14 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     });
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(() => {
-        if (validFilesToUpload === undefined) {
+        if (file === undefined || (Array.isArray(file) && file.length === 0)) {
             return {
                 isLoading: true,
             };
         }
 
         return {
-            file: validFilesToUpload,
+            file,
             onValidateFile,
             source,
             isLoading,
@@ -229,36 +161,31 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             onConfirm,
             onDownloadAttachment,
             AttachmentContent: AddAttachmentModalCarouselView,
-            ExtraModals: ErrorModal,
         };
     }, [
-        ErrorModal,
-        accountID,
-        attachmentID,
-        attachmentLink,
-        headerTitle,
-        isAuthTokenRequired,
+        file,
+        onValidateFile,
+        source,
         isLoading,
+        isAuthTokenRequired,
+        attachmentLink,
+        originalFileName,
+        attachmentID,
+        accountID,
+        headerTitle,
+        shouldDisableSendButton,
         onConfirm,
         onDownloadAttachment,
-        originalFileName,
-        shouldDisableSendButton,
-        source,
-        validFilesToUpload,
-        onValidateFile,
     ]);
 
     return (
-        <>
-            {PDFValidationComponent}
-            <AttachmentModalContainer
-                navigation={navigation}
-                contentProps={contentProps}
-                modalType={modalType}
-                onShow={onShow}
-                onClose={onClose}
-            />
-        </>
+        <AttachmentModalContainer
+            navigation={navigation}
+            contentProps={contentProps}
+            modalType={modalType}
+            onShow={onShow}
+            onClose={onClose}
+        />
     );
 }
 ReportAddAttachmentModalContent.displayName = 'ReportAddAttachmentModalContent';

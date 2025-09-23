@@ -20,7 +20,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
-import useFilesValidation from '@hooks/useFilesValidation';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
@@ -48,29 +47,21 @@ import {
     isGroupChat,
     isReportApproved,
     isReportTransactionThread,
-    isSelfDM,
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
-import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
-import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
-import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -78,6 +69,7 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
+import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -501,116 +493,21 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
-    const reportAttachmentsContext = useContext(AttachmentModalContext);
-    const showAttachmentModalScreen = useCallback(
-        (file: FileObject | FileObject[], dataTransferItems?: DataTransferItem[]) => {
-            reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
-                reportID,
-                file,
-                dataTransferItems,
-                headerTitle: translate('reportActionCompose.sendAttachment'),
-                onConfirm: addAttachment,
-                onShow: () => setIsAttachmentPreviewActive(true),
-                onClose: onAttachmentPreviewClose,
-                shouldDisableSendButton: !!exceededMaxLength,
-            });
-            Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
-        },
-        [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, reportID, translate],
-    );
-
-    const handleAttachmentDrop = useCallback(
-        (event: DragEvent) => {
-            if (isAttachmentPreviewActive) {
-                return;
-            }
-            if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
-                const files = Array.from(event.dataTransfer?.files).map((file) => {
-                    // eslint-disable-next-line no-param-reassign
-                    file.uri = URL.createObjectURL(file);
-                    return file;
-                });
-                showAttachmentModalScreen(files, Array.from(event.dataTransfer?.items ?? []));
-                return;
-            }
-
-            const data = event.dataTransfer?.files[0];
-            if (data) {
-                data.uri = URL.createObjectURL(data);
-                showAttachmentModalScreen([data], Array.from(event.dataTransfer?.items ?? []));
-            }
-        },
-        [isAttachmentPreviewActive, showAttachmentModalScreen],
-    );
-
-    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
-        if (shouldAddOrReplaceReceipt && transactionID) {
-            const source = URL.createObjectURL(files.at(0) as Blob);
-            replaceReceipt({transactionID, file: files.at(0) as File, source});
-        } else {
-            const initialTransaction = initMoneyRequest({
-                reportID,
-                newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                report,
-                parentReport: newParentReport,
-                currentDate,
-            });
-
-            files.forEach((file, index) => {
-                const source = URL.createObjectURL(file as Blob);
-                const newTransaction =
-                    index === 0
-                        ? (initialTransaction as Partial<OnyxTypes.Transaction>)
-                        : buildOptimisticTransactionAndCreateDraft({
-                              initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
-                              currentUserPersonalDetails,
-                              reportID,
-                          });
-                const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
-                setMoneyRequestParticipantsFromReport(newTransactionID, report);
-            });
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT,
-                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                    reportID,
-                ),
-            );
-        }
-    };
-
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
-
-    const handleAddingReceipt = (e: DragEvent) => {
-        if (policy && shouldRestrictUserBillableActions(policy.id)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
-        }
-        if (shouldAddOrReplaceReceipt && transactionID) {
-            const file = e?.dataTransfer?.files?.[0];
-            if (file) {
-                file.uri = URL.createObjectURL(file);
-                validateFiles([file], Array.from(e.dataTransfer?.items ?? []));
-                return;
-            }
-        }
-
-        const files = Array.from(e?.dataTransfer?.files ?? []);
-        if (files.length === 0) {
-            return;
-        }
-        files.forEach((file) => {
-            // eslint-disable-next-line no-param-reassign
-            file.uri = URL.createObjectURL(file);
-        });
-
-        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
-    };
+    const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
+        policy,
+        reportID,
+        addAttachment,
+        onAttachmentPreviewClose,
+        exceededMaxLength,
+        shouldAddOrReplaceReceipt,
+        transactionID,
+        report,
+        newParentReport,
+        currentDate,
+        currentUserPersonalDetails,
+        isAttachmentPreviewActive,
+        setIsAttachmentPreviewActive,
+    });
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -639,7 +536,7 @@ function ReportActionCompose({
                     >
                         {PDFValidationComponent}
                         <AttachmentPickerWithMenuItems
-                            onAttachmentPicked={showAttachmentModalScreen}
+                            onAttachmentPicked={(files) => validateAttachments({files})}
                             reportID={reportID}
                             report={report}
                             currentUserPersonalDetails={currentUserPersonalDetails}
@@ -682,7 +579,7 @@ function ReportActionCompose({
                             inputPlaceholder={inputPlaceholder}
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
-                            onFilePasted={showAttachmentModalScreen}
+                            onFilePasted={(files) => validateAttachments({files})}
                             onCleared={submitForm}
                             disabled={isBlockedFromConcierge}
                             setIsCommentEmpty={setIsCommentEmpty}
@@ -697,13 +594,13 @@ function ReportActionCompose({
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
                                 isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                onAttachmentDrop={handleAttachmentDrop}
-                                onReceiptDrop={handleAddingReceipt}
+                                onAttachmentDrop={(e) => validateAttachments({dragEvent: e})}
+                                onReceiptDrop={(e) => onReceiptDropped(e)}
                                 shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                             />
                         )}
                         {!shouldDisplayDualDropZone && (
-                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
+                            <DragAndDropConsumer onDrop={(e) => validateAttachments({dragEvent: e})}>
                                 <DropZoneUI
                                     icon={Expensicons.MessageInABottle}
                                     dropTitle={translate('dropzone.addAttachments')}
