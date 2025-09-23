@@ -2489,7 +2489,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
 
-    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy)) {
+    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy) && !isOpenReport(moneyRequestReport)) {
         return false;
     }
 
@@ -2629,9 +2629,6 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
                 return canDeleteTransaction(report) && isCardTransactionCanBeDeleted;
-            }
-            if (isTrackExpenseAction(reportAction)) {
-                return isCardTransactionCanBeDeleted;
             }
             return true;
         }
@@ -3743,7 +3740,10 @@ function getReasonAndReportActionThatRequiresAttention(
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(optionOrReport.policyID);
-    if (optionOrReport.hasOutstandingChildRequest === true && (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions)) {
+    if (
+        (optionOrReport.hasOutstandingChildRequest === true || iouReportActionToApproveOrPay?.reportActionID) &&
+        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions)
+    ) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,

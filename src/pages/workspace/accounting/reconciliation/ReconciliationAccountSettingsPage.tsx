@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -97,7 +97,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             <SelectionList
                 sections={sections}
                 onSelectRow={({value}) => selectBankAccount(value)}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 initiallyFocusedOptionKey={paymentBankAccountID?.toString()}
             />
         </ConnectionLayout>

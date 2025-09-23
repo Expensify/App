@@ -6,7 +6,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -170,7 +170,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                 />
                 <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                     <SelectionList
-                        ListItem={SingleSelectListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={({value}) => setTypeSelected(value)}
                         sections={[{data}]}
                         shouldUpdateFocusedIndex
