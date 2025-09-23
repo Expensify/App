@@ -30,7 +30,6 @@ jobs:
 
       - name: Run Claude Code (code)
         if: steps.filter.outputs.code == 'true'
-        id: claude
         uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -41,7 +40,6 @@ jobs:
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
-        id: claude
         uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
