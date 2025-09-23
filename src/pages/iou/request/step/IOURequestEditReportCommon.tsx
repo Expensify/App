@@ -36,7 +36,6 @@ type Props = {
     isEditing?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
-    createReport?: () => void;
 };
 
 function IOURequestEditReportCommon({
@@ -49,7 +48,6 @@ function IOURequestEditReportCommon({
     isEditing = false,
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
-    createReport,
 }: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
@@ -58,13 +56,8 @@ function IOURequestEditReportCommon({
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
-    });
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policyItem) => policyItem?.id), canBeMissing: false});
+    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
@@ -146,27 +139,8 @@ function IOURequestEditReportCommon({
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
-    const createReportOption = useMemo(() => {
-        if (!createReport) {
-            return undefined;
-        }
-
-        return (
-            <MenuItem
-                onPress={createReport}
-                title={translate('report.newReport.createReport')}
-                description={activePolicy?.name}
-                icon={Expensicons.DocumentPlus}
-            />
-        );
-    }, [createReport, translate, activePolicy]);
-
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
-        if (createReport) {
-            return false;
-        }
-
         if (expenseReports.length === 0 || shouldShowNotFoundPageFromProps) {
             return true;
         }
@@ -180,7 +154,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReport, selectedReport, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
+    }, [selectedReport, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
 
     return (
         <StepScreenWrapper
@@ -202,19 +176,15 @@ function IOURequestEditReportCommon({
                 initiallyFocusedOptionKey={selectedReportID}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
-                    <>
-                        {shouldShowRemoveFromReport && (
-                            <MenuItem
-                                onPress={removeFromReport}
-                                title={translate('iou.removeFromReport')}
-                                description={translate('iou.moveToPersonalSpace')}
-                                icon={Expensicons.Close}
-                            />
-                        )}
-                        {createReportOption}
-                    </>
+                    shouldShowRemoveFromReport ? (
+                        <MenuItem
+                            onPress={removeFromReport}
+                            title={translate('iou.removeFromReport')}
+                            description={translate('iou.moveToPersonalSpace')}
+                            icon={Expensicons.Close}
+                        />
+                    ) : undefined
                 }
-                listEmptyContent={createReportOption}
             />
         </StepScreenWrapper>
     );
