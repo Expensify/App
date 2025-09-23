@@ -71,13 +71,7 @@ translate('common.messages', {count: 1});
 `src/languages/en.ts` is the source of truth for static strings in the App. `src/languages/es.ts` is (for now) manually-curated. The remainder are AI-generated using `scripts/generateTranslations.ts`.
 
 ### - Translation script SHOULD be used for generating non-English translations
-To run the translation script:
-
-```bash
-npx ts-node scripts/generateTranslations.ts
-```
-
-You will need `OPENAI_API_KEY` set in your `.env`. Expensify employees can follow [internal instructions](https://stackoverflowteams.com/c/expensify/questions/20012). If you want to test the script without actually talking to ChatGPT, you can pass the `--dry-run` flag.
+The script is run automatically in GH and a diff with the translations is posted as a comment. See example: https://github.com/Expensify/App/pull/70702#issuecomment-3312988591
 
 ### - Translation quality SHOULD be improved through context and prompt refinement
 If you are unhappy with the results of an AI translation, there are two methods of recourse:
