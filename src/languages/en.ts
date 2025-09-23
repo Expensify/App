@@ -658,7 +658,7 @@ const translations = {
         link: 'Link',
         pinned: 'Pinned',
         read: 'Read',
-        // @context treat Expensify as a proper noun, but not Card. Don't hyphenate it.
+        // @context treat Expensify as a proper noun, but not Card. Don't include a hyphen between the two words.
         expensifyCard: 'Expensify Card',
     },
     supportalNoAccess: {
