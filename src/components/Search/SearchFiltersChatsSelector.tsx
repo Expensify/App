@@ -1,6 +1,5 @@
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
@@ -18,6 +17,7 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {
     recentReports: [],
@@ -149,17 +149,23 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         [selectedReportIDs],
     );
 
-    const footerContent = (
-        <Button
-            success
-            text={translate('common.save')}
-            pressOnEnter
-            onPress={() => {
-                onFiltersUpdate(selectedReportIDs);
-                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-            }}
-            large
-        />
+    const applyChanges = useCallback(() => {
+        onFiltersUpdate(selectedReportIDs);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+    }, [onFiltersUpdate, selectedReportIDs]);
+
+    const resetChanges = useCallback(() => {
+        setSelectedReportIDs([]);
+    }, []);
+
+    const footerContent = useMemo(
+        () => (
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
+            />
+        ),
+        [resetChanges, applyChanges],
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
