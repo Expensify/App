@@ -47,8 +47,10 @@ import {
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
+import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,9 +67,6 @@ type FloatingActionButtonAndPopoverProps = {
 
     /* Callback function before the menu is hidden */
     onHideCreateMenu?: () => void;
-
-    /* If the tooltip is allowed to be shown */
-    isTooltipAllowed: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<FloatingActionButtonAndPopoverRef>;
@@ -99,7 +98,7 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isTooltipAllowed, ref}: FloatingActionButtonAndPopoverProps) {
+function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -154,6 +153,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
 
+    const isReportInSearch = isOnSearchMoneyRequestReportPage();
+
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
@@ -206,7 +207,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
@@ -485,6 +486,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
                               }
 
+                              if (isReportInSearch) {
+                                  clearLastSearchParams();
+                              }
+
                               if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
                                   Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
@@ -498,6 +503,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                           isSearchTopmostFullScreenRoute()
                                               ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
                                               : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                                          {forceReplace: isReportInSearch},
                                       );
                                   });
                               } else {
@@ -620,7 +626,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 cancelText={translate('common.cancel')}
             />
             <FloatingActionButton
-                isTooltipAllowed={isTooltipAllowed}
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                 role={CONST.ROLE.BUTTON}
                 isActive={isCreateMenuActive}

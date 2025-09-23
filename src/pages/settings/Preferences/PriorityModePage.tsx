@@ -1,16 +1,15 @@
 import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {updateChatPriorityMode} from '@userActions/User';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -40,7 +39,7 @@ function PriorityModePage() {
                 Navigation.goBack();
                 return;
             }
-            updateChatPriorityMode(mode.value);
+            User.updateChatPriorityMode(mode.value);
         },
         [priorityMode],
     );
@@ -57,7 +56,7 @@ function PriorityModePage() {
             <Text style={[styles.mh5, styles.mv3]}>{translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={updateMode}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}

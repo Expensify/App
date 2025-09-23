@@ -4,7 +4,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -57,7 +57,7 @@ type WalletPageProps = {
     shouldListenForResize?: boolean;
 };
 
-const fundListSelector = (allFunds: OnyxCollection<OnyxTypes.Fund>) =>
+const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
 
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
