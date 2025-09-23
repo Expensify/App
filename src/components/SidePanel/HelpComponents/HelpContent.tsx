@@ -57,10 +57,14 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         [report?.parentReportActionID],
     );
 
-    const [parentIOUReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
-        canBeMissing: true,
-        selector: getParentIOUReportActionSelector,
-    });
+    const [parentIOUReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
+        {
+            canBeMissing: true,
+            selector: getParentIOUReportActionSelector,
+        },
+        [getParentIOUReportActionSelector],
+    );
 
     const transactionID = useMemo(() => {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);

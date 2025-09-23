@@ -1,8 +1,8 @@
+import {getParentReportActionSelector} from '@selectors/ReportAction';
 import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getParentReportActionSelector} from '@src/selectors/ReportAction';
 import type {Report, ReportActions} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
@@ -12,11 +12,15 @@ function useParentReportAction(report: OnyxEntry<Report>) {
         [report?.parentReportActionID],
     );
 
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
-        canEvict: false,
-        canBeMissing: true,
-        selector: getParentReportAction,
-    });
+    const [parentReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`,
+        {
+            canEvict: false,
+            canBeMissing: true,
+            selector: getParentReportAction,
+        },
+        [getParentReportAction],
+    );
 
     return parentReportAction;
 }

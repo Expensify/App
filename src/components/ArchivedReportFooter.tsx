@@ -1,3 +1,4 @@
+import {getLastClosedReportAction} from '@selectors/ReportAction';
 import lodashEscape from 'lodash/escape';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +10,6 @@ import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getLastClosedReportAction} from '@src/selectors/ReportAction';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import Banner from './Banner';

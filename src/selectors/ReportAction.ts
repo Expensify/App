@@ -1,11 +1,14 @@
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxEntry} from 'react-native-onyx';
-import {filterOutDeprecatedReportActions, getParentReportAction, getSortedReportActions} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getSortedReportActions} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 function getParentReportActionSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): OnyxEntry<ReportAction> {
-    return getParentReportAction(parentReportActions, parentReportActionID);
+    if (!parentReportActions || !parentReportActionID) {
+        return;
+    }
+    return parentReportActions[parentReportActionID];
 }
 
 /**

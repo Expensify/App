@@ -3096,13 +3096,6 @@ function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
     return getOriginalMessage(action)?.to;
 }
 
-function getParentReportAction(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID: string | undefined): OnyxEntry<ReportAction> {
-    if (!parentReportActions || !parentReportActionID) {
-        return;
-    }
-    return parentReportActions[parentReportActionID];
-}
-
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3279,7 +3272,6 @@ export {
     getChangedApproverActionMessage,
     getDelegateAccountIDFromReportAction,
     isPendingHide,
-    getParentReportAction,
     filterOutDeprecatedReportActions,
 };
 

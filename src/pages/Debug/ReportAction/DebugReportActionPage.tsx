@@ -42,11 +42,15 @@ function DebugReportActionPage({
         [reportActionID],
     );
 
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: getReportActionSelector,
-        canBeMissing: true,
-    });
+    const [reportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canEvict: false,
+            selector: getReportActionSelector,
+            canBeMissing: true,
+        },
+        [getReportActionSelector],
+    );
     const transactionID = getLinkedTransactionID(reportAction);
 
     const DebugDetailsTab = useCallback(

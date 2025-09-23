@@ -47,11 +47,15 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         [ifUserCanPerformWriteAction],
     );
 
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: getSortedAllReportActionsSelector,
-        canBeMissing: true,
-    });
+    const [sortedAllReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canEvict: false,
+            selector: getSortedAllReportActionsSelector,
+            canBeMissing: true,
+        },
+        [getSortedAllReportActionsSelector],
+    );
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>));
 

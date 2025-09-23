@@ -87,10 +87,14 @@ function ReportActionsView({
         [report, isReportArchived],
     );
 
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
-        selector: getTransactionThreadReportActions,
-        canBeMissing: true,
-    });
+    const [transactionThreadReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        {
+            selector: getTransactionThreadReportActions,
+            canBeMissing: true,
+        },
+        [getTransactionThreadReportActions],
+    );
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);

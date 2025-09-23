@@ -25,11 +25,15 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         [hasWriteAccess],
     );
 
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
-        canEvict: false,
-        selector: getSortedAllReportActionsSelector,
-        canBeMissing: true,
-    });
+    const [sortedAllReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`,
+        {
+            canEvict: false,
+            selector: getSortedAllReportActionsSelector,
+            canBeMissing: true,
+        },
+        [getSortedAllReportActionsSelector],
+    );
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`, {canBeMissing: true});
 
     const {

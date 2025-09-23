@@ -39,11 +39,15 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         [report?.parentReportActionID, reportActionID],
     );
 
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
-        canEvict: false,
-        selector: getReportActionSelector,
-        canBeMissing: true,
-    });
+    const [reportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
+        {
+            canEvict: false,
+            selector: getReportActionSelector,
+            canBeMissing: true,
+        },
+        [getReportActionSelector],
+    );
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFoundPage = false;
