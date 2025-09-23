@@ -14,7 +14,6 @@
 * [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
-* [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 * [Onyx derived values](#onyx-derived-values)
 * [canBeMissing onyx param](#canbemissing-onyx-param)
@@ -326,79 +325,6 @@ web: `npm run symbolicate-release:web`
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
     - Perfetto UI (https://ui.perfetto.dev/)
     - Google Chrome's Tracing UI (chrome://tracing)
-
-----
-
-# Internationalization
-This application is built with Internationalization (I18n) / Localization (L10n) support, so it's important to always
-localize the following types of data when presented to the user (even accessibility texts that are not rendered):
-
-- Texts: See [translate method](https://github.com/Expensify/App/blob/655ba416d552d5c88e57977a6e0165fb7eb7ab58/src/libs/translate.js#L15)
-- Date/time: see [DateUtils](https://github.com/Expensify/App/blob/f579946fbfbdc62acc5bd281dc75cabb803d9af0/src/libs/DateUtils.js)
-- Numbers and amounts: see [NumberFormatUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/NumberFormatUtils.js) and [LocaleDigitUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/LocaleDigitUtils.js)
-- Phones: see [LocalPhoneNumber](https://github.com/Expensify/App/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
-
-In most cases, you will be needing to localize data used in a component, if that's the case, there's a hook [useLocalize](https://github.com/Expensify/App/blob/4510fc76bbf5df699a2575bfb49a276af90f3ed7/src/hooks/useLocalize.ts).
-It will abstract most of the logic you need (mostly subscribe to the [NVP_PREFERRED_LOCALE](https://github.com/Expensify/App/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key)
-and is the preferred way of localizing things inside components.
-
-Some pointers:
-
-- All translations are stored in language files in [src/languages](https://github.com/Expensify/App/tree/b114bc86ff38e3feca764e75b3f5bf4f60fcd6fe/src/languages).
-- We try to group translations by their pages/components
-- A common rule of thumb is to move a common word/phrase to be shared when it's in 3 places
-- Always prefer longer and more complex strings in the translation files. For example
-  if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
-  key to the translation file and use the arrow function version, like so:
-
-  ```
-  nameOfTheKey: ({amount, dateTime}) => `User has sent ${amount} to you on ${datetime}`,
-  ```
-
-  This is because the order of the phrases might vary from one language to another.
-
-- When working with translations that involve plural forms, it's important to handle different cases correctly.
-
-  For example:
-  - zero: Used when there are no items **(optional)**.
-  - one: Used when there's exactly one item.
-  - two: Used when there's two items. **(optional)**
-  - few: Used for a small number of items **(optional)**.
-  - many: Used for larger quantities **(optional)**.
-  - other: A catch-all case for other counts or variations.
-
-  Here’s an example of how to implement plural translations:
-
-  messages: () => ({
-      zero: 'No messages',
-      one: 'One message',
-      two: 'Two messages',
-      few: (count) => `${count} messages`,
-      many: (count) => `You have ${count} messages`,
-      other: (count) => `You have ${count} unread messages`,
-  })
-
-  In your code, you can use the translation like this:
-
-  `translate('common.messages', {count: 1});`
-
-## Generating translations
-`src/languages/en.ts` is the source of truth for static strings in the App. `src/languages/es.ts` is (for now) manually-curated. The remainder are AI-generated. The script to perform this transformation is `scripts/generateTranslations.ts`.
-
-### Running the translation script
-To run the translation script:
-
-```bash
-npx ts-node scripts/generateTranslations.ts
-```
-
-You will need `OPENAI_API_KEY` set in your `.env`. Expensify employees can follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/20012).  If you want to test the script without actually talking to ChatGPT, you can pass the `--dry-run` flag to the script.
-
-### Fine-tuning translations
-If you are unhappy with the results of an AI translation, there are currently two methods of recourse:
-
-1. If you are adding a string that can have an ambiguous meaning without proper context, you can add a context annotation in `en.ts`. This takes the form of a comment before your string starting with `@context`.
-2. The base prompt(s) can be found in `prompts/translation`, and can be adjusted if necessary.
 
 ----
 
