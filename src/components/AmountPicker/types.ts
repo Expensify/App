@@ -40,7 +40,7 @@ type AmountPickerProps = {
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
 
-    /** Rreference to the outer element */
+    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
     Pick<
