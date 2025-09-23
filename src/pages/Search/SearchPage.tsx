@@ -172,9 +172,9 @@ function SearchPage({route}: SearchPageProps) {
 
             const activeRoute = Navigation.getActiveRoute();
             const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
-            const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+            const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-            for (const item of items) {
+            for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
                 const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods) ?? paymentMethod;
 

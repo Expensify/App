@@ -628,12 +628,12 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
     if (!selectedTransactions || isEmpty(selectedTransactions)) {
         return true;
     }
-    const neededFilterTransactions = transactionKeys?.filter((transactionIdKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIdKey].reportID));
+    const neededFilterTransactions = transactionKeys?.filter((transactionIDKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIDKey].reportID));
     if (!neededFilterTransactions?.length) {
         return true;
     }
 
-    return neededFilterTransactions.every((transactionIdKey) => selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY);
+    return neededFilterTransactions.every((transactionIDKey) => selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY);
 }
 
 /**
@@ -646,7 +646,7 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-            : transactionKeys.every((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
+            : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0
@@ -658,35 +658,18 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
-                  (transactionIdKey) =>
-                      selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                  (transactionIDKey) =>
+                      selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      ((hasLastPaymentMethod && selectedTransactions[transactionIdKey].policyID) ||
-                          (getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID) &&
-                              selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID)),
+                      ((hasLastPaymentMethod && selectedTransactions[transactionIDKey].policyID) ||
+                          (getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID) &&
+                              selectedTransactions[transactionIDKey].policyID === firstTransaction?.policyID)),
               );
 
     return {
         shouldEnableBulkPayOption: shouldShowBulkPayOption,
         isFirstTimePayment: !hasLastPaymentMethod,
     };
-}
-
-/**
- *
- * @param selectedReports
- * @param selectedTransactions
- * @param currency
- * @returns The formatted amount of the selected reports/transactions.
- */
-function getFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency: string): string {
-    const transactionKeys = Object.keys(selectedTransactions ?? {});
-    const totalAmount =
-        selectedReports.length > 0
-            ? selectedReports.reduce((acc, report) => acc + (Math.abs(report.total) ?? 0), 0)
-            : transactionKeys.reduce((acc, transactionIdKey) => acc + (Math.abs(selectedTransactions[transactionIdKey].amount) ?? 0), 0);
-    const formattedAmount = convertToDisplayString(totalAmount, currency);
-    return formattedAmount ?? '';
 }
 
 /**
@@ -782,7 +765,6 @@ export {
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
     getPayOption,
-    getFormattedAmount,
     isValidBulkPayOption,
     handleBulkPayItemSelected,
 };
