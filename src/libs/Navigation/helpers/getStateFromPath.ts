@@ -2,7 +2,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import type {TupleToUnion} from 'type-fest';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import SCREEN_ACCESS_MAP from '@libs/Navigation/VerifyAccountMappings';
+import SCREEN_ACCESS_MAP from '@libs/Navigation/SCREEN_ACCESS_MAP';
 import type {Route} from '@src/ROUTES';
 import {VERIFY_ACCOUNT} from '@src/ROUTES';
 import getMatchingNewRoute from './getMatchingNewRoute';
