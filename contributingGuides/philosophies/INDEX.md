@@ -7,6 +7,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 ## Contents
 * [Cross-Platform Philosophy](/contributingGuides/philosophies/CROSS-PLATFORM.md)
 * [Data Flow Philosophy](/contributingGuides/philosophies/DATA-FLOW.md)
+* [Data Binding Philosophy](/contributingGuides/philosophies/DATA-BINDING.md)
+* [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
 * [Directory Structure and File Naming Philosophy](/contributingGuides/philosophies/DIRECTORIES.md)
 * [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md)
 * [Routing Philosophy](/contributingGuides/philosophies/ROUTING.md)
+* [Security Philosophy](/contributingGuides/philosophies/SECURITY.md)
