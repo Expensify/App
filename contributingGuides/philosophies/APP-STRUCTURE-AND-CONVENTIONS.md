@@ -26,7 +26,7 @@ Onyx allows other code to subscribe to changes in data, and then publishes chang
 
 Anything needing to read Onyx data MUST:
 1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > IndexedDB > OnyxDB > keyvaluepairs)
-2. Subscribe to changes of the data for a particular key or set of keys. React components MUST use `useOnyx()` and non-React libs MUST use `Onyx.connect()`
+2. Subscribe to changes of the data for a particular key or set of keys. React components MUST use `useOnyx()` and non-React libs MUST use `Onyx.connectWithoutView()`
 3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 
 Subscribing to Onyx keys MUST be done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it MUST subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
@@ -77,7 +77,7 @@ function signIn(password, twoFactorAuthCode) {
 }
 ```
 
-Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place. In addition, actions that are called from inside views MUST NOT ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff SHOULD ideally go into `Onyx` and be fed back to the component via `useOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
+Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place. In addition, actions that are called from inside views MUST NOT ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff SHOULD go into `Onyx` and be fed back to the component via `useOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
 
 ```javascript
 // Bad
