@@ -8,11 +8,13 @@ import VerifyAccountPageBase from './settings/VerifyAccountPageBase';
 function VerifyAccountPage() {
     // eslint-disable-next-line @typescript-eslint/no-shadow
     const state = useNavigationState((state) => findFocusedRoute(state));
-    const activePath = state?.path ? state.path.replace('/verify-account', '') : ROUTES.HOME;
-    const forwardTo = getForwardToFromPath(state?.path ?? '');
+    const path = state?.path ?? '';
+
+    const backTo = path ? path.replace('/verify-account', '') : ROUTES.HOME;
+    const forwardTo = getForwardToFromPath(path ?? '');
     return (
         <VerifyAccountPageBase
-            navigateBackTo={activePath as Route}
+            navigateBackTo={backTo as Route}
             navigateForwardTo={forwardTo as Route}
         />
     );

@@ -17,7 +17,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
-import navigateToVerifyAccount from '@libs/Navigation/helpers/navigateToVerifyAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
@@ -380,7 +379,7 @@ function SettlementButton({
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
         if (!isUserValidated) {
-            navigateToVerifyAccount();
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
             return;
         }
 

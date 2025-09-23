@@ -282,4 +282,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 };
 
 export default getAdaptedStateFromPath;
-export {getMatchingFullScreenRoute, isFullScreenName, getAdaptedState, getRoutesWithIndex};
+export {getMatchingFullScreenRoute, isFullScreenName};
