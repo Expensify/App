@@ -1,3 +1,4 @@
+import {transactionViolationsSelector} from '@selectors/Transaction';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -27,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {transactionViolationsSelector} from '@src/selectors/Transaction';
 import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 

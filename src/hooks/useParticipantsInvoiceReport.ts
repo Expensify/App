@@ -1,9 +1,9 @@
+import {createReportNameValuePairsSelector} from '@selectors/ReportNameValuePairs';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isArchivedNonExpenseReport, isArchivedReport, isInvoiceRoom} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createReportNameValuePairsSelector} from '@src/selectors/ReportNameValuePairs';
 import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {InvoiceReceiverType} from '@src/types/onyx/Report';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';

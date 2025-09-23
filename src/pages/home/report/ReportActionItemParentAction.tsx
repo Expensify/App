@@ -122,16 +122,19 @@ function ReportActionItemParentAction({
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
 
-    const ancestorReportNameValuePairsSelector = useCallback((allPairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
-        const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+    const ancestorReportNameValuePairsSelector = useCallback(
+        (allPairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
+            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
 
-        return Object.fromEntries(
-            Object.entries(allPairs ?? {}).filter(([key]) => {
-                const id = key.split('_').at(1);
-                return id && ancestorIDsToSelect.has(id);
-            }),
-        );
-    }, []);
+            return Object.fromEntries(
+                Object.entries(allPairs ?? {}).filter(([key]) => {
+                    const id = key.split('_').at(1);
+                    return id && ancestorIDsToSelect.has(id);
+                }),
+            );
+        },
+        [ancestorIDs],
+    );
 
     const [ancestorReportNameValuePairs] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,

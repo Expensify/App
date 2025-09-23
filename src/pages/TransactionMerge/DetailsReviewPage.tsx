@@ -42,6 +42,8 @@ import MergeFieldReview from './MergeFieldReview';
 
 type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DETAILS_PAGE>;
 
+const hasOnceLoadedTransactionThreadReportActionsSelector = (value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions;
+
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -51,7 +53,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
-    const hasOnceLoadedTransactionThreadReportActionsSelector = useCallback((value?: OnyxEntry<ReportMetadata>) => value?.hasOnceLoadedReportActions, []);
 
     const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`,

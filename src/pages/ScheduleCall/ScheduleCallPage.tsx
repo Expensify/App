@@ -38,6 +38,10 @@ type TimeSlot = {
     scheduleURL: string;
 };
 
+const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
+    calendlySchedule: data?.calendlySchedule,
+});
+
 function ScheduleCallPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,21 +54,10 @@ function ScheduleCallPage() {
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
 
-    const adminReportNameValuePairsSelector = useCallback(
-        (data?: ReportNameValuePairs) => ({
-            calendlySchedule: data?.calendlySchedule,
-        }),
-        [],
-    );
-
-    const [adminReportNameValuePairs] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
-        {
-            selector: adminReportNameValuePairsSelector,
-            canBeMissing: true,
-        },
-        [adminReportNameValuePairsSelector],
-    );
+    const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+        selector: adminReportNameValuePairsSelector,
+        canBeMissing: true,
+    });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
     useEffect(() => {
@@ -85,8 +78,6 @@ function ScheduleCallPage() {
         return () => {
             sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {

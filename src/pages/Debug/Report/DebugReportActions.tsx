@@ -1,3 +1,4 @@
+import {createPersonalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -17,7 +18,6 @@ import {canUserPerformWriteAction, formatReportLastMessageText, getParticipantsA
 import SidebarUtils from '@libs/SidebarUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {createPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 type DebugReportActionsProps = {

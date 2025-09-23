@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -48,6 +48,22 @@ const reportFilter = (reportOptions: Array<SearchOption<Report>>, archivedReport
         return filtered;
     }, []);
 
+const archivedReportsIdSetSelector = (all?: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
+    const ids = new Set<string>();
+    if (!all) {
+        return ids;
+    }
+
+    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+    for (const [key, value] of Object.entries(all)) {
+        if (isArchivedReport(value)) {
+            const reportID = key.slice(prefixLength);
+            ids.add(reportID);
+        }
+    }
+    return ids;
+};
+
 function TaskShareDestinationSelectorModal() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
@@ -60,30 +76,10 @@ function TaskShareDestinationSelectorModal() {
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const archivedReportsIdSetSelector = useCallback((all?: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
-        const ids = new Set<string>();
-        if (!all) {
-            return ids;
-        }
-
-        const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-        for (const [key, value] of Object.entries(all)) {
-            if (isArchivedReport(value)) {
-                const reportID = key.slice(prefixLength);
-                ids.add(reportID);
-            }
-        }
-        return ids;
-    }, []);
-
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        {
-            canBeMissing: true,
-            selector: archivedReportsIdSetSelector,
-        },
-        [archivedReportsIdSetSelector],
-    );
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: archivedReportsIdSetSelector,
+    });
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
