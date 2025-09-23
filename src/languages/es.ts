@@ -1392,7 +1392,7 @@ const translations = {
             reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
-            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problemas y lo marques como resuelto para poder enviarlo.',
+            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones los problemas y lo marques como resuelto para poder enviarlo.',
             reportActions: {
                 rejectedExpense: 'rechazó este gasto',
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
