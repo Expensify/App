@@ -474,7 +474,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        if (!canCardTransactionBeDeleted) {
+        if (isSingleTransaction && !canCardTransactionBeDeleted) {
             return false;
         }
 
