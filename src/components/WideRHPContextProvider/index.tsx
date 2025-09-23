@@ -6,6 +6,7 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useSt
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions, InteractionManager} from 'react-native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
@@ -81,14 +82,16 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
 
     // Return undefined if RHP is not the last route
-    const lastRHPRouteKey = useRootNavigationState((state) => {
-        const lastRoute = state?.routes.at(-1);
+    const lastVisibleRHPRouteKey = useRootNavigationState((state) => {
+        const lastFullScreenRouteIndex = state?.routes.findLastIndex((route) => isFullScreenName(route.name));
+        const lastRHPRouteIndex = state?.routes.findLastIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
-        if (!lastRoute) {
+        // Both routes have to be present and the RHP have to be after last full screen for it to be visible.
+        if (lastFullScreenRouteIndex === -1 || lastRHPRouteIndex === -1 || lastFullScreenRouteIndex > lastRHPRouteIndex) {
             return undefined;
         }
 
-        return lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR ? lastRoute.key : undefined;
+        return state?.routes.at(lastRHPRouteIndex)?.key;
     });
 
     const wideRHPRouteKeys = useMemo(() => {
@@ -98,7 +101,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return [];
         }
 
-        const lastRHPRoute = rootState.routes.find((route) => route.key === lastRHPRouteKey);
+        const lastRHPRoute = rootState.routes.find((route) => route.key === lastVisibleRHPRouteKey);
 
         if (!lastRHPRoute) {
             return [];
@@ -108,7 +111,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         const currentKeys = allWideRHPRouteKeys.filter((key) => lastRHPKeys.has(key));
 
         return currentKeys;
-    }, [allWideRHPRouteKeys, lastRHPRouteKey]);
+    }, [allWideRHPRouteKeys, lastVisibleRHPRouteKey]);
 
     /**
      * Determines whether the secondary overlay should be displayed.
