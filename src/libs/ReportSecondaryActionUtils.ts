@@ -54,8 +54,6 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCardTransaction as isCardTransactionUtils,
-    isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
