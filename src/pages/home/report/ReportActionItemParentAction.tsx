@@ -133,10 +133,14 @@ function ReportActionItemParentAction({
         );
     }, []);
 
-    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: ancestorReportNameValuePairsSelector,
-    });
+    const [ancestorReportNameValuePairs] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        {
+            canBeMissing: true,
+            selector: ancestorReportNameValuePairsSelector,
+        },
+        [ancestorReportNameValuePairsSelector],
+    );
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];

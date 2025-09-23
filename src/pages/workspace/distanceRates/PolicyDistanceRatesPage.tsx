@@ -146,10 +146,14 @@ function PolicyDistanceRatesPage({
         [eligibleTransactionIDs],
     );
 
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: transactionViolationSelector,
-        canBeMissing: true,
-    });
+    const [transactionViolations] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        {
+            selector: transactionViolationSelector,
+            canBeMissing: true,
+        },
+        [transactionViolationSelector],
+    );
 
     const filterRateSelection = useCallback(
         (rate?: Rate) => !!rate && !!customUnitRates?.[rate.customUnitRateID] && customUnitRates?.[rate.customUnitRateID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,

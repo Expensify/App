@@ -92,10 +92,14 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         [eligibleTransactionIDs],
     );
 
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: transactionViolationSelector,
-        canBeMissing: true,
-    });
+    const [transactionViolations] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        {
+            selector: transactionViolationSelector,
+            canBeMissing: true,
+        },
+        [transactionViolationSelector],
+    );
 
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage;
