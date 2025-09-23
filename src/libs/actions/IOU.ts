@@ -816,6 +816,9 @@ Onyx.connect({
     },
 });
 
+// TODO: remove `allRecentlyUsedTags` from this file
+// `allRecentlyUsedTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
+// All uses of this variable should be replaced with `useOnyx`.
 let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
