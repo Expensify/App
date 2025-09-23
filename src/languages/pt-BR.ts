@@ -667,7 +667,7 @@ const translations = {
         link: 'Link',
         pinned: 'Fixado',
         read: 'Lido',
-        expensifyCard: 'Expensify Card',
+        expensifyCard: 'Cartão Expensify',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',

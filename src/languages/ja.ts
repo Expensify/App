@@ -667,7 +667,7 @@ const translations = {
         link: 'リンク',
         pinned: '固定済み',
         read: '既読',
-        expensifyCard: 'Expensify Card',
+        expensifyCard: 'Expensifyカード',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',

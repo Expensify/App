@@ -666,7 +666,7 @@ const translations = {
         link: '链接',
         pinned: '已固定',
         read: '已读',
-        expensifyCard: 'Expensify Card',
+        expensifyCard: 'Expensify卡',
     },
     supportalNoAccess: {
         title: '慢一点',

@@ -666,7 +666,7 @@ const translations = {
         link: 'Link',
         pinned: 'Vastgezet',
         read: 'Gelezen',
-        expensifyCard: 'Expensify Card',
+        expensifyCard: 'Expensify-kaart',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
