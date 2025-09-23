@@ -71,7 +71,7 @@ describe('DateUtils', () => {
     });
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
-        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, datetime, timezone);
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, timezone, datetime);
         expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-06T16:00:00-08:00');
     });
 
