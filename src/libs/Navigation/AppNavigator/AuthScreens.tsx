@@ -112,6 +112,7 @@ function initializePusher() {
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
+let isLoadingApp = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -145,10 +146,13 @@ Onyx.connect({
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            PersonalDetails.updateAutomaticTimezone({
-                automatic: true,
-                selected: currentTimezone,
-            });
+            PersonalDetails.updateAutomaticTimezone(
+                {
+                    automatic: true,
+                    selected: currentTimezone,
+                },
+                currentAccountID,
+            );
         }
     },
 });
@@ -160,7 +164,14 @@ Onyx.connect({
     },
 });
 
-function handleNetworkReconnect(isLoadingApp: boolean) {
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = !!value;
+    },
+});
+
+function handleNetworkReconnect() {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -212,7 +223,6 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
@@ -289,7 +299,7 @@ function AuthScreens() {
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp));
+        NetworkConnection.onReconnect(() => handleNetworkReconnect());
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
@@ -302,7 +312,7 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect(delegatorEmail, true)
+                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, isFromOldDot: true})
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
