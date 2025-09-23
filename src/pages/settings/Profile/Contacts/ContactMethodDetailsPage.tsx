@@ -161,7 +161,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (prevValidatedDate || !loginData?.validatedDate || !loginData) {
+        if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
