@@ -1129,6 +1129,8 @@ describe('actions/Policy', () => {
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                 },
             });
+
+            mockFetch?.resume?.();
         });
     });
 
