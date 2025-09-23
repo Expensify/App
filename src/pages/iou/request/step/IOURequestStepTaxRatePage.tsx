@@ -4,11 +4,11 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import {setDraftSplitTransaction, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestTaxRate} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
-import {calculateTaxAmount, getAmount, getCurrency, getTaxName, getTaxValue as getTaxValueUtil} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getTaxName, getTaxValue, isExpenseUnreported as isExpenseUnreportedTransactionUtils} from '@libs/TransactionUtils';
+import {setDraftSplitTransaction, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestTaxRate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -24,8 +24,7 @@ type IOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof S
 };
 
 function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, selectedTaxCode: string, amount: number): number | undefined {
-    const getTaxValue = (taxCode: string) => getTaxValueUtil(policy, transaction, taxCode);
-    const taxPercentage = getTaxValue(selectedTaxCode);
+    const taxPercentage = getTaxValue(policy, transaction, selectedTaxCode);
     if (taxPercentage) {
         return calculateTaxAmount(taxPercentage, amount, getCurrency(transaction));
     }
@@ -40,9 +39,16 @@ function IOURequestStepTaxRatePage({
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
+        canBeMissing: true,
+        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+    });
+    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
+    const policy = isExpenseUnreported ? activePolicy : reportPolicy;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
@@ -109,7 +115,7 @@ function IOURequestStepTaxRatePage({
         >
             <TaxPicker
                 selectedTaxRate={taxRateTitle}
-                policyID={report?.policyID}
+                policyID={policy?.id}
                 transactionID={currentTransaction?.transactionID}
                 onSubmit={updateTaxRates}
                 action={action}

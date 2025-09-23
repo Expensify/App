@@ -469,6 +469,7 @@
         "passplus",
         "passwordless",
         "Passwordless",
+        "pathspec",
         "payrollcode",
         "pbxproj",
         "pdfreport",
@@ -796,7 +797,8 @@
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
-        "modules/group-ib-fp"
+        "modules/group-ib-fp",
+        "web/snippets/gib.js"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
