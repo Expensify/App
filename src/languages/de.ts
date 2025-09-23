@@ -1764,7 +1764,7 @@ const translations = {
         compromisedDescription: 'Etwas stimmt nicht mit deinem Konto? Eine Meldung sperrt dein Konto sofort, stoppt neue Expensify Card-Transaktionen und verhindert Änderungen.',
         domainAdminsDescription: 'Für Domain-Admins: Dies pausiert auch alle Aktivitäten und Admin-Aktionen der Expensify Card in deiner Domain.',
         areYouSure: 'Bist du sicher, dass du dein Expensify-Konto sperren willst?',
-        onceLocked: 'Nach der Sperrung wird dein Konto eingeschränkt, bis eine Entsperr-Anfrage und eine Sicherheitsüberprüfung erfolgt sind',
+        onceLocked: 'Sobald gesperrt, wird Ihr Konto eingeschränkt, bis eine Entsperranfrage und eine Sicherheitsüberprüfung erfolgt sind.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Konto konnte nicht gesperrt werden',

@@ -1754,7 +1754,7 @@ const translations = {
             'Notou algo estranho em sua conta? Relatar isso bloqueará imediatamente sua conta, interromperá novas transações do Cartão Expensify e impedirá alterações na conta.',
         domainAdminsDescription: 'Para administradores de domínio: Isso também pausa toda a atividade do Cartão Expensify e ações administrativas em seus domínios.',
         areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
-        onceLocked: 'Uma vez bloqueada, sua conta será restrita até que uma solicitação de desbloqueio e uma revisão de segurança sejam feitas',
+        onceLocked: 'Uma vez bloqueada, sua conta será restrita até que um pedido de desbloqueio e uma revisão de segurança sejam realizados.', //_/\__/_/  \_,_/\__/\__/\_,_/
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',

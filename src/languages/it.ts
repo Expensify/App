@@ -1754,7 +1754,7 @@ const translations = {
         compromisedDescription: 'Notato qualcosa di strano nel tuo account? Segnalandolo lo bloccherai immediatamente, fermerai le transazioni con la carta Expensify e impedirai modifiche.',
         domainAdminsDescription: 'Per gli amministratori di dominio: questo sospende anche tutta l’attività delle carte Expensify e le azioni amministrative.',
         areYouSure: 'Sei sicuro di voler bloccare il tuo account Expensify?',
-        onceLocked: 'Una volta bloccato, il tuo account sarà limitato fino a quando non verrà effettuata una richiesta di sblocco e una revisione della sicurezza',
+        onceLocked: 'Una volta bloccato, il tuo account sarà limitato in attesa di una richiesta di sblocco e di una revisione di sicurezza.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: "Impossibile bloccare l'account",
