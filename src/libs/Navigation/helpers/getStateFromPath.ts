@@ -2,7 +2,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import type {TupleToUnion} from 'type-fest';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import MAPPINGS from '@libs/Navigation/VerifyAccountMappings';
+import SCREEN_ACCESS_MAP from '@libs/Navigation/VerifyAccountMappings';
 import type {Route} from '@src/ROUTES';
 import {VERIFY_ACCOUNT} from '@src/ROUTES';
 import getMatchingNewRoute from './getMatchingNewRoute';
@@ -20,7 +20,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         const pathWithoutVerifyAccount = path.replace(`/${VERIFY_ACCOUNT}`, '');
 
         const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutVerifyAccount as Route) ?? {});
-        if (focusedRoute?.name && MAPPINGS.VERIFY_ACCOUNT.includes(focusedRoute.name as TupleToUnion<typeof MAPPINGS.VERIFY_ACCOUNT>)) {
+        if (focusedRoute?.name && SCREEN_ACCESS_MAP.VERIFY_ACCOUNT.includes(focusedRoute.name as TupleToUnion<typeof SCREEN_ACCESS_MAP.VERIFY_ACCOUNT>)) {
             const verifyAccountState = getStateForVerifyAccountRoute(normalizedPath);
             return verifyAccountState;
         }
