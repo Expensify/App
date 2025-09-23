@@ -420,21 +420,27 @@ validateAndSubmitForm() {
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
 prefer to return the created/updated data in the command itself, instead of saving and reloading. ie: if we call `CreateTransaction`,
 we should prefer making `CreateTransaction` return the data it just created instead of calling `CreateTransaction` then `Get` rvl=transactionList
+
 ## Storage Eviction
+
 Different platforms come with varying storage capacities and Onyx has a way to gracefully fail when those storage limits are encountered. When Onyx fails to set or modify a key the following steps are taken:
 1. Onyx looks at a list of recently accessed keys (access is defined as subscribed to or modified) and locates the key that was least recently accessed
 2. It then deletes this key and retries the original operation
+
 By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
+
 **To flag a key as safe for removal:**
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
+
 e.g.
 ```js
 Onyx.init({
     evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
+
 ```js
 export default withOnyx({
     reportActions: {
@@ -443,6 +449,7 @@ export default withOnyx({
     },
 })(ReportActionsView);
 ```
+
 ## Things to know or brush up on before jumping into the code
 1. The major difference between React Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. Any React skills you have can be applied to React Native.
 1. The application uses [`react-navigation`](https://reactnavigation.org/) for navigating between parts of the app.
