@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
 
@@ -33,6 +33,7 @@ function MoneyReportHeaderKYCDropdown({onSuccessfulKYC, primaryAction, chatRepor
 
     return (
         <KYCWall
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onSuccessfulKYC={onSuccessfulKYC}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}

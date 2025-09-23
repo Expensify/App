@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -185,9 +185,6 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
  *
  * IMPORTANT: the key must be stable and unique across the whole menu tree for the
  * path-resolution algorithm to work reliably when menu arrays change.
- *
- * @param {PopoverMenuItem} item - menu item object
- * @returns {string} stable key string
  */
 const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
 
@@ -200,10 +197,6 @@ const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
  * We iterate down the `root` following `indexPath` and collect getItemKey(node)
  * for each visited node. If any index is out-of-bounds for a level, we stop
  * and return the keys collected so far (could be empty).
- *
- * @param {PopoverMenuItem[]} root - the menu tree to walk (usually previous snapshot)
- * @param {readonly number[]} indexPath - sequence of indexes describing the path
- * @returns {string[]} an array of keys representing the path (may be shorter than indexPath)
  */
 function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly number[]): string[] {
     const keys: string[] = [];
@@ -211,7 +204,9 @@ function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly 
 
     for (const idx of indexPath) {
         const node: PopoverMenuItem | undefined = level?.[idx];
-        if (!node) break;
+        if (!node) {
+            break;
+        }
         keys.push(getItemKey(node));
         level = node.subMenuItems;
     }
@@ -223,10 +218,6 @@ function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly 
  * and the `itemsAtLeaf` (the subMenuItems array of the final matched node, or an empty array).
  *
  * Returns `{found: false}` if any key in keyPath cannot be found at the expected level.
- *
- * @param {PopoverMenuItem[]} root - current menu items
- * @param {string[]} keyPath - array of keys to resolve
- * @returns {{found: true, indexes: number[], itemsAtLeaf: PopoverMenuItem[]} | {found: false}}
  */
 function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
     let level: PopoverMenuItem[] = root;
@@ -238,7 +229,7 @@ function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
             return {found: false as const};
         }
         indexes.push(i);
-        const next = level[i].subMenuItems;
+        const next = level.at(i)?.subMenuItems;
         level = next ?? [];
     }
     return {found: true as const, indexes, itemsAtLeaf: level};
