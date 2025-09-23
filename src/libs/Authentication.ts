@@ -58,7 +58,8 @@ function checkIfShouldUseNewPartnerName(partnerUserID?: string): boolean {
         return true;
     }
 
-    // On HybridApp some users must have credentials generated for them using the old partner name (pre NewDot SignInPage).
+    // On HybridApp, users who logged in on the old SignInPage must use legacy partner name.
+    // Users who logged in on NewDot SignInPage have partnerUserID with "expensify.cash-" prefix and use new partner name.
     if(partnerUserID?.startsWith('expensify.cash-')) {
         return true;
     }
