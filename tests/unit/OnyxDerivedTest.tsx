@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -15,7 +15,7 @@ import type {Report} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const renderLocaleContextProvider = () => {
     return render(
@@ -32,7 +32,10 @@ describe('OnyxDerived', () => {
     });
 
     beforeEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     describe('reportAttributes', () => {
@@ -52,7 +55,7 @@ describe('OnyxDerived', () => {
         };
 
         it('returns empty reports when dependencies are not set', async () => {
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
             expect(derivedReportAttributes).toMatchObject({
                 reports: {},
@@ -61,10 +64,12 @@ describe('OnyxDerived', () => {
 
         it('computes report attributes when reports are set', async () => {
             renderLocaleContextProvider();
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            });
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
@@ -105,10 +110,12 @@ describe('OnyxDerived', () => {
 
         it('updates when locale changes', async () => {
             renderLocaleContextProvider();
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
+            });
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
@@ -118,7 +125,7 @@ describe('OnyxDerived', () => {
         });
 
         it('should contain both report attributes update when there are report and transaction updates', async () => {
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
             // Given 2 reports and 1 transaction
             const reportID1 = '0';
             const reportID2 = '1';
@@ -148,21 +155,23 @@ describe('OnyxDerived', () => {
 
         it('should not recompute reportAttributes when personalDetailsList changes without displayName change', async () => {
             renderLocaleContextProvider();
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // Set up initial state with report and personalDetailsList
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                '1': {
-                    accountID: 1,
-                    displayName: 'John Doe',
-                    login: 'john.doe@example.com',
-                    firstName: 'John',
-                    lastName: 'Doe',
-                },
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    '1': {
+                        accountID: 1,
+                        displayName: 'John Doe',
+                        login: 'john.doe@example.com',
+                        firstName: 'John',
+                        lastName: 'Doe',
+                    },
+                });
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // Get initial computed value
             const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -172,12 +181,14 @@ describe('OnyxDerived', () => {
             const generateReportAttributesSpy = jest.spyOn(require('@libs/ReportUtils'), 'generateReportAttributes');
 
             // Change only the login (not displayName) - this should trigger the optimization
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                '1': {
-                    login: 'john.newemail@example.com',
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    '1': {
+                        login: 'john.newemail@example.com',
+                    },
+                });
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // The generateReportAttributes function should not have been called
             // because the optimization should have returned early
@@ -194,33 +205,37 @@ describe('OnyxDerived', () => {
 
         it('should recompute reportAttributes when personalDetailsList displayName changes', async () => {
             renderLocaleContextProvider();
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // Set up initial state with report and personalDetailsList
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                '1': {
-                    accountID: 1,
-                    displayName: 'John Doe',
-                    login: 'john.doe@example.com',
-                    firstName: 'John',
-                    lastName: 'Doe',
-                },
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    '1': {
+                        accountID: 1,
+                        displayName: 'John Doe',
+                        login: 'john.doe@example.com',
+                        firstName: 'John',
+                        lastName: 'Doe',
+                    },
+                });
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // Get initial computed value reference
             const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // Change the displayName - this should trigger full recomputation
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                '1': {
-                    displayName: 'Jane Doe',
-                    firstName: 'Jane',
-                },
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    '1': {
+                        displayName: 'Jane Doe',
+                        firstName: 'Jane',
+                    },
+                });
             });
-            await waitForBatchedUpdates();
+            await waitForBatchedUpdatesWithAct();
 
             // Get the computed value after displayName change
             const derivedReportAttributesAfterDisplayNameChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -232,8 +247,10 @@ describe('OnyxDerived', () => {
         describe('reportErrors', () => {
             it('returns empty errors when no errors exist', async () => {
                 const report = createRandomReport(1);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await waitForBatchedUpdates();
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                });
+                await waitForBatchedUpdatesWithAct();
 
                 const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[report.reportID].reportErrors).toEqual({});
@@ -263,14 +280,16 @@ describe('OnyxDerived', () => {
                     },
                 };
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                });
 
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-                await waitForBatchedUpdates();
+                await waitForBatchedUpdatesWithAct();
 
                 expect(derivedReportAttributes?.reports[report.reportID].reportErrors).toEqual({
                     '1234567890': 'Error message 1',
@@ -316,9 +335,11 @@ describe('OnyxDerived', () => {
                     },
                 };
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
-                await waitForBatchedUpdates();
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                });
+                await waitForBatchedUpdatesWithAct();
 
                 const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[report.reportID].reportErrors).toEqual({
@@ -361,9 +382,11 @@ describe('OnyxDerived', () => {
                     },
                 };
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
-                await waitForBatchedUpdates();
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                });
+                await waitForBatchedUpdatesWithAct();
 
                 const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[report.reportID].reportErrors).toEqual({
