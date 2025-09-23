@@ -202,7 +202,7 @@ function StatusPage() {
                 <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
                 </View>
-                <View style={[styles.mb2, styles.mt4]}>
+                <View style={[styles.mt4]}>
                     <View style={[styles.mb4, styles.ph5]}>
                         <InputWrapper
                             InputComponent={EmojiPickerButtonDropdown}
