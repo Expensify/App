@@ -79,7 +79,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyID, [currentPolicyTag.name]);
+        deletePolicyTags(policyID, [currentPolicyTag.name], policyTags);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
@@ -178,7 +178,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             errors={getLatestErrorMessageField(currentPolicyTag)}
                             pendingAction={currentPolicyTag.pendingFields?.enabled}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearPolicyTagErrors(policyID, tagName, orderWeight)}
+                            onClose={() => clearPolicyTagErrors({policyID, tagName, tagListIndex: orderWeight, policyTags})}
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

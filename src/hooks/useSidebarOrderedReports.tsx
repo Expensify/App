@@ -16,6 +16,8 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 
+const componentsUsingHook = new Map<string, {renderDuration: number}>();
+
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
 type SidebarOrderedReportsContextProviderProps = {
@@ -83,6 +85,11 @@ function SidebarOrderedReportsContextProvider({
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
 
+    const perfRef = useRef<{hookDuration: number}>({
+        hookDuration: 0,
+    });
+    const hookStartTime = useRef<number>(performance.now());
+
     /**
      * Find the reports that need to be updated in the LHN
      */
@@ -142,9 +149,7 @@ function SidebarOrderedReportsContextProvider({
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
         const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(currentReportsToDisplay).length > 0;
-
         let reportsToDisplay = {};
-
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN(
                 currentReportsToDisplay,
@@ -170,6 +175,7 @@ function SidebarOrderedReportsContextProvider({
                 reportAttributes,
             );
         }
+
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -189,6 +195,7 @@ function SidebarOrderedReportsContextProvider({
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
+
     // Get the actual reports based on the ordered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
@@ -264,21 +271,26 @@ function SidebarOrderedReportsContextProvider({
     const firstRender = useRef(true);
 
     useEffect(() => {
+        const hookExecutionDuration = performance.now() - hookStartTime.current;
+        perfRef.current.hookDuration = hookExecutionDuration;
+    }, [contextValue]);
+
+    useEffect(() => {
         // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
         // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
 
         // Case 1: orderedReports goes from empty to non-empty
         if (contextValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps);
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps, perfRef);
         }
         // Case 2: orderedReports goes from non-empty to empty
         if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps);
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps, perfRef);
         }
 
         // Case 3: orderedReports are empty from the beginning
         if (firstRender.current && contextValue.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps);
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps, perfRef);
         }
 
         firstRender.current = false;
@@ -287,8 +299,43 @@ function SidebarOrderedReportsContextProvider({
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
 
-function useSidebarOrderedReports() {
+function useSidebarOrderedReports(componentName?: string) {
+    useSidebarOrderedReportsPerformance(componentName);
     return useContext(SidebarOrderedReportsContext);
+}
+
+function useSidebarOrderedReportsPerformance(componentName?: string) {
+    const renderStartTime = useRef<number>(0);
+
+    useEffect(() => {
+        if (!componentName) {
+            return;
+        }
+
+        componentsUsingHook.set(componentName, {renderDuration: 0});
+
+        return () => {
+            componentsUsingHook.delete(componentName);
+        };
+    }, [componentName]);
+
+    useEffect(() => {
+        if (!componentName) {
+            return;
+        }
+
+        renderStartTime.current = performance.now();
+
+        return () => {
+            const renderDuration = performance.now() - renderStartTime.current;
+            const currentData = componentsUsingHook.get(componentName);
+            if (currentData) {
+                componentsUsingHook.set(componentName, {
+                    renderDuration,
+                });
+            }
+        };
+    }, [componentName]);
 }
 
 export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
@@ -300,16 +347,29 @@ function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T)
     return depsKeys.filter((depKey) => !deepEqual(deps[depKey], prevDeps[depKey]));
 }
 
-function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T) {
+function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T, perfRef: React.RefObject<{hookDuration: number}>) {
     const startTime = performance.now();
     const changedDeps = getChangedKeys(deps, prevDeps);
     const parsedDeps = parseDepsForLogging(deps);
-    const processingDuration = performance.now() - startTime;
-    Log.info(msg, false, {
+    const loggingDuration = performance.now() - startTime;
+    const hookExecutionDuration = perfRef.current.hookDuration;
+
+    const logData: Record<string, unknown> = {
         deps: parsedDeps,
         changedDeps,
-        processingDuration,
-    });
+        performance: {
+            hookDuration: `${hookExecutionDuration.toFixed(2)}ms`,
+            loggingDuration: `${loggingDuration.toFixed(2)}ms`,
+            componentsUsingHook: Array.from(componentsUsingHook.entries()).map(([name, data]) => ({
+                component: name,
+                renderDuration: `${data.renderDuration.toFixed(2)}ms`,
+            })),
+        },
+
+        timestamp: new Date().toISOString(),
+    };
+
+    Log.info(msg, false, logData);
 }
 
 /**
