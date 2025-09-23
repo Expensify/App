@@ -15,6 +15,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Localize from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
@@ -32,7 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -629,6 +630,66 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 
     API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters);
 }
+
+/**
+ * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * @param integrationsExportTemplates - The user's custom integrations export templates
+ * @param csvExportLayouts - The user's custom account level export templates
+ * @param policy - The user's policy
+ * @param includeReportLevelExport - Whether to include the report level export template
+ * @returns
+ */
+function getExportTemplates(
+    integrationsExportTemplates: ExportTemplate[],
+    csvExportLayouts: Record<string, ExportTemplate>,
+    policy?: Policy,
+    includeReportLevelExport = true,
+): ExportTemplate[] {
+    // Helper function to normalize template data into consistent ExportTemplate format
+    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+        ...template,
+        templateName,
+        description,
+        policyID,
+        type,
+    });
+
+    // By default, we always include the expense level export template
+    const exportTemplates: ExportTemplate[] = [
+        normalizeTemplate(
+            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+            {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
+            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+        ),
+    ];
+
+    // Conditionally include the report level export template
+    if (includeReportLevelExport) {
+        exportTemplates.push(
+            normalizeTemplate(
+                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
+                CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+            ),
+        );
+    }
+
+    // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+    const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
+        .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+        .map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP));
+
+    // If we have a policy, collate a list of the policy-level in-app export templates
+    const policyInAppTemplates = policy
+        ? Object.entries(policy.exportLayouts ?? {}).map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policy.name, policy.id))
+        : [];
+
+    // Update the integrations export templates to include the name, description, policyID, and type
+    const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+
+    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+}
+
 /**
  * Updates the form values for the advanced filters search form.
  */
@@ -799,4 +860,5 @@ export {
     getPayOption,
     isValidBulkPayOption,
     handleBulkPayItemSelected,
+    getExportTemplates,
 };
