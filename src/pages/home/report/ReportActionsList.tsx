@@ -16,6 +16,7 @@ import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListIt
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -357,8 +358,12 @@ function ReportActionsList({
     const {initialHeight} = useInitialWindowDimensions();
     const flatListVerticalOffset = useRef(0);
     const prevFlatListVerticalOffset = useRef(0);
+    const {keyboardActiveHeight} = useKeyboardState();
     // initialHeight - windowHeight gives us the height of the keyboard when it's open on mobile Chrome.
-    const topOffset = useMemo(() => safariViewportOffsetTop || (isMobileChrome() ? initialHeight - windowHeight : 0), [safariViewportOffsetTop, initialHeight, windowHeight]);
+    const topOffset = useMemo(
+        () => safariViewportOffsetTop || (isMobileChrome() ? initialHeight - windowHeight : 0) || keyboardActiveHeight,
+        [safariViewportOffsetTop, initialHeight, windowHeight, keyboardActiveHeight],
+    );
     const prevTopOffset = useRef(0);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
@@ -870,6 +875,8 @@ function ReportActionsList({
 
     const ListWrapper = shouldFocusToTopOnMount ? KeyboardAvoidingView : View;
 
+    const paddingBottomValue = 16;
+
     return (
         <>
             <FloatingMessageCounter
@@ -878,14 +885,15 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <ListWrapper
-                // If styles.pb4 is changed, please also update the keyboardVerticalOffset prop below
-                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+                // If styles.pb4 is changed, please also update paddingBottomValue
+                // When keyboard is shown, we need to push content down using paddingTop, otherwise the top of the scrollview is unreacheable
+                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}, {paddingTop: keyboardActiveHeight - paddingBottomValue * 2}]}
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={reportActionsListFSClass}
                 behavior="height"
                 // We need to take into account the initial height difference between the list and the keyboard
                 // which corresponds to the footer min height plus the bottom padding (16)
-                keyboardVerticalOffset={-CONST.CHAT_FOOTER_MIN_HEIGHT - 16}
+                keyboardVerticalOffset={-CONST.CHAT_FOOTER_MIN_HEIGHT - paddingBottomValue}
             >
                 <ListComponent
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
