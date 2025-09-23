@@ -388,6 +388,7 @@ module.exports = {
             rules: {
                 'rulesdir/prefer-at': 'error',
                 'rulesdir/boolean-conditional-rendering': 'error',
+                'rulesdir/prefer-locale-compare-from-context': 'error',
             },
         },
     ],
