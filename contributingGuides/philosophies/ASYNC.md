@@ -10,7 +10,7 @@ Async code is everywhere in our app: API calls, storage access, background tasks
 
 ## Rules
 
-### -Use async/await for sequential flows
+### - Use async/await for sequential flows
    When order matters, `async/await` expresses intent in a clear, linear style.
    Example: Upload a file → Parse it → Save results.
 
