@@ -658,6 +658,7 @@ const translations = {
         link: 'Link',
         pinned: 'Pinned',
         read: 'Read',
+        // @context treat Expensify as a proper noun, but not Card
         expensifyCard: 'Expensify Card',
     },
     supportalNoAccess: {

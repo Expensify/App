@@ -666,6 +666,7 @@ const translations = {
         link: '链接',
         pinned: '已固定',
         read: '已读',
+        expensifyCard: 'Expensify Card',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1897,7 +1898,6 @@ const translations = {
         addDebitOrCreditCard: '添加借记卡或信用卡',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些是由工作区管理员分配的卡片，用于管理公司支出。',
-        expensifyCard: 'Expensify Card',
         walletActivationPending: '我们正在审核您的信息。请几分钟后再查看！',
         walletActivationFailed: '很遗憾，您的钱包目前无法启用。请与Concierge聊天以获得进一步帮助。',
         addYourBankAccount: '添加您的银行账户',
@@ -1909,7 +1909,6 @@ const translations = {
         businessBankAccounts: '企业银行账户',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: '剩余额度',
         smartLimit: {
@@ -3403,7 +3402,6 @@ const translations = {
     workspace: {
         common: {
             card: '卡片',
-            expensifyCard: 'Expensify Card',
             companyCards: '公司卡片',
             workflows: '工作流程',
             workspace: '工作区',
@@ -4534,7 +4532,6 @@ const translations = {
                 subtitle: '设置每日津贴标准以控制员工的日常开支。',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: '获取支出洞察和控制权。',
                 disableCardTitle: '禁用 Expensify Card',
                 disableCardPrompt: '您无法禁用 Expensify Card，因为它已在使用中。请联系 Concierge 以获取下一步操作。',

@@ -666,6 +666,7 @@ const translations = {
         link: 'Link',
         pinned: 'Vastgezet',
         read: 'Gelezen',
+        expensifyCard: 'Expensify Card',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1920,7 +1921,6 @@ const translations = {
         addDebitOrCreditCard: 'Debet- of creditcard toevoegen',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
-        expensifyCard: 'Expensify Card',
         walletActivationPending: 'We zijn uw informatie aan het beoordelen. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan uw portemonnee op dit moment niet worden geactiveerd. Neem contact op met Concierge voor verdere hulp.',
         addYourBankAccount: 'Voeg je bankrekening toe',
@@ -1932,7 +1932,6 @@ const translations = {
         businessBankAccounts: 'Zakelijke bankrekeningen',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: 'Resterende limiet',
         smartLimit: {
@@ -3458,7 +3457,6 @@ const translations = {
     workspace: {
         common: {
             card: 'Kaarten',
-            expensifyCard: 'Expensify Card',
             companyCards: 'Bedrijfskaarten',
             workflows: 'Werkstromen',
             workspace: 'Werkruimte',
@@ -4625,7 +4623,6 @@ const translations = {
                 subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: 'Krijg inzicht en controle over uitgaven.',
                 disableCardTitle: 'Expensify Card uitschakelen',
                 disableCardPrompt: 'Je kunt de Expensify Card niet uitschakelen omdat deze al in gebruik is. Neem contact op met Concierge voor de volgende stappen.',

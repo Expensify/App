@@ -667,6 +667,7 @@ const translations = {
         link: 'Lien',
         pinned: 'Épinglé',
         read: 'Lu',
+        expensifyCard: 'Carte Expensify',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1929,7 +1930,6 @@ const translations = {
         addDebitOrCreditCard: 'Ajouter une carte de débit ou de crédit',
         assignedCards: 'Cartes assignées',
         assignedCardsDescription: "Ce sont des cartes attribuées par un administrateur d'espace de travail pour gérer les dépenses de l'entreprise.",
-        expensifyCard: 'Expensify Card',
         walletActivationPending: 'Nous examinons vos informations. Veuillez revenir dans quelques minutes !',
         walletActivationFailed: "Malheureusement, votre portefeuille ne peut pas être activé pour le moment. Veuillez discuter avec Concierge pour obtenir de l'aide supplémentaire.",
         addYourBankAccount: 'Ajoutez votre compte bancaire',
@@ -1941,7 +1941,6 @@ const translations = {
         businessBankAccounts: 'Comptes bancaires professionnels',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Carte de Voyage Expensify',
         availableSpend: 'Limite restante',
         smartLimit: {
@@ -3451,7 +3450,6 @@ const translations = {
     workspace: {
         common: {
             card: 'Cartes',
-            expensifyCard: 'Expensify Card',
             companyCards: "Cartes d'entreprise",
             workflows: 'Flux de travail',
             workspace: 'Espace de travail',
@@ -4625,7 +4623,6 @@ const translations = {
                 subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: 'Obtenez des informations et contrôlez les dépenses.',
                 disableCardTitle: 'Désactiver la carte Expensify',
                 disableCardPrompt: 'Vous ne pouvez pas désactiver la carte Expensify car elle est déjà utilisée. Contactez Concierge pour connaître les prochaines étapes.',

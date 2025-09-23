@@ -667,6 +667,7 @@ const translations = {
         link: 'Link',
         pinned: 'Angeheftet',
         read: 'Gelesen',
+        expensifyCard: 'Expensify Card',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1930,7 +1931,6 @@ const translations = {
         addDebitOrCreditCard: 'Debit- oder Kreditkarte hinzufügen',
         assignedCards: 'Zugewiesene Karten',
         assignedCardsDescription: 'Dies sind Karten, die von einem Workspace-Admin zugewiesen wurden, um die Ausgaben des Unternehmens zu verwalten.',
-        expensifyCard: 'Expensify Card',
         walletActivationPending: 'Wir überprüfen Ihre Informationen. Bitte schauen Sie in ein paar Minuten wieder vorbei!',
         walletActivationFailed: 'Leider kann Ihr Wallet derzeit nicht aktiviert werden. Bitte chatten Sie mit Concierge für weitere Unterstützung.',
         addYourBankAccount: 'Fügen Sie Ihr Bankkonto hinzu',
@@ -1942,7 +1942,6 @@ const translations = {
         businessBankAccounts: 'Geschäftsbankkonten',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: 'Verbleibendes Limit',
         smartLimit: {
@@ -3448,7 +3447,6 @@ const translations = {
     workspace: {
         common: {
             card: 'Karten',
-            expensifyCard: 'Expensify Card',
             companyCards: 'Unternehmenskarten',
             workflows: 'Arbeitsabläufe',
             workspace: 'Arbeitsbereich',
@@ -4616,7 +4614,6 @@ const translations = {
                 subtitle: 'Legen Sie Tagessätze fest, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren.',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: 'Erhalten Sie Einblicke und Kontrolle über Ausgaben.',
                 disableCardTitle: 'Expensify Card deaktivieren',
                 disableCardPrompt: 'Sie können die Expensify-Karte nicht deaktivieren, da sie bereits verwendet wird. Wenden Sie sich an Concierge, um die nächsten Schritte zu erfahren.',

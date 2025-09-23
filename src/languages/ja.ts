@@ -667,6 +667,7 @@ const translations = {
         link: 'リンク',
         pinned: '固定済み',
         read: '既読',
+        expensifyCard: 'Expensify Card',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1917,7 +1918,6 @@ const translations = {
         addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         assignedCards: '割り当てられたカード',
         assignedCardsDescription: 'これらは、会社の支出を管理するためにワークスペース管理者によって割り当てられたカードです。',
-        expensifyCard: 'Expensify Card',
         walletActivationPending: 'お客様の情報を確認中です。数分後に再度ご確認ください！',
         walletActivationFailed: '残念ながら、現在ウォレットを有効にすることができません。さらなるサポートが必要な場合は、Conciergeにチャットしてください。',
         addYourBankAccount: '銀行口座を追加',
@@ -1929,7 +1929,6 @@ const translations = {
         businessBankAccounts: 'ビジネス銀行口座',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: '残りの制限',
         smartLimit: {
@@ -3441,7 +3440,6 @@ const translations = {
     workspace: {
         common: {
             card: 'カード',
-            expensifyCard: 'Expensify Card',
             companyCards: '会社カード',
             workflows: 'ワークフロー',
             workspace: 'ワークスペース',
@@ -4591,7 +4589,6 @@ const translations = {
                 subtitle: '日当料金を設定して、従業員の日々の支出を管理します。',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: '支出に関する洞察と管理を得る。',
                 disableCardTitle: 'Expensifyカードを無効にする',
                 disableCardPrompt: 'Expensifyカードはすでに使用中のため、無効にすることはできません。次のステップについてはConciergeにお問い合わせください。',

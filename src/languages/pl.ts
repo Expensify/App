@@ -667,6 +667,7 @@ const translations = {
         link: 'Link',
         pinned: 'Przypięte',
         read: 'Przeczytane',
+        expensifyCard: 'Karta Expensify',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1916,7 +1917,6 @@ const translations = {
         addDebitOrCreditCard: 'Dodaj kartę debetową lub kredytową',
         assignedCards: 'Przypisane karty',
         assignedCardsDescription: 'Są to karty przypisane przez administratora przestrzeni roboczej do zarządzania wydatkami firmy.',
-        expensifyCard: 'Expensify Card',
         walletActivationPending: 'Przeglądamy Twoje informacje. Proszę sprawdź ponownie za kilka minut!',
         walletActivationFailed: 'Niestety, Twojego portfela nie można włączyć w tej chwili. Proszę skontaktować się z Concierge, aby uzyskać dalszą pomoc.',
         addYourBankAccount: 'Dodaj swoje konto bankowe',
@@ -1928,7 +1928,6 @@ const translations = {
         businessBankAccounts: 'Firmowe konta bankowe',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Karta Podróżna Expensify',
         availableSpend: 'Pozostały limit',
         smartLimit: {
@@ -3451,7 +3450,6 @@ const translations = {
     workspace: {
         common: {
             card: 'Karty',
-            expensifyCard: 'Expensify Card',
             companyCards: 'Karty firmowe',
             workflows: 'Przepływy pracy',
             workspace: 'Workspace',
@@ -4612,7 +4610,6 @@ const translations = {
                 subtitle: 'Ustaw stawki diet, aby kontrolować dzienne wydatki pracowników.',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: 'Uzyskaj wgląd i kontrolę nad wydatkami.',
                 disableCardTitle: 'Wyłącz kartę Expensify',
                 disableCardPrompt: 'Nie możesz wyłączyć karty Expensify, ponieważ jest już używana. Skontaktuj się z Concierge, aby uzyskać dalsze instrukcje.',
