@@ -509,6 +509,7 @@ const WRITE_COMMANDS = {
     ASSIGN_REPORT_TO_ME: 'AssignReportToMe',
     ADD_REPORT_APPROVER: 'AddReportApprover',
     REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
+    SEND_SCHEDULE_CALL_NUDGE: 'SendScheduleCallNudge',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -877,6 +878,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: null;
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
+    [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
@@ -1109,7 +1111,6 @@ const READ_COMMANDS = {
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
-    CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
@@ -1187,7 +1188,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
-    [READ_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
@@ -1207,6 +1207,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
+    SEARCH: 'Search',
 
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
@@ -1215,6 +1216,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     VERIFY_TEST_DRIVE_RECIPIENT: 'VerifyTestDriveRecipient',
     LOCK_ACCOUNT: 'LockAccount',
     SET_VACATION_DELEGATE: 'SetVacationDelegate',
+    CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1239,6 +1241,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT]: Parameters.VerifyTestDriveRecipientParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT]: Parameters.LockAccountParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
