@@ -27,6 +27,6 @@ export default async function afterPack(context) {
     const appRoot = path.join(context.appOutDir, `${appName}.app`, "Contents");
     const resourcesDir = path.join(appRoot, "Resources");
 
-    await fs.mkdir(resourcesDir, { recursivtrue });
+    await fs.mkdir(resourcesDir, { recursive: true });
     await fs.copyFile(SRC_CAR, path.join(resourcesDir, "Assets.car"));
 }
