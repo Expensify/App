@@ -75,8 +75,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             setSharedElement(child);
             // Prevents autoplay when uploading the attachment
             if (!shouldNotAutoPlay) {
-                // causes 'The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.'
-                // video.play();
+                video.play();
             }
         },
         [currentRouteReportID, currentlyPlayingURL, video],

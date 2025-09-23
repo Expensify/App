@@ -212,6 +212,7 @@ function BaseVideoPlayer({
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
         if (payload.status === 'readyToPlay' && isFirstLoad) {
+            isReadyForDisplayRef.current = true;
             playVideo();
             setIsFirstLoad(false);
         }
@@ -299,12 +300,14 @@ function BaseVideoPlayer({
     // update shared video elements
     useEffect(() => {
         // On mobile safari, we need to auto-play when sharing video element here
+        // alert(isMobileSafari());
         shareVideoPlayerElements(
             videoPlayerRef.current,
             videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
             isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
+            // isUploading || isFullScreenRef.current || isMobileSafari(),
             {shouldUseSharedVideoElement, url, reportID},
         );
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, reportID, videoPlayerRef, isFullScreenRef]);
