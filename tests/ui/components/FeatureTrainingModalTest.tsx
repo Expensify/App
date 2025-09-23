@@ -1,4 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
+import {VideoPlayer} from 'expo-video';
 import type {ViewProps} from 'react-native';
 import type ReactNative from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -21,17 +22,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => '/'),
     getActiveRoute: jest.fn(() => '/'),
 }));
-
-jest.mock('expo-av', () => {
-    const {View} = require<typeof ReactNative>('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...jest.requireActual('expo-av'),
-        Video: class extends View {
-            setStatusAsync = jest.fn().mockResolvedValue(undefined);
-        },
-    };
-});
 
 jest.mock('@components/ImageSVG', () => {
     const {View} = require<typeof ReactNative>('react-native');
