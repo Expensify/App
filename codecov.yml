@@ -4,9 +4,11 @@ coverage:
     project:
       default:
         informational: true
+        target: auto
     patch:
       default:
         informational: true
+        target: auto
 
 codecov:
   notify:
@@ -15,7 +17,7 @@ codecov:
 
 comment:
   require_changes: false
-  layout: "reach, diff, flags, files"
+  layout: "condensed_header, condensed_files, condensed_footer"
   behavior: default
 
 flags:
