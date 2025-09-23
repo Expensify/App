@@ -312,6 +312,7 @@ function useSelectedTransactionsActions({
         isOffline,
         onExportOffline,
         csvExportLayouts,
+        integrationsExportTemplates,
     ]);
 
     return {
