@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
@@ -300,6 +301,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         getPaymentMethods(true);
     }, [network.isOffline]);
 
+    useFocusEffect(
+        useCallback(() => {
+            getPaymentMethods(true);
+        }, []),
+    );
+
     useLayoutEffect(() => {
         if (!shouldListenForResize || (!shouldShowDefaultDeleteMenu && !shouldShowCardMenu)) {
             return;
@@ -414,8 +421,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 onAddBankAccountPress={addBankAccountPressed}
                                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                 activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
-                                onListContentSizeChange={shouldShowDefaultDeleteMenu ? setMenuPosition : () => {
-                                }}
+                                onListContentSizeChange={shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
@@ -438,8 +444,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     actionPaymentMethodType={shouldShowCardMenu ? paymentMethod.selectedPaymentMethodType : ''}
                                     activePaymentMethodID={shouldShowCardMenu ? paymentMethod.methodID : ''}
-                                    onListContentSizeChange={shouldShowCardMenu ? setMenuPosition : () => {
-                                    }}
+                                    onListContentSizeChange={shouldShowCardMenu ? setMenuPosition : () => {}}
                                 />
                             </Section>
                         ) : null}
@@ -590,9 +595,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         style={[
                             !shouldUseNarrowLayout
                                 ? {
-                                    ...styles.sidebarPopover,
-                                    ...styles.pv4,
-                                }
+                                      ...styles.sidebarPopover,
+                                      ...styles.pv4,
+                                  }
                                 : styles.pt5,
                         ]}
                     >
@@ -667,9 +672,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     style={[
                         !shouldUseNarrowLayout
                             ? {
-                                ...styles.sidebarPopover,
-                                ...styles.pv4,
-                            }
+                                  ...styles.sidebarPopover,
+                                  ...styles.pv4,
+                              }
                             : styles.pt5,
                     ]}
                 >
