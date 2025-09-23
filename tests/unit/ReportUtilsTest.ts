@@ -11,7 +11,7 @@ import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
-import * as SearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -7008,7 +7008,7 @@ describe('ReportUtils', () => {
             new Promise<void>((resolve) => {
                 setImmediate(resolve);
             });
-        const mockIsSearchTopmostFullScreenRoute = jest.spyOn(SearchTopmostFullScreenRoute, 'default') as jest.MockedFunction<() => boolean>;
+        const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
         let environmentURL: string;
 
         beforeAll(async () => {

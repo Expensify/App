@@ -11708,12 +11708,11 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
 }
 
 function getReportURLForCurrentContext(reportID: string | undefined): string {
-    const id = reportID ?? '';
-    if (!id) {
+    if (!reportID) {
         return `${environmentURL}/r/`;
     }
     const isInSearchContext = isSearchTopmostFullScreenRoute();
-    const relativePath = isInSearchContext ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: id}) : ROUTES.REPORT_WITH_ID.getRoute(id);
+    const relativePath = isInSearchContext ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}) : ROUTES.REPORT_WITH_ID.getRoute(reportID);
     return `${environmentURL}/${relativePath}`;
 }
 
