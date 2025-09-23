@@ -15,6 +15,7 @@ import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -322,6 +323,7 @@ function MoneyReportHeader({
     const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -429,7 +431,7 @@ function MoneyReportHeader({
                 if (currentSearchQueryJSON) {
                     search({
                         searchKey: currentSearchKey,
-                        shouldCalculateTotals: true,
+                        shouldCalculateTotals,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
                     });
@@ -775,7 +777,7 @@ function MoneyReportHeader({
                     if (currentSearchQueryJSON) {
                         search({
                             searchKey: currentSearchKey,
-                            shouldCalculateTotals: true,
+                            shouldCalculateTotals,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
                         });
