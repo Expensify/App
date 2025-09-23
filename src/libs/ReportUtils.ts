@@ -4344,12 +4344,7 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        // TODO: remove permission check after the Unreported Expense project is complete
-        if (isUnreportedExpense && Permissions.canUseUnreportedExpense()) {
-            return true;
-        }
-
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
             return false;
         }
 
@@ -4359,8 +4354,6 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        // TODO: uncomment after the Unreported Expense project is complete
-        // if (isInvoiceReport(moneyRequestReport)) {
         if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
             return (
                 getOutstandingReportsForUser(
@@ -4374,19 +4367,9 @@ function canEditFieldOfMoneyRequest(
 
         // If the report is Open, then only submitters, admins can move expenses
         const isOpen = isOpenExpenseReport(moneyRequestReport);
-        // TODO: uncomment after the Unreported Expense project is complete
-        // if (isOpen && !isSubmitter && !isAdmin) {
         if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
             return false;
         }
-
-        // TODO: uncomment after the Unreported Expense project is complete
-        // return (
-        //     Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-        //         getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-        //     ).length > 1 ||
-        //     (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
-        // );
 
         return isUnreportedExpense
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
@@ -11499,7 +11482,6 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
-
 function canRejectReportAction(report: Report, policy?: Policy): boolean {
     if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
         return false;
