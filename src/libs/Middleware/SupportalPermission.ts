@@ -1,0 +1,35 @@
+import type Response from '@src/types/onyx/Response';
+import type Request from '@src/types/onyx/Request';
+import Log from '@libs/Log';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
+import type Middleware from './types';
+import {showSupportalPermissionDenied} from '@userActions/App';
+
+/**
+ * Middleware that detects when a support token attempts an unauthorized command
+ * and triggers a global modal while preventing retries for that request.
+ */
+const SupportalPermission: Middleware = (responsePromise: Promise<Response | void>, request: Request) =>
+    responsePromise.then((response) => {
+        const isUnauthorizedSupportalAction =
+            isSupportAuthToken() &&
+            Number((response as Response | undefined)?.jsonCode) === 411 &&
+            typeof (response as Response | undefined)?.message === 'string' &&
+            ((response as Response).message as string).includes('You are not authorized to take this action when support logged in.');
+
+        if (isUnauthorizedSupportalAction) {
+            if (request?.data) {
+                request.data.shouldRetry = false;
+            }
+
+            Log.info('Supportal insufficient permissions; suppressing retry', false, {command: request.command});
+            showSupportalPermissionDenied({
+                command: request.command,
+            });
+        }
+
+        return response;
+    });
+
+export default SupportalPermission;
+
