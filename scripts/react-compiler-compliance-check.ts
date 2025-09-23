@@ -10,7 +10,6 @@ import {execSync} from 'child_process';
 import {writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
-import shouldReactCompilerProcessFile from './shouldReactCompilerProcessFile';
 import CLI from './utils/CLI';
 import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
 
@@ -76,6 +75,8 @@ function checkChangedFiles(remote: string): boolean {
     try {
         const changedFiles = getChangedFiles(remote);
         const filesToCheck = [...new Set(changedFiles)];
+
+        console.log(filesToCheck);
 
         if (filesToCheck.length === 0) {
             logSuccess('No React files changed, skipping check.');
@@ -380,8 +381,7 @@ function getChangedFiles(remote: string): string[] {
         });
 
         const files = gitDiffOutput.trim().split('\n');
-        const changedFiles = files.filter(shouldReactCompilerProcessFile);
-        return changedFiles;
+        return files;
     } catch (error) {
         if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
             throw error;
@@ -446,6 +446,8 @@ function main() {
     const {command, file} = cli.positionalArgs;
     const {remote} = cli.namedArgs;
     const {report: shouldGenerateReport} = cli.flags;
+
+    console.log(command, file, remote, shouldGenerateReport);
 
     let isPassed = false;
     try {
