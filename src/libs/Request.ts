@@ -11,7 +11,7 @@ let middlewares: Middleware[] = [];
 function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
-        return Promise.resolve(HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline));
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
 }
 
