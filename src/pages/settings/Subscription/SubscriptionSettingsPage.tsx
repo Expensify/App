@@ -14,9 +14,8 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
 import SubscriptionPlan from './SubscriptionPlan';
 
@@ -34,11 +33,19 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     }, []);
     const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
 
+    useEffect(() => {
+        if (subscriptionPlan ?? isAppLoading) {
+            return;
+        }
+        Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+    }, [isAppLoading, subscriptionPlan]);
+
     if (!subscriptionPlan && isAppLoading) {
         return <FullScreenLoadingIndicator />;
     }
+
     if (!subscriptionPlan) {
-        return <NotFoundPage />;
+        return null;
     }
 
     return (

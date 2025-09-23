@@ -8710,6 +8710,9 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
             value: {
                 participants: redundantParticipants,
+                pendingFields: {
+                    createChat: null,
+                },
             },
         },
         {
@@ -12364,9 +12367,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
+            [optimisticRejectReportAction.reportActionID]: {
+                pendingAction: null,
+            },
             [optimisticRejectReportActionComment.reportActionID]: {
-                ...optimisticRejectReportActionComment,
                 pendingAction: null,
             },
         },
@@ -12377,7 +12381,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic rejected action
+            [optimisticRejectReportAction.reportActionID]: null,
             [optimisticRejectReportActionComment.reportActionID]: null,
         },
     });
@@ -12514,7 +12518,6 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: {
-                    ...optimisticMarkedAsResolvedReportAction,
                     pendingAction: null,
                 },
             },
