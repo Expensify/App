@@ -1,4 +1,3 @@
-import {transactionViolationsSelector} from '@selectors/Transaction';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -27,6 +26,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolation from '@hooks/useTransactionViolation';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearCreateDistanceRateItemAndError,
@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
 
 type RateForList = ListItem & {value: string; rate?: number};
@@ -141,19 +141,7 @@ function PolicyDistanceRatesPage({
 
     const eligibleTransactionIDs = eligibleTransactionsData?.transactionIDs;
 
-    const transactionViolationSelector = useCallback(
-        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDs),
-        [eligibleTransactionIDs],
-    );
-
-    const [transactionViolations] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        {
-            selector: transactionViolationSelector,
-            canBeMissing: true,
-        },
-        [transactionViolationSelector],
-    );
+    const transactionViolations = useTransactionViolation(eligibleTransactionIDs);
 
     const filterRateSelection = useCallback(
         (rate?: Rate) => !!rate && !!customUnitRates?.[rate.customUnitRateID] && customUnitRates?.[rate.customUnitRateID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,

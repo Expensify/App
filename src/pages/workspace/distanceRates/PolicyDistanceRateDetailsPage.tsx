@@ -1,4 +1,3 @@
-import {transactionViolationsSelector} from '@selectors/Transaction';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -15,6 +14,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
@@ -87,19 +87,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         canBeMissing: true,
     });
 
-    const transactionViolationSelector = useCallback(
-        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDs),
-        [eligibleTransactionIDs],
-    );
-
-    const [transactionViolations] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        {
-            selector: transactionViolationSelector,
-            canBeMissing: true,
-        },
-        [transactionViolationSelector],
-    );
+    const transactionViolations = useTransactionViolation(eligibleTransactionIDs);
 
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage;
