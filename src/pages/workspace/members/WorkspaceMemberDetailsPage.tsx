@@ -134,6 +134,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             policy?.connections?.intacct?.config?.export?.exporter,
             policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
             policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+            policy?.connections?.xero?.config?.export?.exporter,
         ];
         const isUserExporter = exporters.includes(details.login);
 

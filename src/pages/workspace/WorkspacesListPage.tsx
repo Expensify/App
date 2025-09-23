@@ -209,7 +209,12 @@ function WorkspacesListPage() {
     const confirmModalPrompt = () => {
         // Helper to get the policy object for the current policy ID to leave
         const currentPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
-        const intacctConfig = policyToLeave?.connections?.intacct.config.export;
+        const exporters = [
+            policyToLeave?.connections?.intacct?.config?.export?.exporter,
+            policyToLeave?.connections?.quickbooksDesktop?.config?.export?.exporter,
+            policyToLeave?.connections?.quickbooksOnline?.config?.export?.exporter,
+            policyToLeave?.connections?.xero?.config?.export?.exporter,
+        ];
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = currentPolicy?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
@@ -229,7 +234,7 @@ function WorkspacesListPage() {
             });
         }
 
-        if (intacctConfig?.exporter === userEmail) {
+        if (exporters.some((exporter) => exporter === userEmail)) {
             return translate('common.leaveWorkspaceConfirmationExporter', {
                 workspaceOwner: policyOwnerDisplayName,
             });
