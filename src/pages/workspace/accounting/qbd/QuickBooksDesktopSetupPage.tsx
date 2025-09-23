@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
@@ -15,7 +16,6 @@ import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,7 +31,6 @@ type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavig
 
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const policyID: string = route.params.policyID;
@@ -115,10 +114,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                         <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                         <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                             {!hasResultOfFetchingSetupLink ? (
-                                <ActivityIndicator
-                                    color={theme.spinner}
-                                    size="small"
-                                />
+                                <ActivityIndicator />
                             ) : (
                                 <CopyTextToClipboard
                                     text={codatSetupLink}
