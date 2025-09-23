@@ -80,7 +80,7 @@ describe('DateUtils', () => {
         expect(localDate.getTime()).not.toBeNaN();
     });
 
-    it.only('should return the date in calendar time when calling datetimeToCalendarTime', () => {
+    it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC as SelectedTimezone, false)).toBe('Today at 2:32 PM');
 
