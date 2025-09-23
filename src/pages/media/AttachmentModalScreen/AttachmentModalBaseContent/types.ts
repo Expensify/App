@@ -104,9 +104,6 @@ type AttachmentModalBaseContentProps = {
 
     AttachmentContent?: AttachmentContent;
 
-    /** Extra modals to be displayed in the modal */
-    ExtraModals?: React.ReactNode;
-
     /** Callback triggered when the download button is pressed */
     onDownloadAttachment?: DownloadAttachmentCallback;
 

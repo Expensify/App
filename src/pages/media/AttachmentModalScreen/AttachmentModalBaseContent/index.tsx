@@ -57,7 +57,6 @@ function AttachmentModalBaseContent({
     onClose,
     onConfirm,
     AttachmentContent,
-    ExtraModals,
     onCarouselAttachmentChange = () => {},
     onValidateFile,
 }: AttachmentModalBaseContentProps) {
@@ -353,7 +352,6 @@ function AttachmentModalBaseContent({
                     )}
                 </LayoutAnimationConfig>
             )}
-            {ExtraModals}
         </GestureHandlerRootView>
     );
 }

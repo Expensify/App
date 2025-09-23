@@ -22,10 +22,20 @@ type ImagePickerResponse = {
 type FileObject = Partial<File | ImagePickerResponse>;
 
 type AttachmentModalContainerModalProps = {
+    /** The type of the modal */
     modalType?: ModalType;
+
+    /** Callback to fire when the modal is shown */
     onShow?: () => void;
+
+    /** Callback to fire when the modal is closed */
     onClose?: () => void;
+
+    /** Whether to handle navigation back */
     shouldHandleNavigationBack?: boolean;
+
+    /** Extra modals to be displayed in the modal */
+    ExtraContent?: React.ReactNode;
 };
 
 const ATTACHMENT_MODAL_SCREENS = [
