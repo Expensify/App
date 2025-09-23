@@ -194,7 +194,7 @@ function buildNextStep(
             {
                 text: ' to ',
             },
-            ...(shouldShowFixMessage ? [{text: 'fix the issue(s)'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
+            ...(shouldShowFixMessage ? [{text: 'fix the issues'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
         ],
     };
 
@@ -228,7 +228,7 @@ function buildNextStep(
                             text: ' to ',
                         },
                         {
-                            text: 'fix the issue(s)',
+                            text: 'fix the issues',
                         },
                     ],
                 };
@@ -562,7 +562,7 @@ function buildNextStepNew(
             {
                 text: ' to ',
             },
-            ...(shouldShowFixMessage ? [{text: 'fix the issue(s)'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
+            ...(shouldShowFixMessage ? [{text: 'fix the issues'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
         ],
     };
 
@@ -596,7 +596,7 @@ function buildNextStepNew(
                             text: ' to ',
                         },
                         {
-                            text: 'fix the issue(s)',
+                            text: 'fix the issues',
                         },
                     ],
                 };
