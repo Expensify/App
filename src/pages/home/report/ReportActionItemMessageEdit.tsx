@@ -296,7 +296,7 @@ function ReportActionItemMessageEdit(
         }
         editReportComment(originalReport, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived, isOriginalParentReportArchived);
         deleteDraft();
-    }, [reportID, action, deleteDraft, draft, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
+    }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
 
     /**
      * @param emoji
