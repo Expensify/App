@@ -45,11 +45,14 @@ type WorkspaceConfirmationFormProps = {
     /** Submit function */
     onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
-    /** go back function */
+    /** Go back function */
     onBackButtonPress?: () => void;
+
+    /** Whether bottom safe area padding should be added */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack()}: WorkspaceConfirmationFormProps) {
+function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -154,7 +157,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         })
                     }
                     enabledWhenOffline
-                    addBottomSafeAreaPadding
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     <View style={styles.mb4}>
                         {!isLoadingOnyxValue(metadata) && (
