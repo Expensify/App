@@ -1,4 +1,4 @@
 {
     "excludedPatterns": ["tests/**/*", "node_modules/**/*", "scripts/**/*", "Mobile-Expensify/**/*", "*.tsx", "*.ts", "*.jsx", "*.js"],
-    "includedPatterns": ["**/*.tsx", "**/*.ts", "**/*.jsx", "**/*.js"]
+    "includedPatterns": ["**/*.tsx", "**/*.ts", "**/*.jsx", "**/*.js", "**/*.mjs"]
 }
