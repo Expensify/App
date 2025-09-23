@@ -431,3 +431,4 @@ export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
+export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
