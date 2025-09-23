@@ -10,7 +10,7 @@ const log = (...args: unknown[]) => {
 };
 
 const info = (...args: unknown[]) => {
-    const lines = ['▶️', ...args];
+    const lines = ['▶️  ', ...args];
     log(...lines);
 };
 

@@ -41,23 +41,18 @@ type CompilerFailure = {
 
 /** Commands */
 
-function check(filesToCheck?: string[], shouldGenerateReport = false) {
-    if (filesToCheck) {
-        if (filesToCheck.length === 0) {
-            logSuccess('No React files changed, skipping check.');
-            return true;
-        }
-
-        info(`Running React Compiler check for ${filesToCheck.length} file(s)...`);
+function check(fileToCheck?: string[], shouldGenerateReport = false) {
+    if (fileToCheck) {
+        info(`Running React Compiler check for ${fileToCheck.length} file(s) or glob pattern(s)...`);
     } else {
         info('Running React Compiler check for all files...');
     }
 
-    const results = runCompilerHealthcheck(true);
+    const results = runCompilerHealthcheck(true, fileToCheck?.join(' '));
     const {success, failures} = results;
 
-    const successFileNames = getDistinctFileNames(success, (s) => s, filesToCheck);
-    const failedFileNames = getDistinctFileNames(failures, (f) => f.file, filesToCheck);
+    const successFileNames = getDistinctFileNames(success, (s) => s, fileToCheck);
+    const failedFileNames = getDistinctFileNames(failures, (f) => f.file, fileToCheck);
 
     const isPassed = failedFileNames.length === 0;
 
@@ -82,6 +77,11 @@ function checkChangedFiles(remote: string): boolean {
         const changedFiles = getChangedFiles(remote);
         const filesToCheck = [...new Set(changedFiles)];
 
+        if (filesToCheck.length === 0) {
+            logSuccess('No React files changed, skipping check.');
+            return true;
+        }
+
         return check(filesToCheck);
     } catch (error) {
         if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
@@ -100,7 +100,7 @@ function runCompilerHealthcheck(detailed: false, src?: string): CompilerResults;
 function runCompilerHealthcheck(detailed: true, src?: string): DetailedCompilerResults;
 function runCompilerHealthcheck(detailed: boolean, src?: string): CompilerResults | DetailedCompilerResults {
     try {
-        const output = execSync(`npx react-compiler-healthcheck --json ${detailed ? '--verbose' : ''} ${src ? `--src ${src}` : ''}`, {
+        const output = execSync(`npx react-compiler-healthcheck --json ${detailed ? '--verbose' : ''} ${src ?? '--src'}`, {
             encoding: 'utf8',
             cwd: process.cwd(),
         });
@@ -266,7 +266,10 @@ function getDistinctFileNames<T>(items: T[], getFile: (item: T) => string, files
 }
 
 function printFailureSummary({success, failures}: DetailedCompilerResults, successFileNames: string[], failedFileNames: string[]): void {
-    logSuccess(`Successfully compiled ${success.length} files with React Compiler:`);
+    if (success.length > 0) {
+        logSuccess(`Successfully compiled ${success.length} files with React Compiler:`);
+    }
+
     logError(`Failed to compile ${failedFileNames.length} files with React Compiler:`);
     log('\n');
     failedFileNames.forEach((file) => bold(file));
@@ -408,7 +411,8 @@ function main() {
             {
                 name: 'command',
                 description: 'Command to run',
-                required: true,
+                required: false,
+                default: 'check',
                 parse: (val) => {
                     if (!isValidCliCommand(val)) {
                         throw new Error(`Invalid command. Must be one of: ${CLI_COMMANDS.join(', ')}`);
@@ -416,13 +420,14 @@ function main() {
                     return val;
                 },
             },
+            {
+                name: 'file',
+                description: 'File path or glob pattern to check',
+                required: false,
+                default: '',
+            },
         ],
         namedArgs: {
-            files: {
-                description: 'File path(s) to check (required for check command)',
-                required: false,
-                parse: (val) => val.split(',').map((f) => f.trim()),
-            },
             remote: {
                 description: 'Git remote name to use for main branch (default: origin)',
                 required: false,
@@ -438,15 +443,15 @@ function main() {
         },
     });
 
-    const {command} = cli.positionalArgs;
-    const {files, remote} = cli.namedArgs;
+    const {command, file} = cli.positionalArgs;
+    const {remote} = cli.namedArgs;
     const {report: shouldGenerateReport} = cli.flags;
 
     let isPassed = false;
     try {
         switch (command) {
             case 'check':
-                isPassed = Checker.check(files, shouldGenerateReport);
+                isPassed = Checker.check(file !== '' ? [file] : undefined, shouldGenerateReport);
                 break;
             case 'check-changed':
                 isPassed = Checker.checkChangedFiles(remote);
