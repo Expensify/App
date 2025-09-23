@@ -139,9 +139,9 @@ function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CON
     }
 }
 
-function updateSageIntacctMappingValue(policyID: string | undefined, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue, oldMappingValue?: SageIntacctMappingValue) {
+function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue, oldMappingValue?: SageIntacctMappingValue) {
     const command = getCommandForMapping(mappingName);
-    if (!command || !policyID) {
+    if (!command) {
         return;
     }
 
@@ -926,10 +926,7 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefine
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctEntity(policyID: string | undefined, entity: string, oldEntity: string) {
-    if (!policyID) {
-        return;
-    }
+function updateSageIntacctEntity(policyID: string, entity: string, oldEntity: string) {
     const parameters = {
         policyID,
         entity,
