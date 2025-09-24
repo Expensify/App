@@ -20,6 +20,7 @@ import {
     setIndividualShare,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
+    setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
@@ -450,9 +451,9 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        if (isCustomUnitRateIDForP2P && DistanceRequestUtils.getDefaultMileageRate(policy)) {
-            const defaultMileageRatePolicy = DistanceRequestUtils.getDefaultMileageRate(policy);
-            setCustomUnitRateID(transactionID, defaultMileageRatePolicy?.customUnitRateID);
+        const defaultMileageRatePolicy = DistanceRequestUtils.getDefaultMileageRate(policy);
+        if (isCustomUnitRateIDForP2P && defaultMileageRatePolicy?.customUnitRateID) {
+            setMoneyRequestDistanceRate(transactionID, defaultMileageRatePolicy.customUnitRateID, policy, true);
             return;
         }
 
