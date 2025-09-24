@@ -13402,7 +13402,7 @@ export {
     getPerDiemExpenseInformation,
     getSendInvoiceInformation,
     addReportApprover,
-    hasOutstandingChildRequest
+    hasOutstandingChildRequest,
 };
 export type {
     GPSPoint as GpsPoint,
@@ -13412,5 +13412,5 @@ export type {
     RequestMoneyInformation,
     ReplaceReceipt,
     RequestMoneyParticipantParams,
-    PerDiemExpenseTransactionParams
+    PerDiemExpenseTransactionParams,
 };
