@@ -6,7 +6,7 @@ import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewPr
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, isInvertedScrollView, ...props}, ref) => {
+const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, ...props}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
 
     const onRef = useCallback(
@@ -24,16 +24,9 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScroll
     );
 
     const spacing = useActionSheetKeyboardSpacing(scrollViewAnimatedRef);
-    const animatedStyle = useAnimatedStyle(() =>
-        isInvertedScrollView
-            ? {
-                  paddingTop: spacing.get(),
-              }
-            : {
-                  // On non-inverted scroll views we use bottom to ensure that content is displayed above the context menu / keyboard
-                  bottom: spacing.get(),
-              },
-    );
+    const animatedStyle = useAnimatedStyle(() => ({
+        paddingTop: spacing.get(),
+    }));
 
     return (
         <Reanimated.ScrollView

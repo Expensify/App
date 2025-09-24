@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -79,7 +79,7 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
             </Text>
             <SelectionList
                 sections={[{data: sections ?? []}]}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={onSelectRow}
             />
         </View>
