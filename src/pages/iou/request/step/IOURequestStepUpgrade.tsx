@@ -92,6 +92,9 @@ function IOURequestStepUpgrade({
             case CONST.UPGRADE_PATHS.CATEGORIES:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backTo));
                 break;
+            case CONST.UPGRADE_PATHS.REPORTS:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
             default:
         }
     }, [action, reportID, shouldSubmitExpense, transactionID, upgradePath]);
