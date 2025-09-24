@@ -3586,8 +3586,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '停止中',
                 },
                 invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
-                autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
-                autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
+                autoInvite: 'Uber for Business に新しいワークスペースメンバーを招待する',
+                autoRemove: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
                 bannerTitle: 'Expensify + ビジネス向け Uber',
                 bannerDescription: 'Uber for Business を接続すると、組織全体の出張費や食事の配達費を自動化できます。',
                 emptyContent: {
