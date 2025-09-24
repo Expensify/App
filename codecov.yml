@@ -16,7 +16,7 @@ codecov:
     after_n_builds: 3
 
 comment:
-  require_changes: true
+  require_changes: "coverage_drop OR uncovered_patch"
   layout: "condensed_header, condensed_files, condensed_footer"
   behavior: default
 
