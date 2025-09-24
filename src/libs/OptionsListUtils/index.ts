@@ -55,6 +55,7 @@ import {
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
+    isActionableMentionWhisper,
     isActionOfType,
     isAddCommentAction,
     isClosedAction,
@@ -76,6 +77,7 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
+    isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -288,6 +290,7 @@ Onyx.connect({
             // does not match a closed or created state.
             const reportActionsForDisplay = sortedReportActions.filter(
                 (reportAction, actionKey) =>
+                    (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
                     shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -1622,7 +1625,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         isPerDiemRequest = false,
         showRBR = true,
         shouldShowGBR = false,
-        includeSelectedOptions = false,
     } = config;
 
     const validReportOptions: SearchOptionData[] = [];
@@ -1641,9 +1643,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
          */
         const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
         const isSelected = isReportSelected(option, selectedOptions);
-        if (isSelected && !includeSelectedOptions) {
-            continue;
-        }
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
         let lastIOUCreationDate;
 

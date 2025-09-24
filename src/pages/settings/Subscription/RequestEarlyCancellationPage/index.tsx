@@ -89,6 +89,7 @@ function RequestEarlyCancellationPage() {
                 title={translate('subscription.subscriptionSettings.helpUsImprove')}
                 description={translate('subscription.requestEarlyCancellation.subtitle')}
                 onSubmit={handleSubmit}
+                optionRowStyles={styles.flex1}
                 footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgementText}</Text>}
                 isNoteRequired
                 isLoading={isLoading}
