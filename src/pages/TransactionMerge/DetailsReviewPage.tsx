@@ -74,6 +74,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     });
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const sourceTransactionThreadReportID = getTransactionThreadReportID(sourceTransaction);
+    const [sourceTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadReportID}`, {canBeMissing: true});
+    const [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionThreadReport?.policyID}`, {canBeMissing: true});
+    const [targetTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
@@ -181,8 +185,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
-        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
+        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate),
+        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button

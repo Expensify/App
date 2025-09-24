@@ -3,7 +3,7 @@ import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
@@ -13,12 +13,12 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {getCurrency, getReimbursable, getTaxName, isCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
+const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'taxValue', 'reimbursable', 'billable', 'reportID'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -43,6 +43,7 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     billable: 'common.billable',
     created: 'common.date',
     reportID: 'common.report',
+    taxValue: 'iou.taxRate',
 } as const;
 
 // Get the filename from the receipt
@@ -143,6 +144,9 @@ function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, 
     }
     if (field === 'merchant' && isMerchantMissing(transaction)) {
         return '';
+    }
+    if (field === 'taxValue') {
+        return transaction.taxValue;
     }
 
     return transactionDetails[field] ?? '';
@@ -328,7 +332,7 @@ function selectTargetAndSourceTransactionsForMerge(originalTargetTransaction: On
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate']): string {
+function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy: Policy | undefined, translate: LocaleContextProps['translate']): string {
     const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
     if (isEmptyMergeValue(fieldValue)) {
@@ -349,6 +353,9 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
     if (field === 'reportID') {
         return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(fieldValue.toString()));
     }
+    if (field === 'taxValue') {
+        return getTaxName(policy, transaction) ?? '';
+    }
     return String(fieldValue);
 }
 /**
@@ -365,6 +372,8 @@ function buildMergeFieldsData(
     targetTransaction: Transaction | undefined,
     sourceTransaction: Transaction | undefined,
     mergeTransaction: MergeTransaction | null | undefined,
+    targetTransactionPolicy: Policy | undefined,
+    sourceTransactionPolicy: Policy | undefined,
     translate: LocaleContextProps['translate'],
 ): MergeFieldData[] {
     if (!targetTransaction || !sourceTransaction) {
@@ -379,12 +388,12 @@ function buildMergeFieldsData(
         const options: MergeFieldOption[] = [
             {
                 transaction: targetTransaction,
-                displayValue: getDisplayValue(field, targetTransaction, translate),
+                displayValue: getDisplayValue(field, targetTransaction, targetTransactionPolicy, translate),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
-                displayValue: getDisplayValue(field, sourceTransaction, translate),
+                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionPolicy, translate),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];

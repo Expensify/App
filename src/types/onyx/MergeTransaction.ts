@@ -50,6 +50,9 @@ type MergeTransaction = {
 
     /** The report ID of the transaction */
     reportID: string;
+
+    /** Tax percentage value of the transaction */
+    taxValue: string;
 };
 
 export default MergeTransaction;
