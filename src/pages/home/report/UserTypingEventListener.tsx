@@ -1,5 +1,4 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import lastVisitedPathSelector from '@selectors/LastVisitedPath';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
