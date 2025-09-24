@@ -448,8 +448,8 @@ describe('SearchQueryUtils', () => {
             }
 
             // Verify positions are always in ascending order (important for optimization)
-            const positions = queryJSON.positionInfo?.map((p) => p.position) || [];
-            const isInOrder = positions.every((pos, i) => i === 0 || pos > positions[i - 1]);
+            const positions = queryJSON.positionInfo?.map((p) => p.position) ?? [];
+            const isInOrder = positions.every((pos, i) => i === 0 || pos > (positions.at(i - 1) ?? 0));
             expect(isInOrder).toBe(true); // This ensures no sorting is needed
         });
 
