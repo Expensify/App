@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +47,7 @@ function IOURequestStepAttendees({
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
+    useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
