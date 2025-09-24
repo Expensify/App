@@ -412,8 +412,20 @@ function BasePopoverMenu({
         if (isSmallScreenWidth) {
             return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
         }
-        return styles.createMenuContainer;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
+
+        const isTopAnchored = anchorAlignment?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
+        const top = anchorPosition?.vertical;
+        let desktopMaxHeightStyle = {};
+        if (shouldEnableMaxHeight) {
+            if (isTopAnchored && typeof top === 'number') {
+                desktopMaxHeightStyle = {maxHeight: windowHeight - Math.round(top) - 20};
+            } else {
+                desktopMaxHeightStyle = {maxHeight: windowHeight - 250};
+            }
+        }
+
+        return {...styles.createMenuContainer, ...desktopMaxHeightStyle};
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, anchorAlignment, anchorPosition]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
 
