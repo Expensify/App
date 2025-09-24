@@ -3089,11 +3089,13 @@ const translations = {
         selectIncorporationCountry: "Sélectionnez le pays d'incorporation",
         selectIncorporationState: "Sélectionnez l'état d'incorporation",
         selectAverageReimbursement: 'Sélectionner le montant moyen de remboursement',
+        selectBusinessType: "Sélectionner le type d'entreprise",
         findIncorporationType: "Trouver le type d'incorporation",
         findBusinessCategory: "Trouver la catégorie d'entreprise",
         findAnnualPaymentVolume: 'Trouver le volume de paiement annuel',
         findIncorporationState: "Trouver l'état d'incorporation",
         findAverageReimbursement: 'Trouver le montant moyen de remboursement',
+        findBusinessType: "Trouver le type d'entreprise",
         error: {
             registrationNumber: "Veuillez fournir un numéro d'enregistrement valide",
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -4895,6 +4897,13 @@ const translations = {
                 prompt4: 'en exportant vos étiquettes.',
                 prompt5: 'En savoir plus',
                 prompt6: 'à propos des niveaux de balises.',
+            },
+            overrideMultiTagWarning: {
+                title: 'Importer des étiquettes',
+                prompt1: 'Êtes-vous sûr ?',
+                prompt2: ' Les balises existantes seront remplacées, mais vous pouvez',
+                prompt3: ' télécharger une sauvegarde',
+                prompt4: ' premier.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Nous avons trouvé *${columnCounts} colonnes* dans votre feuille de calcul. Sélectionnez *Nom* à côté de la colonne contenant les noms des balises. Vous pouvez également sélectionner *Activé* à côté de la colonne qui définit le statut des balises.`,
