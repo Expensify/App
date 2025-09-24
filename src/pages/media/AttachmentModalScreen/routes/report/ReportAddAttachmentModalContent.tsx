@@ -11,7 +11,7 @@ import validateAttachmentFile from '@libs/AttachmentUtils';
 import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentContentProps, AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import useNavigateToReportOnRefresh from '@pages/media/AttachmentModalScreen/routes/hooks/useNavigateToReportOnRefresh';
@@ -36,7 +36,7 @@ const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
     const {
         attachmentID,
-        file,
+        file: fileParam,
         source: sourceParam,
         isAuthTokenRequired,
         attachmentLink,
@@ -58,8 +58,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
         canBeMissing: false,
     });
-
-    useNavigateToReportOnRefresh({source: sourceParam, file, reportID});
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
@@ -87,67 +85,80 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
 
-    // Validates the attachment file and renders the appropriate modal type or errors
-    const onValidateFile: OnValidateFileCallback = useCallback((fileToValidate, setFile) => {
-        if (!fileToValidate) {
+    const [validFiles, setValidFiles] = useState<FileObject | FileObject[] | undefined>(fileParam);
+    useEffect(() => {
+        if (!fileParam) {
             return;
         }
 
-        function updateState(result: AttachmentValidationResult | undefined) {
-            if (!result?.isValid) {
+        function updateState(result: AttachmentValidationResult | AttachmentValidationResult[]) {
+            if (Array.isArray(result)) {
+                const validResults = result.filter((r) => r.isValid);
+                if (validResults.length === 0) {
+                    return;
+                }
+
+                const validatedFiles = validResults.map((r) => r.file);
+                const firstValidSource = validResults.at(0)?.source;
+
+                setSource(firstValidSource);
+                setValidFiles(validatedFiles);
+                return;
+            }
+
+            if (!result.isValid) {
                 return;
             }
 
             setSource(result.source);
-            setFile(result.file);
+            setValidFiles(result.file);
         }
 
-        if (Array.isArray(fileToValidate)) {
-            Promise.all(fileToValidate.map((f) => validateAttachmentFile(f))).then((results) => {
-                const firstValidResult = results.find((result) => result.isValid);
-                updateState(firstValidResult);
-            });
+        if (Array.isArray(fileParam)) {
+            Promise.all(fileParam.map((f) => validateAttachmentFile(f))).then(updateState);
             return;
         }
 
-        validateAttachmentFile(fileToValidate).then(updateState);
-    }, []);
+        validateAttachmentFile(fileParam).then(updateState);
+    }, [fileParam]);
 
-    const modalType = useReportAttachmentModalType(source, file);
+    const modalType = useReportAttachmentModalType(source, validFiles);
+    useNavigateToReportOnRefresh({source: sourceParam, file: validFiles, reportID});
 
     const isLoading = useMemo(() => {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
-        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport) || (Array.isArray(file) && file.length === 0);
-    }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, file]);
+        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport) || (Array.isArray(validFiles) && validFiles.length === 0);
+    }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, validFiles]);
 
     const onConfirm = useCallback(
         (f: FileObject | FileObject[]) => {
-            if (Array.isArray(file) && file.length > 0) {
-                onConfirmParam?.(file);
+            if (Array.isArray(validFiles) && validFiles.length > 0) {
+                onConfirmParam?.(validFiles);
             } else {
                 onConfirmParam?.(f);
             }
         },
-        [onConfirmParam, file],
+        [validFiles, onConfirmParam],
     );
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
     });
 
+    useNavigateToReportOnRefresh({source: sourceParam, file: validFiles, reportID});
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(() => {
-        if (file === undefined || (Array.isArray(file) && file.length === 0)) {
+        if (validFiles === undefined || (Array.isArray(validFiles) && validFiles.length === 0)) {
             return {
                 isLoading: true,
             };
         }
 
         return {
-            file,
-            onValidateFile,
+            file: validFiles,
             source,
             isLoading,
             isAuthTokenRequired,
@@ -163,8 +174,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             AttachmentContent: AddAttachmentModalCarouselView,
         };
     }, [
-        file,
-        onValidateFile,
+        validFiles,
         source,
         isLoading,
         isAuthTokenRequired,

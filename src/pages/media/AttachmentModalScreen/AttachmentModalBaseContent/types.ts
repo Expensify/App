@@ -19,8 +19,6 @@ type AttachmentModalContentData = {
     file: FileObject | undefined;
 };
 
-type OnValidateFileCallback = (file: FileObject | FileObject[] | undefined, setFile: (file: FileObject | FileObject[] | undefined) => void) => void;
-
 type ThreeDotsMenuItemGeneratorProps = AttachmentModalContentData & {
     isLocalSource: boolean;
 };
@@ -115,9 +113,6 @@ type AttachmentModalBaseContentProps = {
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
-
-    /** Optional callback to fire when we want to validate the file. */
-    onValidateFile?: OnValidateFileCallback;
 };
 
-export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, DownloadAttachmentCallback, AttachmentContent, AttachmentContentProps, OnValidateFileCallback};
+export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, DownloadAttachmentCallback, AttachmentContent, AttachmentContentProps};

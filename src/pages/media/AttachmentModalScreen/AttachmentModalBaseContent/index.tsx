@@ -58,7 +58,6 @@ function AttachmentModalBaseContent({
     onConfirm,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
-    onValidateFile,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -111,12 +110,8 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        if (onValidateFile) {
-            onValidateFile?.(filesProp, setFile);
-        } else {
-            setFile(filesProp ?? fallbackFile);
-        }
-    }, [filesProp, fallbackFile, onValidateFile, setFile]);
+        setFile(filesProp ?? fallbackFile);
+    }, [filesProp, fallbackFile, setFile]);
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
