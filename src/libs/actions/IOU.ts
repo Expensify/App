@@ -319,8 +319,8 @@ type TrackExpenseInformation = {
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
     actionableWhisperReportActionIDParam?: string;
-    selfDMReportID: string | undefined;
-    selfDMCreatedReportActionID: string | undefined;
+    optimisticReportID: string | undefined;
+    optimisticReportActionID: string | undefined;
     onyxData: OnyxData;
 };
 
@@ -3903,20 +3903,20 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     }
 
     // If we are still missing the chat report then optimistically create the self-DM report and use it
-    let selfDMReportID: string | undefined;
-    let selfDMCreatedReportActionID: string | undefined;
+    let optimisticReportID: string | undefined;
+    let optimisticReportActionID: string | undefined;
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
         const selfDMReport = buildOptimisticSelfDMReport(currentTime);
         const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-        selfDMReportID = selfDMReport.reportID;
-        selfDMCreatedReportActionID = selfDMCreatedReportAction.reportActionID;
+        optimisticReportID = selfDMReport.reportID;
+        optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
         chatReport = selfDMReport;
 
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
                 value: {
                     ...selfDMReport,
                     pendingFields: {
@@ -3926,21 +3926,21 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
                 value: {isOptimisticReport: true},
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
                 value: {
-                    [selfDMCreatedReportActionID]: selfDMCreatedReportAction,
+                    [optimisticReportActionID]: selfDMCreatedReportAction,
                 },
             },
         );
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
                 value: {
                     pendingFields: {
                         createChat: null,
@@ -3949,14 +3949,14 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
                 value: {isOptimisticReport: false},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
                 value: {
-                    [selfDMCreatedReportActionID]: {
+                    [optimisticReportActionID]: {
                         pendingAction: null,
                     },
                 },
@@ -3965,17 +3965,17 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         failureData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
                 value: null,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
                 value: null,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
                 value: null,
             },
         );
@@ -4151,8 +4151,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
         actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID,
-        selfDMReportID,
-        selfDMCreatedReportActionID,
+        optimisticReportID,
+        optimisticReportActionID,
         onyxData: {
             optimisticData: optimisticData.concat(trackExpenseOnyxData[0]),
             successData: successData.concat(trackExpenseOnyxData[1]),
@@ -6153,8 +6153,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         transactionThreadReportID,
         createdReportActionIDForThread,
         actionableWhisperReportActionIDParam,
-        selfDMReportID,
-        selfDMCreatedReportActionID,
+        optimisticReportID,
+        optimisticReportActionID,
         onyxData,
     } =
         getTrackExpenseInformation({
@@ -6321,16 +6321,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 created,
                 merchant,
                 iouReportID: iouReport?.reportID,
-                // If we are passing selfDMReportID then we shouldn't pass chatReportID as it masks selfDMReportID
-                // i.e. BE fallback to selfDMReportID only if no chatReportID is passed
-                chatReportID: selfDMReportID ? undefined : chatReport?.reportID,
+                // If we are passing an optimisticReportID then we are creating a new chat (selfDM) and we don't have an *existing* chatReportID
+                chatReportID: optimisticReportID ? undefined : chatReport?.reportID,
                 transactionID: transaction?.transactionID,
                 reportActionID: iouAction?.reportActionID,
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                selfDMReportID,
-                selfDMCreatedReportActionID,
+                optimisticReportID,
+                optimisticReportActionID,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 category,
