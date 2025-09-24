@@ -55,7 +55,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     isUserValidated,
     personalDetails,
     userBillingFundID,
-    accessibilityState,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -112,7 +111,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
                 index={index}
-                accessibilityState={accessibilityState}
             />
             {item.footerContent && item.footerContent}
         </>

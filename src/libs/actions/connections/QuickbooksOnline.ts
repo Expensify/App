@@ -253,13 +253,10 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends
 }
 
 function updateQuickbooksOnlineSyncLocations<TSettingValue extends Connections['quickbooksOnline']['config']['syncLocations']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -271,13 +268,10 @@ function updateQuickbooksOnlineSyncLocations<TSettingValue extends Connections['
 }
 
 function updateQuickbooksOnlineSyncCustomers<TSettingValue extends Connections['quickbooksOnline']['config']['syncCustomers']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -289,13 +283,10 @@ function updateQuickbooksOnlineSyncCustomers<TSettingValue extends Connections['
 }
 
 function updateQuickbooksOnlineSyncClasses<TSettingValue extends Connections['quickbooksOnline']['config']['syncClasses']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES, settingValue, oldSettingValue);
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
@@ -306,13 +297,10 @@ function updateQuickbooksOnlineSyncClasses<TSettingValue extends Connections['qu
 }
 
 function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue extends Connections['quickbooksOnline']['config']['nonReimbursableBillDefaultVendor']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -421,13 +409,10 @@ function updateQuickbooksOnlineSyncTax<TSettingValue extends Connections['quickb
 }
 
 function updateQuickbooksOnlineReimbursementAccountID<TSettingValue extends Connections['quickbooksOnline']['config']['reimbursementAccountID']>(
-    policyID: string | undefined,
+    policyID: string,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (!policyID) {
-        return;
-    }
     if (settingValue === oldSettingValue) {
         return;
     }

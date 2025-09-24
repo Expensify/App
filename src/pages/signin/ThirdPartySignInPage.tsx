@@ -1,7 +1,8 @@
 import React from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
 import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
@@ -37,7 +38,10 @@ function ThirdPartySignInPage({signInProvider}: ThirdPartySignInPageProps) {
         <SafeAreaView style={[styles.signInPage]}>
             {account?.isLoading ? (
                 <View style={styles.thirdPartyLoadingContainer}>
-                    <ActivityIndicator size="large" />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        color={undefined}
+                    />
                 </View>
             ) : (
                 <SignInPageLayout

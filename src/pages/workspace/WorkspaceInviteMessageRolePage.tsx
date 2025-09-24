@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -89,7 +89,7 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         <SelectionList
                             sections={[{data: roleItems}]}
-                            ListItem={SingleSelectListItem}
+                            ListItem={RadioListItem}
                             onSelectRow={({value}: ListItemType) => {
                                 setWorkspaceInviteRoleDraft(route.params.policyID, value);
                                 Navigation.setNavigationActionToMicrotaskQueue(() => {

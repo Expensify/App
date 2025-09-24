@@ -9,7 +9,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -131,7 +131,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                         <SelectionList
                             shouldIgnoreFocus
                             sections={[{data: workspacePlanTypes, isDisabled: isPlanTypeLocked}]}
-                            ListItem={SingleSelectListItem}
+                            ListItem={RadioListItem}
                             onSelectRow={(option) => {
                                 setCurrentPlan(option.value);
                             }}

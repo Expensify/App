@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +29,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
     const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
@@ -97,7 +97,7 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={({value}) => handleSelectDateOption(value)}
                     sections={[{data: dateOptions}]}
                     shouldSingleExecuteRowSelect
