@@ -3429,7 +3429,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 if (!reimbursable) {
                     iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                 }
-
+            }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
                 if (newReportTotal) {
@@ -13402,7 +13402,7 @@ export {
     getPerDiemExpenseInformation,
     getSendInvoiceInformation,
     addReportApprover,
-    hasOutstandingChildRequest,
+    hasOutstandingChildRequest
 };
 export type {
     GPSPoint as GpsPoint,
@@ -13412,5 +13412,5 @@ export type {
     RequestMoneyInformation,
     ReplaceReceipt,
     RequestMoneyParticipantParams,
-    PerDiemExpenseTransactionParams,
+    PerDiemExpenseTransactionParams
 };
