@@ -8,10 +8,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 * [Cross-Platform Philosophy](/contributingGuides/philosophies/CROSS-PLATFORM.md)
 * [Data Flow Philosophy](/contributingGuides/philosophies/DATA-FLOW.md)
 * [Data Binding Philosophy](/contributingGuides/philosophies/DATA-BINDING.md)
-<<<<<<< HEAD
 * [Deploying Philosophy](/contributingGuides/philosophies/DEPLOYING.md)
-=======
->>>>>>> main
 * [Directory Structure and File Naming Philosophy](/contributingGuides/philosophies/DIRECTORIES.md)
 * [Internationalization Philosophy](/contributingGuides/philosophies/INTERNATIONALIZATION.md)
 * [HybridApp Philosophy](/contributingGuides/philosophies/HYBRID-APP.md)
