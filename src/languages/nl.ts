@@ -1755,7 +1755,7 @@ const translations = {
         compromisedDescription: 'Merk je iets vreemds op aan je account? Meld het en je account wordt meteen vergrendeld, kaarttransacties geblokkeerd en wijzigingen voorkomen.',
         domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Card-activiteiten en beheerdersacties in je domein(en).',
         areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
-        ourTeamWill: 'Ons team onderzoekt het en verwijdert ongeautoriseerde toegang. Om weer toegang te krijgen, moet je met Concierge samenwerken.',
+        onceLocked: 'Zodra vergrendeld, wordt uw account beperkt in afwachting van een ontgrendelingsverzoek en een beveiligingscontrole.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Kan account niet vergrendelen',
@@ -3098,11 +3098,13 @@ const translations = {
         selectIncorporationCountry: 'Selecteer oprichtingsland',
         selectIncorporationState: 'Selecteer oprichtingsstaat',
         selectAverageReimbursement: 'Selecteer het gemiddelde terugbetalingsbedrag',
+        selectBusinessType: 'Selecteer zakelijk type',
         findIncorporationType: 'Vind het type oprichting',
         findBusinessCategory: 'Zakelijke categorie vinden',
         findAnnualPaymentVolume: 'Vind jaarlijks betalingsvolume',
         findIncorporationState: 'Vind oprichtingsstaat',
         findAverageReimbursement: 'Vind het gemiddelde terugbetalingsbedrag',
+        findBusinessType: 'Zakelijk type zoeken',
         error: {
             registrationNumber: 'Gelieve een geldig registratienummer op te geven',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -4890,6 +4892,13 @@ const translations = {
                 prompt4: 'door uw tags te exporteren.',
                 prompt5: 'Meer informatie',
                 prompt6: 'over tag-niveaus.',
+            },
+            overrideMultiTagWarning: {
+                title: 'Tags importeren',
+                prompt1: 'Weet je het zeker?',
+                prompt2: ' De bestaande tags worden overschreven, maar je kunt',
+                prompt3: ' een back-up downloaden',
+                prompt4: ' eerst.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We hebben *${columnCounts} kolommen* in uw spreadsheet gevonden. Selecteer *Naam* naast de kolom die tag-namen bevat. U kunt ook *Ingeschakeld* selecteren naast de kolom die de tag-status instelt.`,
