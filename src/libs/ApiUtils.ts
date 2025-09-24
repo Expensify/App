@@ -15,8 +15,10 @@ getEnvironment().then((envName) => {
     ENV_NAME = envName;
 
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs
-    Onyx.connect({
-        key: ONYXKEYS.ACCOUNT,
+    // We only use the value of shouldUseStagingServer to determine which server we should point to.
+    // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
         callback: (value) => {
             // Toggling between APIs is not allowed on production and internal dev environment
             if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {
@@ -25,7 +27,7 @@ getEnvironment().then((envName) => {
             }
 
             const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
-            shouldUseStagingServer = value?.shouldUseStagingServer ?? defaultToggleState;
+            shouldUseStagingServer = value ?? defaultToggleState;
         },
     });
 });

@@ -6,6 +6,7 @@ import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report as OnyxReport} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -177,6 +178,44 @@ describe('Middleware', () => {
                 expect(formDataObject.reportActionID).toBeUndefined();
                 expect(formDataObject.parentReportActionID).toBeUndefined();
             }
+        });
+
+        test('Request with preexistingReportID and optimisticReportID param', async () => {
+            Request.use(handleUnusedOptimisticID);
+            const requests = [
+                {
+                    command: 'MoveIOUReportToExistingPolicy',
+                    data: {authToken: 'testToken', optimisticReportID: '1234'},
+                },
+            ];
+            for (const request of requests) {
+                SequentialQueue.push(request);
+            }
+
+            // eslint-disable-next-line @typescript-eslint/require-await
+            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
+                ok: true,
+                // eslint-disable-next-line @typescript-eslint/require-await
+                json: async () => ({
+                    jsonCode: 200,
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                            value: {
+                                preexistingReportID: '5555',
+                            },
+                        },
+                    ],
+                }),
+            }));
+
+            SequentialQueue.unpause();
+            await waitForNetworkPromises();
+
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
+            TestHelper.assertFormDataMatchesObject({optimisticReportID: '1234'} as unknown as OnyxReport, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
         });
     });
 });

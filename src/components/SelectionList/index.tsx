@@ -1,13 +1,12 @@
-import React, {forwardRef, useEffect, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import BaseSelectionList from './BaseSelectionList';
-import type {ListItem, SelectionListHandle, SelectionListProps} from './types';
+import type {ListItem, SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, ...props}: SelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function SelectionList<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
@@ -79,6 +78,8 @@ function SelectionList<TItem extends ListItem>({onScroll, shouldHideKeyboardOnSc
     );
 }
 
+// This component will be changed to SelectionListWithSections in the future.
+// related issue: https://github.com/Expensify/App/issues/65212
 SelectionList.displayName = 'SelectionList';
 
-export default forwardRef(SelectionList);
+export default SelectionList;

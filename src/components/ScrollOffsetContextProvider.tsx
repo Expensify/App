@@ -1,5 +1,5 @@
-import type {ParamListBase} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -129,7 +129,6 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
         if (!scrollOffsetsRef.current) {
             return;
         }
-
         return scrollOffsetsRef.current[getKey(route)];
     }, []);
 
