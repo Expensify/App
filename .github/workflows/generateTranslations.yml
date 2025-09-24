@@ -26,6 +26,13 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Test - Print workflow dispatch input
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "🔧 Manual workflow dispatch triggered!"
+          echo "PR URL provided: ${{ inputs.PULL_REQUEST_URL }}"
+          echo "Event name: ${{ github.event_name }}"
+
       - name: Check if English translations were modified
         id: check-en-changes
         run: |
