@@ -1909,7 +1909,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-    const optimisticLastReportData = optimisticReportLastData(report, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const optimisticLastReportData = optimisticReportLastData(reportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isReportArchived);
 
     const optimisticReport: Partial<Report> = {
         ...optimisticLastReportData,
@@ -4011,9 +4011,9 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     removeFromRoom(reportID, accountIDList);
 }
 
-function optimisticReportLastData(report: OnyxEntry<Report>, canUserPerformWriteAction: boolean | undefined, optimisticReportActions: ReportActions) {
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessage(report?.reportID, canUserPerformWriteAction, optimisticReportActions).lastMessageText ?? '';
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(report?.reportID, canUserPerformWriteAction, optimisticReportActions);
+function optimisticReportLastData(reportID: string, optimisticReportActions: ReportActions, canUserPerformWriteAction?: boolean, isReportArchived?: boolean) {
+    const lastMessageText = getLastVisibleMessage(reportID, optimisticReportActions, isReportArchived).lastMessageText ?? '';
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions);
     return {
         lastMessageText,
         lastVisibleActionCreated: lastVisibleAction?.created ?? '',
@@ -4077,9 +4077,13 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
-    const optimistiLastReportData = optimisticReportLastData(report, canUserPerformWriteAction, {
-        [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-    } as ReportActions);
+    const optimistiLastReportData = optimisticReportLastData(
+        originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        {
+            [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        } as ReportActions,
+        canUserPerformWriteAction,
+    );
 
     const optimisticReport: Partial<Report> = {
         ...optimistiLastReportData,
