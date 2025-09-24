@@ -27,7 +27,7 @@ Every weekday at 9am PST, our QA team adds the `🔐LockCashDeploys🔐` label t
 ### - Deploy blockers MUST prevent production deployment
 Once the `StagingDeployCash` is locked, we won't run any staging deploys until it is either unlocked, or we run a production deploy. If severe issues are found on staging that are not present on production, a new issue (or the PR that caused the issue) will be labeled with `DeployBlockerCash`, and added to the `StagingDeployCash` deploy checklist.
 
-### - Hotfixes MAY be deployed directly to staging using CP Staging label
+### - A hotfix MAY be deployed directly to staging using CP Staging label
 If we want to resolve a deploy blocker by reverting a pull request or deploying a hotfix directly to the staging environment, we can merge a pull request with the `CP Staging` label.
 
 ### - Production deployment MUST be triggered by closing StagingDeployCash
