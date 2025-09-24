@@ -1,0 +1,20 @@
+diff --git a/node_modules/node-abi/index.js b/node_modules/node-abi/index.js
+--- a/node_modules/node-abi/index.js
++++ b/node_modules/node-abi/index.js
+@@ -36,6 +36,16 @@
+   }
+ 
+   if (abi && semver.lt(target, getNextTarget(runtime))) return abi
++  if (runtime === 'electron') {
++    var normalized = target
++    if (normalized && !semver.valid(normalized)) {
++      var coerced = semver.coerce(normalized)
++      normalized = coerced && coerced.version
++    }
++    if (normalized && semver.valid(normalized) && semver.satisfies(normalized, '>=37.0.0 <38.0.0')) {
++      return '136'
++    }
++  }
+   throw new Error('Could not detect abi for version ' + target + ' and runtime ' + runtime + '.  Updating "node-abi" might help solve this issue if it is a new release of ' + runtime)
+ }
+ 
