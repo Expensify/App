@@ -395,7 +395,7 @@ function serializeRootEntry(key: string, value: unknown) {
         return;
     }
 
-    return `${key}:${value}`;
+    return `${key}:${String(value)}`;
 }
 
 function getQueryFiltersFromNode(node?: ASTNode) {
