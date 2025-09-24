@@ -33,6 +33,7 @@ import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+import getOnyxValue from '../utils/getOnyxValue';
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
@@ -2093,15 +2094,7 @@ describe('actions/Report', () => {
             await (mockFetch.resume?.() as Promise<unknown>);
 
             // Verify error handling after failure - focus on workspace invitation error
-            const policyData = await new Promise<OnyxEntry<OnyxTypes.Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`,
-                    callback: (val) => {
-                        resolve(val);
-                        Onyx.disconnect(connection);
-                    },
-                });
-            });
+            const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`);
 
             // The submitter should have been added to the employee list with error
             const submitterEmployee = policyData?.employeeList?.[ownerEmail];
