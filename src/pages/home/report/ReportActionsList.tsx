@@ -184,13 +184,13 @@ function ReportActionsList({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount);
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -397,16 +397,10 @@ function ReportActionsList({
             return;
         }
 
-        const shouldScrollToEnd = shouldFocusToTopOnMount && !unreadMarkerReportActionID;
-
-        if (shouldScrollToEnd) {
-            setShouldScrollToEndAfterLayout(true);
-        }
-
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
 
-            if (!shouldScrollToEnd) {
+            if (!shouldScrollToEndAfterLayout) {
                 reportScrollManager.scrollToBottom();
             }
         });
