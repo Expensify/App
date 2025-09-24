@@ -6,12 +6,9 @@ import type {
     BlurEvent,
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
-    NativeSyntheticEvent,
     TextInput,
-    TextInputContentSizeChangeEventData,
-    TextInputFocusEventData,
-    TextInputKeyPressEventData,
-    TextInputScrollEventData,
+    TextInputContentSizeChangeEvent, TextInputKeyPressEvent,
+    TextInputScrollEvent,
 } from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -442,7 +439,7 @@ function ComposerWithSuggestions(
     );
 
     const handleKeyPress = useCallback(
-        (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        (event: TextInputKeyPressEvent) => {
             const webEvent = event as unknown as KeyboardEvent;
             if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
@@ -533,7 +530,7 @@ function ComposerWithSuggestions(
     );
 
     const hideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+        (e: TextInputScrollEvent) => {
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -772,7 +769,7 @@ function ComposerWithSuggestions(
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
     const updateIsFullComposerAvailable = useCallback(
-        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+        (e: TextInputContentSizeChangeEvent) => {
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;

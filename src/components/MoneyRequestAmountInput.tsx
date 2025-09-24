@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {BlurEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';

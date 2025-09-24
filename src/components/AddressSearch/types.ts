@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {BlurEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
+import type {BlurEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {Country} from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';

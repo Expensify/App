@@ -12,7 +12,6 @@ import type {
     StyleProp,
     TargetedEvent,
     TextInput,
-    TextInputFocusEventData,
     TextStyle,
     ViewStyle,
 } from 'react-native';
