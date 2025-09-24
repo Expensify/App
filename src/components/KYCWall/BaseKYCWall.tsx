@@ -230,7 +230,7 @@ function KYCWall({
                 if (!hasActivatedWallet && !policy) {
                     Log.info('[KYC Wallet] User does not have active wallet');
 
-                    // We already go back to the goBackRoute, so we don't need to navigate to the enablePaymentsRoute if it's the same
+                    // If the goBackRoute is the enablePaymentsRoute there's no need to directly navigate to it here
                     if (goBackRoute !== enablePaymentsRoute) {
                         Navigation.navigate(enablePaymentsRoute);
                     }
