@@ -95,8 +95,17 @@ const DEFAULT_MODAL_VALUE = {
     isVisible: false,
 };
 
-function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, originalReportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false, ref}: ReportActionItemMessageEditProps) {
+function ReportActionItemMessageEdit({
+    action,
+    draftMessage,
+    reportID,
+    originalReportID,
+    policyID,
+    index,
+    isGroupPolicyReport,
+    shouldDisableEmojiPicker = false,
+    ref,
+}: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
