@@ -44,25 +44,62 @@ Async code is everywhere in our app: API calls, storage access, background tasks
    Use `async/await` unless you’re:
 
    * Wrapping callback-based APIs.
+
+  ```ts
+  function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+  });
+  }
+  ```
+
    * Creating deferred promises (signals like “ready” or “loaded”).
+
+  ```ts
+  let resolveReady: () => void;
+
+  const isReady = new Promise<void>((resolve) => {
+    resolveReady = resolve;
+  });
+
+  // later in the code
+  resolveReady();
+  ```
 
 ## More Examples
 
 ### 1) Error handling
 
+Error handling style depends on context. If you’re handling a single async operation, `.catch()` is concise and effective.
+
 ```ts
+// GOOD
 async function getData(url: string) {
   const data = await fetch(url).catch(() => fetchFallback(url));
   return process(data);
 }
 ```
 
-OR
+```ts
+// BAD
+async function getData(url: string) {
+  let data: DataType | undefined;
+  try{
+      data = await fetch(url)
+  } catch (e){
+      data = fetchFallback(url)
+  }
+  return process(data);
+}
+```
+
+If you need to handle multiple sequential async operations, `try/catch` provides cleaner flow and better readability.
 
 ```ts
 async function getData(url: string) {
   try {
-    const data = await fetch(url);
+    const response = await fetch(url);
+    const data = await response.json();
     return process(data);
   } catch (error) {
     const data = fetchFallback(url);
@@ -75,22 +112,6 @@ async function getData(url: string) {
 
 ```ts
 // An async function returns a promise and can be passed to helpers expecting a promise
-const dataPromise = loadDashboard();
+const dataPromise = useMemo(() => loadDashboard(), []);
 use(dataPromise);
-```
-
-### 3) When to use raw Promises
-
-* Wrap callback-based APIs.
-* Deferred promise for signaling readiness.
-
-```ts
-let resolveReady: () => void;
-
-const isReady = new Promise<void>((resolve) => {
-  resolveReady = resolve;
-});
-
-// later in the code
-resolveReady();
 ```
