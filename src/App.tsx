@@ -51,6 +51,7 @@ import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
+import {ModalProvider} from '@components/Modal/Global';
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -120,6 +121,7 @@ function App() {
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
+                                        ModalProvider,
                                         SidePanelContextProvider,
                                     ]}
                                 >
