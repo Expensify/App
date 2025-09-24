@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -25,6 +26,7 @@ import {
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
+    doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -48,7 +50,6 @@ import {
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
-    doesReportContainRequestsFromMultipleUsers,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {
@@ -63,7 +64,6 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
-import {getLoginByAccountID} from './PersonalDetailsUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report);
