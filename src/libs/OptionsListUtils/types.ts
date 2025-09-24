@@ -151,7 +151,6 @@ type GetValidReportsConfig = {
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
-    includeSelectedOptions?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -183,6 +182,7 @@ type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
+    includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;

@@ -2,6 +2,7 @@ import type JSZip from 'jszip';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Alert} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
 import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
@@ -222,7 +223,11 @@ function BaseRecordTroubleshootDataToolMenu({
                     return;
                 }
 
-                setProfileTracePath(path);
+                RNFetchBlob.fs
+                    // Check if it is an internal path of `DownloadManager` then append content://media to create a valid url
+                    .stat(!path.startsWith('content://media/') && path.match(/\/downloads\/\d+$/) ? `content://media/${path}` : path)
+                    .then(({path: realPath}) => setProfileTracePath(realPath))
+                    .catch(() => setProfileTracePath(path));
 
                 getAppInfo().then((appInfo) => {
                     zipRef.current?.file(infoFileName, appInfo);
