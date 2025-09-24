@@ -6782,11 +6782,11 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
 function buildOptimisticTransactionAction(
     type: typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION | typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
     transactionThreadReportID: string | undefined,
-    targetReportID: string,
+    originalReportID: string,
 ): ReportAction {
-    const reportName = allReports?.[targetReportID]?.reportName ?? '';
-    const url = getReportURLForCurrentContext(targetReportID);
-    const [actionText, messageHtml] = [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
+    const reportName = allReports?.[originalReportID]?.reportName ?? '';
+    const url = getReportURLForCurrentContext(originalReportID);
+    const [actionText, messageHtml] = [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
         actionName: type,
@@ -6794,7 +6794,7 @@ function buildOptimisticTransactionAction(
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage: type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION ? {toReportID: targetReportID} : {fromReportID: targetReportID},
+        originalMessage: type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION ? {fromReportID: originalReportID} : {fromReportID: originalReportID},
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -6819,8 +6819,8 @@ function buildOptimisticTransactionAction(
  * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string) {
-    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, transactionThreadReportID, toReportID);
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string): ReportAction {
+    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, transactionThreadReportID, fromReportID);
 }
 
 /**

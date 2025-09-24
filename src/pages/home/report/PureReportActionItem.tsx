@@ -1185,17 +1185,17 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             const movedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-            const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-            const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-            // When expenses are merged multiple times, the previous toReportID may reference a deleted report,
+            const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+            const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+            // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
             // Ref: https://github.com/Expensify/App/issues/70338
-            if (!toReport) {
+            if (!fromReport) {
                 children = emptyHTML;
             } else {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(fromReport)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             }
