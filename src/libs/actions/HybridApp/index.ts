@@ -93,17 +93,6 @@ function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     });
 }
 
-function migrateHybridAppToNewPartnerName() {
-    if (!CONFIG.IS_HYBRID_APP) {
-        return;
-    }
-
-    Log.info('[HybridApp] Migrating to new partner name');
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        shouldUseNewPartnerName: true,
-    });
-}
-
 export {
     getHybridAppSettings,
     setReadyToShowAuthScreens,
@@ -112,5 +101,4 @@ export {
     setUseNewDotSignInPage,
     setClosingReactNativeApp,
     closeReactNativeApp,
-    migrateHybridAppToNewPartnerName,
 };

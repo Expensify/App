@@ -13,6 +13,7 @@ import Log from './Log';
 import {post} from './Network';
 import {getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
+import {checkIfShouldUseNewPartnerName} from './SessionUtils';
 
 type Parameters = {
     useExpensifyLogin?: boolean;
@@ -47,20 +48,6 @@ Onyx.connectWithoutView({
         account = value;
     },
 });
-
-function checkIfShouldUseNewPartnerName(partnerUserID?: string): boolean {
-    if (!CONFIG.IS_HYBRID_APP) {
-        return true;
-    }
-
-    // On HybridApp, users who logged in on the old SignInPage must use legacy partner name.
-    // Users who logged in on NewDot SignInPage have partnerUserID with "expensify.cash-" prefix and use new partner name.
-    if (partnerUserID?.startsWith('expensify.cash-')) {
-        return true;
-    }
-
-    return false;
-}
 
 function Authenticate(parameters: Parameters): Promise<Response | void> {
     const commandName = 'Authenticate';

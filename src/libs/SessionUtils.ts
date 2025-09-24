@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -61,4 +62,18 @@ function getSession() {
     return currentSession;
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, getSession};
+function checkIfShouldUseNewPartnerName(partnerUserID?: string): boolean {
+    if (!CONFIG.IS_HYBRID_APP) {
+        return true;
+    }
+
+    // On HybridApp, users who logged in on the old SignInPage must use legacy partner name.
+    // Users who logged in on NewDot SignInPage have partnerUserID with "expensify.cash-" prefix and use new partner name.
+    if (partnerUserID?.startsWith('expensify.cash-')) {
+        return true;
+    }
+
+    return false;
+}
+
+export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, getSession, checkIfShouldUseNewPartnerName};
