@@ -3582,7 +3582,7 @@ const translations = {
         receiptPartners: {
             connect: 'Connettiti ora',
             uber: {
-                subtitle: (organizationName: string) =>
+                subtitle: (organizationName: Record<string, unknown>) =>
                     organizationName ? `Connesso a ${organizationName}` : 'Automatizza le spese di viaggio e consegna pasti in tutta la tua organizzazione.',
                 sendInvites: 'Invita membri',
                 sendInvitesDescription: 'Questi membri del workspace non hanno ancora un account Uber for Business. Deseleziona tutti i membri che non desideri invitare in questo momento.',
