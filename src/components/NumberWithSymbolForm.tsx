@@ -271,7 +271,7 @@ function NumberWithSymbolForm({
     // Modifies the number to match changed decimals.
     useEffect(() => {
         // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength)) {
+        if (validateAmount(currentNumber, decimals, maxLength, allowFlippingAmount)) {
             return;
         }
 
