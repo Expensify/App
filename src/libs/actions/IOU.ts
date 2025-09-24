@@ -12065,6 +12065,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
     const reportAction = getIOUActionForReportID(reportID, transactionID);
     const childReportID = reportAction?.childReportID;
+    const reportOwnerLogin = allPersonalDetails[report?.ownerAccountID ?? 0]?.login ?? '';
 
     let movedToReport;
     let rejectedToReportID;
@@ -12290,6 +12291,8 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 optimisticReport as OnyxTypes.Report,
                 '', // No comment for rejected expenses
                 transaction, // Pass the transaction for receipt info
+                rejectedToReportID, // childReportID
+                undefined // reportPreviewReportActionID - will be added when backend supports it
             );
 
             // Update optimistic report with parentReportActionID
@@ -12302,7 +12305,12 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${rejectedToReportID}`,
-                value: optimisticReport as OnyxTypes.Report,
+                value: {
+                    ...optimisticReport,
+                    parentReportID: report?.chatReportID,
+                    parentReportActionID: reportPreviewAction.reportActionID,
+                    chatReportID: report?.chatReportID,
+                } as OnyxTypes.Report,
             });
 
             // Add optimistic metadata for the new report
@@ -12316,6 +12324,25 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
             // Add report actions to the new optimistic report
             const newReportActions: Record<string, OnyxTypes.ReportAction> = {};
+
+            // Add CREATED action for the new report (matches online response)
+            const createdAction = buildOptimisticCreatedReportAction(
+                reportOwnerLogin,
+                DateUtils.getDBTime()
+            );
+            newReportActions[createdAction.reportActionID] = createdAction;
+
+            // Add IOU action for the moved transaction (matches online response)
+            const iouAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: -transactionAmount,
+                currency: report?.currency ?? CONST.CURRENCY.USD,
+                comment: typeof transaction?.comment === 'string' ? transaction.comment : '',
+                participants: [{accountID: report?.ownerAccountID ?? 0}, {accountID: 0}],
+                transactionID,
+                iouReportID: rejectedToReportID,
+            });
+            newReportActions[iouAction.reportActionID] = iouAction;
 
             // Add the "rejected this expense" action
             newReportActions[optimisticRejectReportAction.reportActionID] = optimisticRejectReportAction as OnyxTypes.ReportAction;
@@ -12339,6 +12366,33 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rejectedToReportID}`,
                 value: newReportActions,
+            });
+
+
+            // Add personal details for participants (matches online response)
+            const optimisticPersonalDetails: Record<string, OnyxTypes.PersonalDetails> = {};
+            Object.keys(optimisticReport.participants ?? {}).forEach(accountID => {
+                const personalDetail = allPersonalDetails[accountID];
+                if (personalDetail) {
+                    optimisticPersonalDetails[accountID] = personalDetail;
+                }
+            });
+
+            if (Object.keys(optimisticPersonalDetails).length > 0) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: optimisticPersonalDetails,
+                });
+            }
+
+            // Add report name value pairs for proper linking (matches online response)
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rejectedToReportID}`,
+                value: {
+                    parentReportID: report?.chatReportID,
+                },
             });
 
             // Add report preview action to parent report (chat report)
