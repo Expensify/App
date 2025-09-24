@@ -3092,11 +3092,13 @@ const translations = {
         selectIncorporationCountry: 'Wybierz kraj rejestracji',
         selectIncorporationState: 'Wybierz stan rejestracji',
         selectAverageReimbursement: 'Wybierz średnią kwotę zwrotu',
+        selectBusinessType: 'Wybierz typ działalności',
         findIncorporationType: 'Znajdź rodzaj inkorporacji',
         findBusinessCategory: 'Znajdź kategorię biznesową',
         findAnnualPaymentVolume: 'Znajdź roczny wolumen płatności',
         findIncorporationState: 'Znajdź stan rejestracji',
         findAverageReimbursement: 'Znajdź średnią kwotę zwrotu',
+        findBusinessType: 'Znajdź typ działalności',
         error: {
             registrationNumber: 'Proszę podać prawidłowy numer rejestracyjny',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {

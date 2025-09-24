@@ -600,6 +600,7 @@ const CONST = {
                 NATURE_OF_BUSINESS: 'NatureOfBusiness',
                 PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
                 TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+                BUSINESS_TYPE: 'BusinessType',
             },
         },
         BENEFICIAL_OWNER_INFO_STEP: {

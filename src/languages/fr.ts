@@ -3089,11 +3089,13 @@ const translations = {
         selectIncorporationCountry: "Sélectionnez le pays d'incorporation",
         selectIncorporationState: "Sélectionnez l'état d'incorporation",
         selectAverageReimbursement: 'Sélectionner le montant moyen de remboursement',
+        selectBusinessType: "Sélectionner le type d'entreprise",
         findIncorporationType: "Trouver le type d'incorporation",
         findBusinessCategory: "Trouver la catégorie d'entreprise",
         findAnnualPaymentVolume: 'Trouver le volume de paiement annuel',
         findIncorporationState: "Trouver l'état d'incorporation",
         findAverageReimbursement: 'Trouver le montant moyen de remboursement',
+        findBusinessType: "Trouver le type d'entreprise",
         error: {
             registrationNumber: "Veuillez fournir un numéro d'enregistrement valide",
             taxIDEIN: ({country}: BusinessTaxIDParams) => {

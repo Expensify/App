@@ -3069,11 +3069,13 @@ const translations = {
         selectIncorporationCountry: 'Seleccione país de constitución',
         selectIncorporationState: 'Seleccione estado de constitución',
         selectAverageReimbursement: 'Selecciona el monto promedio de reembolso',
+        selectBusinessType: 'Seleccionar tipo de negocio',
         findIncorporationType: 'Buscar tipo de constitución',
         findBusinessCategory: 'Buscar categoría de la empresa',
         findAnnualPaymentVolume: 'Buscar volumen anual de pagos',
         findIncorporationState: 'Buscar estado de constitución',
         findAverageReimbursement: 'Encuentra el monto promedio de reembolso',
+        findBusinessType: 'Buscar tipo de negocio',
         error: {
             registrationNumber: 'Por favor, proporciona un número de registro válido',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
