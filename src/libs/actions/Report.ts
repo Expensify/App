@@ -5213,6 +5213,7 @@ function moveIOUReportToPolicy(reportID: string, policy: Policy, isFromSettlemen
 
     // Generate new variables for the policy
     const policyName = policy.name ?? '';
+    const policyID = policy.id;
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
     const expenseChatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
@@ -5233,6 +5234,7 @@ function moveIOUReportToPolicy(reportID: string, policy: Policy, isFromSettlemen
     // - change the sign of the report total
     // - update its policyID and policyName
     // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
+    // - if the manager and new policy approver are not the same, we also need to update state and status to OPEN and set the new managerID
     const expenseReport = {
         ...iouReport,
         chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
@@ -5242,6 +5244,13 @@ function moveIOUReportToPolicy(reportID: string, policy: Policy, isFromSettlemen
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
     };
+
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, true);
+    if (iouReport.managerID !== nextApproverAccountID) {
+        expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
+        expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
+        expenseReport.managerID = nextApproverAccountID;
+    }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
     if (!!titleReportField && isPaidGroupPolicy(policy)) {
