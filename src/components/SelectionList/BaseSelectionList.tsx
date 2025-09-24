@@ -4,12 +4,10 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
-    NativeSyntheticEvent,
     SectionList as RNSectionList,
     TextInput as RNTextInput,
     SectionListData,
-    SectionListRenderItemInfo,
-    TextInputKeyPressEventData,
+    SectionListRenderItemInfo, TextInputKeyPressEvent,
 } from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -701,7 +699,7 @@ function BaseSelectionList<TItem extends ListItem>({
         return null;
     };
 
-    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
             focusedItemRef?.focus();

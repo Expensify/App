@@ -2,7 +2,7 @@ import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
@@ -85,7 +85,7 @@ function Composer(
     }, []);
 
     const onClear = useCallback(
-        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+        ({nativeEvent}: TextInputChangeEvent) => {
             onClearProp(nativeEvent.text);
         },
         [onClearProp],
