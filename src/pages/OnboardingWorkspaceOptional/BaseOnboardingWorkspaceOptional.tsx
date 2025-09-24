@@ -87,6 +87,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
+            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
         });
 
         setOnboardingAdminsChatReportID();

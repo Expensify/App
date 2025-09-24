@@ -2,7 +2,8 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
@@ -167,6 +168,11 @@ type ButtonProps = Partial<ChildrenProps> & {
      * Reference to the outer element.
      */
     ref?: ForwardedRef<View>;
+
+    /**
+     * Whether the button should stay visually normal even when disabled.
+     */
+    shouldStayNormalOnDisable?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -271,6 +277,7 @@ function Button({
     isNested = false,
     secondLineText = '',
     shouldBlendOpacity = false,
+    shouldStayNormalOnDisable = false,
     ref,
     ...rest
 }: ButtonProps) {
@@ -389,8 +396,8 @@ function Button({
             StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
-            isDisabled ? styles.buttonOpacityDisabled : undefined,
-            isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
+            isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
+            isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
             shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
             shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
             text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
@@ -413,6 +420,7 @@ function Button({
             styles,
             success,
             text,
+            shouldStayNormalOnDisable,
         ],
     );
 
@@ -483,7 +491,7 @@ function Button({
                 shouldBlendOpacity={shouldBlendOpacity}
                 disabled={isLoading || isDisabled}
                 wrapperStyle={[
-                    isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
+                    isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
                     shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
@@ -491,20 +499,24 @@ function Button({
                 ]}
                 style={buttonContainerStyles}
                 isNested={isNested}
-                hoverStyle={[
-                    shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
-                    success && !isDisabled ? styles.buttonSuccessHovered : undefined,
-                    danger && !isDisabled ? styles.buttonDangerHovered : undefined,
-                    hoverStyles,
-                ]}
-                disabledStyle={disabledStyle}
+                hoverStyle={
+                    !isDisabled || !shouldStayNormalOnDisable
+                        ? [
+                              shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
+                              success && !isDisabled ? styles.buttonSuccessHovered : undefined,
+                              danger && !isDisabled ? styles.buttonDangerHovered : undefined,
+                              hoverStyles,
+                          ]
+                        : []
+                }
+                disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
                 role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
-                onHoverIn={() => setIsHovered(true)}
-                onHoverOut={() => setIsHovered(false)}
+                onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
+                onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
