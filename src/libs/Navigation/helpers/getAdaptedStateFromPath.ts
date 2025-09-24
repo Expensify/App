@@ -70,20 +70,26 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
+    // Handle verify-account routes by extracting the underlying route and matching it to a full screen route
     if (route.path?.includes(`/${VERIFY_ACCOUNT}`)) {
+        // Remove the verify-account suffix to get the original route path
         const pathWithoutVerifyAccount = route.path.replace(`/${VERIFY_ACCOUNT}`, '');
         const stateUnderVerifyAccount = getStateFromPath(pathWithoutVerifyAccount as RoutePath);
         const lastRoute = stateUnderVerifyAccount?.routes.at(-1);
+
+        // Ensure we have a valid state and route that's not a 404
         if (!stateUnderVerifyAccount || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
             return undefined;
         }
 
         const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
 
+        // If the underlying route is already a full screen route, use it directly
         if (isLastRouteFullScreen) {
             return lastRoute;
         }
 
+        // Otherwise, find the focused route and recursively get its matching full screen route
         const focusedStateForVerifyAccountRoute = findFocusedRoute(stateUnderVerifyAccount);
 
         if (!focusedStateForVerifyAccountRoute) {
