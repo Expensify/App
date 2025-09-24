@@ -3596,8 +3596,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Zawieszone',
                 },
                 invitationFailure: 'Nie udało się zaprosić członków do Uber for Business',
-                autoRemove: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
-                autoInvite: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
+                autoInvite: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
+                autoRemove: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
                 bannerTitle: 'Expensify + Uber dla firm',
                 bannerDescription: 'Połącz się z Uberem dla Firm, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej organizacji.',
                 emptyContent: {

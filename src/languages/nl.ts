@@ -3603,8 +3603,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Opgeschort',
                 },
                 invitationFailure: 'Kon leden niet uitnodigen voor Uber for Business',
-                autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
-                autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
+                autoInvite: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
+                autoRemove: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
                 bannerTitle: 'Expensify + Uber voor bedrijven',
                 bannerDescription: 'Sluit Uber for Business aan om de kosten voor reizen en maaltijdbezorging binnen uw organisatie te automatiseren.',
                 emptyContent: {
