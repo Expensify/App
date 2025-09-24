@@ -160,9 +160,9 @@ function shouldComputeReportName(report: Report, context: UpdateContext, working
     }
 
     // Only compute names for expense reports with policies that have title fields
-    // Check if the policy has a title field with a formula
-    const titleField = getTitleFieldFromRNVP(report.reportID, context, workingUpdates);
-    if (!titleField?.defaultValue) {
+    // Check if the report has a title field with a formula in rNVP
+    const reportTitleField = getTitleFieldFromRNVP(report.reportID, context, workingUpdates);
+    if (!reportTitleField?.defaultValue) {
         return false;
     }
     return true;
@@ -199,13 +199,10 @@ function computeReportNameIfNeeded(report: Report | undefined, context: UpdateCo
     }
 
     const titleField = getTitleFieldFromRNVP(targetReport.reportID, context, workingUpdates);
-    if (!titleField?.defaultValue) {
-        return null;
-    }
 
     // Quick check: see if the update might affect the report name
     const updateType = determineObjectTypeByKey(incomingUpdate.key);
-    const formula = titleField.defaultValue;
+    const formula = titleField?.defaultValue;
     const formulaParts = parse(formula);
 
     let transaction: Transaction | undefined;

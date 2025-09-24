@@ -61,10 +61,10 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
     }
 
     // Get the policy's title field configuration
-    const policyTitleField = getTitleReportField(policy.fieldList ?? {});
+    const reportTitleField = getTitleReportField(policy.fieldList ?? {});
 
     // Early return if policy doesn't have a title field
-    if (!policyTitleField) {
+    if (!reportTitleField) {
         return [];
     }
 
@@ -75,7 +75,7 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                expensify_text_title: policyTitleField,
+                expensify_text_title: reportTitleField,
             },
         },
     ];
@@ -84,8 +84,7 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
 }
 
 /**
- * Remove title field from report's rNVP when report is manually renamed
- * This indicates the report should preserve its custom name
+ * Remove title field from report's rNVP when report is manually renamed to indicate that the manual name should be preserved, and the custom report name formula should no longer update the name.
  */
 function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
     if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
@@ -125,8 +124,8 @@ function shouldUpdateTitleField(report: Report): boolean {
     // Skip if report has statement card ID (backend check: !getValue(db, reportID, NVP_STATEMENT_CARD_ID).empty())
     // This would need to be implemented based on how statement card IDs are stored in the frontend
 
-    const policyTitleField = getTitleFieldFromRNVP(report.reportID);
-    if (!policyTitleField) {
+    const reportTitleField = getTitleFieldFromRNVP(report.reportID);
+    if (!reportTitleField) {
         return false;
     }
 
