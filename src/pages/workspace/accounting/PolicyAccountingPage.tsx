@@ -408,7 +408,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         shouldShowCardReconciliationOption,
         shouldShowSynchronizationError,
         synchronizationError,
-        theme.spinner,
         overflowMenu,
         integrationSpecificMenuItems,
         accountingIntegrations,

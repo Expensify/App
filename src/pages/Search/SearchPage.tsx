@@ -50,7 +50,6 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -401,10 +400,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        // TODO: change this condition after the feature is ready to be deployed
-        const canAllTransactionsBeMoved = Permissions.canUseUnreportedExpense()
-            ? selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport) && !!activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL
-            : selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
             options.push({
