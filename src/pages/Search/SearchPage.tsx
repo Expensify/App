@@ -445,6 +445,7 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
+        activePolicy,
         selectedTransactionsKeys,
         status,
         hash,
