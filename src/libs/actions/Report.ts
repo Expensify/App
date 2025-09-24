@@ -5871,6 +5871,7 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
         value: {
             [optimisticReportPreviewAction.reportActionID]: {
                 pendingAction: null,
+                isOptimisticAction: false,
             },
         },
     });
