@@ -3695,6 +3695,10 @@ const styles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
+        height4: {
+            height: 16,
+        },
+
         searchListContentContainerStyles: {
             paddingTop: variables.searchListContentMarginTop,
         },

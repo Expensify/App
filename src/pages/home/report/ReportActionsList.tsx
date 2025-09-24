@@ -782,7 +782,10 @@ function ReportActionsList({
                 fsClass={reportActionsListFSClass}
             >
                 {shouldScrollToEndAfterLayout && topReportAction ? (
-                    <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                    <>
+                        {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
+                        <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                    </>
                 ) : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
