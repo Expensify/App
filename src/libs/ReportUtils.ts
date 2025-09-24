@@ -10372,6 +10372,7 @@ function prepareOnboardingOnyxData(
     wasInvited?: boolean,
     companySize?: OnboardingCompanySize,
     selectedInterestedFeatures: string[] = [],
+    isInvitedAccountant?: boolean,
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -10522,6 +10523,10 @@ function prepareOnboardingOnyxData(
 
             if (task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR && onboarding?.selfTourViewed) {
                 // If the user has already viewed the self tour, we mark the task as auto completed
+                isTaskAutoCompleted = true;
+            }
+
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.INVITE_ACCOUNTANT && isInvitedAccountant) {
                 isTaskAutoCompleted = true;
             }
 
