@@ -1,3 +1,4 @@
+import {activePolicySelector} from '@selectors/Policy';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
@@ -42,7 +43,7 @@ function IOURequestStepTaxRatePage({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+        selector: activePolicySelector,
     });
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const policy = isExpenseUnreported ? activePolicy : reportPolicy;
