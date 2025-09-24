@@ -1111,8 +1111,8 @@ function MoneyReportHeader({
                 }
 
                 showConfirmModal({
-                    title: translate('iou.deleteExpense', {count: transactionCount}),
-                    prompt: translate('iou.deleteConfirmation', {count: transactionCount}),
+                    title: translate('iou.deleteReport'),
+                    prompt: translate('iou.deleteReportConfirmation'),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     danger: true,
