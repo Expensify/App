@@ -179,7 +179,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             return '';
         }
         return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy, isFromReviewDuplicates);
-    }, [parentReport, policy, report, transaction, transactionViolations, route.params.backTo]);
+    }, [parentReport, policy, report, transaction, transactionViolations, isFromReviewDuplicates]);
 
     const primaryActionImplementation = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
