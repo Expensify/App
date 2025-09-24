@@ -28,8 +28,8 @@ describe('BaseListItem', () => {
         );
         const testID = `${CONST.BASE_LIST_ITEM_TEST_ID}1`;
         fireEvent(screen.getByTestId(testID), 'mouseEnter');
-        expect(mouseEnterMock).toBeCalled();
+        expect(mouseEnterMock).toHaveBeenCalled();
         fireEvent(screen.getByTestId(testID), 'mouseLeave', {stopPropagation: jest.fn()});
-        expect(mouseLeaveMock).toBeCalled();
+        expect(mouseLeaveMock).toHaveBeenCalled();
     });
 });
