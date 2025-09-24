@@ -70,7 +70,7 @@ type MoneyRequestHeaderProps = {
     parentReportAction: OnyxEntry<ReportAction>;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: (shouldDismissModalInNarrowPaneModal?: boolean) => void;
+    onBackButtonPress: (prioritizeModalDismiss?: boolean) => void;
 };
 
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {

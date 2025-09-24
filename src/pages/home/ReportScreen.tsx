@@ -357,12 +357,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [report]);
 
     const backTo = route?.params?.backTo as string;
-    const onBackButtonPress = useCallback((shouldDismissModalInNarrowPaneModal = false) => {
+    const onBackButtonPress = useCallback((prioritizeModalDismiss = false) => {
         if (backTo === SCREENS.SEARCH.REPORT_RHP) {
             Navigation.goBack();
             return;
         }
-        if (shouldDismissModalInNarrowPaneModal && isInNarrowPaneModal) {
+        if (prioritizeModalDismiss && isInNarrowPaneModal) {
             Navigation.dismissModal();
             return;
         }
