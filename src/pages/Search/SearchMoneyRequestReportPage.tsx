@@ -50,6 +50,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+    const shouldWaitForReportSync = report?.reportID !== reportIDFromRoute;
+
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -132,6 +134,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     reportMetadata={reportMetadata}
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                    shouldWaitForReportSync={shouldWaitForReportSync}
+                                    key={report?.reportID}
                                     backToRoute={route.params.backTo}
                                 />
                             </DragAndDropProvider>
@@ -167,6 +171,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         reportMetadata={reportMetadata}
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                        shouldWaitForReportSync={shouldWaitForReportSync}
+                                        key={report?.reportID}
                                         backToRoute={route.params.backTo}
                                     />
                                 </View>
