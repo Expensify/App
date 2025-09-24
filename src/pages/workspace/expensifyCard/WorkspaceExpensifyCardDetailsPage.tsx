@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
@@ -57,7 +57,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const [isDeleted, setIsDeleted] = useState(false);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
@@ -79,24 +78,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
-    useEffect(() => {
-        if (!isDeleted) {
-            return;
-        }
-        return () => {
-            deactivateCardAction(defaultFundID, card);
-        };
-    }, [isDeleted, defaultFundID, card]);
-
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
-        setIsDeleted(true);
         setIsDeactivateModalVisible(false);
-        requestAnimationFrame(() => {
-            Navigation.goBack();
+        Navigation.goBack();
+        InteractionManager.runAfterInteractions(() => {
+            deactivateCardAction(defaultFundID, card);
         });
     };
 
