@@ -1693,7 +1693,9 @@ type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
 };
 
 type ConnectExistingBankAccountNavigatorParamList = {
-    [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {policyID?: string};
+    [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
+        policyID: string;
+    };
 };
 
 type WalletStatementNavigatorParamList = {

@@ -163,8 +163,8 @@ const ROUTES = {
         },
     },
     BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
-        route: 'bank-account/:policyID/connect-existing-business-bank-account',
-        getRoute: (policyID: string) => `bank-account/${policyID}/connect-existing-business-bank-account` as const,
+        route: 'bank-account/connect-existing-business-bank-account',
+        getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',

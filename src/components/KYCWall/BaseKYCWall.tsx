@@ -167,7 +167,7 @@ function KYCWall({
                 // If user has a setup in progress we do not show them the option to connect existing account
                 const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
                 if (policy !== undefined && hasInProgressVBBA(reimbursementAccount?.achData, isNonUSDWorkspace, reimbursementAccountDraft?.country ?? '')) {
-                    navigateToBankAccountRoute(policy?.id);
+                    navigateToBankAccountRoute(policy.id);
                     return;
                 }
 

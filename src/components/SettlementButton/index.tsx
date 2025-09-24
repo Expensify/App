@@ -456,10 +456,9 @@ function SettlementButton({
                 return;
             }
 
-            const bankAccountConnectedToPolicy = (formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) as BankAccount)?.accountData?.accountNumber;
-            if (bankAccountConnectedToPolicy) {
+            if (bankAccountToDisplay?.accountData?.accountNumber) {
                 return translate('paymentMethodList.bankAccountLastFour', {
-                    lastFour: bankAccountConnectedToPolicy.slice(-4),
+                    lastFour: bankAccountToDisplay.accountData.accountNumber.slice(-4),
                 });
             }
 
