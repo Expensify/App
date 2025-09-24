@@ -851,8 +851,15 @@ function MoneyRequestView({
                                 }
 
                                 if (!policy) {
-                                    // TODO: fix it later
-                                    Navigation.navigate(ROUTES.MONEY_REQUEST_UPGRADE.getRoute());
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                            iouType,
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            transactionID: transaction?.transactionID,
+                                            reportID: report.reportID,
+                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                        }),
+                                    );
                                     return;
                                 }
 
