@@ -226,7 +226,7 @@ function IOURequestStepParticipants({
             // So we are resetting selectedReportID ref to the reportID coming from params.
             // For invoices, a valid participant must have a login.
 
-            const hasOneValidParticipant = iouType === CONST.IOU.TYPE.INVOICE ? val.filter((item) => !!item.login).length !== 1 : val.length !== 1;
+            const hasOneValidParticipant = iouType === CONST.IOU.TYPE.INVOICE && selectedReportID.current !== reportID ? val.filter((item) => !!item.login).length !== 1 : val.length !== 1;
 
             if (hasOneValidParticipant && !isInvoice) {
                 selectedReportID.current = reportID;
