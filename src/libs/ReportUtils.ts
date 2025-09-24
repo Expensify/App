@@ -156,7 +156,6 @@ import {
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
-    getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
@@ -191,7 +190,6 @@ import {
     isActionOfType,
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
-    isClosedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -3852,16 +3850,6 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
     }
 
     return report?.reportName;
-}
-
-function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {
-    const lastClosedReportAction = getLastClosedReportAction(reportActions);
-
-    if (!lastClosedReportAction) {
-        return undefined;
-    }
-
-    return isClosedAction(lastClosedReportAction) ? getOriginalMessage(lastClosedReportAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
 }
 
 /**
@@ -12075,7 +12063,6 @@ export {
     getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
-    getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
     hasOutstandingChildRequest,
