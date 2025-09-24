@@ -19,6 +19,7 @@ import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/typ
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -67,6 +68,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
     );
 
+    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
@@ -74,7 +76,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
     });
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
