@@ -44,7 +44,7 @@ function useSearchHighlightAndScroll({
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
-    const hasNewItemsRef = useRef(false);
+    const newTransactionIDsRef = useRef<string[]>([]);
     const previousSearchResults = usePrevious(searchResults?.data);
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
@@ -126,8 +126,8 @@ function useSearchHighlightAndScroll({
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
-            if ((!isChat && hasTransactionsIDsChange) || (isChat && hasReportActionsIDsChange)) {
-                hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+            if (!isChat && hasTransactionsIDsChange) {
+                newTransactionIDsRef.current.push(...transactionsIDs.filter((id) => !previousTransactionsIDs.includes(id)).map((id) => id.replace(ONYXKEYS.COLLECTION.TRANSACTION, '')));
             }
 
             // Set the flag indicating the search is triggered by the hook
@@ -179,7 +179,7 @@ function useSearchHighlightAndScroll({
             // Find new report action IDs that are not in the previousReportActionIDs and not already highlighted
             const newReportActionIDs = currentReportActionIDs.filter((id) => !previousReportActionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newReportActionIDs.length === 0 || !hasNewItemsRef.current) {
+            if (!triggeredByHookRef.current || newReportActionIDs.length === 0) {
                 return;
             }
 
@@ -193,12 +193,16 @@ function useSearchHighlightAndScroll({
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
 
             // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
-            const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id));
+            const newTransactionIDs = currentTransactionIDs.filter(
+                (id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id) && newTransactionIDsRef.current.includes(id),
+            );
 
-            if (!triggeredByHookRef.current || newTransactionIDs.length === 0 || !hasNewItemsRef.current) {
+            if (!triggeredByHookRef.current || newTransactionIDs.length === 0) {
                 return;
             }
 
+            // As the new transactions are going to be highlighted below, which would make them obsolete, we will remove them from newTransactionIDsRef.
+            newTransactionIDsRef.current = newTransactionIDsRef.current.filter((id) => !newTransactionIDs.includes(id));
             const newTransactionID = newTransactionIDs.at(0) ?? '';
             const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
 
@@ -256,7 +260,7 @@ function useSearchHighlightAndScroll({
             });
 
             // Early return if the new item is not found in the data array
-            if (indexOfNewItem <= 0) {
+            if (indexOfNewItem < 0) {
                 return;
             }
 
