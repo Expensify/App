@@ -386,7 +386,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 )}
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
-                    onClose={() => clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
+                    onClose={() => clearPolicyTagListErrors({policyID, tagListIndex: currentPolicyTag.orderWeight, policyTags})}
                     pendingAction={currentPolicyTag.pendingAction}
                     errorRowStyles={styles.mh5}
                 >

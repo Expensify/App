@@ -73,7 +73,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
             {!isMultiLevelTags && (
                 <OfflineWithFeedback
                     errors={policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors}
-                    onClose={() => clearPolicyTagListErrors(policyID, policyTagLists.at(0)?.orderWeight ?? 0)}
+                    onClose={() => clearPolicyTagListErrors({policyID, tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0, policyTags})}
                     pendingAction={policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction}
                     errorRowStyles={styles.mh5}
                 >
