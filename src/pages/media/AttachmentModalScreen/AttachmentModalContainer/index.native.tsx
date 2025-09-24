@@ -8,7 +8,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose}: AttachmentModalContainerProps<Screen>) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose, ExtraContent}: AttachmentModalContainerProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : (contentProps.source?.toString() ?? '');
 
@@ -36,17 +36,20 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     }, [onShow]);
 
     return (
-        <ScreenWrapper
-            navigation={navigation}
-            testID={`attachment-modal-${testID}`}
-            enableEdgeToEdgeBottomSafeAreaPadding
-        >
-            <AttachmentModalBaseContent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...contentProps}
-                onClose={closeScreen}
-            />
-        </ScreenWrapper>
+        <>
+            <ScreenWrapper
+                navigation={navigation}
+                testID={`attachment-modal-${testID}`}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <AttachmentModalBaseContent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...contentProps}
+                    onClose={closeScreen}
+                />
+            </ScreenWrapper>
+            {ExtraContent}
+        </>
     );
 }
 

@@ -699,6 +699,51 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
     });
 };
 
+function getFilesFromClipboardEvent(event: DragEvent) {
+    if (event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+        const files = Array.from(event.dataTransfer?.files).map((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+            return file;
+        });
+        return files;
+    }
+
+    const data = event.dataTransfer?.files[0];
+    if (data) {
+        data.uri = URL.createObjectURL(data);
+        return [data];
+    }
+
+    return [];
+}
+
+function cleanFileObject(fileObject: FileObject): FileObject {
+    if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
+        return fileObject.getAsFile() as FileObject;
+    }
+
+    return fileObject;
+}
+
+function cleanFileObjectName(fileObject: FileObject): FileObject {
+    if (fileObject instanceof File) {
+        const cleanName = cleanFileName(fileObject.name);
+        if (fileObject.name !== cleanName) {
+            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+            const inputSource = URL.createObjectURL(updatedFile);
+            updatedFile.uri = inputSource;
+            return updatedFile;
+        }
+        if (!fileObject.uri) {
+            const inputSource = URL.createObjectURL(fileObject);
+            // eslint-disable-next-line no-param-reassign
+            fileObject.uri = inputSource;
+        }
+    }
+    return fileObject;
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -728,4 +773,7 @@ export {
     hasHeicOrHeifExtension,
     getConfirmModalPrompt,
     canvasFallback,
+    getFilesFromClipboardEvent,
+    cleanFileObject,
+    cleanFileObjectName,
 };
