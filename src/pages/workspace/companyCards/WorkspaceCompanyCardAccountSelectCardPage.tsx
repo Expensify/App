@@ -2,13 +2,13 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {TeleScope} from '@components/Icon/Illustrations';
+import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +32,7 @@ type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<Setti
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const {policyID, cardID, backTo} = route.params;
     const bank = decodeURIComponent(route.params.bank);
     const policy = usePolicy(policyID);
@@ -89,21 +90,18 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             headerContent={
                 <View style={[styles.mh5, styles.mb3]}>
                     {!!exportMenuItem?.description && (
-                        <Text style={[styles.textNormal]}>
-                            {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
-                            {!!exportMenuItem && !isXeroConnection && (
-                                <>
-                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitlePart')}{' '}
-                                    <TextLink
-                                        style={styles.link}
-                                        onPress={exportMenuItem.onExportPagePress}
-                                    >
-                                        {translate('workspace.moreFeatures.companyCards.integrationExportTitleLinkPart')}{' '}
-                                    </TextLink>
-                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitleSecondPart')}
-                                </>
-                            )}
-                        </Text>
+                        <View style={[styles.renderHTML, styles.flexRow]}>
+                            <RenderHTML
+                                html={
+                                    isXeroConnection
+                                        ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', {integration: exportMenuItem.description})
+                                        : translate('workspace.moreFeatures.companyCards.integrationExportTitle', {
+                                              integration: exportMenuItem.description,
+                                              exportPageLink: `${environmentURL}/${exportMenuItem.exportPageLink}`,
+                                          })
+                                }
+                            />
+                        </View>
                     )}
                 </View>
             }

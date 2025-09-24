@@ -24,6 +24,7 @@ import {
     canAddTransaction,
     canEditReportPolicy,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -212,7 +213,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, true));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -540,6 +541,12 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
         return false;
     }
 
+    // Temporary disable merge action for IOU reports
+    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    if (isIOUReportUtils(parentReport)) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -660,6 +667,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
+    if (canRejectReportAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
+    }
+
     if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
@@ -689,13 +700,7 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(
-    report: Report,
-    policy?: Policy,
-    reportActions?: ReportAction[],
-    integrationsExportTemplates?: ExportTemplate[],
-    customInAppTemplates?: ExportTemplate[],
-): Array<ValueOf<string>> {
+function getSecondaryExportReportActions(report: Report, policy?: Policy, exportTemplates: ExportTemplate[] = []): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
@@ -705,20 +710,11 @@ function getSecondaryExportReportActions(
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     // Add any custom IS templates that have been added to the user's account as export options
-    if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-        for (const template of integrationsExportTemplates) {
-            options.push(template.name);
-        }
-    }
-
-    // Add any in-app export templates that the user has created as export options
-    if (customInAppTemplates && customInAppTemplates.length > 0) {
-        for (const template of customInAppTemplates) {
-            options.push(template.name);
-        }
+    for (const template of exportTemplates) {
+        options.push(template.name);
     }
 
     return options;
@@ -739,6 +735,10 @@ function getSecondaryTransactionThreadActions(
 
     if (transactionThreadReport && isRemoveHoldActionForTransaction(transactionThreadReport, reportTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
+    if (canRejectReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     if (isSplitAction(parentReport, [reportTransaction], policy)) {
