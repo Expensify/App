@@ -19,7 +19,6 @@
 #### Additional Reading
 * [Application Philosophy](contributingGuides/philosophies/INDEX.md)
 * [API Details](contributingGuides/API.md)
-* [Offline First](contributingGuides/philosophies/OFFLINE.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](CLA.md)
