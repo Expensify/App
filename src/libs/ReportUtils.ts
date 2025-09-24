@@ -9785,12 +9785,12 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
     // 2. For expense reports with negative totals, we need to ensure the unheld amount is valid
     //    by checking that the absolute values are meaningful and different
     const hasHeldExpensesLocal = unheldTotal !== total;
-    const hasValidNonHeldAmount = hasHeldExpensesLocal && (
+    const hasValidNonHeldAmount =
+        hasHeldExpensesLocal &&
         // For normal cases (positive amounts or IOU reports)
-        adjustedUnheldTotal >= 0 ||
-        // For expense reports with negative amounts, check if amounts are meaningful
-        (isExpenseReport(iouReport) && Math.abs(adjustedUnheldTotal) > 0 && Math.abs(adjustedUnheldTotal) !== Math.abs(adjustedTotal))
-    );
+        (adjustedUnheldTotal >= 0 ||
+            // For expense reports with negative amounts, check if amounts are meaningful
+            (isExpenseReport(iouReport) && Math.abs(adjustedUnheldTotal) > 0 && Math.abs(adjustedUnheldTotal) !== Math.abs(adjustedTotal)));
 
     return {
         nonHeldAmount: convertToDisplayString(adjustedUnheldTotal, iouReport?.currency),
