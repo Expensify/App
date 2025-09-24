@@ -841,7 +841,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={isExpenseUnreported ? '' : (getReportName(actualParentReport) || actualParentReport?.reportName)}
+                            title={isExpenseUnreported ? '' : getReportName(actualParentReport) || actualParentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

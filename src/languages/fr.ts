@@ -5554,7 +5554,8 @@ const translations = {
             },
             reports: {
                 title: 'Rapports',
-                description: 'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
+                description:
+                    'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
                 onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
             },
             multiLevelTags: {
