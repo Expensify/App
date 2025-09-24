@@ -1,6 +1,6 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -80,6 +80,9 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>;
 };
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
@@ -92,10 +95,17 @@ const DEFAULT_MODAL_VALUE = {
     isVisible: false,
 };
 
-function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, originalReportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
-) {
+function ReportActionItemMessageEdit({
+    action,
+    draftMessage,
+    reportID,
+    originalReportID,
+    policyID,
+    index,
+    isGroupPolicyReport,
+    shouldDisableEmojiPicker = false,
+    ref,
+}: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -469,11 +479,11 @@ function ReportActionItemMessageEdit(
                             multiline
                             ref={(el: TextInput & HTMLTextAreaElement) => {
                                 textInputRef.current = el;
-                                if (typeof forwardedRef === 'function') {
-                                    forwardedRef(el);
-                                } else if (forwardedRef) {
+                                if (typeof ref === 'function') {
+                                    ref(el);
+                                } else if (ref) {
                                     // eslint-disable-next-line no-param-reassign
-                                    forwardedRef.current = el;
+                                    ref.current = el;
                                 }
                             }}
                             onChangeText={updateDraft} // Debounced saveDraftComment
@@ -588,4 +598,4 @@ function ReportActionItemMessageEdit(
 
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default forwardRef(ReportActionItemMessageEdit);
+export default ReportActionItemMessageEdit;
