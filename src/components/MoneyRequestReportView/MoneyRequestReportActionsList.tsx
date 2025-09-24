@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/prefer-early-return */
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -148,7 +149,7 @@ function MoneyRequestReportActionsList({
     });
 
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
@@ -169,6 +170,7 @@ function MoneyRequestReportActionsList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
@@ -207,6 +209,7 @@ function MoneyRequestReportActionsList({
         allTransactionsLength: transactions.length,
         session,
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
     });
@@ -501,7 +504,7 @@ function MoneyRequestReportActionsList({
                 }
             });
         },
-        [reportScrollManager, setIsFloatingMessageCounterVisible],
+        [reportScrollManager, setIsFloatingMessageCounterVisible, visibleReportActions],
     );
 
     useEffect(() => {
@@ -607,6 +610,8 @@ function MoneyRequestReportActionsList({
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
+
+    const reportHasComments = visibleReportActions.length > 0;
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -743,8 +748,9 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     violations={violations}
+                                    hasComments={reportHasComments}
+                                    isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
-                                    policy={policy}
                                 />
                             </>
                         }
@@ -765,6 +771,15 @@ function MoneyRequestReportActionsList({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={offlineModalVisible}
+                onClose={() => setOfflineModalVisible(false)}
             />
             <ConfirmModal
                 onConfirm={() => {

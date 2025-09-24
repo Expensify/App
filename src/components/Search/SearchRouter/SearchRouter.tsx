@@ -30,6 +30,7 @@ import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
+import {getPolicyNameByID} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -55,6 +56,9 @@ function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
         return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
     }
+    if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${item.policyID ? getPolicyNameByID(item.policyID) : ''}`;
+    }
 }
 
 function getContextualSearchQuery(item: SearchQueryItem) {
@@ -63,9 +67,11 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(item.policyID ? getPolicyNameByID(item.policyID) : '')}`;
+            break;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
-            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
+            if (item.autocompleteID) {
                 additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
             }
             break;
