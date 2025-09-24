@@ -2540,7 +2540,11 @@ function getEmptyOptions(): Options {
 
 function shouldUseBoldText(report: SearchOptionData): boolean {
     const notificationPreference = report.notificationPreference ?? getReportNotificationPreference(report);
-    return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
+    return (
+        report.isUnread === true &&
+        ((notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference)) ||
+            (report.transactionThreadNotificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(report.transactionThreadNotificationPreference)))
+    );
 }
 
 function getManagerMcTestParticipant(): Participant | undefined {

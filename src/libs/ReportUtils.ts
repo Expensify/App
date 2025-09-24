@@ -807,6 +807,7 @@ type OptionData = {
     enabled?: boolean;
     code?: string;
     transactionThreadReportID?: string | null;
+    transactionThreadNotificationPreference?: NotificationPreference | null;
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;

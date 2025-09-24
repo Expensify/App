@@ -646,6 +646,7 @@ function getOptionData({
         isAllowedToComment: true,
         isDeletedParentAction: false,
         isConciergeChat: false,
+        transactionThreadNotificationPreference: null,
     };
     const reportMetadata = getReportMetadata(report?.reportID);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
@@ -686,6 +687,7 @@ function getOptionData({
     result.parentReportID = report.parentReportID;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = getReportNotificationPreference(report);
+    result.transactionThreadNotificationPreference = getReportNotificationPreference(oneTransactionThreadReport);
     result.isAllowedToComment = canUserPerformWriteActionUtil(report, isReportArchived);
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;

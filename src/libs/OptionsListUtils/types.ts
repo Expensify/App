@@ -72,6 +72,7 @@ type SearchOptionData = Pick<
     | 'private_isArchived'
     | 'lastVisibleActionCreated'
     | 'notificationPreference'
+    | 'transactionThreadNotificationPreference'
     | 'lastMessageText'
     | 'lastIOUCreationDate'
 
