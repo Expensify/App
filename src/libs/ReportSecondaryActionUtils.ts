@@ -400,15 +400,15 @@ function isHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTrans
         return false;
     }
 
-    return !!reportActions && isHoldActionForTransaction(report, transaction, reportActions);
+    const action = !!reportActions && getIOUActionForTransactionID(reportActions, transaction.transactionID);
+    return !!action && isHoldActionForTransaction(report, transaction, action);
 }
 
-function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportActions: ReportAction[]): boolean {
+function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportAction: ReportAction): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
-    const action = getIOUActionForTransactionID(reportActions, reportTransaction.transactionID);
-    const {canHoldRequest} = canHoldUnholdReportAction(action);
+    const {canHoldRequest} = canHoldUnholdReportAction(reportAction);
 
     if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
@@ -723,13 +723,13 @@ function getSecondaryExportReportActions(report: Report, policy?: Policy, export
 function getSecondaryTransactionThreadActions(
     parentReport: Report,
     reportTransaction: Transaction,
-    reportActions: ReportAction[],
+    reportAction: ReportAction | undefined,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (isHoldActionForTransaction(parentReport, reportTransaction, reportActions)) {
+    if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
@@ -751,10 +751,10 @@ function getSecondaryTransactionThreadActions(
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], reportActions ?? [])) {
+    if (isDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, isMergeAction, getSecondaryExportReportActions, isSplitAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction};

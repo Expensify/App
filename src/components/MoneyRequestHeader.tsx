@@ -17,7 +17,7 @@ import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
@@ -244,12 +244,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const secondaryActions = useMemo(() => {
-        const reportActions = !!parentReport && getReportActions(parentReport);
-        if (!transaction || !reportActions) {
+        if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
-    }, [report, parentReport, policy, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, parentReportAction, policy, report);
+    }, [parentReport, transaction, parentReportAction, policy, report]);
 
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);
