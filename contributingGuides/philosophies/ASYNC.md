@@ -73,7 +73,7 @@ Async code is everywhere in our app: API calls, storage access, background tasks
 Error handling style depends on context. If you’re handling a single async operation, `.catch()` is concise and effective.
 
 ```ts
-// GOOD
+// PREFERRED
 async function getData(url: string) {
   const data = await fetch(url).catch(() => fetchFallback(url));
   return process(data);
@@ -81,7 +81,7 @@ async function getData(url: string) {
 ```
 
 ```ts
-// BAD
+// BAD — needs an outer let just to span try/catch, adds noise and requires a mutable variable
 async function getData(url: string) {
   let data: DataType | undefined;
   try{
