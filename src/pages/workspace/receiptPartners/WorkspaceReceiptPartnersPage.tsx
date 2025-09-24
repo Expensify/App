@@ -275,17 +275,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 ))}
                                 {isUberConnected && (
                                     <>
-                                        <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.autoRemove}>
-                                            <View style={styles.mt5}>
-                                                <ToggleSettingOptionRow
-                                                    titleStyle={styles.pr3}
-                                                    title={translate('workspace.receiptPartners.uber.autoRemove')}
-                                                    switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
-                                                    onToggle={toggleWorkspaceUberAutoRemove}
-                                                    isActive={isAutoRemove}
-                                                />
-                                            </View>
-                                        </OfflineWithFeedback>
                                         <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.autoInvite}>
                                             <View style={styles.mt5}>
                                                 <ToggleSettingOptionRow
@@ -294,6 +283,17 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
                                                     onToggle={toggleWorkspaceUberAutoInvite}
                                                     isActive={isAutoInvite}
+                                                />
+                                            </View>
+                                        </OfflineWithFeedback>
+                                        <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.autoRemove}>
+                                            <View style={styles.mt5}>
+                                                <ToggleSettingOptionRow
+                                                    titleStyle={styles.pr3}
+                                                    title={translate('workspace.receiptPartners.uber.autoRemove')}
+                                                    switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
+                                                    onToggle={toggleWorkspaceUberAutoRemove}
+                                                    isActive={isAutoRemove}
                                                 />
                                             </View>
                                         </OfflineWithFeedback>
