@@ -3603,7 +3603,7 @@ const translations = {
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
                 emptyContent: {
                     title: 'Aucune invitation en attente',
-                    subtitle: 'Hourra ! Nous avons cherché partout et n'avons trouvé aucune invitation en attente.',
+                    subtitle: "Hourra ! Nous avons cherché partout et n'avons trouvé aucune invitation en attente.",
                 },
             },
         },
