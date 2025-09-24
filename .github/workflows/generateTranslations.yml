@@ -26,12 +26,16 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Test - Print workflow dispatch input
+      - name: Extract PR information for manual dispatch
         if: github.event_name == 'workflow_dispatch'
+        id: extract-pr-info
         run: |
-          echo "🔧 Manual workflow dispatch triggered!"
-          echo "PR URL provided: ${{ inputs.PULL_REQUEST_URL }}"
-          echo "Event name: ${{ github.event_name }}"
+          PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number,baseRefName,headRefOid)
+          echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')" >> "$GITHUB_OUTPUT"
+          echo "PR_BASE_REF=$(echo "$PR_INFO" | jq -r '.baseRefName')" >> "$GITHUB_OUTPUT"
+          echo "PR_HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check if English translations were modified
         id: check-en-changes
