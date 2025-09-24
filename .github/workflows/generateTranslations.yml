@@ -15,7 +15,7 @@ on:
 jobs:
   generateTranslations:
     runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
     steps:
       # v4
       - name: Checkout
