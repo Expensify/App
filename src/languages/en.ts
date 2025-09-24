@@ -3080,11 +3080,13 @@ const translations = {
         selectIncorporationCountry: 'Select incorporation country',
         selectIncorporationState: 'Select incorporation state',
         selectAverageReimbursement: 'Select average reimbursement amount',
+        selectBusinessType: 'Select business type',
         findIncorporationType: 'Find incorporation type',
         findBusinessCategory: 'Find business category',
         findAnnualPaymentVolume: 'Find annual payment volume',
         findIncorporationState: 'Find incorporation state',
         findAverageReimbursement: 'Find average reimbursement amount',
+        findBusinessType: 'Find business type',
         error: {
             registrationNumber: 'Please provide a valid registration number',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -5501,11 +5503,6 @@ const translations = {
                 title: 'Travel',
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
-            },
-            reports: {
-                title: 'Reports',
-                description: 'Create organized expense reports to track your business spending, submit for approvals, and streamline your reimbursement process.',
-                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
             },
             multiLevelTags: {
                 title: 'Multi-level tags',

@@ -3088,11 +3088,13 @@ const translations = {
         selectIncorporationCountry: 'Wählen Sie das Gründungsland aus',
         selectIncorporationState: 'Inkorporationsstaat auswählen',
         selectAverageReimbursement: 'Durchschnittlichen Erstattungsbetrag auswählen',
+        selectBusinessType: 'Geschäftstyp auswählen',
         findIncorporationType: 'Art der Unternehmensgründung finden',
         findBusinessCategory: 'Geschäftskategorie finden',
         findAnnualPaymentVolume: 'Jährliches Zahlungsvolumen finden',
         findIncorporationState: 'Gründungsstaat finden',
         findAverageReimbursement: 'Durchschnittlichen Erstattungsbetrag finden',
+        findBusinessType: 'Geschäftstyp finden',
         error: {
             registrationNumber: 'Bitte geben Sie eine gültige Registrierungsnummer an.',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -5532,12 +5534,6 @@ const translations = {
                 description:
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
-            },
-            reports: {
-                title: 'Berichte',
-                description:
-                    'Erstellen Sie organisierte Spesenabrechnungen, um Ihre Geschäftsausgaben zu verfolgen, zur Genehmigung einzureichen und Ihren Erstattungsprozess zu optimieren.',
-                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
             },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',

@@ -3098,11 +3098,13 @@ const translations = {
         selectIncorporationCountry: 'Selecione o país de incorporação',
         selectIncorporationState: 'Selecione o estado de incorporação',
         selectAverageReimbursement: 'Selecionar valor médio de reembolso',
+        selectBusinessType: 'Selecionar tipo de negócio',
         findIncorporationType: 'Encontrar tipo de incorporação',
         findBusinessCategory: 'Encontrar categoria de negócios',
         findAnnualPaymentVolume: 'Encontre o volume de pagamento anual',
         findIncorporationState: 'Encontrar estado de incorporação',
         findAverageReimbursement: 'Encontrar valor médio de reembolso',
+        findBusinessType: 'Encontrar tipo de negócio',
         error: {
             registrationNumber: 'Por favor, forneça um número de registro válido.',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -5531,11 +5533,6 @@ const translations = {
                 title: 'Viagem',
                 description: 'Expensify Travel é uma nova plataforma de reserva e gestão de viagens corporativas que permite aos membros reservar acomodações, voos, transporte e mais.',
                 onlyAvailableOnPlan: 'Viagens estão disponíveis no plano Collect, a partir de',
-            },
-            reports: {
-                title: 'Relatórios',
-                description: 'Crie relatórios de despesas organizados para acompanhar seus gastos empresariais, enviá-los para aprovação e otimizar seu processo de reembolso.',
-                onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multiníveis',
