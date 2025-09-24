@@ -1,6 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
@@ -35,7 +35,12 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
     return event;
 }
 
-function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
+type PopoverReportActionContextMenuProps = {
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ReportActionContextMenu>;
+};
+
+function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
@@ -405,4 +410,4 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
 PopoverReportActionContextMenu.displayName = 'PopoverReportActionContextMenu';
 
-export default forwardRef(PopoverReportActionContextMenu);
+export default PopoverReportActionContextMenu;

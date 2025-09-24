@@ -4425,6 +4425,7 @@ function getUpdateMoneyRequestParams(
     if (
         policy &&
         isPaidGroupPolicy(policy) &&
+        !isSelfDM(iouReport) &&
         !isInvoice &&
         updatedTransaction &&
         (hasModifiedTag ||
@@ -10562,6 +10563,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         shouldSkipTestDriveModal: true,
     });
 }
+
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, paymentPolicyID?: string, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -12367,9 +12369,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
+            [optimisticRejectReportAction.reportActionID]: {
+                pendingAction: null,
+            },
             [optimisticRejectReportActionComment.reportActionID]: {
-                ...optimisticRejectReportActionComment,
                 pendingAction: null,
             },
         },
@@ -12380,7 +12383,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic rejected action
+            [optimisticRejectReportAction.reportActionID]: null,
             [optimisticRejectReportActionComment.reportActionID]: null,
         },
     });
@@ -12517,7 +12520,6 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: {
-                    ...optimisticMarkedAsResolvedReportAction,
                     pendingAction: null,
                 },
             },

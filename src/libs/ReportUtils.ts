@@ -100,6 +100,7 @@ import {isEmailPublicDomain} from './LoginUtils';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
+import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
@@ -155,7 +156,6 @@ import {
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
-    getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
@@ -190,7 +190,6 @@ import {
     isActionOfType,
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
-    isClosedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -226,6 +225,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {getSession} from './SessionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -2630,9 +2630,6 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
                 return canDeleteTransaction(report) && isCardTransactionCanBeDeleted;
             }
-            if (isTrackExpenseAction(reportAction)) {
-                return isCardTransactionCanBeDeleted;
-            }
             return true;
         }
     }
@@ -3855,16 +3852,6 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
     return report?.reportName;
 }
 
-function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {
-    const lastClosedReportAction = getLastClosedReportAction(reportActions);
-
-    if (!lastClosedReportAction) {
-        return undefined;
-    }
-
-    return isClosedAction(lastClosedReportAction) ? getOriginalMessage(lastClosedReportAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-}
-
 /**
  * Given a report field, check if the field is for the report title.
  */
@@ -4345,8 +4332,7 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        // TODO: remove permission check after the Unreported Expense project is complete
-        if (isUnreportedExpense && Permissions.canUseUnreportedExpense()) {
+        if (isUnreportedExpense) {
             return true;
         }
 
@@ -4360,9 +4346,7 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        // TODO: uncomment after the Unreported Expense project is complete
-        // if (isInvoiceReport(moneyRequestReport)) {
-        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+        if (isInvoiceReport(moneyRequestReport)) {
             return (
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
@@ -4375,28 +4359,16 @@ function canEditFieldOfMoneyRequest(
 
         // If the report is Open, then only submitters, admins can move expenses
         const isOpen = isOpenExpenseReport(moneyRequestReport);
-        // TODO: uncomment after the Unreported Expense project is complete
-        // if (isOpen && !isSubmitter && !isAdmin) {
-        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+        if (isOpen && !isSubmitter && !isAdmin) {
             return false;
         }
 
-        // TODO: uncomment after the Unreported Expense project is complete
-        // return (
-        //     Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-        //         getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-        //     ).length > 1 ||
-        //     (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
-        // );
-
-        return isUnreportedExpense
-            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 0
-            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1 ||
-                  (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
+        return (
+            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+            ).length > 1 ||
+            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+        );
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -5631,6 +5603,10 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
  */
 function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
+    if (report?.hasParentAccess === false) {
+        return {};
+    }
+
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
         const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
@@ -6364,12 +6340,8 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    const reportUrl = `${environmentURL}/r/${report?.reportID}`;
-    const message = translateLocal('iou.movedTransaction', {
-        reportUrl,
-        reportName,
-    });
-    return message;
+    const reportUrl = getReportURLForCurrentContext(report?.reportID);
+    return translateLocal('iou.movedTransaction', {reportUrl, reportName});
 }
 
 function getUnreportedTransactionMessage() {
@@ -6394,8 +6366,8 @@ function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) 
     const toPolicyName = getPolicyNameByID(toPolicyID);
     return translateLocal('iou.movedAction', {
         shouldHideMovedReportUrl: !isDM(report),
-        movedReportUrl: `${environmentURL}/r/${movedReportID}`,
-        newParentReportUrl: `${environmentURL}/r/${newParentReportID}`,
+        movedReportUrl: getReportURLForCurrentContext(movedReportID),
+        newParentReportUrl: getReportURLForCurrentContext(newParentReportID),
         toPolicyName,
     });
 }
@@ -6719,8 +6691,8 @@ function buildOptimisticMovedReportAction(
     const movedActionMessage = [
         {
             html: shouldHideMovedReportUrl
-                ? `moved this <a href='${CONST.NEW_EXPENSIFY_URL}r/${movedReportID}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
-                : `moved this report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+                ? `moved this <a href='${getReportURLForCurrentContext(movedReportID)}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
+                : `moved this report to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
             text: `moved this report to the ${policyName} workspace`,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
@@ -6807,11 +6779,8 @@ function buildOptimisticTransactionAction(
     targetReportID: string,
 ): ReportAction {
     const reportName = allReports?.[targetReportID]?.reportName ?? '';
-    const url = `${environmentURL}/r/${targetReportID}`;
-    const [actionText, messageHtml] =
-        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
-            ? [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
-            : ['moved this expense to your personal space', 'moved this expense to your personal space'];
+    const url = getReportURLForCurrentContext(targetReportID);
+    const [actionText, messageHtml] = [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
         actionName: type,
@@ -7200,6 +7169,7 @@ type BuildOptimisticChatReportParams = {
     description?: string;
     avatarUrl?: string;
     optimisticReportID?: string;
+    isPinned?: boolean;
 };
 
 function buildOptimisticChatReport({
@@ -7218,6 +7188,7 @@ function buildOptimisticChatReport({
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
+    isPinned = false,
 }: BuildOptimisticChatReportParams): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
@@ -7234,7 +7205,7 @@ function buildOptimisticChatReport({
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
-        isPinned: false,
+        isPinned,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,
@@ -7894,6 +7865,10 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
     };
 }
 
+function shouldPinAdminRoomByDefault() {
+    return !isExpensifyTeam(currentUserEmail);
+}
+
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
     const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
@@ -7904,6 +7879,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
             policyID,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: policyName,
+            isPinned: shouldPinAdminRoomByDefault(),
         }),
     };
     const adminsChatReportID = adminsChatData.reportID;
@@ -11507,7 +11483,6 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
-
 function canRejectReportAction(report: Report, policy?: Policy): boolean {
     if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
         return false;
@@ -11577,6 +11552,39 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
     return getReportName(iouReport) || action.childReportName;
+}
+
+function selectArchivedReportsIdSet(all: Record<string, OnyxInputOrEntry<ReportNameValuePairs>> | null | undefined): ArchivedReportsIDSet {
+    const archivedIDs = new Set<string>();
+    if (!all) {
+        return archivedIDs;
+    }
+
+    const prefixLen = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+
+    for (const [key, value] of Object.entries(all)) {
+        if (isArchivedReport(value)) {
+            archivedIDs.add(key.slice(prefixLen));
+        }
+    }
+
+    return archivedIDs;
+}
+
+function selectFilteredReportActions(
+    reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
+): Record<string, ReportAction[]> | undefined {
+    if (!reportActions) {
+        return {};
+    }
+
+    return Object.fromEntries(
+        Object.entries(reportActions).map(([reportId, actionsGroup]) => {
+            const actions = Object.values(actionsGroup ?? {});
+            const filteredActions = actions.filter((action): action is ReportAction => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
+            return [reportId, filteredActions];
+        }),
+    );
 }
 
 /**
@@ -11714,6 +11722,15 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     }
 
     return '';
+}
+
+function getReportURLForCurrentContext(reportID: string | undefined): string {
+    if (!reportID) {
+        return `${environmentURL}/r/`;
+    }
+    const isInSearchContext = isSearchTopmostFullScreenRoute();
+    const relativePath = isInSearchContext ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}) : ROUTES.REPORT_WITH_ID.getRoute(reportID);
+    return `${environmentURL}/${relativePath}`;
 }
 
 export {
@@ -12001,6 +12018,8 @@ export {
     parseReportRouteParams,
     parseReportActionHtmlToText,
     requiresAttentionFromCurrentUser,
+    selectArchivedReportsIdSet,
+    selectFilteredReportActions,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
     shouldDisableDetailPage,
@@ -12050,7 +12069,6 @@ export {
     getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
-    getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
     hasOutstandingChildRequest,
@@ -12104,6 +12122,7 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
     getReportName,

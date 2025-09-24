@@ -8,8 +8,10 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -54,6 +56,7 @@ import {
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
+    getReportURLForCurrentContext,
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -86,6 +89,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -135,6 +139,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -4178,52 +4184,6 @@ describe('ReportUtils', () => {
             expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
         });
 
-        it('should return false for unreported card expense imported with deleting disabled', async () => {
-            // Given the unreported card expense import with deleting disabled
-            const selfDMReport = {
-                ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                managedCard: true,
-                comment: {
-                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
-                },
-            };
-
-            const trackExpenseAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: currentUserAccountID,
-                originalMessage: {
-                    IOUTransactionID: transaction.transactionID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                    amount: 100,
-                    currency: CONST.CURRENCY.USD,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                },
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: '$1.00 expense',
-                        text: '$1.00 expense',
-                        isEdited: false,
-                        whisperedTo: [],
-                        isDeletedParentAction: false,
-                    },
-                ],
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-            // Then it should return false since the unreported card expense is imported with deleting disabled
-            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction)).toBe(false);
-        });
-
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
             const adminPolicy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.PERSONAL};
 
@@ -7008,6 +6968,44 @@ describe('ReportUtils', () => {
                 shouldExcludeDeleted: true,
             });
             expect(result).toEqual([1, 4]); // participant 4 has 'add' action, should not be excluded
+        });
+    });
+
+    describe('getReportURLForCurrentContext', () => {
+        const flushPromises = () =>
+            new Promise<void>((resolve) => {
+                setImmediate(resolve);
+            });
+        const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
+        let environmentURL: string;
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+            await flushPromises();
+        });
+
+        afterAll(() => {
+            mockIsSearchTopmostFullScreenRoute.mockRestore();
+        });
+
+        beforeEach(() => {
+            mockIsSearchTopmostFullScreenRoute.mockReset();
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+        });
+
+        it('returns report route when not in search context', () => {
+            const reportID = '123';
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
+        });
+
+        it('returns search route when in search context', () => {
+            const reportID = '456';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID})}`);
+        });
+
+        it('falls back to the base report path when reportID is missing', () => {
+            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
         });
     });
 

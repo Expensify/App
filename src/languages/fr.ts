@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -497,7 +498,6 @@ const translations = {
         decline: 'Refuser',
         reject: 'Rejeter',
         transferBalance: 'Transférer le solde',
-        cantFindAddress: 'Impossible de trouver votre adresse ?',
         enterManually: 'Entrez-le manuellement',
         message: 'Message',
         leaveThread: 'Quitter le fil de discussion',
@@ -1763,7 +1763,7 @@ const translations = {
             "Vous remarquez quelque chose d'inhabituel ? Signalez-le pour verrouiller immédiatement votre compte, bloquer les transactions Expensify Card et empêcher toute modification.",
         domainAdminsDescription: "Pour les administrateurs de domaine : cela suspend aussi l'activité de la carte Expensify et les actions d'administration sur vos domaines.",
         areYouSure: 'Êtes-vous sûr de vouloir verrouiller votre compte Expensify ?',
-        ourTeamWill: "Notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez collaborer avec Concierge.",
+        onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un examen de sécurité.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Échec du verrouillage du compte',
@@ -3090,11 +3090,13 @@ const translations = {
         selectIncorporationCountry: "Sélectionnez le pays d'incorporation",
         selectIncorporationState: "Sélectionnez l'état d'incorporation",
         selectAverageReimbursement: 'Sélectionner le montant moyen de remboursement',
+        selectBusinessType: "Sélectionner le type d'entreprise",
         findIncorporationType: "Trouver le type d'incorporation",
         findBusinessCategory: "Trouver la catégorie d'entreprise",
         findAnnualPaymentVolume: 'Trouver le volume de paiement annuel',
         findIncorporationState: "Trouver l'état d'incorporation",
         findAverageReimbursement: 'Trouver le montant moyen de remboursement',
+        findBusinessType: "Trouver le type d'entreprise",
         error: {
             registrationNumber: "Veuillez fournir un numéro d'enregistrement valide",
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3186,22 +3188,6 @@ const translations = {
         codiceFiscaleDescription:
             "Veuillez télécharger une vidéo d'une visite de site ou un appel enregistré avec le signataire. Le signataire doit fournir : nom complet, date de naissance, nom de l'entreprise, numéro d'enregistrement, numéro de code fiscal, adresse enregistrée, nature de l'activité et objet du compte.",
     },
-    validationStep: {
-        headerTitle: 'Valider le compte bancaire',
-        buttonText: 'Terminer la configuration',
-        maxAttemptsReached: 'La validation de ce compte bancaire a été désactivée en raison de trop nombreuses tentatives incorrectes.',
-        description: `Dans un délai de 1 à 2 jours ouvrables, nous enverrons trois (3) petites transactions sur votre compte bancaire sous un nom tel que "Expensify, Inc. Validation".`,
-        descriptionCTA: 'Veuillez entrer le montant de chaque transaction dans les champs ci-dessous. Exemple : 1,51.',
-        reviewingInfo: 'Merci ! Nous examinons vos informations et nous vous contacterons sous peu. Veuillez vérifier votre chat avec Concierge.',
-        forNextStep: 'pour les prochaines étapes pour terminer la configuration de votre compte bancaire.',
-        letsChatCTA: 'Oui, discutons.',
-        letsChatText: 'Presque terminé ! Nous avons besoin de votre aide pour vérifier quelques dernières informations par chat. Prêt ?',
-        letsChatTitle: 'Discutons !',
-        enable2FATitle: "Prévenez la fraude, activez l'authentification à deux facteurs (2FA)",
-        enable2FAText:
-            "Nous prenons votre sécurité au sérieux. Veuillez configurer l'authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.",
-        secureYourAccount: 'Sécurisez votre compte',
-    },
     completeVerificationStep: {
         completeVerification: 'Terminer la vérification',
         confirmAgreements: 'Veuillez confirmer les accords ci-dessous.',
@@ -3212,18 +3198,13 @@ const translations = {
         termsAndConditions: 'termes et conditions',
     },
     connectBankAccountStep: {
-        finishButtonText: 'Terminer la configuration',
         validateYourBankAccount: 'Validez votre compte bancaire',
         validateButtonText: 'Valider',
         validationInputLabel: 'Transaction',
         maxAttemptsReached: 'La validation de ce compte bancaire a été désactivée en raison de trop nombreuses tentatives incorrectes.',
         description: `Dans un délai de 1 à 2 jours ouvrables, nous enverrons trois (3) petites transactions sur votre compte bancaire sous un nom tel que "Expensify, Inc. Validation".`,
         descriptionCTA: 'Veuillez entrer le montant de chaque transaction dans les champs ci-dessous. Exemple : 1,51.',
-        reviewingInfo: 'Merci ! Nous examinons vos informations et nous vous contacterons sous peu. Veuillez vérifier votre chat avec Concierge.',
-        forNextSteps: 'pour les prochaines étapes pour terminer la configuration de votre compte bancaire.',
-        letsChatCTA: 'Oui, discutons.',
         letsChatText: 'Presque terminé ! Nous avons besoin de votre aide pour vérifier quelques dernières informations par chat. Prêt ?',
-        letsChatTitle: 'Discutons !',
         enable2FATitle: "Prévenez la fraude, activez l'authentification à deux facteurs (2FA)",
         enable2FAText:
             "Nous prenons votre sécurité au sérieux. Veuillez configurer l'authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.",
@@ -3596,7 +3577,8 @@ const translations = {
         receiptPartners: {
             connect: 'Connectez-vous maintenant',
             uber: {
-                subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Connecté à ${organizationName}` : 'Automatisez les frais de voyage et de livraison de repas dans toute votre organisation.',
                 sendInvites: 'Inviter des membres',
                 sendInvitesDescription:
                     "Ces membres de l'espace de travail n'ont pas encore de compte Uber for Business. Désélectionnez les membres que vous ne souhaitez pas inviter pour le moment.",
@@ -3617,8 +3599,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
                 },
                 invitationFailure: "Échec de l'invitation des membres à Uber for Business",
-                autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
-                autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
+                autoInvite: "Inviter de nouveaux membres de l'espace de travail sur Uber",
+                autoRemove: "Désactiver les membres supprimés de l'espace de travail sur Uber",
                 bannerTitle: 'Expensify + Uber pour les entreprises',
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
                 emptyContent: {
@@ -4917,6 +4899,13 @@ const translations = {
                 prompt4: 'en exportant vos étiquettes.',
                 prompt5: 'En savoir plus',
                 prompt6: 'à propos des niveaux de balises.',
+            },
+            overrideMultiTagWarning: {
+                title: 'Importer des étiquettes',
+                prompt1: 'Êtes-vous sûr ?',
+                prompt2: ' Les balises existantes seront remplacées, mais vous pouvez',
+                prompt3: ' télécharger une sauvegarde',
+                prompt4: ' premier.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Nous avons trouvé *${columnCounts} colonnes* dans votre feuille de calcul. Sélectionnez *Nom* à côté de la colonne contenant les noms des balises. Vous pouvez également sélectionner *Activé* à côté de la colonne qui définit le statut des balises.`,
@@ -7191,12 +7180,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Commencer <strong>ici !</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renommez vos recherches enregistrées</strong> ici !</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>Créer des dépenses</strong>, commencer à discuter, et plus. Essayez-le !</tooltip>',
-        bottomNavInboxTooltip: '<tooltip>Vérifier quoi <strong>nécessite votre attention</strong> et <strong>discuter des dépenses.</strong></tooltip>',
-        workspaceChatTooltip: '<tooltip>Discuter avec <strong>approbateurs</strong></tooltip>',
-        GBRRBRChat: '<tooltip>Vous verrez 🟢 sur <strong>actions à entreprendre</strong>,\net 🔴 sur <strong>éléments à examiner.</strong></tooltip>',
         accountSwitcher: '<tooltip>Accédez à votre <strong>Comptes Copilot</strong> ici</tooltip>',
-        expenseReportsFilter: "<tooltip>Bienvenue ! Trouvez tous vos <strong>rapports de l'entreprise</strong> ici.</tooltip>",
         scanTestTooltip: {
             main: '<tooltip><strong>Vous voulez voir comment fonctionne Scan ?</strong> Essayez un reçu de test !</tooltip>',
             manager: "<tooltip>Choisissez notre <strong>responsable des tests</strong> pour l'essayer !</tooltip>",

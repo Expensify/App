@@ -600,6 +600,7 @@ const CONST = {
                 NATURE_OF_BUSINESS: 'NatureOfBusiness',
                 PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
                 TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+                BUSINESS_TYPE: 'BusinessType',
             },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -706,7 +707,6 @@ const CONST = {
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        DUPLICATE_WORKSPACE: 'duplicatePolicyNewDot',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1601,6 +1601,7 @@ const CONST = {
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
+        ACTIVITY_INDICATOR_TIMEOUT: 10000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -6958,14 +6959,6 @@ const CONST = {
                 description: 'workspace.upgrade.travel.description' as const,
                 icon: 'Luggage',
             },
-            distanceRates: {
-                id: 'distanceRates' as const,
-                alias: 'distance-rates',
-                name: 'Distance Rates',
-                title: 'workspace.upgrade.distanceRates.title' as const,
-                description: 'workspace.upgrade.distanceRates.description' as const,
-                icon: 'CarIce',
-            },
             reports: {
                 id: 'reports' as const,
                 alias: 'reports',
@@ -6973,6 +6966,14 @@ const CONST = {
                 title: 'workspace.upgrade.reports.title' as const,
                 description: 'workspace.upgrade.reports.description' as const,
                 icon: 'ReportReceipt',
+            },
+            distanceRates: {
+                id: 'distanceRates' as const,
+                alias: 'distance-rates',
+                name: 'Distance Rates',
+                title: 'workspace.upgrade.distanceRates.title' as const,
+                description: 'workspace.upgrade.distanceRates.description' as const,
+                icon: 'CarIce',
             },
         };
     },
@@ -7159,16 +7160,11 @@ const CONST = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
-        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
-        GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSTANDING_FILTER: 'outstandingFilter',
-        GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
-        EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
     },

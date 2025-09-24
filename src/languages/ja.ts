@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -497,7 +498,6 @@ const translations = {
         decline: '辞退する',
         reject: '拒否する',
         transferBalance: '残高を移動',
-        cantFindAddress: '住所が見つかりませんか？',
         enterManually: '手動で入力してください。',
         message: 'メッセージ',
         leaveThread: 'スレッドを退出',
@@ -1754,7 +1754,7 @@ const translations = {
         compromisedDescription: 'アカウントに不安を感じましたか？報告すると、すぐにアカウントがロックされ、Expensifyカードの新しい取引が停止され、変更も防止されます。',
         domainAdminsDescription: 'ドメイン管理者へ：これにより、ドメイン全体のExpensifyカード活動と管理操作も一時停止されます。',
         areYouSure: '本当にExpensifyアカウントをロックしますか？',
-        ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
+        onceLocked: 'ロックされると、アカウントはロック解除リクエストとセキュリティレビューが完了するまで制限されます。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
@@ -3088,11 +3088,13 @@ const translations = {
         selectIncorporationCountry: '法人設立国を選択',
         selectIncorporationState: '法人設立州を選択',
         selectAverageReimbursement: '平均払い戻し額を選択',
+        selectBusinessType: '事業タイプを選択する',
         findIncorporationType: '法人の種類を見つける',
         findBusinessCategory: 'ビジネスカテゴリを見つける',
         findAnnualPaymentVolume: '年間支払い額を見つける',
         findIncorporationState: '設立州を見つける',
         findAverageReimbursement: '平均払い戻し額を見つける',
+        findBusinessType: '事業タイプを見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3182,21 +3184,6 @@ const translations = {
         codiceFiscaleDescription:
             'サイト訪問のビデオまたは署名担当者との録音された通話をアップロードしてください。担当者は次の情報を提供する必要があります：氏名、生年月日、会社名、登録番号、税コード番号、登録住所、事業の性質、アカウントの目的。',
     },
-    validationStep: {
-        headerTitle: '銀行口座を確認する',
-        buttonText: 'セットアップを完了する',
-        maxAttemptsReached: 'この銀行口座の検証は、不正な試行が多すぎるため無効になっています。',
-        description: `1～2営業日以内に、「Expensify, Inc. Validation」のような名前からあなたの銀行口座に3つの小額取引を送信します。`,
-        descriptionCTA: '以下のフィールドに各取引金額を入力してください。例: 1.51。',
-        reviewingInfo: 'ありがとうございます！私たちはあなたの情報を確認しており、すぐにご連絡いたします。Conciergeとのチャットをご確認ください。',
-        forNextStep: '銀行口座の設定を完了するための次のステップ。',
-        letsChatCTA: 'はい、チャットしましょう',
-        letsChatText: 'もう少しです！チャットでいくつかの情報を確認するお手伝いをお願いします。準備はいいですか？',
-        letsChatTitle: 'チャットしましょう！',
-        enable2FATitle: '不正行為を防ぐために、二要素認証（2FA）を有効にしてください。',
-        enable2FAText: '私たちはあなたのセキュリティを真剣に考えています。アカウントに追加の保護層を加えるために、今すぐ2FAを設定してください。',
-        secureYourAccount: 'アカウントを保護する',
-    },
     completeVerificationStep: {
         completeVerification: '認証を完了する',
         confirmAgreements: '以下の合意を確認してください。',
@@ -3207,18 +3194,13 @@ const translations = {
         termsAndConditions: '利用規約',
     },
     connectBankAccountStep: {
-        finishButtonText: 'セットアップを完了する',
         validateYourBankAccount: '銀行口座を確認してください',
         validateButtonText: '検証する',
         validationInputLabel: '取引',
         maxAttemptsReached: 'この銀行口座の検証は、不正な試行が多すぎるため無効になっています。',
         description: `1～2営業日以内に、「Expensify, Inc. Validation」のような名前からあなたの銀行口座に3つの小額取引を送信します。`,
         descriptionCTA: '以下のフィールドに各取引金額を入力してください。例: 1.51。',
-        reviewingInfo: 'ありがとうございます！私たちはあなたの情報を確認しており、すぐにご連絡いたします。Conciergeとのチャットをご確認ください。',
-        forNextSteps: '銀行口座の設定を完了するための次のステップ。',
-        letsChatCTA: 'はい、チャットしましょう',
         letsChatText: 'もう少しです！チャットでいくつかの情報を確認するお手伝いをお願いします。準備はいいですか？',
-        letsChatTitle: 'チャットしましょう！',
         enable2FATitle: '不正行為を防ぐために、二要素認証（2FA）を有効にしてください。',
         enable2FAText: '私たちはあなたのセキュリティを真剣に考えています。アカウントに追加の保護層を加えるために、今すぐ2FAを設定してください。',
         secureYourAccount: 'アカウントを保護する',
@@ -3585,7 +3567,8 @@ const translations = {
         receiptPartners: {
             connect: '今すぐ接続',
             uber: {
-                subtitle: '組織全体で出張費や食事の配達費を自動化します。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `${organizationName}に接続しました` : '組織全体で旅行および食事の配達経費を自動化します。',
                 sendInvites: 'メンバーを招待',
                 sendInvitesDescription: 'これらのワークスペースメンバーはまだUber for Businessアカウントを持っていません。現在招待したくないメンバーの選択を解除してください。',
                 confirmInvite: '招待を確認',
@@ -3605,8 +3588,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '停止中',
                 },
                 invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
-                autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
-                autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
+                autoInvite: 'Uber for Business に新しいワークスペースメンバーを招待する',
+                autoRemove: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
                 bannerTitle: 'Expensify + ビジネス向け Uber',
                 bannerDescription: 'Uber for Business を接続すると、組織全体の出張費や食事の配達費を自動化できます。',
                 emptyContent: {
@@ -4878,6 +4861,13 @@ const translations = {
                 prompt4: 'タグをエクスポートすることによって。',
                 prompt5: '詳細を確認',
                 prompt6: 'タグレベルについて。',
+            },
+            overrideMultiTagWarning: {
+                title: 'タグをインポート',
+                prompt1: '本当に大丈夫ですか？',
+                prompt2: ' 既存のタグは上書きされますが、あなたは',
+                prompt3: ' バックアップをダウンロード',
+                prompt4: ' 最初。',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `スプレッドシートで*${columnCounts}列*が見つかりました。タグ名を含む列の横に*名前*を選択してください。また、タグのステータスを設定する列の横に*有効*を選択することもできます。`,
@@ -7125,12 +7115,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>ここから<strong>始めましょう！</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>保存した検索に名前を付け直す</strong>にはこちら！</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>経費を作成</strong>、チャットを開始、さらにいろいろ。試してみてください！</tooltip>',
-        bottomNavInboxTooltip: '<tooltip><strong>注意が必要なもの</strong>を確認して、<strong>経費についてチャット</strong>しましょう。</tooltip>',
-        workspaceChatTooltip: '<tooltip><strong>承認者とチャット</strong>しましょう</tooltip>',
-        GBRRBRChat: '<tooltip><strong>対応が必要なアクション</strong>には🟢、\n<strong>確認が必要な項目</strong>には🔴が表示されます。</tooltip>',
         accountSwitcher: '<tooltip><strong>コパイロットアカウント</strong>にアクセスするにはこちら</tooltip>',
-        expenseReportsFilter: '<tooltip>ようこそ！<strong>会社のすべてのレポート</strong>をここで確認できます。</tooltip>',
         scanTestTooltip: {
             main: '<tooltip><strong>テスト用レシートをスキャン</strong>して仕組みを確認しましょう！</tooltip>',
             manager: '<tooltip><strong>テストマネージャー</strong>を選んで試してみましょう！</tooltip>',
