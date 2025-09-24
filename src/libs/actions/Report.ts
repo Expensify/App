@@ -5194,14 +5194,11 @@ function deleteAppReport(reportID: string | undefined) {
 /**
  * Moves an IOU report to a policy by converting it to an expense report
  * @param reportID - The ID of the IOU report to move
- * @param policyID - The ID of the policy to move the report to
+ * @param policy - The policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlementButton?: boolean) {
+function moveIOUReportToPolicy(reportID: string, policy: Policy, isFromSettlementButton?: boolean) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(policyID);
 
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {

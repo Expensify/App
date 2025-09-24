@@ -2132,7 +2132,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport.reportID, policy.id);
+            Report.moveIOUReportToPolicy(iouReport.reportID, policy);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report

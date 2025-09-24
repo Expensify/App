@@ -55,7 +55,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID, formatPhoneNumber);
             } else if (isIOUReport(reportID) && isPolicyMember(policy, session?.email)) {
-                moveIOUReportToPolicy(reportID, policyID);
+                moveIOUReportToPolicy(reportID, policy);
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
