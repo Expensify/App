@@ -1602,6 +1602,7 @@ const CONST = {
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
+        ACTIVITY_INDICATOR_TIMEOUT: 10000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -6966,14 +6967,6 @@ const CONST = {
                 title: 'workspace.upgrade.distanceRates.title' as const,
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
-            },
-            reports: {
-                id: 'reports' as const,
-                alias: 'reports',
-                name: 'Reports',
-                title: 'workspace.upgrade.reports.title' as const,
-                description: 'workspace.upgrade.reports.description' as const,
-                icon: 'ReportReceipt',
             },
         };
     },
