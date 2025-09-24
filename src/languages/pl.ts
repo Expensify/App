@@ -3092,11 +3092,13 @@ const translations = {
         selectIncorporationCountry: 'Wybierz kraj rejestracji',
         selectIncorporationState: 'Wybierz stan rejestracji',
         selectAverageReimbursement: 'Wybierz średnią kwotę zwrotu',
+        selectBusinessType: 'Wybierz typ działalności',
         findIncorporationType: 'Znajdź rodzaj inkorporacji',
         findBusinessCategory: 'Znajdź kategorię biznesową',
         findAnnualPaymentVolume: 'Znajdź roczny wolumen płatności',
         findIncorporationState: 'Znajdź stan rejestracji',
         findAverageReimbursement: 'Znajdź średnią kwotę zwrotu',
+        findBusinessType: 'Znajdź typ działalności',
         error: {
             registrationNumber: 'Proszę podać prawidłowy numer rejestracyjny',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -4879,6 +4881,13 @@ const translations = {
                 prompt4: 'poprzez eksportowanie swoich tagów.',
                 prompt5: 'Dowiedz się więcej',
                 prompt6: 'o poziomach tagów.',
+            },
+            overrideMultiTagWarning: {
+                title: 'Importuj tagi',
+                prompt1: 'Czy jesteś pewien?',
+                prompt2: ' Istniejące tagi zostaną nadpisane, ale możesz',
+                prompt3: ' pobierz kopię zapasową',
+                prompt4: ' pierwszy.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Znaleźliśmy *${columnCounts} kolumny* w Twoim arkuszu kalkulacyjnym. Wybierz *Nazwa* obok kolumny, która zawiera nazwy tagów. Możesz również wybrać *Włączone* obok kolumny, która ustawia status tagów.`,
