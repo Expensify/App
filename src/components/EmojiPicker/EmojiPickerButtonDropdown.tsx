@@ -27,13 +27,13 @@ type EmojiPickerButtonDropdownProps = {
     disabled?: boolean;
     style: StyleProp<ViewStyle>;
     withoutOverlay?: boolean;
+    ref?: ForwardedRef<AnimatedTextInputRef>;
 };
 
 function EmojiPickerButtonDropdown(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
+    {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ref, ...otherProps}: EmojiPickerButtonDropdownProps,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ref: ForwardedRef<AnimatedTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -103,4 +103,4 @@ function EmojiPickerButtonDropdown(
 
 EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
-export default React.forwardRef(EmojiPickerButtonDropdown);
+export default EmojiPickerButtonDropdown;

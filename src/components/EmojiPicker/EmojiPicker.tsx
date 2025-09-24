@@ -1,5 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
@@ -32,9 +32,10 @@ const DEFAULT_ANCHOR_ORIGIN = {
 
 type EmojiPickerProps = {
     viewportOffsetTop: number;
+    ref?: ForwardedRef<EmojiPickerRef>;
 };
 
-function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
+function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
@@ -135,24 +136,27 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     /**
      * Hide the emoji picker menu.
      */
-    const hideEmojiPicker = (isNavigating?: boolean) => {
-        const activeElementId = DomUtils.getActiveElement()?.id;
-        if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
-            blurActiveElement();
-        }
-        const currOnModalHide = onModalHide.current;
-        onModalHide.current = () => {
-            if (currOnModalHide) {
-                currOnModalHide(!!isNavigating);
+    const hideEmojiPicker = useCallback(
+        (isNavigating?: boolean) => {
+            const activeElementId = DomUtils.getActiveElement()?.id;
+            if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
+                blurActiveElement();
             }
+            const currOnModalHide = onModalHide.current;
+            onModalHide.current = () => {
+                if (currOnModalHide) {
+                    currOnModalHide(!!isNavigating);
+                }
 
-            emojiPopoverAnchorRef.current = null;
-        };
-        setIsEmojiPickerVisible(false);
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: Actions.CLOSE_POPOVER,
-        });
-    };
+                emojiPopoverAnchorRef.current = null;
+            };
+            setIsEmojiPickerVisible(false);
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: Actions.CLOSE_POPOVER,
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
 
     const handleModalHide = () => {
         onModalHide.current();
@@ -226,7 +230,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
+    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
     return (
         <PopoverWithMeasuredContent
@@ -272,4 +276,4 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 }
 
 EmojiPicker.displayName = 'EmojiPicker';
-export default withViewportOffsetTop(forwardRef(EmojiPicker));
+export default withViewportOffsetTop(EmojiPicker);
