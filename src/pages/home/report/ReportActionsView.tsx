@@ -79,12 +79,13 @@ function ReportActionsView({
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
 
     const getTransactionThreadReportActions = useCallback(
         (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction[] => {
-            return getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report, isReportArchived), true);
+            return getSortedReportActionsForDisplay(reportActions, canPerformWriteAction, true);
         },
-        [report, isReportArchived],
+        [canPerformWriteAction],
     );
 
     const [transactionThreadReportActions] = useOnyx(
@@ -208,7 +209,6 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const visibleReportActions = useMemo(
         () =>
             reportActions.filter(
