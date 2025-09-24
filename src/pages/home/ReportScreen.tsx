@@ -350,21 +350,21 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
-        (prioritizeModalDismiss = false) => {
+        (prioritizeBackTo = false) => {
             if (backTo === SCREENS.SEARCH.REPORT_RHP) {
                 Navigation.goBack();
                 return;
             }
-            if (prioritizeModalDismiss && isInNarrowPaneModal) {
-                Navigation.dismissModal();
-                return;
-            }
-            if (backTo) {
+            if (prioritizeBackTo && backTo) {
                 Navigation.goBack(backTo as Route);
                 return;
             }
             if (isInNarrowPaneModal) {
                 Navigation.dismissModal();
+                return;
+            }
+            if (backTo) {
+                Navigation.goBack(backTo as Route);
                 return;
             }
             if (Navigation.getShouldPopToSidebar()) {
