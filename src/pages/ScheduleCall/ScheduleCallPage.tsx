@@ -78,6 +78,7 @@ function ScheduleCallPage() {
         return () => {
             sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
         };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
