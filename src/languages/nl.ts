@@ -3608,8 +3608,8 @@ const translations = {
                 bannerTitle: 'Expensify + Uber voor bedrijven',
                 bannerDescription: 'Sluit Uber for Business aan om de kosten voor reizen en maaltijdbezorging binnen uw organisatie te automatiseren.',
                 emptyContent: {
-                    title: 'Geen leden om weer te geven',
-                    subtitle: 'We hebben overal gezocht en niets gevonden.',
+                    title: 'Geen openstaande uitnodigingen',
+                    subtitle: 'Hoera! We hebben overal gezocht en geen openstaande uitnodigingen gevonden.',
                 },
             },
         },
