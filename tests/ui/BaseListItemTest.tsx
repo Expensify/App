@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import BaseListItem from '@components/SelectionList/BaseListItem';
+import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import useHover from '@hooks/useHover';
 import CONST from '@src/CONST';
 

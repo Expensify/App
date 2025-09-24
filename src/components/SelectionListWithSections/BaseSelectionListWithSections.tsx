@@ -45,7 +45,7 @@ import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionLi
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
-function BaseSelectionList<TItem extends ListItem>({
+function BaseSelectionListWithSections<TItem extends ListItem>({
     sections,
     ListItem,
     shouldUseUserSkeletonView,
@@ -1090,6 +1090,6 @@ function BaseSelectionList<TItem extends ListItem>({
     );
 }
 
-BaseSelectionList.displayName = 'BaseSelectionList';
+BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
 
-export default BaseSelectionList;
+export default BaseSelectionListWithSections;

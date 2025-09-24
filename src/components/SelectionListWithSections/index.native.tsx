@@ -1,9 +1,9 @@
 import React from 'react';
 import {Keyboard} from 'react-native';
-import BaseSelectionList from './BaseSelectionList';
+import BaseSelectionList from './BaseSelectionListWithSections';
 import type {ListItem, SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
+function SelectionListWithSections<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -19,6 +19,6 @@ function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = tru
     );
 }
 
-SelectionList.displayName = 'SelectionList';
+SelectionListWithSections.displayName = 'SelectionListWithSections';
 
-export default SelectionList;
+export default SelectionListWithSections;
