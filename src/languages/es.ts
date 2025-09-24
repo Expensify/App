@@ -4872,7 +4872,13 @@ const translations = {
                 prompt5: ' Aprende más',
                 prompt6: ' sobre los niveles de etiquetas.',
             },
-
+            overrideMultiTagWarning: {
+                title: 'Importar etiquetas',
+                prompt1: '¿Estás seguro?',
+                prompt2: ' Las etiquetas existentes se sobrescribirán, pero puedes',
+                prompt3: ' descargar una copia de seguridad',
+                prompt4: ' primero.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
             cannotDeleteOrDisableAllTags: {
