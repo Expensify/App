@@ -3069,11 +3069,13 @@ const translations = {
         selectIncorporationCountry: 'Seleccione país de constitución',
         selectIncorporationState: 'Seleccione estado de constitución',
         selectAverageReimbursement: 'Selecciona el monto promedio de reembolso',
+        selectBusinessType: 'Seleccionar tipo de negocio',
         findIncorporationType: 'Buscar tipo de constitución',
         findBusinessCategory: 'Buscar categoría de la empresa',
         findAnnualPaymentVolume: 'Buscar volumen anual de pagos',
         findIncorporationState: 'Buscar estado de constitución',
         findAverageReimbursement: 'Encuentra el monto promedio de reembolso',
+        findBusinessType: 'Buscar tipo de negocio',
         error: {
             registrationNumber: 'Por favor, proporciona un número de registro válido',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -4870,7 +4872,13 @@ const translations = {
                 prompt5: ' Aprende más',
                 prompt6: ' sobre los niveles de etiquetas.',
             },
-
+            overrideMultiTagWarning: {
+                title: 'Importar etiquetas',
+                prompt1: '¿Estás seguro?',
+                prompt2: ' Las etiquetas existentes se sobrescribirán, pero puedes',
+                prompt3: ' descargar una copia de seguridad',
+                prompt4: ' primero.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
             cannotDeleteOrDisableAllTags: {
@@ -5536,11 +5544,6 @@ const translations = {
                 description:
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
-            },
-            reports: {
-                title: 'Informes',
-                description: 'Crea informes de gastos organizados para hacer seguimiento de tus gastos comerciales, enviarlos para aprobación y optimizar tu proceso de reembolso.',
-                onlyAvailableOnPlan: 'Los informes están disponibles en el plan Recopilar, a partir de ',
             },
             multiLevelTags: {
                 title: 'Etiquetas multinivel',
