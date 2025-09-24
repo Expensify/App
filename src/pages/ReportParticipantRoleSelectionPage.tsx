@@ -4,11 +4,11 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateGroupChatMemberRoles} from '@libs/actions/Report';
+import * as Report from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
@@ -30,7 +30,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     const styles = useThemeStyles();
 
     const accountID = Number(route?.params?.accountID) ?? -1;
-    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID, accountID, route.params.backTo);
+    const backTo = ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report?.reportID ?? '-1', accountID, route.params.backTo);
     const member = report.participants?.[accountID];
 
     if (!member) {
@@ -53,7 +53,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     ];
 
     const changeRole = ({value}: ListItemType) => {
-        updateGroupChatMemberRoles(report.reportID, [accountID], value);
+        Report.updateGroupChatMemberRoles(report.reportID, [accountID], value);
         Navigation.goBack(backTo);
     };
 
@@ -66,7 +66,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 <SelectionList
                     sections={[{data: items}]}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={changeRole}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}

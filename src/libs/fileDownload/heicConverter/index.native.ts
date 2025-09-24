@@ -25,7 +25,8 @@ const convertImageWithManipulator = (
         onFinish?: () => void;
     } = {},
 ) => {
-    ImageManipulator.manipulate(sourceUri)
+    const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
+    imageManipulatorContext
         .renderAsync()
         .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
         .then((manipulationResult) => {

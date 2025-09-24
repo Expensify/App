@@ -32,8 +32,6 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return Expensicons.ReceiptScan;
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return Expensicons.Document;
         default:
             return Expensicons.MoneyCircle;
     }
@@ -110,11 +108,6 @@ const isQuickActionAllowed = (
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;
-    }
-    // We don't want to show this QAB since this is already available in the FloatingActionButtonAndPopover
-    // In the future, we will remove this when the BE no longer returns this action
-    if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-        return false;
     }
     return true;
 };

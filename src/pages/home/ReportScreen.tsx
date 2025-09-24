@@ -19,6 +19,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,6 +50,7 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
+    isSentMoneyReportAction,
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
@@ -175,6 +177,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const prevDeletedParentAction = usePrevious(deletedParentAction);
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
+
+    const isAnonymousUser = useIsAnonymousUser();
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const prevIsLoadingReportData = usePrevious(isLoadingReportData);
+    const prevIsAnonymousUser = useRef(false);
 
     useEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -320,6 +327,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: true,
     });
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
+    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     // wrapping in useMemo to stabilize children re-rendering
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -354,16 +362,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.goBack();
             return;
         }
+        if (backTo) {
+            Navigation.goBack(backTo as Route);
+            return;
+        }
         if (isInNarrowPaneModal) {
             Navigation.dismissModal();
             return;
         }
         if (Navigation.getShouldPopToSidebar()) {
             Navigation.popToSidebar();
-            return;
-        }
-        if (backTo) {
-            Navigation.goBack(backTo as Route);
             return;
         }
         Navigation.goBack();
@@ -511,6 +519,22 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
     ]);
+
+    useEffect(() => {
+        if (!isAnonymousUser) {
+            return;
+        }
+        prevIsAnonymousUser.current = true;
+    }, [isAnonymousUser]);
+
+    useEffect(() => {
+        if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
+            return;
+        }
+        // Re-fetch public report data after user signs in and OpenApp API is called to
+        // avoid reportActions data being empty for public rooms.
+        fetchReport();
+    }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser, fetchReport]);
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
@@ -877,6 +901,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
                                         reportTransactions={reportTransactions}
+                                        // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
+                                        transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                     />
                                 ) : null}
                             </View>
