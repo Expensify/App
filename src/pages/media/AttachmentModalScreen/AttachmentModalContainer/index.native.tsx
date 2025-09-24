@@ -3,10 +3,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
-import AttachmentStateContextProvider from '../AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose}: AttachmentModalContainerProps<Screen>) {

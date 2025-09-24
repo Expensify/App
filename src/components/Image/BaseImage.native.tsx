@@ -12,7 +12,7 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
 
     useEffect(() => {
         setAttachmentLoaded(source as AttachmentSource, false);
-    }, [source, setAttachmentLoaded]);
+    }, []);
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
             setAttachmentLoaded(source as AttachmentSource, true);

@@ -2,11 +2,11 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Modal from '@components/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentStateContextProvider from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import AttachmentStateContextProvider from '../AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {

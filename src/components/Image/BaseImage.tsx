@@ -9,7 +9,7 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
     const {setAttachmentLoaded} = useContext(AttachmentStateContext);
     useEffect(() => {
         setAttachmentLoaded?.(source as AttachmentSource, false);
-    }, [source]);
+    }, []);
     const imageLoadedSuccessfully = useCallback(
         (event: {nativeEvent: ImageLoadEventData}) => {
             setAttachmentLoaded?.(source as AttachmentSource, true);
