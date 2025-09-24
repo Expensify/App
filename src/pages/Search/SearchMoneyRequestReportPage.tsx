@@ -31,6 +31,7 @@ import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
@@ -49,8 +50,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isOffline} = useNetwork();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const shouldWaitForReportSync = report?.reportID !== reportIDFromRoute;
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+    const isLoadingReportFromOnyx = isLoadingOnyxValue(reportResult);
+    const shouldWaitForReportSync = !isLoadingReportFromOnyx && !report;
 
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
@@ -58,7 +60,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
-    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
+    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived, true, isLoadingReportFromOnyx);
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
@@ -135,7 +137,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     shouldWaitForReportSync={shouldWaitForReportSync}
-                                    key={report?.reportID}
+                                    key="SearchMoneyRequestReportPage_MoneyRequestReportView"
                                     backToRoute={route.params.backTo}
                                 />
                             </DragAndDropProvider>
@@ -172,7 +174,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         shouldWaitForReportSync={shouldWaitForReportSync}
-                                        key={report?.reportID}
+                                        key="SearchMoneyRequestReportPage_MoneyRequestReportView"
                                         backToRoute={route.params.backTo}
                                     />
                                 </View>
