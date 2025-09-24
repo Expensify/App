@@ -11238,7 +11238,7 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
  */
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const managerLogin = getLoginByAccountID(report?.managerID ?? CONST.DEFAULT_NUMBER_ID);
+
     // We can't move the iou report to the workspace if both users from the iou report create the expense
     if (doesReportContainRequestsFromMultipleUsers(report)) {
         return false;
@@ -11248,11 +11248,6 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
-    // We can only move the iou report to the workspace if the manager is the payer of the new policy
-    if (isIOUReport(report)) {
-        console.log('isWorkspaceEligibleForReportChange', {isPaidGroupPolicyPolicyUtils:isPaidGroupPolicyPolicyUtils(newPolicy), isWorkspacePayer:isWorkspacePayer(managerLogin ?? '', newPolicy), isPolicyMember:isPolicyMember(newPolicy, managerLogin)});
-        return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(newPolicy, submitterEmail) || isWorkspacePayer(managerLogin ?? '', newPolicy));
-    }
     return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(newPolicy, submitterEmail) || isPolicyAdmin(newPolicy?.id, policies));
 }
 
