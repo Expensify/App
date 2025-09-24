@@ -22,7 +22,6 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
-    canDeleteCardTransactionByLiabilityType,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
@@ -55,6 +54,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    isCardTransaction as isCardTransactionUtils,
     isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -458,9 +458,8 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
         return true;
     }
 
-    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-        return isOwner && canCardTransactionBeDeleted;
+        return isOwner;
     }
 
     if (isInvoiceReport) {
@@ -474,7 +473,10 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        if (!canCardTransactionBeDeleted) {
+        const isCardTransactionWithCorporateLiability =
+            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+
+        if (isCardTransactionWithCorporateLiability) {
             return false;
         }
 
@@ -698,13 +700,7 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(
-    report: Report,
-    policy?: Policy,
-    reportActions?: ReportAction[],
-    integrationsExportTemplates?: ExportTemplate[],
-    customInAppTemplates?: ExportTemplate[],
-): Array<ValueOf<string>> {
+function getSecondaryExportReportActions(report: Report, policy?: Policy, exportTemplates: ExportTemplate[] = []): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
@@ -714,20 +710,11 @@ function getSecondaryExportReportActions(
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     // Add any custom IS templates that have been added to the user's account as export options
-    if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-        for (const template of integrationsExportTemplates) {
-            options.push(template.name);
-        }
-    }
-
-    // Add any in-app export templates that the user has created as export options
-    if (customInAppTemplates && customInAppTemplates.length > 0) {
-        for (const template of customInAppTemplates) {
-            options.push(template.name);
-        }
+    for (const template of exportTemplates) {
+        options.push(template.name);
     }
 
     return options;

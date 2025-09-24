@@ -497,7 +497,6 @@ const translations = {
         decline: 'Recusar',
         reject: 'Recusar',
         transferBalance: 'Transferir saldo',
-        cantFindAddress: 'Não consegue encontrar seu endereço?',
         enterManually: 'Insira manualmente',
         message: 'Mensagem',
         leaveThread: 'Sair do tópico',
@@ -3099,11 +3098,13 @@ const translations = {
         selectIncorporationCountry: 'Selecione o país de incorporação',
         selectIncorporationState: 'Selecione o estado de incorporação',
         selectAverageReimbursement: 'Selecionar valor médio de reembolso',
+        selectBusinessType: 'Selecionar tipo de negócio',
         findIncorporationType: 'Encontrar tipo de incorporação',
         findBusinessCategory: 'Encontrar categoria de negócios',
         findAnnualPaymentVolume: 'Encontre o volume de pagamento anual',
         findIncorporationState: 'Encontrar estado de incorporação',
         findAverageReimbursement: 'Encontrar valor médio de reembolso',
+        findBusinessType: 'Encontrar tipo de negócio',
         error: {
             registrationNumber: 'Por favor, forneça um número de registro válido.',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3195,21 +3196,6 @@ const translations = {
         codiceFiscaleDescription:
             'Por favor, faça o upload de um vídeo de uma visita ao local ou de uma chamada gravada com o oficial responsável pela assinatura. O oficial deve fornecer: nome completo, data de nascimento, nome da empresa, número de registro, número do código fiscal, endereço registrado, natureza do negócio e finalidade da conta.',
     },
-    validationStep: {
-        headerTitle: 'Validar conta bancária',
-        buttonText: 'Concluir configuração',
-        maxAttemptsReached: 'A validação para esta conta bancária foi desativada devido a muitas tentativas incorretas.',
-        description: `Dentro de 1-2 dias úteis, enviaremos três (3) pequenas transações para sua conta bancária de um nome como "Expensify, Inc. Validation".`,
-        descriptionCTA: 'Por favor, insira o valor de cada transação nos campos abaixo. Exemplo: 1.51.',
-        reviewingInfo: 'Obrigado! Estamos revisando suas informações e entraremos em contato em breve. Por favor, verifique seu chat com o Concierge.',
-        forNextStep: 'para os próximos passos para concluir a configuração da sua conta bancária.',
-        letsChatCTA: 'Sim, vamos conversar',
-        letsChatText: 'Quase lá! Precisamos da sua ajuda para verificar algumas últimas informações pelo chat. Pronto?',
-        letsChatTitle: 'Vamos conversar!',
-        enable2FATitle: 'Prevenir fraudes, habilitar autenticação de dois fatores (2FA)',
-        enable2FAText: 'Levamos sua segurança a sério. Por favor, configure a autenticação de dois fatores (2FA) agora para adicionar uma camada extra de proteção à sua conta.',
-        secureYourAccount: 'Proteja sua conta',
-    },
     completeVerificationStep: {
         completeVerification: 'Concluir verificação',
         confirmAgreements: 'Por favor, confirme os acordos abaixo.',
@@ -3220,18 +3206,13 @@ const translations = {
         termsAndConditions: 'termos e condições',
     },
     connectBankAccountStep: {
-        finishButtonText: 'Concluir configuração',
         validateYourBankAccount: 'Valide sua conta bancária',
         validateButtonText: 'Validar',
         validationInputLabel: 'Transação',
         maxAttemptsReached: 'A validação para esta conta bancária foi desativada devido a muitas tentativas incorretas.',
         description: `Dentro de 1-2 dias úteis, enviaremos três (3) pequenas transações para sua conta bancária de um nome como "Expensify, Inc. Validation".`,
         descriptionCTA: 'Por favor, insira o valor de cada transação nos campos abaixo. Exemplo: 1.51.',
-        reviewingInfo: 'Obrigado! Estamos revisando suas informações e entraremos em contato em breve. Por favor, verifique seu chat com o Concierge.',
-        forNextSteps: 'para os próximos passos para concluir a configuração da sua conta bancária.',
-        letsChatCTA: 'Sim, vamos conversar',
         letsChatText: 'Quase lá! Precisamos da sua ajuda para verificar algumas últimas informações pelo chat. Pronto?',
-        letsChatTitle: 'Vamos conversar!',
         enable2FATitle: 'Prevenir fraudes, habilitar autenticação de dois fatores (2FA)',
         enable2FAText: 'Levamos sua segurança a sério. Por favor, configure a autenticação de dois fatores (2FA) agora para adicionar uma camada extra de proteção à sua conta.',
         secureYourAccount: 'Proteja sua conta',
@@ -4973,6 +4954,7 @@ const translations = {
             welcomeNote: 'Comece a usar meu novo espaço de trabalho',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Você está prestes a criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do espaço de trabalho original.`,
+            error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',
         },
         emptyWorkspace: {
             title: 'Você não tem espaços de trabalho',
@@ -5551,11 +5533,6 @@ const translations = {
                 title: 'Viagem',
                 description: 'Expensify Travel é uma nova plataforma de reserva e gestão de viagens corporativas que permite aos membros reservar acomodações, voos, transporte e mais.',
                 onlyAvailableOnPlan: 'Viagens estão disponíveis no plano Collect, a partir de',
-            },
-            reports: {
-                title: 'Relatórios',
-                description: 'Crie relatórios de despesas organizados para acompanhar seus gastos empresariais, enviá-los para aprovação e otimizar seu processo de reembolso.',
-                onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multiníveis',
@@ -7173,12 +7150,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Renomeie suas buscas salvas</strong> aqui!</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>Crie despesas</strong>, comece um bate-papo,\ne mais. Experimente!</tooltip>',
-        bottomNavInboxTooltip: '<tooltip>Veja o que <strong>precisa da sua atenção</strong>\ne <strong>converse sobre despesas.</strong></tooltip>',
-        workspaceChatTooltip: '<tooltip>Converse com os <strong>aprovadores</strong></tooltip>',
-        GBRRBRChat: '<tooltip>Você verá 🟢 nas <strong>ações a serem tomadas</strong>\ne 🔴 nos <strong>itens a revisar.</strong></tooltip>',
         accountSwitcher: '<tooltip>Acesse suas <strong>contas Copilot</strong> aqui</tooltip>',
-        expenseReportsFilter: '<tooltip>Bem-vindo! Encontre todos os\n<strong>relatórios da sua empresa</strong> aqui.</tooltip>',
         scanTestTooltip: {
             main: '<tooltip><strong>Escaneie nosso recibo de teste</strong> para ver como funciona!</tooltip>',
             manager: '<tooltip>Escolha nosso <strong>gerente de teste</strong> para experimentar!</tooltip>',

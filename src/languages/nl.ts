@@ -497,7 +497,6 @@ const translations = {
         decline: 'Afwijzen',
         reject: 'Afwijzen',
         transferBalance: 'Saldo overboeken',
-        cantFindAddress: 'Kan je adres niet vinden?',
         enterManually: 'Voer het handmatig in',
         message: 'Bericht',
         leaveThread: 'Verlaat thread',
@@ -3099,11 +3098,13 @@ const translations = {
         selectIncorporationCountry: 'Selecteer oprichtingsland',
         selectIncorporationState: 'Selecteer oprichtingsstaat',
         selectAverageReimbursement: 'Selecteer het gemiddelde terugbetalingsbedrag',
+        selectBusinessType: 'Selecteer zakelijk type',
         findIncorporationType: 'Vind het type oprichting',
         findBusinessCategory: 'Zakelijke categorie vinden',
         findAnnualPaymentVolume: 'Vind jaarlijks betalingsvolume',
         findIncorporationState: 'Vind oprichtingsstaat',
         findAverageReimbursement: 'Vind het gemiddelde terugbetalingsbedrag',
+        findBusinessType: 'Zakelijk type zoeken',
         error: {
             registrationNumber: 'Gelieve een geldig registratienummer op te geven',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3195,21 +3196,6 @@ const translations = {
         codiceFiscaleDescription:
             'Upload alstublieft een video van een sitebezoek of een opgenomen gesprek met de ondertekenende functionaris. De functionaris moet het volgende verstrekken: volledige naam, geboortedatum, bedrijfsnaam, registratienummer, fiscaal codenummer, geregistreerd adres, aard van het bedrijf en doel van de rekening.',
     },
-    validationStep: {
-        headerTitle: 'Bankrekening valideren',
-        buttonText: 'Voltooi de installatie',
-        maxAttemptsReached: 'Validatie voor deze bankrekening is uitgeschakeld vanwege te veel onjuiste pogingen.',
-        description: `Binnen 1-2 werkdagen sturen we drie (3) kleine transacties naar uw bankrekening van een naam zoals "Expensify, Inc. Validation".`,
-        descriptionCTA: 'Voer alstublieft elk transactiebedrag in de onderstaande velden in. Voorbeeld: 1.51.',
-        reviewingInfo: 'Bedankt! We zijn je informatie aan het beoordelen en nemen binnenkort contact met je op. Controleer je chat met Concierge.',
-        forNextStep: 'voor de volgende stappen om uw bankrekening in te stellen.',
-        letsChatCTA: 'Ja, laten we chatten.',
-        letsChatText: 'Bijna klaar! We hebben je hulp nodig om een paar laatste stukjes informatie via de chat te verifiëren. Klaar?',
-        letsChatTitle: 'Laten we chatten!',
-        enable2FATitle: 'Voorkom fraude, schakel twee-factor-authenticatie (2FA) in',
-        enable2FAText: 'We nemen uw beveiliging serieus. Stel nu 2FA in om een extra beveiligingslaag aan uw account toe te voegen.',
-        secureYourAccount: 'Beveilig uw account',
-    },
     completeVerificationStep: {
         completeVerification: 'Voltooi verificatie',
         confirmAgreements: 'Bevestig alstublieft de onderstaande overeenkomsten.',
@@ -3220,18 +3206,13 @@ const translations = {
         termsAndConditions: 'algemene voorwaarden',
     },
     connectBankAccountStep: {
-        finishButtonText: 'Voltooi de installatie',
         validateYourBankAccount: 'Valideer uw bankrekening',
         validateButtonText: 'Valideren',
         validationInputLabel: 'Transactie',
         maxAttemptsReached: 'Validatie voor deze bankrekening is uitgeschakeld vanwege te veel onjuiste pogingen.',
         description: `Binnen 1-2 werkdagen sturen we drie (3) kleine transacties naar uw bankrekening van een naam zoals "Expensify, Inc. Validation".`,
         descriptionCTA: 'Voer alstublieft elk transactiebedrag in de onderstaande velden in. Voorbeeld: 1.51.',
-        reviewingInfo: 'Bedankt! We zijn je informatie aan het beoordelen en nemen binnenkort contact met je op. Controleer je chat met Concierge.',
-        forNextSteps: 'voor de volgende stappen om uw bankrekening in te stellen.',
-        letsChatCTA: 'Ja, laten we chatten.',
         letsChatText: 'Bijna klaar! We hebben je hulp nodig om een paar laatste stukjes informatie via de chat te verifiëren. Klaar?',
-        letsChatTitle: 'Laten we chatten!',
         enable2FATitle: 'Voorkom fraude, schakel twee-factor-authenticatie (2FA) in',
         enable2FAText: 'We nemen uw beveiliging serieus. Stel nu 2FA in om een extra beveiligingslaag aan uw account toe te voegen.',
         secureYourAccount: 'Beveilig uw account',
@@ -4978,6 +4959,7 @@ const translations = {
             welcomeNote: 'Ga aan de slag met mijn nieuwe werkruimte',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Je staat op het punt om ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden uit de oorspronkelijke werkruimte.`,
+            error: 'Er is een fout opgetreden bij het dupliceren van uw nieuwe werkruimte. Probeer het opnieuw.',
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
@@ -5552,11 +5534,6 @@ const translations = {
                 title: 'Reis',
                 description: 'Expensify Travel is een nieuw platform voor het boeken en beheren van zakelijke reizen waarmee leden accommodaties, vluchten, vervoer en meer kunnen boeken.',
                 onlyAvailableOnPlan: 'Reizen is beschikbaar op het Collect-plan, beginnend bij',
-            },
-            reports: {
-                title: 'Rapporten',
-                description: 'Maak georganiseerde onkostenrapporten om uw zakelijke uitgaven bij te houden, in te dienen voor goedkeuring en uw vergoedingsproces te stroomlijnen.',
-                onlyAvailableOnPlan: 'Rapporten zijn beschikbaar op het Collect-plan, beginnend bij ',
             },
             multiLevelTags: {
                 title: 'Meerniveautags',
@@ -7172,12 +7149,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Aan de slag <strong>hier!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Hernoem uw opgeslagen zoekopdrachten</strong> hier!</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>Maak onkosten aan</strong>, begin met chatten,\nen meer. Probeer het uit!</tooltip>',
-        bottomNavInboxTooltip: '<tooltip>Bekijk wat <strong>jouw aandacht nodig heeft</strong>\nen <strong>chat over onkosten.</strong></tooltip>',
-        workspaceChatTooltip: '<tooltip>Chat met <strong>goedkeurders</strong></tooltip>',
-        GBRRBRChat: '<tooltip>Je ziet 🟢 bij <strong>acties die je moet uitvoeren</strong>,\nen 🔴 bij <strong>items die je moet beoordelen.</strong></tooltip>',
         accountSwitcher: '<tooltip>Toegang tot je <strong>Copilot-accounts</strong> hier</tooltip>',
-        expenseReportsFilter: '<tooltip>Welkom! Vind hier al je\n<strong>bedrijfsrapporten</strong>.</tooltip>',
         scanTestTooltip: {
             main: '<tooltip><strong>Scan ons testbonnetje</strong> om te zien hoe het werkt!</tooltip>',
             manager: '<tooltip>Kies onze <strong>testmanager</strong> om het uit te proberen!</tooltip>',

@@ -497,7 +497,6 @@ const translations = {
         decline: '辞退する',
         reject: '拒否する',
         transferBalance: '残高を移動',
-        cantFindAddress: '住所が見つかりませんか？',
         enterManually: '手動で入力してください。',
         message: 'メッセージ',
         leaveThread: 'スレッドを退出',
@@ -3088,11 +3087,13 @@ const translations = {
         selectIncorporationCountry: '法人設立国を選択',
         selectIncorporationState: '法人設立州を選択',
         selectAverageReimbursement: '平均払い戻し額を選択',
+        selectBusinessType: '事業タイプを選択する',
         findIncorporationType: '法人の種類を見つける',
         findBusinessCategory: 'ビジネスカテゴリを見つける',
         findAnnualPaymentVolume: '年間支払い額を見つける',
         findIncorporationState: '設立州を見つける',
         findAverageReimbursement: '平均払い戻し額を見つける',
+        findBusinessType: '事業タイプを見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3182,21 +3183,6 @@ const translations = {
         codiceFiscaleDescription:
             'サイト訪問のビデオまたは署名担当者との録音された通話をアップロードしてください。担当者は次の情報を提供する必要があります：氏名、生年月日、会社名、登録番号、税コード番号、登録住所、事業の性質、アカウントの目的。',
     },
-    validationStep: {
-        headerTitle: '銀行口座を確認する',
-        buttonText: 'セットアップを完了する',
-        maxAttemptsReached: 'この銀行口座の検証は、不正な試行が多すぎるため無効になっています。',
-        description: `1～2営業日以内に、「Expensify, Inc. Validation」のような名前からあなたの銀行口座に3つの小額取引を送信します。`,
-        descriptionCTA: '以下のフィールドに各取引金額を入力してください。例: 1.51。',
-        reviewingInfo: 'ありがとうございます！私たちはあなたの情報を確認しており、すぐにご連絡いたします。Conciergeとのチャットをご確認ください。',
-        forNextStep: '銀行口座の設定を完了するための次のステップ。',
-        letsChatCTA: 'はい、チャットしましょう',
-        letsChatText: 'もう少しです！チャットでいくつかの情報を確認するお手伝いをお願いします。準備はいいですか？',
-        letsChatTitle: 'チャットしましょう！',
-        enable2FATitle: '不正行為を防ぐために、二要素認証（2FA）を有効にしてください。',
-        enable2FAText: '私たちはあなたのセキュリティを真剣に考えています。アカウントに追加の保護層を加えるために、今すぐ2FAを設定してください。',
-        secureYourAccount: 'アカウントを保護する',
-    },
     completeVerificationStep: {
         completeVerification: '認証を完了する',
         confirmAgreements: '以下の合意を確認してください。',
@@ -3207,18 +3193,13 @@ const translations = {
         termsAndConditions: '利用規約',
     },
     connectBankAccountStep: {
-        finishButtonText: 'セットアップを完了する',
         validateYourBankAccount: '銀行口座を確認してください',
         validateButtonText: '検証する',
         validationInputLabel: '取引',
         maxAttemptsReached: 'この銀行口座の検証は、不正な試行が多すぎるため無効になっています。',
         description: `1～2営業日以内に、「Expensify, Inc. Validation」のような名前からあなたの銀行口座に3つの小額取引を送信します。`,
         descriptionCTA: '以下のフィールドに各取引金額を入力してください。例: 1.51。',
-        reviewingInfo: 'ありがとうございます！私たちはあなたの情報を確認しており、すぐにご連絡いたします。Conciergeとのチャットをご確認ください。',
-        forNextSteps: '銀行口座の設定を完了するための次のステップ。',
-        letsChatCTA: 'はい、チャットしましょう',
         letsChatText: 'もう少しです！チャットでいくつかの情報を確認するお手伝いをお願いします。準備はいいですか？',
-        letsChatTitle: 'チャットしましょう！',
         enable2FATitle: '不正行為を防ぐために、二要素認証（2FA）を有効にしてください。',
         enable2FAText: '私たちはあなたのセキュリティを真剣に考えています。アカウントに追加の保護層を加えるために、今すぐ2FAを設定してください。',
         secureYourAccount: 'アカウントを保護する',
@@ -4945,6 +4926,7 @@ const translations = {
             welcomeNote: '新しいワークスペースの使用を開始してください',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `${newWorkspaceName ?? ''} を作成し、元のワークスペースの ${totalMembers ?? 0} 人のメンバーと共有しようとしています。`,
+            error: '新しいワークスペースの複製中にエラーが発生しました。もう一度お試しください。',
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -5514,11 +5496,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
-            },
-            reports: {
-                title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
@@ -7124,12 +7101,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>ここから<strong>始めましょう！</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>保存した検索に名前を付け直す</strong>にはこちら！</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>経費を作成</strong>、チャットを開始、さらにいろいろ。試してみてください！</tooltip>',
-        bottomNavInboxTooltip: '<tooltip><strong>注意が必要なもの</strong>を確認して、<strong>経費についてチャット</strong>しましょう。</tooltip>',
-        workspaceChatTooltip: '<tooltip><strong>承認者とチャット</strong>しましょう</tooltip>',
-        GBRRBRChat: '<tooltip><strong>対応が必要なアクション</strong>には🟢、\n<strong>確認が必要な項目</strong>には🔴が表示されます。</tooltip>',
         accountSwitcher: '<tooltip><strong>コパイロットアカウント</strong>にアクセスするにはこちら</tooltip>',
-        expenseReportsFilter: '<tooltip>ようこそ！<strong>会社のすべてのレポート</strong>をここで確認できます。</tooltip>',
         scanTestTooltip: {
             main: '<tooltip><strong>テスト用レシートをスキャン</strong>して仕組みを確認しましょう！</tooltip>',
             manager: '<tooltip><strong>テストマネージャー</strong>を選んで試してみましょう！</tooltip>',

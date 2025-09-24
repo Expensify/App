@@ -600,6 +600,7 @@ const CONST = {
                 NATURE_OF_BUSINESS: 'NatureOfBusiness',
                 PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
                 TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+                BUSINESS_TYPE: 'BusinessType',
             },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -1139,6 +1140,7 @@ const CONST = {
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
+            KEEP_THIS_ONE: 'keepThisOne',
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
         },
@@ -1600,6 +1602,7 @@ const CONST = {
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
+        ACTIVITY_INDICATOR_TIMEOUT: 10000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -6965,14 +6968,6 @@ const CONST = {
                 description: 'workspace.upgrade.distanceRates.description' as const,
                 icon: 'CarIce',
             },
-            reports: {
-                id: 'reports' as const,
-                alias: 'reports',
-                name: 'Reports',
-                title: 'workspace.upgrade.reports.title' as const,
-                description: 'workspace.upgrade.reports.description' as const,
-                icon: 'ReportReceipt',
-            },
         };
     },
     REPORT_FIELD_TYPES: {
@@ -7158,16 +7153,11 @@ const CONST = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
-        LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
-        GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSTANDING_FILTER: 'outstandingFilter',
-        GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
-        EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
     },
@@ -7302,6 +7292,22 @@ const TASK_TO_FEATURE: Record<string, string> = {
     [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: FEATURE_IDS.TAGS,
 };
 
+const FRAUD_PROTECTION_EVENT = {
+    START_SUPPORT_SESSION: 'StartSupportSession',
+    STOP_SUPPORT_SESSION: 'StopSupportSession',
+    START_COPILOT_SESSION: 'StartCopilotSession',
+    STOP_COPILOT_SESSION: 'StopCopilotSession',
+    ISSUE_EXPENSIFY_CARD: 'IssueExpensifyCard',
+    EDIT_EXPENSIFY_CARD_LIMIT: 'EditExpensifyCardLimit',
+    ISSUE_ADMIN_ISSUED_VIRTUAL_CARD: 'IssueAdminIssuedVirtualCard',
+    EDIT_LIMIT_ADMIN_ISSUE_VIRTUAL_CARD: 'EditLimitAdminIssueVirtualCard',
+    REQUEST_NEW_PHYSICAL_EXPENSIFY_CARD: 'RequestNewPhysicalExpensifyCard',
+    REQUEST_NEW_VIRTUAL_EXPENSIFY_CARD: 'RequestNewVirtualExpensifyCard',
+    MERGE_ACCOUNT: 'MergeAccount',
+    TOGGLE_TWO_FACTOR_AUTH: 'ToggleTwoFactorAuth',
+    ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
+};
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -7315,6 +7321,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FEATURE_IDS};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FEATURE_IDS, FRAUD_PROTECTION_EVENT};
 
 export default CONST;
