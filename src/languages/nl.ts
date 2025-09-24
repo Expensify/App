@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -3583,7 +3584,8 @@ const translations = {
         receiptPartners: {
             connect: 'Maak nu verbinding',
             uber: {
-                subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Verbonden met ${organizationName}` : 'Automatiseer reis- en maaltijdbezorgingskosten binnen uw organisatie.',
                 sendInvites: 'Leden uitnodigen',
                 sendInvitesDescription: 'Deze workspace-leden hebben nog geen Uber for Business-account. Deselecteer alle leden die u op dit moment niet wilt uitnodigen.',
                 confirmInvite: 'Uitnodiging bevestigen',
