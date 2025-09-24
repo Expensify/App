@@ -707,7 +707,6 @@ const CONST = {
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        DUPLICATE_WORKSPACE: 'duplicatePolicyNewDot',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
