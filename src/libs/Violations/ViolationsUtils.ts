@@ -334,14 +334,14 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoReceipt !== 'number' &&
             typeof maxAmountNoReceipt === 'number' &&
-            Math.abs(amount) > maxAmountNoReceipt &&
+            amount > maxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
         const shouldShowCategoryReceiptRequiredViolation =
             canCalculateAmountViolations &&
             !isInvoiceTransaction &&
             typeof categoryMaxAmountNoReceipt === 'number' &&
-            Math.abs(amount) > categoryMaxAmountNoReceipt &&
+            amount > categoryMaxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
 
@@ -352,7 +352,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction &&
             typeof categoryOverLimit !== 'number' &&
             typeof overLimitAmount === 'number' &&
-            Math.abs(amount) > overLimitAmount &&
+           amount > overLimitAmount &&
             isControlPolicy;
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && Math.abs(amount) > categoryOverLimit && isControlPolicy;
