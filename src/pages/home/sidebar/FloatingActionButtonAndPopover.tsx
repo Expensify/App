@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {createPoliciesSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
@@ -46,8 +47,10 @@ import {
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
+import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +58,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -65,9 +67,6 @@ type FloatingActionButtonAndPopoverProps = {
 
     /* Callback function before the menu is hidden */
     onHideCreateMenu?: () => void;
-
-    /* If the tooltip is allowed to be shown */
-    isTooltipAllowed: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<FloatingActionButtonAndPopoverRef>;
@@ -89,13 +88,17 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
+const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
+
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
+
+const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
 
 /**
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isTooltipAllowed, ref}: FloatingActionButtonAndPopoverProps) {
+function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -116,7 +119,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -133,7 +136,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: true});
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
 
@@ -149,6 +152,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         canBeMissing: true,
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
+
+    const isReportInSearch = isOnSearchMoneyRequestReportPage();
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -202,7 +207,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
@@ -481,6 +486,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
                               }
 
+                              if (isReportInSearch) {
+                                  clearLastSearchParams();
+                              }
+
                               if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
                                   Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
@@ -494,6 +503,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                           isSearchTopmostFullScreenRoute()
                                               ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
                                               : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                                          {forceReplace: isReportInSearch},
                                       );
                                   });
                               } else {
@@ -616,7 +626,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 cancelText={translate('common.cancel')}
             />
             <FloatingActionButton
-                isTooltipAllowed={isTooltipAllowed}
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                 role={CONST.ROLE.BUTTON}
                 isActive={isCreateMenuActive}
