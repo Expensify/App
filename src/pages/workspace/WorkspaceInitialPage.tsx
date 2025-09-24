@@ -4,6 +4,8 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DeleteWorkspaceErrorConfirmModal from '@components/DeleteWorkspaceErrorConfirmModal';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -46,15 +48,17 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {clearDeleteWorkspaceError, clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     shouldShowPolicy as checkIfShouldShowPolicy,
     goBackFromInvalidPolicy,
     hasPolicyCategoriesError,
+    isDeleteWorkspaceAnnualSubscriptionError,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -63,6 +67,7 @@ import {
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
+import type {DeleteWorkspaceErrorModal} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -119,6 +124,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
+    const {setIsLoaderVisible} = useFullScreenLoader();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -154,6 +160,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }),
         [policy, isUberForBusinessEnabled],
     ) as PolicyFeatureStates;
+    const [deleteWorkspaceErrorModal, setDeleteWorkspaceErrorModal] = useState<DeleteWorkspaceErrorModal | null>(null);
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -408,16 +415,34 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
-    // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
+    const policyErrorMessage = getLatestErrorMessage(policy);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
+    const shouldShowNotFoundPage = !shouldShowPolicy && !isPendingDelete;
 
     useEffect(() => {
-        if (isEmptyObject(prevPolicy) || prevIsPendingDelete || !isPendingDelete) {
+        if (isEmptyObject(prevPolicy)) {
             return;
         }
-        goBackFromInvalidPolicy();
-    }, [isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
+        if (!prevIsPendingDelete && isPendingDelete) {
+            if (!isOffline) {
+                setIsLoaderVisible(true);
+                return;
+            }
+            goBackFromInvalidPolicy();
+            return;
+        }
+        if (prevIsPendingDelete && !isPendingDelete) {
+            setIsLoaderVisible(false);
+            if (policyErrorMessage) {
+                setDeleteWorkspaceErrorModal({
+                    isVisible: true,
+                    errorMessage: policyErrorMessage,
+                });
+                return;
+            }
+            goBackFromInvalidPolicy();
+        }
+    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, policyErrorMessage, policyID, setIsLoaderVisible]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
@@ -454,78 +479,90 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldShowNavigationTabBar && !shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-        >
-            <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.goBackToHome}
-                shouldShow={shouldShowNotFoundPage}
-                subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
-                addBottomSafeAreaPadding
-                shouldForceFullScreen
-                shouldDisplaySearchRouter
+        <>
+            <ScreenWrapper
+                testID={WorkspaceInitialPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
+                bottomContent={shouldShowNavigationTabBar && !shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             >
-                <HeaderWithBackButton
-                    title={policyName}
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
-                    policyAvatar={policyAvatar}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
-                />
+                <FullPageNotFoundView
+                    onBackButtonPress={Navigation.dismissModal}
+                    onLinkPress={Navigation.goBackToHome}
+                    shouldShow={shouldShowNotFoundPage}
+                    subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
+                    addBottomSafeAreaPadding
+                    shouldForceFullScreen
+                    shouldDisplaySearchRouter
+                >
+                    <HeaderWithBackButton
+                        title={policyName}
+                        onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
+                        policyAvatar={policyAvatar}
+                        shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
-                    <OfflineWithFeedback
-                        pendingAction={policy?.pendingAction}
-                        onClose={() => dismissError(policyID, policy?.pendingAction)}
-                        errors={policy?.errors}
-                        errorRowStyles={[styles.ph5, styles.pv2]}
-                        shouldDisableStrikeThrough={false}
-                        shouldHideOnDelete={false}
-                    >
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                            {/*
+                    <ScrollView contentContainerStyle={[styles.flexColumn]}>
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingAction}
+                            onClose={() => dismissError(policyID, policy?.pendingAction)}
+                            errors={policy?.errors}
+                            shouldShowErrorMessages={!isDeleteWorkspaceAnnualSubscriptionError(policy)}
+                            errorRowStyles={[styles.ph5, styles.pv2]}
+                            shouldDisableStrikeThrough={false}
+                            shouldHideOnDelete={false}
+                        >
+                            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                                {/*
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
-                            {workspaceMenuItems.map((item) => (
-                                <HighlightableMenuItem
-                                    key={item.translationKey}
-                                    disabled={hasPolicyCreationError || isExecuting}
-                                    interactive={!hasPolicyCreationError}
-                                    title={translate(item.translationKey)}
-                                    icon={item.icon}
-                                    onPress={item.action}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={styles.sectionMenuItem}
-                                    highlighted={!!item?.highlighted}
-                                    focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                    badgeText={item.badgeText}
-                                    shouldIconUseAutoWidthStyle
-                                />
-                            ))}
-                        </View>
-                    </OfflineWithFeedback>
-                    {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                            <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback pendingAction={reportPendingAction}>
-                                <MenuItem
-                                    title={getReportName(currentUserPolicyExpenseChat)}
-                                    description={translate('workspace.common.workspace')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                    iconReportID={currentUserPolicyExpenseChatReportID}
-                                />
-                            </OfflineWithFeedback>
-                        </View>
-                    )}
-                </ScrollView>
-                {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                                {workspaceMenuItems.map((item) => (
+                                    <HighlightableMenuItem
+                                        key={item.translationKey}
+                                        disabled={hasPolicyCreationError || isExecuting}
+                                        interactive={!hasPolicyCreationError}
+                                        title={translate(item.translationKey)}
+                                        icon={item.icon}
+                                        onPress={item.action}
+                                        brickRoadIndicator={item.brickRoadIndicator}
+                                        wrapperStyle={styles.sectionMenuItem}
+                                        highlighted={!!item?.highlighted}
+                                        focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
+                                        badgeText={item.badgeText}
+                                        shouldIconUseAutoWidthStyle
+                                    />
+                                ))}
+                            </View>
+                        </OfflineWithFeedback>
+                        {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
+                            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                                <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
+                                <OfflineWithFeedback pendingAction={reportPendingAction}>
+                                    <MenuItem
+                                        title={getReportName(currentUserPolicyExpenseChat)}
+                                        description={translate('workspace.common.workspace')}
+                                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
+                                        shouldShowRightIcon
+                                        wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
+                                        iconReportID={currentUserPolicyExpenseChatReportID}
+                                    />
+                                </OfflineWithFeedback>
+                            </View>
+                        )}
+                    </ScrollView>
+                    {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                </FullPageNotFoundView>
+            </ScreenWrapper>
+            {deleteWorkspaceErrorModal?.isVisible ? (
+                <DeleteWorkspaceErrorConfirmModal
+                    onModalHide={() => {
+                        setDeleteWorkspaceErrorModal(null);
+                        clearDeleteWorkspaceError(policyID);
+                    }}
+                    errorMessage={deleteWorkspaceErrorModal?.errorMessage}
+                />
+            ) : null}
+        </>
     );
 }
 
