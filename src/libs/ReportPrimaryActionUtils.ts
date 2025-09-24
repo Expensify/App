@@ -444,8 +444,7 @@ function getTransactionThreadPrimaryAction(
     parentReport: Report,
     reportTransaction: Transaction,
     violations: TransactionViolation[],
-    policy: OnyxEntry<Policy>,
-    isFromReviewDuplicates: boolean,
+    policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
     if (isMarkAsResolvedAction(parentReport, violations, policy)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
@@ -456,7 +455,7 @@ function getTransactionThreadPrimaryAction(
     }
 
     if (isReviewDuplicatesAction(parentReport, [reportTransaction])) {
-        return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
     if (isMarkAsCashActionForTransaction(parentReport, violations, policy)) {

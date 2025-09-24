@@ -2,7 +2,6 @@ import {useEffect, useMemo, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 
 type StepName = 'description' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable' | 'confirmation';
 
@@ -49,11 +48,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
                 Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo));
                 break;
             default:
-                if (backTo) {
-                    Navigation.goBack(backTo as Route);
-                    return;
-                }
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadReportID));
+                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadReportID, backTo));
                 break;
         }
     };
