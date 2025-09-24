@@ -1,17 +1,18 @@
 import React, {useCallback, useContext, useEffect} from 'react';
 import {Image as RNImage} from 'react-native';
 import type {ImageLoadEventData, ImageSourcePropType} from 'react-native';
+import {AttachmentSource} from '@components/Attachments/types';
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {BaseImageProps} from './types';
 
 function BaseImage({onLoad, source, ...props}: BaseImageProps) {
     const {setAttachmentLoaded} = useContext(AttachmentStateContext);
     useEffect(() => {
-        setAttachmentLoaded?.(source, false);
-    }, []);
+        setAttachmentLoaded?.(source as AttachmentSource, false);
+    }, [source]);
     const imageLoadedSuccessfully = useCallback(
         (event: {nativeEvent: ImageLoadEventData}) => {
-            setAttachmentLoaded?.(source, true);
+            setAttachmentLoaded?.(source as AttachmentSource, true);
             if (!onLoad) {
                 return;
             }
