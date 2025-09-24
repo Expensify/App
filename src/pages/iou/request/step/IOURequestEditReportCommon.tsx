@@ -161,11 +161,11 @@ function IOURequestEditReportCommon({
             <MenuItem
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
-                description={activePolicy?.name}
+                description={reportPolicy?.name ?? activePolicy?.name}
                 icon={Expensicons.DocumentPlus}
             />
         );
-    }, [createReport, translate, activePolicy]);
+    }, [createReport, translate, activePolicy, reportPolicy]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
