@@ -217,7 +217,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         styles.sectionMenuItemTopDescription,
         styles.pr2,
         styles.justifyContentCenter,
-        policy?.receiptPartners?.uber,
+        policy?.receiptPartners,
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         isOffline,
