@@ -342,6 +342,8 @@ function WorkspacesListPage() {
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
             isRestrictedToPreferredWorkspace,
+            duplicateWorkspace?.policyID,
+            isDuplicatedWorkspaceEnabled,
         ],
     );
 
