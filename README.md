@@ -99,6 +99,7 @@ To use rock remote builds for mobile applications, you need to have GitHub CLI i
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
+* To start metro server run: `npm run start`
 * To run application on a **Development Simulator**: `npm run ios` or `npm run android`
 
 After completing these steps, you should be able to start both mobile platform apps using the remote build.
@@ -123,6 +124,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
 * Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions.
     * For help with MapBox token, you can see [this Slack thread](https://expensify.slack.com/archives/C01GTK53T8Q/p1692740856745279?thread_ts=1692322511.804599&cid=C01GTK53T8Q)
 * To install the dependencies, run: `npm install`
+* To start metro server run: `npm run start`
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
@@ -133,6 +135,7 @@ If you want to run the app on an actual physical iOS device, please follow the i
 * Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
 * Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
 * To install dependencies, run `npm install` if you haven’t already done so during the iOS setup process.
+* To start metro server run: `npm run start`
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
