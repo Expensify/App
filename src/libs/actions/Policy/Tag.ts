@@ -479,8 +479,15 @@ function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: n
     });
 }
 
-function clearPolicyTagListErrorField(policyID: string, tagListIndex: number, errorField: string) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type ClearPolicyTagListErrorFieldProps = {
+    policyID: string;
+    tagListIndex: number;
+    errorField: string;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagListErrorField({policyID, tagListIndex, errorField, policyTags}: ClearPolicyTagListErrorFieldProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
 
     if (!policyTag) {
         return;
