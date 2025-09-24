@@ -9777,10 +9777,25 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, shouldExcludeNonR
         unheldTotal -= iouReport?.unheldNonReimbursableTotal ?? 0;
     }
 
+    const adjustedUnheldTotal = unheldTotal * coefficient;
+    const adjustedTotal = total * coefficient;
+
+    // For the "approve unheld" option to be valid, we need:
+    // 1. There should be held expenses (unheld amount != total amount)
+    // 2. For expense reports with negative totals, we need to ensure the unheld amount is valid
+    //    by checking that the absolute values are meaningful and different
+    const hasHeldExpensesLocal = unheldTotal !== total;
+    const hasValidNonHeldAmount = hasHeldExpensesLocal && (
+        // For normal cases (positive amounts or IOU reports)
+        adjustedUnheldTotal >= 0 ||
+        // For expense reports with negative amounts, check if amounts are meaningful
+        (isExpenseReport(iouReport) && Math.abs(adjustedUnheldTotal) > 0 && Math.abs(adjustedUnheldTotal) !== Math.abs(adjustedTotal))
+    );
+
     return {
-        nonHeldAmount: convertToDisplayString(unheldTotal * coefficient, iouReport?.currency),
-        fullAmount: convertToDisplayString(total * coefficient, iouReport?.currency),
-        hasValidNonHeldAmount: unheldTotal * coefficient >= 0,
+        nonHeldAmount: convertToDisplayString(adjustedUnheldTotal, iouReport?.currency),
+        fullAmount: convertToDisplayString(adjustedTotal, iouReport?.currency),
+        hasValidNonHeldAmount,
     };
 }
 
