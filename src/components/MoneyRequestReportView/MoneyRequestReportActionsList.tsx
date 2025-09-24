@@ -508,7 +508,7 @@ function MoneyRequestReportActionsList({
                 }
             });
         },
-        [reportScrollManager, setIsFloatingMessageCounterVisible],
+        [reportScrollManager, setIsFloatingMessageCounterVisible, visibleReportActions],
     );
 
     useEffect(() => {
