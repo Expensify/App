@@ -1,6 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,12 +92,4 @@ function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     });
 }
 
-export {
-    getHybridAppSettings,
-    setReadyToShowAuthScreens,
-    resetSignInFlow,
-    prepareHybridAppAfterTransitionToNewDot,
-    setUseNewDotSignInPage,
-    setClosingReactNativeApp,
-    closeReactNativeApp,
-};
+export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, prepareHybridAppAfterTransitionToNewDot, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};
