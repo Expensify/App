@@ -3,7 +3,9 @@ import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -56,12 +58,15 @@ type WalletPageProps = {
     shouldListenForResize?: boolean;
 };
 
+const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
+    Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
+
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
-        selector: (allFunds) => Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true)),
+        selector: fundListSelector,
     });
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
@@ -388,7 +393,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         contentContainerStyle={styles.flex1}
                         onClose={clearWalletError}
                         errors={userWallet?.errors}
-                        errorRowStyles={[styles.ph6]}
+                        errorRowStyles={styles.ph6}
                     >
                         <Section
                             subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
@@ -446,7 +451,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 <>
                                     {shouldShowLoadingSpinner && (
                                         <ActivityIndicator
-                                            color={theme.spinner}
                                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                             style={[styles.mb5]}
                                         />
@@ -545,9 +549,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         }
 
                                                         if (!isUserValidated) {
-                                                            Navigation.navigate(
-                                                                ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
-                                                            );
+                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
                                                             return;
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
