@@ -37,7 +37,6 @@ Onyx.connect({
 
 let hiddenTranslation = '';
 let youTranslation = '';
-
 Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     initWithStoredValues: false,
@@ -50,6 +49,15 @@ Onyx.connect({
     },
 });
 
+function getHiddenAndYouTranslation(areTranslationsLoading: boolean) {
+    if (areTranslationsLoading) {
+        return {hiddenTranslationNew: '', youTranslationNew: ''};
+    }
+    const hiddenTranslationNew = translateLocal('common.hidden');
+    const youTranslationNew = translateLocal('common.you').toLowerCase();
+    return {hiddenTranslationNew, youTranslationNew};
+}
+
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
@@ -57,8 +65,9 @@ function getDisplayNameOrDefault(
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
+    areTranslationsLoading?: boolean | null | undefined,
 ): string {
+    const {hiddenTranslationNew, youTranslationNew} = getHiddenAndYouTranslation(areTranslationsLoading ?? true);
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     let login = passedPersonalDetails?.login ?? '';
@@ -79,7 +88,7 @@ function getDisplayNameOrDefault(
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youAfterTranslation})`;
+        displayName = `${displayName} (${youTranslationNew || youTranslation})`;
     }
 
     if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -98,7 +107,11 @@ function getDisplayNameOrDefault(
         return login;
     }
 
-    return shouldFallbackToHidden ? hiddenTranslation : '';
+    if (shouldFallbackToHidden) {
+        return hiddenTranslationNew || hiddenTranslation;
+    }
+
+    return '';
 }
 
 /**
