@@ -5,6 +5,13 @@ on:
     types: [opened, synchronize]
     paths: ['src/languages/en.ts']
 
+  workflow_dispatch:
+    inputs:
+      PULL_REQUEST_URL:
+        description: 'The full URL of the E/App pull request'
+        required: true
+        type: string
+
 jobs:
   generateTranslations:
     runs-on: ubuntu-latest
