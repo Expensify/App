@@ -9,8 +9,8 @@ import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Xero from '@libs/actions/connections/Xero';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateXeroTenantID} from '@libs/actions/connections/Xero';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -18,7 +18,7 @@ import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -61,7 +61,7 @@ function XeroOrganizationConfigurationPage({
             return;
         }
 
-        Xero.updateXeroTenantID(policyID, keyForList, xeroConfig?.tenantID);
+        updateXeroTenantID(policyID, keyForList, xeroConfig?.tenantID);
         Navigation.goBack();
     };
 
@@ -76,7 +76,7 @@ function XeroOrganizationConfigurationPage({
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [TeleScope, translate, styles.pb10],
     );
 
     return (
@@ -95,9 +95,9 @@ function XeroOrganizationConfigurationPage({
             title="workspace.xero.organization"
             listEmptyContent={listEmptyContent}
             pendingAction={xeroConfig?.pendingFields?.tenantID}
-            errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
+            errors={getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
+            onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
             shouldSingleExecuteRowSelect
         />
     );

@@ -9,14 +9,14 @@ import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {updateXeroSyncReimbursementAccountID} from '@userActions/connections/Xero';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -80,9 +80,9 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             title="workspace.xero.advancedConfig.xeroBillPaymentAccount"
             listEmptyContent={listEmptyContent}
             pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
         />
     );
 }

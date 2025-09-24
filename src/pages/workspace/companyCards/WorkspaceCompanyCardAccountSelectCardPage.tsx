@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import {TeleScope} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';

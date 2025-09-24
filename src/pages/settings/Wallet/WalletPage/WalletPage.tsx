@@ -684,7 +684,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         />
                     )}
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         onPress={() => {
                             hideCardMenu();
