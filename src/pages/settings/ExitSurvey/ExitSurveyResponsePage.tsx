@@ -121,6 +121,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
                             label={translate(`exitSurvey.responsePlaceholder`)}
                             accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
                             role={CONST.ROLE.PRESENTATION}
+                            autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             ref={inputCallbackRef}
                             containerStyles={[baseResponseInputContainerStyle]}
