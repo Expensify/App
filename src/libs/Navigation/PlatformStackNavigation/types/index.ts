@@ -11,7 +11,7 @@ import type {
     StackRouterOptions,
 } from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import type {StackNavigationConfig, StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
@@ -72,7 +72,7 @@ type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions 
     NavigationListBase<ParamList>
 > &
     RouterOptions &
-    StackNavigationConfig & {
+    StackNavigationOptions & {
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;
