@@ -93,6 +93,10 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         withoutOverlay = true,
         composerToRefocusOnClose: composerToRefocusOnCloseValue,
     }: ShowEmojiPickerOptions) => {
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.TRANSITION_POPOVER,
+        });
+
         composerToRefocusOnClose.current = composerToRefocusOnCloseValue;
         if (composerToRefocusOnCloseValue === 'main') {
             ReportActionComposeFocusManager.preventComposerFocusOnFirstResponderOnce();

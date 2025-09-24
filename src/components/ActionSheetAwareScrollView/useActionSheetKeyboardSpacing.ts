@@ -24,7 +24,6 @@ const SPRING_CONFIG = {
 const useAnimatedKeyboard = () => {
     const state = useSharedValue(KeyboardState.UNKNOWN);
     const height = useSharedValue(0);
-    const lastHeight = useSharedValue(0);
     const heightWhenOpened = useSharedValue(0);
 
     useKeyboardHandler(
@@ -32,11 +31,10 @@ const useAnimatedKeyboard = () => {
             onStart: (e) => {
                 'worklet';
 
-                if (e.height !== 0) {
+                if (e.height !== 0 && state.get() !== KeyboardState.OPEN) {
                     heightWhenOpened.set(e.height);
                     height.set(0);
                 }
-                lastHeight.set(e.height);
                 state.set(e.height > 0 ? KeyboardState.OPENING : KeyboardState.CLOSING);
                 height.set(e.height > 0 ? 0 : heightWhenOpened.get());
             },
@@ -150,6 +148,8 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
                 });
             }
 
+            case States.TRANSITIONING_POPOVER:
+            case States.TRANSITIONING_POPOVER_DONE:
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
@@ -164,6 +164,8 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
                 return 0;
             }
 
+            case States.TRANSITIONING_POPOVER_KEYBOARD_OPEN:
+            case States.TRANSITIONING_POPOVER_KEYBOARD_OPEN_DONE:
             case States.KEYBOARD_POPOVER_OPEN: {
                 const nextOffset = elementOffset + lastKeyboardHeight;
                 if (isKeyboardOpen) {
