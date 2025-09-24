@@ -20,7 +20,11 @@ type AttachmentStateContextType = {
     isAttachmentLoaded: (key: AttachmentSource) => boolean;
 };
 
-const AttachmentStateContext = createContext<AttachmentStateContextType>({});
+const AttachmentStateContext = createContext<AttachmentStateContextType>({
+    setAttachmentLoaded: () => {},
+    clearAttachmentLoaded: () => {},
+    isAttachmentLoaded: () => false,
+});
 
 type Props = {
     children: React.ReactNode;
@@ -29,6 +33,7 @@ type Props = {
 function AttachmentStateContextProvider({children}: Props) {
     const [attachmentLoaded, setAttachmentLoadedState] = useState<Record<string, boolean>>({});
     const setAttachmentLoaded = useCallback((key: AttachmentSource, state = true) => {
+        console.log('setAttachmentLoaded', key, state);
         const url = convertSourceToString(key);
         if (!url) {
             return;
