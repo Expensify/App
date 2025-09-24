@@ -8,6 +8,7 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -86,7 +87,7 @@ import {
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged, openUnreportedExpense} from './actions/Report';
+import {handlePreexistingReport, openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
@@ -998,7 +999,9 @@ Onyx.connect({
                 return acc;
             }
 
-            handleReportChanged(report);
+            InteractionManager.runAfterInteractions(() => {
+                handlePreexistingReport(report);
+            });
 
             // Get all reports, which are the ones that are:
             // - Owned by the same user
