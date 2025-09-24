@@ -362,7 +362,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         comment: commentJSON,
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        pendingAction,
         receipt: receipt?.source
             ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
             : {},
