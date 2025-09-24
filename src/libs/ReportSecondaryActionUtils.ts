@@ -54,7 +54,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCorporateCardTransaction,
+    isCardTransaction as isCardTransactionUtils,
     isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -473,7 +473,8 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability = isSingleTransaction && isCorporateCardTransaction(transaction);
+        const isCardTransactionWithCorporateLiability =
+            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 
         if (isCardTransactionWithCorporateLiability) {
             return false;
