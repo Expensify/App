@@ -159,7 +159,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
+            bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
