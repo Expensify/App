@@ -54,14 +54,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         canBeMissing: true,
     });
 
-    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`,
-        {
-            selector: hasOnceLoadedTransactionThreadReportActionsSelector,
-            canBeMissing: true,
-        },
-        [],
-    );
+    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
+        selector: hasOnceLoadedTransactionThreadReportActionsSelector,
+        canBeMissing: true,
+    });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
     const [iouActionForTargetTransaction] = useOnyx(

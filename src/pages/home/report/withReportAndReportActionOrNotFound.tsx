@@ -4,6 +4,7 @@ import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openReport} from '@libs/actions/Report';
@@ -46,18 +47,8 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
         const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false, canBeMissing: true});
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
-            selector: (parentReportActions) => {
-                const parentReportActionID = report?.parentReportActionID;
-                if (!parentReportActionID) {
-                    return null;
-                }
-                return parentReportActions?.[parentReportActionID] ?? null;
-            },
-            canEvict: false,
-            canBeMissing: true,
-        });
+
+        const parentReportAction = useParentReportAction(report);
         const linkedReportAction = useMemo(() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
 

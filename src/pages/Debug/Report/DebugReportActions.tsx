@@ -18,7 +18,7 @@ import {canUserPerformWriteAction, formatReportLastMessageText, getParticipantsA
 import SidebarUtils from '@libs/SidebarUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction, ReportActions} from '@src/types/onyx';
 
 type DebugReportActionsProps = {
     reportID: string;
@@ -42,11 +42,23 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector, canBeMissing: false});
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
-        canBeMissing: true,
-    });
+
+    const getSortedAllReportActionsSelector = useCallback(
+        (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
+            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true);
+        },
+        [ifUserCanPerformWriteAction],
+    );
+
+    const [sortedAllReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canEvict: false,
+            selector: getSortedAllReportActionsSelector,
+            canBeMissing: true,
+        },
+        [getSortedAllReportActionsSelector],
+    );
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>));
 

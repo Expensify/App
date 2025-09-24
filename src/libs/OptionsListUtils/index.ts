@@ -55,6 +55,7 @@ import {
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
+    isActionableMentionWhisper,
     isActionOfType,
     isAddCommentAction,
     isClosedAction,
@@ -76,6 +77,7 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
+    isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -288,6 +290,7 @@ Onyx.connect({
             // does not match a closed or created state.
             const reportActionsForDisplay = sortedReportActions.filter(
                 (reportAction, actionKey) =>
+                    (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
                     shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
