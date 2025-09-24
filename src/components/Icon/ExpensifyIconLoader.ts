@@ -11,7 +11,7 @@ let expensifyIconsChunk: ExpensifyIconsChunk | null = null;
 let chunkLoadingPromise: Promise<ExpensifyIconsChunk> | null = null;
 
 /**
- * Load the ExpensifyIcons chunk eagerl
+ * Load the ExpensifyIcons chunk eagerly
  */
 function loadExpensifyIconsChunk(): Promise<ExpensifyIconsChunk> {
     if (expensifyIconsChunk) {
