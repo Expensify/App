@@ -24,3 +24,6 @@ flags:
   unit:
     paths:
       - src/
+
+ignore:
+  - "src/languages/**"
