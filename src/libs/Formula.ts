@@ -507,6 +507,7 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
         if (!created) {
             return;
         }
+        // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
@@ -542,6 +543,7 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
         if (!created) {
             return;
         }
+        // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
