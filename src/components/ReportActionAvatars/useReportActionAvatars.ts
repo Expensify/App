@@ -15,6 +15,7 @@ import {
     getWorkspaceIcon,
     isChatThread,
     isInvoiceReport,
+    isInvoiceRoom,
     isPolicyExpenseChat,
     isTripRoom,
     shouldReportShowSubscript,
@@ -155,7 +156,8 @@ function useReportActionAvatars({
     const isWorkspacePolicy = !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const isATripRoom = isTripRoom(chatReport);
     const isWorkspaceWithoutChatReportProp = !chatReport?.reportID && isWorkspacePolicy;
-    const isAWorkspaceChat = isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp;
+    const isAnInvoiceRoom = isInvoiceRoom(chatReport);
+    const isAWorkspaceChat = (isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp) && !isAnInvoiceRoom;
     const isATripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
     const isReportPreviewOrNoAction = !action || isAReportPreviewAction;
     const isReportPreviewInTripRoom = isAReportPreviewAction && isATripRoom;
@@ -197,12 +199,12 @@ function useReportActionAvatars({
 
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
-    const isNestedInInvoiceReport = !!invoiceReport;
+    const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
     const isChatReportOnlyProp = !iouReport && chatReport?.reportID;
     const isWorkspaceChatWithoutChatReport = !chatReport?.reportID && isAWorkspaceChat;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview;
+    const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
@@ -262,7 +264,7 @@ function useReportActionAvatars({
     }
 
     if (!primaryAvatar?.id) {
-        primaryAvatar = isNestedInInvoiceReport ? invoiceFallbackAvatar : userFallbackAvatar;
+        primaryAvatar = isNestedInInvoiceReport && !isAnInvoiceRoom ? invoiceFallbackAvatar : userFallbackAvatar;
     }
 
     let secondaryAvatar;
