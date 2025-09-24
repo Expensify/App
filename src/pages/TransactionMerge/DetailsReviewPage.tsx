@@ -60,7 +60,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             selector: hasOnceLoadedTransactionThreadReportActionsSelector,
             canBeMissing: true,
         },
-        [hasOnceLoadedTransactionThreadReportActionsSelector],
+        [],
     );
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
