@@ -190,6 +190,7 @@ function ReportActionsList({
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
+    const topReportAction = sortedVisibleReportActions.at(-1);
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -396,7 +397,7 @@ function ReportActionsList({
             return;
         }
 
-        const shouldScrollToEnd = shouldFocusToTopOnMount && hasNewestReportAction && !unreadMarkerReportActionID;
+        const shouldScrollToEnd = shouldFocusToTopOnMount && !unreadMarkerReportActionID;
 
         if (shouldScrollToEnd) {
             setShouldScrollToEndAfterLayout(true);
@@ -723,8 +724,10 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(false);
             }
             if (shouldScrollToEndAfterLayout) {
-                reportScrollManager.scrollToEnd();
-                setShouldScrollToEndAfterLayout(false);
+                InteractionManager.runAfterInteractions(() => {
+                    reportScrollManager.scrollToEnd();
+                    setShouldScrollToEndAfterLayout(false);
+                });
             }
         },
         [isScrollToBottomEnabled, onLayout, reportScrollManager, shouldScrollToEndAfterLayout],
@@ -784,7 +787,9 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && <ReportActionsSkeletonView />}
+                {shouldScrollToEndAfterLayout && topReportAction ? (
+                    <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                ) : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
