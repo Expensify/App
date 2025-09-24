@@ -637,9 +637,9 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
-        const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-        const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        lastMessageTextFromReport = getMovedTransactionMessage(toReport);
+        const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+        const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        lastMessageTextFromReport = getMovedTransactionMessage(fromReport);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
