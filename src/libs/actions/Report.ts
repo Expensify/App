@@ -5234,7 +5234,6 @@ function moveIOUReportToPolicy(reportID: string, policy: Policy, isFromSettlemen
     // - change the sign of the report total
     // - update its policyID and policyName
     // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
-    // - if the manager and new policy approver are not the same, we also need to update state and status to OPEN and set the new managerID
     const expenseReport = {
         ...iouReport,
         chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
