@@ -474,6 +474,7 @@ function PolicyDistanceRatesPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRatesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
