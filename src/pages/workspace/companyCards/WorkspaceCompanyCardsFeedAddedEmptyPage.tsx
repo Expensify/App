@@ -1,15 +1,15 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
     /** Handle assign card action */

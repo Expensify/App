@@ -2,9 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,8 +15,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
 

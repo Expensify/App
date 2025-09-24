@@ -7,7 +7,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -17,6 +16,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -90,7 +90,7 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
-    
+
     // Direct access to ExpensifyIcons from chunk
     const {asset: Building} = useMemoizedLazyAsset(() => loadExpensifyIcon('Building'));
     const {asset: CalendarSolid} = useMemoizedLazyAsset(() => loadExpensifyIcon('CalendarSolid'));
@@ -106,10 +106,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {asset: InvoiceGeneric} = useMemoizedLazyAsset(() => loadExpensifyIcon('InvoiceGeneric'));
     const {asset: Receipt} = useMemoizedLazyAsset(() => loadExpensifyIcon('Receipt'));
     const {asset: Sync} = useMemoizedLazyAsset(() => loadExpensifyIcon('Sync'));
-    const {asset: Tag}   = useMemoizedLazyAsset(() => loadExpensifyIcon('Tag'));
+    const {asset: Tag} = useMemoizedLazyAsset(() => loadExpensifyIcon('Tag'));
     const {asset: Users} = useMemoizedLazyAsset(() => loadExpensifyIcon('Users'));
     const {asset: Workflows} = useMemoizedLazyAsset(() => loadExpensifyIcon('Workflows'));
-    
+
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);

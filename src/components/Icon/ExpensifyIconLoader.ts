@@ -27,15 +27,15 @@ function loadExpensifyIconsChunk(): Promise<ExpensifyIconsChunk> {
         /* webpackPreload: true */
         './chunks/expensify-icons.chunk'
     )
-    .then((chunk) => {
-        const typedChunk = chunk as unknown as ExpensifyIconsChunk;
-        expensifyIconsChunk = typedChunk;
-        return typedChunk;
-    })
-    .catch((error) => {
-        chunkLoadingPromise = null; // Reset on error to allow retry
-        throw new Error(`Failed to load ExpensifyIcons chunk: ${String(error)}`);
-    });
+        .then((chunk) => {
+            const typedChunk = chunk as unknown as ExpensifyIconsChunk;
+            expensifyIconsChunk = typedChunk;
+            return typedChunk;
+        })
+        .catch((error) => {
+            chunkLoadingPromise = null; // Reset on error to allow retry
+            throw new Error(`Failed to load ExpensifyIcons chunk: ${String(error)}`);
+        });
 
     return chunkLoadingPromise;
 }
@@ -46,22 +46,20 @@ function loadExpensifyIconsChunk(): Promise<ExpensifyIconsChunk> {
  */
 function loadExpensifyIcon(iconName: ExpensifyIconName): Promise<{default: IconAsset}> {
     return loadExpensifyIconsChunk()
-    .then((chunk) => {
-        const icon = chunk.getExpensifyIcon(iconName) as IconAsset;
-        if (!icon) {
-            throw new Error(`ExpensifyIcon "${iconName}" not found`);
-        }
-        return {default: icon};
-    })
-    .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(`Failed to load ExpensifyIcon: ${iconName}`, error);
-        throw error;
-    });
+        .then((chunk) => {
+            const icon = chunk.getExpensifyIcon(iconName) as IconAsset;
+            if (!icon) {
+                throw new Error(`ExpensifyIcon "${iconName}" not found`);
+            }
+            return {default: icon};
+        })
+        .catch((error) => {
+            // eslint-disable-next-line no-console
+            console.error(`Failed to load ExpensifyIcon: ${iconName}`, error);
+            throw error;
+        });
 }
 
-export {
-    loadExpensifyIcon,
-};
+export {loadExpensifyIcon};
 
 export type {ExpensifyIconName};

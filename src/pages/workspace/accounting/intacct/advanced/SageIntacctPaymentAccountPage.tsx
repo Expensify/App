@@ -1,8 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -15,8 +17,6 @@ import {updateSageIntacctSyncReimbursementAccountID} from '@userActions/connecti
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
-import { loadIllustration } from '@components/Icon/IllustrationLoader';
 
 function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();

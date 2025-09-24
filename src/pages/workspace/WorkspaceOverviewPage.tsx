@@ -9,8 +9,8 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -76,7 +76,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {asset: Transfer} = useMemoizedLazyAsset(() => loadExpensifyIcon('Transfer'));
     const {asset: Trashcan} = useMemoizedLazyAsset(() => loadExpensifyIcon('Trashcan'));
     const {asset: UserPlus} = useMemoizedLazyAsset(() => loadExpensifyIcon('UserPlus'));
-
 
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});

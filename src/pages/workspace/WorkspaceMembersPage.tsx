@@ -10,8 +10,8 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import SearchBar from '@components/SearchBar';
@@ -144,7 +144,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
-    const {asset: ReceiptWrangler} = useMemoizedLazyAsset(() => loadIllustration('ReceiptWrangler'))
+    const {asset: ReceiptWrangler} = useMemoizedLazyAsset(() => loadIllustration('ReceiptWrangler'));
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(

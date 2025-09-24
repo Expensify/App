@@ -1,14 +1,10 @@
 // This file contains all the SVG imports for illustrations used in the app
-
 // Company Cards
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
-
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
-
 // Product Illustrations
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
-
 // Simple Illustrations - Core ones that are actually used
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -33,7 +29,7 @@ const Illustrations = {
     // Company Cards
     CompanyCardsEmptyState,
 
-    // Expensify Card  
+    // Expensify Card
     ExpensifyCardIllustration,
 
     // Product Illustrations

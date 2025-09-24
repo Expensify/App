@@ -1,8 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import { useMemoizedLazyAsset } from '@hooks/useLazyAsset';
-import { loadIllustration } from '@components/Icon/IllustrationLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {TeleScope} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -11,6 +10,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';

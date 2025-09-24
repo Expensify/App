@@ -27,21 +27,21 @@ function loadIllustrationsChunk(): Promise<IllustrationsChunk> {
         /* webpackPreload: true */
         './chunks/illustrations.chunk'
     )
-    .then((chunk) => {
-        // eslint-disable-next-line no-console
-        console.log('Loaded illustrations chunk:', chunk);
-        // eslint-disable-next-line no-console
-        console.log('Module keys:', Object.keys(chunk));
-        // eslint-disable-next-line no-console
-        console.log('getIllustration function:', chunk.getIllustration);
-        const typedChunk = chunk as unknown as IllustrationsChunk;
-        illustrationsChunk = typedChunk;
-        return typedChunk;
-    })
-    .catch((error) => {
-        chunkLoadingPromise = null; // Reset on error to allow retry
-        throw new Error(`Failed to load Illustrations chunk: ${String(error)}`);
-    });
+        .then((chunk) => {
+            // eslint-disable-next-line no-console
+            console.log('Loaded illustrations chunk:', chunk);
+            // eslint-disable-next-line no-console
+            console.log('Module keys:', Object.keys(chunk));
+            // eslint-disable-next-line no-console
+            console.log('getIllustration function:', chunk.getIllustration);
+            const typedChunk = chunk as unknown as IllustrationsChunk;
+            illustrationsChunk = typedChunk;
+            return typedChunk;
+        })
+        .catch((error) => {
+            chunkLoadingPromise = null; // Reset on error to allow retry
+            throw new Error(`Failed to load Illustrations chunk: ${String(error)}`);
+        });
 
     return chunkLoadingPromise;
 }
@@ -52,22 +52,20 @@ function loadIllustrationsChunk(): Promise<IllustrationsChunk> {
  */
 function loadIllustration(illustrationName: IllustrationName): Promise<{default: IconAsset}> {
     return loadIllustrationsChunk()
-    .then((chunk) => {
-        const illustration = chunk.getIllustration(illustrationName) as IconAsset;
-        if (!illustration) {
-            throw new Error(`Illustration "${illustrationName}" not found`);
-        }
-        return {default: illustration}; // Changed to return {default: illustration}
-    })
-    .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(`Failed to load Illustration: ${illustrationName}`, error);
-        throw error;
-    });
+        .then((chunk) => {
+            const illustration = chunk.getIllustration(illustrationName) as IconAsset;
+            if (!illustration) {
+                throw new Error(`Illustration "${illustrationName}" not found`);
+            }
+            return {default: illustration}; // Changed to return {default: illustration}
+        })
+        .catch((error) => {
+            // eslint-disable-next-line no-console
+            console.error(`Failed to load Illustration: ${illustrationName}`, error);
+            throw error;
+        });
 }
 
-export {
-    loadIllustration,
-};
+export {loadIllustration};
 
 export type {IllustrationName};

@@ -1,5 +1,5 @@
-import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 
 type LazyAssetResult<T> = {
     asset: T;
@@ -63,7 +63,7 @@ function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): L
     }, [memoizedImportFn, fallback]);
 
     return {
-        asset: isLoaded ? assetRef?.current : PlaceholderIcon as T,
+        asset: isLoaded ? assetRef?.current : (PlaceholderIcon as T),
         isLoaded,
         isLoading,
         hasError,
