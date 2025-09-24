@@ -2,7 +2,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
@@ -214,7 +213,7 @@ describe('PolicyUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`, {
                 [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`]: {
                     currentBalance: 0,
-                    domainName: 'expensify-policy8fe63ccda24c4897.exfy',
+                    domainName: 'expensify-policy8fe6324c4897.exfy',
                     earnedCashback: 0,
                     isLoading: false,
                     isMonthlySettlementAllowed: false,
