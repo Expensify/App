@@ -7,6 +7,10 @@ coverage:
     patch:
       default:
         informational: true
+codecov:
+  notify:
+    # We shard our tests into 3 chunks, so we want CodeCov to wait for 3 builds before commenting
+    after_n_builds: 3
 
 comment:
   require_changes: false
