@@ -63,9 +63,15 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 * To run the **development web app**: `npm run web`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
 
-## Enabling prebuilt `react-native` artifacts
+## Running the mobile application using Rock 🪨
 
-To use prebuilt artifacts for mobile applications, you need to have GitHub CLI installed and configured:
+This project leverages [Rock](rockjs.dev) to manage builds remotely. By storing the complete build on a remote server, Rock.js eliminates the need for local builds and enables streamlined setup through automated downloads.
+
+The following steps describe how to configure the project to fully utilize Rock.
+
+### Configuring GitHub CLI
+
+To use rock remote builds for mobile applications, you need to have GitHub CLI installed and configured:
 
 1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
 
@@ -91,12 +97,25 @@ To use prebuilt artifacts for mobile applications, you need to have GitHub CLI i
 
 5. Add `GITHUB_TOKEN` to `.env` file with your generated token
 
-After completing these steps, you should be able to build both mobile platform apps using the prebuilt react-native artifacts.
+### Running the mobile application 📱
+* To install project dependencies run: `npm install`
+* To run application on a **Development Simulator**: `npm run ios` or `npm run android`
+
+After completing these steps, you should be able to start both mobile platform apps using the remote build.
 
 ### Troubleshooting
-* If fetching cached builds for mobile fails, check whether both workflows succeeded. If they didn’t, the failure will prevent Rock from fetching the cached builds.
+* If fetching cached builds for mobile fails, verify that both workflows in the GitHub repository have completed successfully. If they did not, Rock will be unable to fetch the cached builds. 
 
-## Running the iOS app 📱
+* If you’re still encountering errors, you can try running:
+    - `git clean -fdx`
+    - `git clean -fdx ./Mobile-Expensify`
+    - You may also want to reinstall node_modules.
+
+* In the event of workflow failures, it is recommended to have the option to manually build the application. The following steps will cover the manual build process.  
+
+## Running the mobile application using manual builds
+
+### Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
@@ -110,7 +129,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
 
 If you want to run the app on an actual physical iOS device, please follow the instructions [here](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BUILD_APP_ON_PHYSICAL_IOS_DEVICE.md).
 
-## Running the Android app 🤖
+### Running the Android app 🤖
 * Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
 * Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
 * To install dependencies, run `npm install` if you haven’t already done so during the iOS setup process.
@@ -118,7 +137,13 @@ If you want to run the app on an actual physical iOS device, please follow the i
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+### Enabling prebuilt `react-native` artifacts on Android
+#### Disabling build from source
 
+By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
+
+   - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
+   - Set `patchedArtifacts.forceBuildFromSource=false`
 
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
