@@ -69,7 +69,7 @@ import type {
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -665,10 +665,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
-    if (!policyID) {
-        return;
-    }
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
     const value = JSON.stringify({autoReportingOffset});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -2738,7 +2735,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: {employeeList: null},
+            value: {employeeList: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.duplicateWorkspace.error')},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -6167,7 +6164,9 @@ function calculateBillNewDot() {
             value: false,
         },
     ];
-    API.read(READ_COMMANDS.CALCULATE_BILL_NEW_DOT, null, {
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT, null, {
         optimisticData,
         successData,
         failureData,

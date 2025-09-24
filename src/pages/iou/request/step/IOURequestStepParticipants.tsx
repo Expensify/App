@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
+import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,6 +12,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {isMobileSafari as isMobileSafariBrowser} from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getPlatform from '@libs/getPlatform';
+import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,7 +41,6 @@ import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import KeyboardUtils from '@src/utils/keyboard';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -57,6 +58,8 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
     };
+
+const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
@@ -77,7 +80,7 @@ function IOURequestStepParticipants({
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
     });
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
@@ -135,7 +138,7 @@ function IOURequestStepParticipants({
         if (isMovingTransactionFromTrackExpense) {
             return;
         }
-        const firstReceiptFilename = initialTransaction?.filename ?? '';
+        const firstReceiptFilename = getReceiptFilenameFromTransaction(initialTransaction) ?? '';
         const firstReceiptPath = initialTransaction?.receipt?.source ?? '';
         const firstReceiptType = initialTransaction?.receipt?.type ?? '';
         navigateToStartStepIfScanFileCannotBeRead(firstReceiptFilename, firstReceiptPath, () => {}, iouRequestType, iouType, initialTransactionID, reportID, firstReceiptType);
@@ -221,9 +224,13 @@ function IOURequestStepParticipants({
                 });
             }
 
-            // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
+            // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
-            if (val.length !== 1 && !isInvoice) {
+            // For invoices, a valid participant must have a login.
+
+            const hasOneValidParticipant = iouType === CONST.IOU.TYPE.INVOICE ? val.filter((item) => !!item.login).length !== 1 : val.length !== 1;
+
+            if (hasOneValidParticipant && !isInvoice) {
                 selectedReportID.current = reportID;
                 return;
             }
@@ -340,7 +347,7 @@ function IOURequestStepParticipants({
             )}
             {transactions.length > 0 && (
                 <MoneyRequestParticipantsSelector
-                    participants={participants}
+                    participants={isSplitRequest ? participants : []}
                     onParticipantsAdded={addParticipant}
                     onFinish={goToNextStep}
                     iouType={iouType}

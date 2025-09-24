@@ -3,7 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -30,6 +30,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
     const isOptionSelected = useRef(false);
+    const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
         if (isLoadingApp && !currentUserPersonalDetails.pronouns) {
@@ -71,7 +72,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             return;
         }
         isOptionSelected.current = true;
-        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''));
+        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''), currentUserAccountID);
         Navigation.goBack();
     };
 
@@ -95,7 +96,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                         textInputPlaceholder={translate('pronounsPage.placeholderText')}
                         textInputValue={searchValue}
                         sections={[{data: filteredPronounsList}]}
-                        ListItem={SingleSelectListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
                         shouldSingleExecuteRowSelect
                         onChangeText={setSearchValue}
