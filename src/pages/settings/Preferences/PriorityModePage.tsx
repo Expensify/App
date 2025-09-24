@@ -8,8 +8,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateChatPriorityMode} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -39,7 +39,7 @@ function PriorityModePage() {
                 Navigation.goBack();
                 return;
             }
-            User.updateChatPriorityMode(mode.value);
+            updateChatPriorityMode(mode.value);
         },
         [priorityMode],
     );
