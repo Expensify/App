@@ -309,7 +309,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                     <Button
                         large
                         text={translate('common.skip')}
-                        onPress={() => completeOnboarding()}
+                        onPress={() => completeOnboarding(false)}
                     />
                 </View>
                 <View>
