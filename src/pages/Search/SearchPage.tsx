@@ -478,7 +478,6 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
-        activePolicy,
     ]);
 
     const handleDeleteExpenses = () => {
