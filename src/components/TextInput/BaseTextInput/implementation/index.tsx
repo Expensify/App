@@ -2,8 +2,9 @@ import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -462,7 +463,6 @@ function BaseTextInput({
                             )}
                             {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
-                                    size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
                                         StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
