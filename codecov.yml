@@ -8,7 +8,10 @@ coverage:
       default:
         informational: true
 
-comment: false
+comment:
+  require_changes: false
+  layout: "condensed_header, condensed_files, condensed_footer"
+  behavior: default
 
 flags:
   unit:
