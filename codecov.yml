@@ -16,7 +16,7 @@ codecov:
     after_n_builds: 3
 
 comment:
-  require_changes: false
+  require_changes: true
   layout: "condensed_header, condensed_files, condensed_footer"
   behavior: default
 
