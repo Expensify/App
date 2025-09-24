@@ -1758,7 +1758,7 @@ const translations = {
         compromisedDescription: 'Zauważyłeś coś podejrzanego? Zgłoszenie spowoduje natychmiastowe zablokowanie konta, zatrzymanie transakcji kartą Expensify i uniemożliwienie zmian.',
         domainAdminsDescription: 'Dla administratorów domen: wstrzymuje to również wszystkie działania kart Expensify i działania administracyjne w Twoich domenach.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
-        ourTeamWill: 'Nasz zespół zbada sprawę i usunie nieautoryzowany dostęp. Aby odzyskać dostęp, musisz współpracować z Concierge.',
+        onceLocked: 'Po zablokowaniu, Twoje konto będzie ograniczone do czasu złożenia wniosku o odblokowanie i przeglądu bezpieczeństwa.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',
@@ -3099,11 +3099,13 @@ const translations = {
         selectIncorporationCountry: 'Wybierz kraj rejestracji',
         selectIncorporationState: 'Wybierz stan rejestracji',
         selectAverageReimbursement: 'Wybierz średnią kwotę zwrotu',
+        selectBusinessType: 'Wybierz typ działalności',
         findIncorporationType: 'Znajdź rodzaj inkorporacji',
         findBusinessCategory: 'Znajdź kategorię biznesową',
         findAnnualPaymentVolume: 'Znajdź roczny wolumen płatności',
         findIncorporationState: 'Znajdź stan rejestracji',
         findAverageReimbursement: 'Znajdź średnią kwotę zwrotu',
+        findBusinessType: 'Znajdź typ działalności',
         error: {
             registrationNumber: 'Proszę podać prawidłowy numer rejestracyjny',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -4887,6 +4889,13 @@ const translations = {
                 prompt5: 'Dowiedz się więcej',
                 prompt6: 'o poziomach tagów.',
             },
+            overrideMultiTagWarning: {
+                title: 'Importuj tagi',
+                prompt1: 'Czy jesteś pewien?',
+                prompt2: ' Istniejące tagi zostaną nadpisane, ale możesz',
+                prompt3: ' pobierz kopię zapasową',
+                prompt4: ' pierwszy.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Znaleźliśmy *${columnCounts} kolumny* w Twoim arkuszu kalkulacyjnym. Wybierz *Nazwa* obok kolumny, która zawiera nazwy tagów. Możesz również wybrać *Włączone* obok kolumny, która ustawia status tagów.`,
             cannotDeleteOrDisableAllTags: {
@@ -5527,11 +5536,6 @@ const translations = {
                 description:
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
-            },
-            reports: {
-                title: 'Raporty',
-                description: 'Twórz uporządkowane raporty wydatków, aby śledzić swoje wydatki biznesowe, przesyłać je do zatwierdzenia i usprawniać proces zwrotu kosztów.',
-                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
             },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',

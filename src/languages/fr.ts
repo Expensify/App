@@ -1769,7 +1769,7 @@ const translations = {
             "Vous remarquez quelque chose d'inhabituel ? Signalez-le pour verrouiller immédiatement votre compte, bloquer les transactions Expensify Card et empêcher toute modification.",
         domainAdminsDescription: "Pour les administrateurs de domaine : cela suspend aussi l'activité de la carte Expensify et les actions d'administration sur vos domaines.",
         areYouSure: 'Êtes-vous sûr de vouloir verrouiller votre compte Expensify ?',
-        ourTeamWill: "Notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez collaborer avec Concierge.",
+        onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un examen de sécurité.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Échec du verrouillage du compte',
@@ -3096,11 +3096,13 @@ const translations = {
         selectIncorporationCountry: "Sélectionnez le pays d'incorporation",
         selectIncorporationState: "Sélectionnez l'état d'incorporation",
         selectAverageReimbursement: 'Sélectionner le montant moyen de remboursement',
+        selectBusinessType: "Sélectionner le type d'entreprise",
         findIncorporationType: "Trouver le type d'incorporation",
         findBusinessCategory: "Trouver la catégorie d'entreprise",
         findAnnualPaymentVolume: 'Trouver le volume de paiement annuel',
         findIncorporationState: "Trouver l'état d'incorporation",
         findAverageReimbursement: 'Trouver le montant moyen de remboursement',
+        findBusinessType: "Trouver le type d'entreprise",
         error: {
             registrationNumber: "Veuillez fournir un numéro d'enregistrement valide",
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -4903,6 +4905,13 @@ const translations = {
                 prompt5: 'En savoir plus',
                 prompt6: 'à propos des niveaux de balises.',
             },
+            overrideMultiTagWarning: {
+                title: 'Importer des étiquettes',
+                prompt1: 'Êtes-vous sûr ?',
+                prompt2: ' Les balises existantes seront remplacées, mais vous pouvez',
+                prompt3: ' télécharger une sauvegarde',
+                prompt4: ' premier.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Nous avons trouvé *${columnCounts} colonnes* dans votre feuille de calcul. Sélectionnez *Nom* à côté de la colonne contenant les noms des balises. Vous pouvez également sélectionner *Activé* à côté de la colonne qui définit le statut des balises.`,
             cannotDeleteOrDisableAllTags: {
@@ -5549,12 +5558,6 @@ const translations = {
                 description:
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
                 onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
-            },
-            reports: {
-                title: 'Rapports',
-                description:
-                    'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
-                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',

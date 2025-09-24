@@ -1759,7 +1759,7 @@ const translations = {
         compromisedDescription: 'アカウントに不安を感じましたか？報告すると、すぐにアカウントがロックされ、Expensifyカードの新しい取引が停止され、変更も防止されます。',
         domainAdminsDescription: 'ドメイン管理者へ：これにより、ドメイン全体のExpensifyカード活動と管理操作も一時停止されます。',
         areYouSure: '本当にExpensifyアカウントをロックしますか？',
-        ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
+        onceLocked: 'ロックされると、アカウントはロック解除リクエストとセキュリティレビューが完了するまで制限されます。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
@@ -3093,11 +3093,13 @@ const translations = {
         selectIncorporationCountry: '法人設立国を選択',
         selectIncorporationState: '法人設立州を選択',
         selectAverageReimbursement: '平均払い戻し額を選択',
+        selectBusinessType: '事業タイプを選択する',
         findIncorporationType: '法人の種類を見つける',
         findBusinessCategory: 'ビジネスカテゴリを見つける',
         findAnnualPaymentVolume: '年間支払い額を見つける',
         findIncorporationState: '設立州を見つける',
         findAverageReimbursement: '平均払い戻し額を見つける',
+        findBusinessType: '事業タイプを見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -4864,6 +4866,13 @@ const translations = {
                 prompt5: '詳細を確認',
                 prompt6: 'タグレベルについて。',
             },
+            overrideMultiTagWarning: {
+                title: 'タグをインポート',
+                prompt1: '本当に大丈夫ですか？',
+                prompt2: ' 既存のタグは上書きされますが、あなたは',
+                prompt3: ' バックアップをダウンロード',
+                prompt4: ' 最初。',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `スプレッドシートで*${columnCounts}列*が見つかりました。タグ名を含む列の横に*名前*を選択してください。また、タグのステータスを設定する列の横に*有効*を選択することもできます。`,
             cannotDeleteOrDisableAllTags: {
@@ -5500,11 +5509,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
-            },
-            reports: {
-                title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
