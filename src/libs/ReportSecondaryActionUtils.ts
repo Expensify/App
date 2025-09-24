@@ -22,7 +22,7 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
-    canDeleteReport,
+    canDeleteMoneyRequestReport,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
@@ -442,7 +442,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
-    return canDeleteReport(report, reportTransactions, reportActions, policy);
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions, policy);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {

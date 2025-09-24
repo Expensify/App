@@ -2606,7 +2606,7 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
-function canDeleteReport(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
+function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
@@ -2617,7 +2617,8 @@ function canDeleteReport(report: Report, reportTransactions: Transaction[], repo
         return true;
     }
 
-    if (isSelfDM(report)) {
+    const isUnreported = isSelfDM(report);
+    if (isUnreported) {
         return isOwner;
     }
 
@@ -2686,7 +2687,7 @@ function canDeleteReportAction(
     }
 
     if (report && isReportPreviewAction(reportAction)) {
-        return canDeleteReport(
+        return canDeleteMoneyRequestReport(
             report,
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
@@ -11858,7 +11859,7 @@ export {
     canCreateRequest,
     canCreateTaskInReport,
     canCurrentUserOpenReport,
-    canDeleteReport,
+    canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canHoldUnholdReportAction,
     canEditReportPolicy,
