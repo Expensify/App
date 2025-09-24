@@ -1,3 +1,4 @@
+import {activePolicySelector} from '@selectors/Policy';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -55,7 +56,7 @@ function IOURequestStepCategory({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+        selector: activePolicySelector,
     });
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const policy = isExpenseUnreported ? activePolicy : (policyReal ?? policyDraft);
