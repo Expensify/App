@@ -48,6 +48,7 @@ import {
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
+    doesReportContainRequestsFromMultipleUsers,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {
@@ -62,6 +63,7 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report);
@@ -434,7 +436,14 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
 }
 
 function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
-    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies));
+    // We can't move the iou report to the workspace if both users from the iou report create the expense
+    if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
+        return false;
+    }
+
+    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
+
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
