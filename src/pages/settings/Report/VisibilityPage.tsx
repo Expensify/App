@@ -5,7 +5,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -87,7 +87,7 @@ function VisibilityPage({report}: VisibilityProps) {
                     }}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={visibilityOptions.find((visibility) => visibility.isSelected)?.keyForList}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                 />
                 <ConfirmModal
                     isVisible={showConfirmModal}

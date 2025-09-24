@@ -1,7 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -117,7 +117,7 @@ function IOURequestStepDistanceRate({
 
             <SelectionList
                 sections={[{data: sections}]}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={initiallyFocusedOption}

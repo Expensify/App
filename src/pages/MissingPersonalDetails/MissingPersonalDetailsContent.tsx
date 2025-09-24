@@ -37,7 +37,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -83,7 +83,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode ?? 1);
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
         },
         [countryCode, values],
     );

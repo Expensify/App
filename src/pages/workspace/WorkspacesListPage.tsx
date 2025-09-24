@@ -352,6 +352,7 @@ function WorkspacesListPage() {
             fundList,
             styles.mb2,
             styles.mh5,
+            styles.ph5,
             styles.hoveredComponentBG,
             styles.offlineFeedback.deleted,
             loadingSpinnerIconIndex,

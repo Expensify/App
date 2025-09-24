@@ -23,7 +23,6 @@ function RadioListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    accessibilityState,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
@@ -46,7 +45,6 @@ function RadioListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pendingAction={item.pendingAction}
-            accessibilityState={accessibilityState}
         >
             <>
                 {!!item.leftElement && item.leftElement}

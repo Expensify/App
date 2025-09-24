@@ -1,28 +1,26 @@
 import React, {useEffect} from 'react';
 import type {ValueOf} from 'type-fest';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addDelegate, clearDelegateErrorsByField} from '@userActions/Delegate';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type DelegateMagicCodeModalProps = {
-    login: string;
-    role: ValueOf<typeof CONST.DELEGATE_ROLE>;
-    isValidateCodeActionModalVisible: boolean;
-    onClose?: () => void;
-    shouldHandleNavigationBack?: boolean;
-    disableAnimation?: boolean;
-};
+type ConfirmDelegateMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE>;
 
-function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible, shouldHandleNavigationBack, disableAnimation}: DelegateMagicCodeModalProps) {
+function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps) {
     const {translate} = useLocalize();
+    const login = route.params.login;
+    const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
@@ -46,14 +44,11 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
     };
 
     return (
-        <ValidateCodeActionModal
-            disableAnimation={disableAnimation}
-            shouldHandleNavigationBack={shouldHandleNavigationBack}
+        <ValidateCodeActionContent
             clearError={clearError}
-            onClose={onClose}
             validateCodeActionErrorField="addDelegate"
+            onClose={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role))}
             validateError={validateLoginError}
-            isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
             handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
@@ -62,6 +57,6 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
     );
 }
 
-DelegateMagicCodeModal.displayName = 'DelegateMagicCodeModal';
+ConfirmDelegateMagicCodePage.displayName = 'ConfirmDelegateMagicCodePage';
 
-export default DelegateMagicCodeModal;
+export default ConfirmDelegateMagicCodePage;

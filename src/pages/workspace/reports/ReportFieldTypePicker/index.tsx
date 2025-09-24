@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import {getReportFieldAlternativeTextTranslationKey, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import CONST from '@src/CONST';
@@ -46,7 +46,7 @@ function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldType
     return (
         <SelectionList
             sections={typeSections}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             onSelectRow={onOptionSelected}
             addBottomSafeAreaPadding
             initiallyFocusedOptionKey={typeSections.at(0)?.data?.find((reportField) => reportField.isSelected)?.keyForList}

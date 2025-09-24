@@ -1,6 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -12,6 +14,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FocusModeNotification from './FocusModeNotification';
+
+const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => priorityMode === CONST.PRIORITY_MODE.GSD;
 
 /**
  * This component is used to automatically switch a user into #focus mode when they exceed a certain number of reports.
@@ -27,7 +31,7 @@ import FocusModeNotification from './FocusModeNotification';
 export default function PriorityModeController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
-    const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (priorityMode) => priorityMode === CONST.PRIORITY_MODE.GSD, canBeMissing: true});
+    const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: isInFocusModeSelector, canBeMissing: true});
     const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentRouteName = useCurrentRouteName();

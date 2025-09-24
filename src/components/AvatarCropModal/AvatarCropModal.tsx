@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
 import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -375,9 +376,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                     {!isImageInitialized || !isImageContainerInitialized ? (
                         <ActivityIndicator
-                            color={theme.spinner}
                             style={[styles.flex1]}
-                            size="large"
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         />
                     ) : (
                         <>

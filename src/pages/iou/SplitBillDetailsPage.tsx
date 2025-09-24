@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -49,7 +50,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID

@@ -1,12 +1,12 @@
 import React, {useCallback} from 'react';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateQuickbooksDesktopSyncClasses} from '@libs/actions/connections/QuickbooksDesktop';
-import {getLatestErrorField} from '@libs/ErrorUtils';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopClassesDisplayedAsPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? '-1';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
 
     const data: CardListItem[] = [
@@ -44,7 +44,7 @@ function QuickbooksDesktopClassesDisplayedAsPage({policy}: WithPolicyConnections
     const selectDisplayedAs = useCallback(
         (row: CardListItem) => {
             if (row.value !== qbdConfig?.mappings?.classes) {
-                updateQuickbooksDesktopSyncClasses(policyID, row.value, qbdConfig?.mappings?.classes);
+                QuickbooksDesktop.updateQuickbooksDesktopSyncClasses(policyID, row.value, qbdConfig?.mappings?.classes);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID));
         },
@@ -58,14 +58,14 @@ function QuickbooksDesktopClassesDisplayedAsPage({policy}: WithPolicyConnections
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopClassesDisplayedAsPage.displayName}
             sections={data.length ? [{data}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID))}
             onSelectRow={selectDisplayedAs}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.common.displayedAs"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES], qbdConfig?.pendingFields)}
-            errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES)}
+            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES], qbdConfig?.pendingFields)}
+            errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES)}
             shouldSingleExecuteRowSelect

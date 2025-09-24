@@ -1,8 +1,9 @@
 import {accountIDSelector} from '@selectors/Session';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
+import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -10,7 +11,6 @@ import {
     chatIncludesChronosWithID,
     createDraftTransactionAndNavigateToParticipantSelector,
     getIndicatedMissingPaymentMethod,
-    getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReport,
@@ -90,8 +90,7 @@ function ReportActionItem({
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
+    const originalReportID = useOriginalReportID(reportID, action);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});

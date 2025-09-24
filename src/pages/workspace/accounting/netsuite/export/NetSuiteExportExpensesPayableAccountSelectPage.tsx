@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {TeleScope} from '@components/Icon/Illustrations';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -78,7 +78,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteExportExpensesPayableAccountSelectPage.displayName}
             sections={netsuitePayableAccountOptions.length ? [{data: netsuitePayableAccountOptions}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onSelectRow={updatePayableAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={goBack}

@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -24,7 +25,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -63,7 +63,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const dropdownButtonRef = useRef<View>(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
@@ -402,7 +401,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
                 {tagList.length > 0 && !isLoading && (
