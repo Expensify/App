@@ -159,7 +159,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         if (policyID) {
             return receiptPartnerIntegrations
                 .map((integration) => {
-                    const integrationData = getReceiptPartnersIntegrationData(integration, translate);
+                    const integrationData = getReceiptPartnersIntegrationData(integration, policy?.receiptPartners, translate);
                     if (!integrationData) {
                         return undefined;
                     }

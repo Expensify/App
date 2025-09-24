@@ -3561,7 +3561,7 @@ const translations = {
         receiptPartners: {
             connect: 'Connect now',
             uber: {
-                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+                subtitle: (organizationName: string) => (organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.'),
                 sendInvites: 'Send invites',
                 sendInvitesDescription: "These workspace members don't have an Uber for Business account yet. Unselect any members you do not wish to invite at this time.",
                 confirmInvite: 'Confirm invite',
