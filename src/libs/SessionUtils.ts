@@ -4,7 +4,6 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-
 const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
 
 /**
