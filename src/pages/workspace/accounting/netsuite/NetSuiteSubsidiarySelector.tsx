@@ -26,8 +26,8 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const subsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const currentSubsidiaryName = netsuiteConfig?.subsidiary ?? '';
-    const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? '';
-    const policyID = policy?.id ?? '-1';
+    const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 

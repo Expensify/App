@@ -29,7 +29,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);

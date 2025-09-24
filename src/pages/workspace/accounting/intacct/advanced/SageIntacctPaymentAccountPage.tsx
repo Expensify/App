@@ -22,7 +22,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const {config} = policy?.connections?.intacct ?? {};
     const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
