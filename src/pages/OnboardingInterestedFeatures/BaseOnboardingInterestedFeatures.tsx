@@ -22,10 +22,9 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
-import {createWorkspace, generatePolicyID, updateInterestedFeatures} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
@@ -73,65 +72,55 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 title: translate('workspace.moreFeatures.categories.title'),
                 icon: Illustrations.FolderOpen,
                 enabledByDefault: true,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
                 id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: Illustrations.Accounting,
                 enabledByDefault: !!userReportedIntegration,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
                 id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
                 icon: Illustrations.CompanyCard,
                 enabledByDefault: true,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
                 id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 icon: Illustrations.Workflows,
                 enabledByDefault: true,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
                 id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
                 icon: Illustrations.InvoiceBlue,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
                 id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
                 icon: Illustrations.Rules,
-                apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
                 id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
                 icon: Illustrations.Car,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
                 id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
                 icon: Illustrations.HandCard,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
                 id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
                 icon: Illustrations.Tag,
-                apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
                 id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
                 icon: Illustrations.PerDiem,
-                apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
                 requiresUpdate: true,
             },
         ];
@@ -178,7 +167,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
         // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-        const {adminsChatReportID, policyID, type} = shouldCreateWorkspace
+        const {adminsChatReportID, policyID} = shouldCreateWorkspace
             ? createWorkspace({
                   policyOwnerEmail: undefined,
                   makeMeAdmin: true,
@@ -191,12 +180,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   companySize: onboardingCompanySize,
                   userReportedIntegration: newUserReportedIntegration,
                   featuresMap,
+                  selectedFeatures,
               })
-            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID, type: undefined};
-
-        if (policyID) {
-            updateInterestedFeatures(featuresMap, policyID, type);
-        }
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
         if (shouldCreateWorkspace) {
             setOnboardingAdminsChatReportID(adminsChatReportID);
