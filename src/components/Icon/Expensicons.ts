@@ -11,13 +11,8 @@ import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
-import ArrowsUpDown from '@assets/images/arrows-updown.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
-import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
-import AnnounceRoomAvatar from '@assets/images/avatars/announce-room.svg';
 import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
-import DeletedRoomAvatar from '@assets/images/avatars/deleted-room.svg';
-import DomainRoomAvatar from '@assets/images/avatars/domain-room.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
@@ -26,14 +21,12 @@ import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
-import BellSlash from '@assets/images/bellSlash.svg';
 import Bill from '@assets/images/bill.svg';
 import Binoculars from '@assets/images/binoculars.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
-import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
@@ -44,11 +37,8 @@ import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
 import CaretUpDown from '@assets/images/caret-up-down.svg';
 import Cash from '@assets/images/cash.svg';
-import Chair from '@assets/images/chair.svg';
-import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
 import ChatBubbleCounter from '@assets/images/chatbubble-counter.svg';
 import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
-import ChatBubbleSlash from '@assets/images/chatbubble-slash.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
@@ -72,8 +62,6 @@ import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
-import DocumentPlus from '@assets/images/document-plus.svg';
-import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -83,8 +71,6 @@ import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
-import EmptySquare from '@assets/images/empty-square.svg';
-import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
@@ -123,13 +109,9 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
-import MicrosoftDynamicsExport from '@assets/images/integrationicons/export/microsoft-dynamics-icon.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
-import NetSuiteOracleExport from '@assets/images/integrationicons/export/netsuite-oracle-icon.svg';
-import OracleExport from '@assets/images/integrationicons/export/oracle-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
-import SapExport from '@assets/images/integrationicons/export/sap-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
@@ -172,10 +154,8 @@ import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
-import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
-import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
@@ -191,7 +171,6 @@ import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
-import ReceiptSearch from '@assets/images/receipt-search.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
@@ -211,7 +190,6 @@ import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
-import Youtube from '@assets/images/social-youtube.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
@@ -243,7 +221,6 @@ import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
-import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
@@ -251,32 +228,26 @@ export {
     ReceiptBody,
     ActiveRoomAvatar,
     AddReaction,
-    AdminRoomAvatar,
     All,
     Android,
-    AnnounceRoomAvatar,
     Apple,
     AppleLogo,
     ArrowSplit,
     ArrowCollapse,
     ArrowRight,
     ArrowRightLong,
-    ArrowsUpDown,
     ArrowsLeftRight,
     ArrowUpLong,
     ArrowDownLong,
     AttachmentNotFound,
-    Wrench,
     BackArrow,
     Bank,
     CircularArrowBackwards,
     Bill,
     Bell,
-    BellSlash,
     Binoculars,
     Bolt,
     Box,
-    Briefcase,
     Bug,
     Building,
     Buildings,
@@ -288,7 +259,6 @@ export {
     ChatBubbles,
     Checkbox,
     Checkmark,
-    Chair,
     Close,
     ClosedSign,
     Collapse,
@@ -303,11 +273,8 @@ export {
     CreditCardHourglass,
     CreditCardExclamation,
     CircleSlash,
-    DeletedRoomAvatar,
     Document,
-    DocumentSlash,
     DocumentMerge,
-    DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
     DownArrow,
@@ -317,7 +284,6 @@ export {
     EReceiptIcon,
     Emoji,
     EmptyStateRoutePending,
-    EmptyStateAttachReceipt,
     Exclamation,
     Exit,
     ExpensifyAppIcon,
@@ -384,10 +350,8 @@ export {
     NotificationsAvatar,
     Offline,
     OfflineCloud,
-    OldDotWireframe,
     Paperclip,
     Pause,
-    Paycheck,
     Pencil,
     Phone,
     Pin,
@@ -405,7 +369,6 @@ export {
     ReceiptScan,
     ReceiptSlash,
     RemoveMembers,
-    ReceiptSearch,
     ReplaceReceipt,
     ReceiptMultiple,
     Rotate,
@@ -441,13 +404,10 @@ export {
     AdvancedApprovalsSquare,
     Zoom,
     Twitter,
-    Youtube,
     Facebook,
     Podcast,
     Linkedin,
     Instagram,
-    ChatBubbleAdd,
-    ChatBubbleSlash,
     ChatBubbleUnread,
     ChatBubbleReply,
     ChatBubbleCounter,
@@ -455,7 +415,6 @@ export {
     Plane,
     Bed,
     CarWithKey,
-    DocumentPlus,
     Clear,
     CheckCircle,
     CheckmarkCircle,
@@ -481,19 +440,14 @@ export {
     Train,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
-    EmptySquare,
     CheckSquare,
     Minus,
     ThumbsDown,
     UserLock,
     EmptyStateSpyPigeon,
-    MicrosoftDynamicsExport,
     NetSuiteExport,
-    NetSuiteOracleExport,
-    OracleExport,
     QBOExport,
     SageIntacctExport,
-    SapExport,
     XeroExport,
     ArrowCircleClockwise,
 };
