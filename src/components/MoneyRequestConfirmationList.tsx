@@ -71,8 +71,8 @@ import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFo
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import SelectionList from './SelectionList';
-import NewChatListItem from './SelectionList/NewChatListItem';
 import type {SectionListDataType} from './SelectionList/types';
+import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -1063,16 +1063,30 @@ function MoneyRequestConfirmationList({
                         style={styles.mb3}
                     />
                 )}
-                <ButtonWithDropdownMenu
-                    pressOnEnter
-                    onPress={(event, value) => confirm(value as PaymentMethodType)}
-                    options={splitOrRequestOptions}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                    enterKeyEventListenerPriority={1}
-                    useKeyboardShortcuts
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isLoading={isConfirmed || isConfirming}
-                />
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shouldHideOnNavigate
+                    shiftVertical={-10}
+                >
+                    <View>
+                        <ButtonWithDropdownMenu
+                            pressOnEnter
+                            onPress={(event, value) => confirm(value as PaymentMethodType)}
+                            options={splitOrRequestOptions}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            enterKeyEventListenerPriority={1}
+                            useKeyboardShortcuts
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            isLoading={isConfirmed || isConfirming}
+                        />
+                    </View>
+                </EducationalTooltip>
             </>
         );
 
@@ -1085,20 +1099,7 @@ function MoneyRequestConfirmationList({
                         message={errorMessage}
                     />
                 )}
-
-                <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
-                    renderTooltipContent={renderProductTrainingTooltip}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
-                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                    shouldHideOnNavigate
-                    shiftVertical={-10}
-                >
-                    <View>{button}</View>
-                </EducationalTooltip>
+                <View>{button}</View>
             </>
         );
     }, [
@@ -1183,7 +1184,7 @@ function MoneyRequestConfirmationList({
         <MouseProvider>
             <SelectionList<MoneyRequestConfirmationListItem>
                 sections={sections}
-                ListItem={NewChatListItem}
+                ListItem={UserListItem}
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
