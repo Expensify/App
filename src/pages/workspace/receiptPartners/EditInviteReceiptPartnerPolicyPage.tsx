@@ -56,12 +56,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const buttonStyles = useMemo(
-        () => [styles.button, StyleUtils.getButtonStyleWithIcon(styles, true, false, false, false, true, false), styles.ml3, {minWidth: variables.uberEmployeeInviteButtonWidth}],
-        [styles, StyleUtils],
-    );
-    const buttonTextStyles = useMemo(() => [styles.buttonText, styles.buttonSmallText], [styles]);
-
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -127,6 +121,14 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         const list: Array<MemberForList & ListItem> = [];
         const employees = policy?.employeeList ?? {};
 
+        const buttonStyles = [
+            styles.button,
+            StyleUtils.getButtonStyleWithIcon(styles, true, false, false, false, true, false),
+            styles.ml3,
+            {minWidth: variables.uberEmployeeInviteButtonWidth},
+        ];
+        const buttonTextStyles = [styles.buttonText, styles.buttonSmallText];
+
         Object.entries(employees).forEach(([email, policyEmployee]) => {
             // Skip deleted policy employees
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
@@ -189,20 +191,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             list.push({...option, rightElement} as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [
-        policy?.employeeList,
-        localeCompare,
-        isOffline,
-        deriveStatus,
-        uberEmployeesByEmail,
-        translate,
-        buttonStyles,
-        styles.buttonSuccess,
-        styles.buttonSuccessText,
-        styles.ml3,
-        buttonTextStyles,
-        inviteOrResend,
-    ]);
+    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {
