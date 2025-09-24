@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -107,7 +108,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
     const achData = reimbursementAccount?.achData;
-    const isPreviousPolicy = policyIDParam === achData?.policyID;
+    const isPreviousPolicy = !!policyIDParam && policyIDParam === achData?.policyID;
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
     const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
 
@@ -148,7 +149,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
 
@@ -214,13 +215,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
 
     useEffect(() => {
-        if (!isPreviousPolicy) {
+        if (policyIDParam && !isPreviousPolicy) {
             return;
         }
-
         setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state]);
+    }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy, achData?.state]);
 
     useEffect(
         () => {
@@ -464,6 +464,25 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     if (shouldShowConnectedVerifiedBankAccount) {
+        if (!policyIDParam) {
+            return (
+                <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
+                    <HeaderWithBackButton
+                        title={translate('bankAccount.addBankAccount')}
+                        subtitle={policyName}
+                        onBackButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <ConfirmationPage
+                        heading={translate('bankAccount.bbaAdded')}
+                        description={translate('bankAccount.bbaAddedDescription')}
+                        shouldShowButton
+                        headingStyle={styles.mh5}
+                        buttonText={translate('common.confirm')}
+                        onButtonPress={() => Navigation.dismissModal()}
+                    />
+                </ScreenWrapper>
+            );
+        }
         return (
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}

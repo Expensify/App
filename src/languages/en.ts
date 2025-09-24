@@ -2747,6 +2747,8 @@ const translations = {
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
+        bbaAdded: 'Business bank account added!',
+        bbaAddedDescription: "It's ready to be used for payments.",
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",
