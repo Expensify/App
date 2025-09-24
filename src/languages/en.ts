@@ -1740,7 +1740,7 @@ const translations = {
             'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
         domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
         areYouSure: 'Are you sure you want to lock your Expensify account?',
-        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
+        onceLocked: 'Once locked, your account will be restricted pending an unlock request and a security review',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Failed to lock account',

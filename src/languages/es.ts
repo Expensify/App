@@ -1735,7 +1735,7 @@ const translations = {
             '¿Notas algo extraño en tu cuenta? Informarlo bloqueará tu cuenta de inmediato, detendrá nuevas transacciones con la Tarjeta Expensify y evitará cualquier cambio en la cuenta.',
         domainAdminsDescription: 'Para administradores de dominio: Esto también detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas en tus dominios.',
         areYouSure: '¿Estás seguro de que deseas bloquear tu cuenta de Expensify?',
-        ourTeamWill: 'Nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, tendrás que trabajar con Concierge.',
+        onceLocked: 'Una vez bloqueada, tu cuenta estará restringida hasta que se solicite el desbloqueo y se realice una revisión de seguridad.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'No se pudo bloquear la cuenta',

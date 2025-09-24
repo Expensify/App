@@ -1762,7 +1762,7 @@ const translations = {
             "Vous remarquez quelque chose d'inhabituel ? Signalez-le pour verrouiller immédiatement votre compte, bloquer les transactions Expensify Card et empêcher toute modification.",
         domainAdminsDescription: "Pour les administrateurs de domaine : cela suspend aussi l'activité de la carte Expensify et les actions d'administration sur vos domaines.",
         areYouSure: 'Êtes-vous sûr de vouloir verrouiller votre compte Expensify ?',
-        ourTeamWill: "Notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez collaborer avec Concierge.",
+        onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un examen de sécurité.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Échec du verrouillage du compte',

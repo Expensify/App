@@ -1734,7 +1734,7 @@ const translations = {
         compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
         domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
         areYouSure: '您确定要锁定您的Expensify账户吗?',
-        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
+        onceLocked: '一旦锁定，您的账户将被限制，等待解锁请求和安全审查。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',
