@@ -3058,11 +3058,13 @@ const translations = {
         selectIncorporationCountry: '选择注册国家/地区',
         selectIncorporationState: '选择注册州',
         selectAverageReimbursement: '选择平均报销金额',
+        selectBusinessType: '选择业务类型',
         findIncorporationType: '查找公司注册类型',
         findBusinessCategory: '查找业务类别',
         findAnnualPaymentVolume: '查找年度支付量',
         findIncorporationState: '查找注册州',
         findAverageReimbursement: '查找平均报销金额',
+        findBusinessType: '查找业务类型',
         error: {
             registrationNumber: '请提供有效的注册号码',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -5432,11 +5434,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
-            },
-            reports: {
-                title: '报告',
-                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
-                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
             },
             multiLevelTags: {
                 title: '多级标签',

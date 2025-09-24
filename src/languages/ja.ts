@@ -3087,11 +3087,13 @@ const translations = {
         selectIncorporationCountry: '法人設立国を選択',
         selectIncorporationState: '法人設立州を選択',
         selectAverageReimbursement: '平均払い戻し額を選択',
+        selectBusinessType: '事業タイプを選択する',
         findIncorporationType: '法人の種類を見つける',
         findBusinessCategory: 'ビジネスカテゴリを見つける',
         findAnnualPaymentVolume: '年間支払い額を見つける',
         findIncorporationState: '設立州を見つける',
         findAverageReimbursement: '平均払い戻し額を見つける',
+        findBusinessType: '事業タイプを見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -5494,11 +5496,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
-            },
-            reports: {
-                title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
