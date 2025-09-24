@@ -5515,6 +5515,14 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
     };
+
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, true);
+    if (iouReport.managerID !== nextApproverAccountID) {
+        expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
+        expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
+        expenseReport.managerID = nextApproverAccountID;
+    }
+
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
