@@ -70,7 +70,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errorFields);
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
