@@ -11244,11 +11244,15 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
     for (const action of reportActionList) {
         if (isExportIntegrationAction(action)) {
+            const originalMessage = getOriginalMessage(action);
             // We consider any reports marked manually as exported to be exported, so we shortcut here.
-            if (getOriginalMessage(action)?.markedManually) {
+            if (originalMessage?.markedManually) {
                 return true;
             }
-            exportIntegrationActionsCount++;
+            // exportTemplate type is a CSV export, so we don't count it as an export integration action
+            if (originalMessage?.type !== CONST.EXPORT_TEMPLATE) {
+                exportIntegrationActionsCount++;
+            }
         }
         if (isIntegrationMessageAction(action)) {
             integrationMessageActionsCount++;
