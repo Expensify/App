@@ -4456,7 +4456,7 @@ function getUpdateMoneyRequestParams(
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
-            isSelfDM(iouReport)
+            isSelfDM(iouReport),
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({

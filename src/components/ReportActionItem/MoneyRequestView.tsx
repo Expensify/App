@@ -83,7 +83,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
-
 type MoneyRequestViewProps = {
     /** All the data of the report collection */
     allReports: OnyxCollection<OnyxTypes.Report>;
@@ -111,15 +110,15 @@ type MoneyRequestViewProps = {
 };
 
 function MoneyRequestView({
-                              allReports,
-                              report,
-                              expensePolicy,
-                              shouldShowAnimatedBackground,
-                              readonly = false,
-                              updatedTransaction,
-                              isFromReviewDuplicates = false,
-                              mergeTransactionID,
-                          }: MoneyRequestViewProps) {
+    allReports,
+    report,
+    expensePolicy,
+    shouldShowAnimatedBackground,
+    readonly = false,
+    updatedTransaction,
+    isFromReviewDuplicates = false,
+    mergeTransactionID,
+}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
