@@ -383,10 +383,6 @@ const Checker = {
 const CLI_COMMANDS = ['check', 'check-changed'] as const;
 type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
 
-function isValidCliCommand(command: string): command is CliCommand {
-    return CLI_COMMANDS.includes(command as CliCommand);
-}
-
 // CLI interface
 function main() {
     const cli = new CLI({
@@ -397,7 +393,7 @@ function main() {
                 required: false,
                 default: 'check',
                 parse: (val) => {
-                    if (!isValidCliCommand(val)) {
+                    if (!CLI_COMMANDS.includes(val as CliCommand)) {
                         throw new Error(`Invalid command. Must be one of: ${CLI_COMMANDS.join(', ')}`);
                     }
                     return val;
