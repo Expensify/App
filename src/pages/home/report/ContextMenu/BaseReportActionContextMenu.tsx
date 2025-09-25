@@ -271,6 +271,7 @@ function BaseReportActionContextMenu({
         if (isAnonymousUser() && !isAnonymousAction) {
             hideContextMenu(false);
 
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 signOutAndRedirectToSignIn();
             });
