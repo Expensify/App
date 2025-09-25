@@ -74,11 +74,11 @@ jobs:
 
       - name: Fetch base ref
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
-        run: git fetch --no-tags --depth=1 --no-recurse-submodules origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/heads/${{ github.event.pull_request.base.ref }}
+        run: git fetch --no-tags --depth=1 --no-recurse-submodules origin +refs/heads/${{ steps.pr-data.outputs.BASE_REF }}:refs/heads/${{ steps.pr-data.outputs.BASE_REF }}
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
-        run: npx ts-node ./scripts/generateTranslations.ts --verbose --compare-ref=${{ github.event.pull_request.base.ref }}
+        run: npx ts-node ./scripts/generateTranslations.ts --verbose --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
@@ -99,7 +99,7 @@ jobs:
         continue-on-error: true
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
         run: |
-          EXISTING_COMMENTS="$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')"
+          EXISTING_COMMENTS="$(gh pr view ${{ steps.pr-data.outputs.PR_NUMBER }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')"
           if [[ -z "$EXISTING_COMMENTS" ]]; then
             echo "🦗 No existing Polyglot Parrot comments found"
           else
@@ -165,7 +165,7 @@ jobs:
           else
             # Large diff - upload as gist and link
             echo "📁 Creating gist for large diff..."
-            GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --desc "🦜 Polyglot Parrot translations for PR #${{ github.event.pull_request.number }}" --filename "translations.patch")
+            GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --desc "🦜 Polyglot Parrot translations for PR #${{ steps.pr-data.outputs.PR_NUMBER }}" --filename "translations.patch")
             {
               echo "$PARROT_HEADER"
               echo
@@ -180,7 +180,7 @@ jobs:
           fi
 
           # Post comment using the temp file
-          gh pr comment ${{ github.event.pull_request.number }} --body-file "$TEMP_COMMENT_FILE"
+          gh pr comment ${{ steps.pr-data.outputs.PR_NUMBER }} --body-file "$TEMP_COMMENT_FILE"
         env:
           # Use OS_BOTIFY_TOKEN so that we can create a gist
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
