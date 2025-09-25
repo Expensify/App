@@ -185,6 +185,15 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
+      - name: Setup python for node-gyp
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Ensure setuptools for node-gyp
+        run: python -m pip install --upgrade pip setuptools
+
       - name: Load Desktop credentials from 1Password
         id: load-credentials
         # v2
@@ -215,6 +224,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
+          PYTHON: ${{ steps.setup-python.outputs.python-path }}
 
   web:
     name: Build and deploy Web
