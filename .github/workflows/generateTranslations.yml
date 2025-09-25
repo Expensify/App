@@ -8,6 +8,7 @@ on:
 jobs:
   generateTranslations:
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     steps:
       # v4
       - name: Checkout
@@ -106,6 +107,9 @@ jobs:
 
           # Generate the diff and save to patch file
           git diff HEAD > "$TEMP_PATCH_FILE"
+
+          # Ensure the patch ends with a newline to prevent "corrupt patch" errors
+          echo "" >> "$TEMP_PATCH_FILE"
 
           # Check file size (65536 chars is ~64KB, let's use 60KB as safety margin)
           PATCH_SIZE=$(wc -c < "$TEMP_PATCH_FILE")
