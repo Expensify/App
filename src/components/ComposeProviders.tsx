@@ -13,3 +13,5 @@ function ComposeProviders(props: ComposeProvidersProps): ReactNode {
 
 ComposeProviders.displayName = 'ComposeProviders';
 export default ComposeProviders;
+
+'myString'.localeCompare('anotherString')
