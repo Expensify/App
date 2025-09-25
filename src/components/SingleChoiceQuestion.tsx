@@ -22,7 +22,7 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
         <>
             <Text
                 ref={ref}
-                style={[styles.mt3, styles.ph5]}
+                style={[styles.mt3]}
             >
                 {prompt}
             </Text>

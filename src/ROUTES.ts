@@ -239,12 +239,17 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/update-role/:currentRole',
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
     },
+    SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/confirm-role/:newRole',
+        getRoute: (login: string, newRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/confirm-role/${newRole}` as const,
+    },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
-        getRoute: (login: string, role: string, showValidateActionModal?: boolean) => {
-            const validateActionModalParam = showValidateActionModal ? `?showValidateActionModal=true` : '';
-            return `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm${validateActionModalParam}` as const;
-        },
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+    },
+    SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/confirm/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/magic-code` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
@@ -1280,13 +1285,8 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
 
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT route');
-            }
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const, backTo);
-        },
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const, backTo),
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-select',
@@ -1496,12 +1496,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES route');
-            }
-            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes/displayed_as',
@@ -1509,12 +1504,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS route');
-            }
-            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers/displayed_as',
@@ -1592,12 +1582,7 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY route');
-            }
-            return `workspaces/${policyID}/workflows/auto-reporting-frequency` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
@@ -2758,48 +2743,23 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR route');
-            }
-            return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS route');
-            }
-            return `workspaces/${policyID}/accounting/quickbooks-online/import/classes/displayed-as` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/classes/displayed-as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS route');
-            }
-            return `workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers/displayed-as',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS route');
-            }
-            return `workspaces/${policyID}/accounting/quickbooks-online/import/customers/displayed-as` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/customers/displayed-as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS route');
-            }
-            return `workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations/displayed-as',
@@ -2833,12 +2793,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT route');
-            }
-            return `workspaces/${policyID}/accounting/netsuite/import` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
         route: 'workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
@@ -2878,21 +2833,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS route');
-            }
-            return `workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT route');
-            }
-            return `workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'workspaces/:policyID/connections/netsuite/export/',

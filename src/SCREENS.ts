@@ -67,6 +67,7 @@ const SCREENS = {
         ADVANCED_FILTERS_TAX_RATE_RHP: 'Search_Advanced_Filters_Tax_Rate_RHP',
         ADVANCED_FILTERS_EXPENSE_TYPE_RHP: 'Search_Advanced_Filters_Expense_Type_RHP',
         ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP: 'Search_Advanced_Filters_Withdrawal_Type_RHP',
+        ADVANCED_FILTERS_IS_RHP: 'Search_Advanced_Filters_Is_RHP',
         ADVANCED_FILTERS_WITHDRAWAL_ID_RHP: 'Search_Advanced_Filters_Withdrawal_ID_RHP',
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_HAS_RHP: 'Search_Advanced_Filters_Has_RHP',
@@ -161,7 +162,9 @@ const SCREENS = {
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
+            DELEGATE_CONFIRM_MAGIC_CODE: 'Settings_Delegate_Confirm_Magic_Code',
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
+            UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE: 'Settings_Delegate_Update_Role_Confirm_Magic_Code',
         },
         MERGE_ACCOUNTS: {
             ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
