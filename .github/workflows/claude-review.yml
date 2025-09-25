@@ -5,7 +5,7 @@ permissions:
   pull-requests: write
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened]
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Run Claude Code (code)
         if: steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a # v1.0.8
+        uses: anthropics/claude-code-action@7e5b42b197976d16cf1c1994f360e1bf224f5a8f # v1.0.124
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -40,7 +40,7 @@ jobs:
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
-        uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a # v1.0.8
+        uses: anthropics/claude-code-action@7e5b42b197976d16cf1c1994f360e1bf224f5a8f # v1.0.124
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

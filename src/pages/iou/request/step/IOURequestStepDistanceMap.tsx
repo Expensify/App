@@ -599,9 +599,7 @@ function IOURequestStepDistanceMap({
 
 IOURequestStepDistanceMap.displayName = 'IOURequestStepDistanceMap';
 
-const IOURequestStepDistanceMapWithOnyx = IOURequestStepDistanceMap;
-
-const IOURequestStepDistanceMapWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceMapWithOnyx);
+const IOURequestStepDistanceMapWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceMap);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceMapWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceMapWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
