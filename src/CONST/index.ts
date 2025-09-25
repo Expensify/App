@@ -460,6 +460,7 @@ const CONST = {
     },
     SMS: {
         DOMAIN: '@expensify.sms',
+        RECEIPTS_PHONE_NUMBER: '47777',
     },
     DOCUSIGN_POWERFORM_LINK: {
         US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',

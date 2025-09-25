@@ -311,6 +311,9 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
+type ReceiptAlternativeMethodsPhoneNumberParams = {
+    phoneNumber: string;
+};
 
 /* eslint-disable max-len */
 const translations = {
@@ -1025,12 +1028,20 @@ const translations = {
     receipt: {
         upload: 'Upload receipt',
         uploadMultiple: 'Upload receipts',
+        desktopSubtitleSingle: `or drag and drop them here`,
+        desktopSubtitleMultiple: `or drag and drop them here`,
         dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
         dragReceiptsBeforeEmail: 'Drag receipts onto this page, forward receipts to ',
         dragReceiptAfterEmail: ' or choose a file to upload below.',
         dragReceiptsAfterEmail: ' or choose files to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         chooseReceipts: 'Choose receipts to upload or forward receipts to ',
+        alternativeMethodsTitle: 'Other ways to add receipts:',
+        alternativeMethodsDownloadApp: 'Download the app to scan from your phone',
+        alternativeMethodsForwardReceipts: 'Forward receipts to',
+        alternativeMethodsAddPhoneNumberLink: 'Add your number',
+        alternativeMethodsAddPhoneNumberSuffix: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => ` to text receipts to ${phoneNumber}`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `Text receipts to ${phoneNumber} (US numbers only)`,
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         deniedCameraAccess: "Camera access still hasn't been granted, please follow ",
