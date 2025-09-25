@@ -4,7 +4,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useConfirmModal from '@components/Modal/Global/useModalHook';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -127,6 +126,7 @@ import KYCWall from './KYCWall';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
+import useConfirmModal from './Modal/Global/useModalHook';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
@@ -1229,7 +1229,7 @@ function MoneyReportHeader({
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
             if (result.action !== 'CONFIRM') {
-                setExportModalStatus(null)
+                setExportModalStatus(null);
                 return;
             }
             confirmExport();
