@@ -1091,25 +1091,6 @@ function MoneyReportHeader({
                     return;
                 }
 
-                if (transactionCount === 0) {
-                    showConfirmModal({
-                        title: translate('iou.deleteReport'),
-                        prompt: translate('iou.deleteReportConfirmation'),
-                        confirmText: translate('common.delete'),
-                        cancelText: translate('common.cancel'),
-                        danger: true,
-                    }).then((result) => {
-                        if (result.action !== 'CONFIRM') {
-                            return;
-                        }
-                        const reportID = moneyRequestReport?.reportID;
-                        if (reportID) {
-                            deleteAppReport(reportID);
-                        }
-                    });
-                    return;
-                }
-
                 showConfirmModal({
                     title: translate('iou.deleteReport'),
                     prompt: translate('iou.deleteReportConfirmation'),
@@ -1248,6 +1229,7 @@ function MoneyReportHeader({
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
             if (result.action !== 'CONFIRM') {
+                setExportModalStatus(null)
                 return;
             }
             confirmExport();
