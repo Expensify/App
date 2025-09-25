@@ -11,15 +11,10 @@ import {writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
+import Git, {GIT_ERRORS} from './utils/Git';
 import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
 
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
-
-const ERRORS = {
-    FAILED_TO_FETCH_FROM_REMOTE: 'Failed to fetch from remote',
-} as const;
-
-const IS_CI = process.env.CI === 'true';
 
 type HealthcheckJsonResults = {
     success: string[];
@@ -67,7 +62,7 @@ function checkChangedFiles(remote: string): boolean {
     info('Checking changed files for React Compiler compliance...');
 
     try {
-        const changedFiles = getChangedFiles(remote);
+        const changedFiles = Git.getChangedFiles(remote);
         const filesToCheck = [...new Set(changedFiles)];
 
         if (filesToCheck.length === 0) {
@@ -77,7 +72,7 @@ function checkChangedFiles(remote: string): boolean {
 
         return check(filesToCheck);
     } catch (error) {
-        if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
+        if (error instanceof Error && error.message === GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
             logError(`Could not fetch from remote ${remote}. If your base remote is not ${remote}, please specify another remote with the --remote flag.`);
         }
 
@@ -326,77 +321,6 @@ function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPOR
     );
 
     logSuccess(`Detailed report saved to: ${reportFile}`);
-}
-
-function getMainBaseCommitHash(remote: string): string {
-    // Fetch the main branch from the specified remote to ensure it's available
-    try {
-        execSync(`git fetch ${remote} main --no-tags -q`, {encoding: 'utf8'});
-    } catch (error) {
-        throw new Error(ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
-    }
-
-    // In CI, use a simpler approach - just use the remote main branch directly
-    // This avoids issues with shallow clones and merge-base calculations
-    if (IS_CI) {
-        try {
-            const mergeBaseHash = execSync(`git rev-parse ${remote}/main`, {encoding: 'utf8'}).trim();
-
-            // Validate the output is a proper SHA hash
-            if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
-                throw new Error(`git rev-parse returned unexpected output: ${mergeBaseHash}`);
-            }
-
-            return mergeBaseHash;
-        } catch (error) {
-            logError(`Failed to get commit hash for ${remote}/main:`, error);
-            throw new Error(`Could not get commit hash for ${remote}/main`);
-        }
-    }
-
-    // For local development, try to find the actual merge base
-    let mergeBaseHash: string;
-    try {
-        mergeBaseHash = execSync(`git merge-base ${remote}/main HEAD`, {encoding: 'utf8'}).trim();
-    } catch (error) {
-        // If merge-base fails locally, fall back to using the remote main branch
-        try {
-            mergeBaseHash = execSync(`git rev-parse ${remote}/main`, {encoding: 'utf8'}).trim();
-            logError(`Warning: Could not find merge base between ${remote}/main and HEAD. Using ${remote}/main as base.`);
-        } catch (fallbackError) {
-            logError(`Failed to find merge base with ${remote}/main:`, error);
-            logError(`Fallback also failed:`, fallbackError);
-            throw new Error(`Could not determine merge base with ${remote}/main`);
-        }
-    }
-
-    // Validate the output is a proper SHA hash
-    if (!mergeBaseHash || !/^[a-fA-F0-9]{40}$/.test(mergeBaseHash)) {
-        throw new Error(`git merge-base returned unexpected output: ${mergeBaseHash}`);
-    }
-
-    return mergeBaseHash;
-}
-
-function getChangedFiles(remote: string): string[] {
-    try {
-        // Get files changed in the current branch/commit
-        const mainBaseCommitHash = getMainBaseCommitHash(remote);
-
-        // Get the diff output and check status
-        const gitDiffOutput = execSync(`git diff --diff-filter=AMR --name-only ${mainBaseCommitHash} HEAD`, {
-            encoding: 'utf8',
-        });
-
-        const files = gitDiffOutput.trim().split('\n');
-        return files;
-    } catch (error) {
-        if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
-            throw error;
-        }
-
-        logError('Could not determine changed files:', error);
-    }
 }
 
 const Checker = {
