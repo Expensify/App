@@ -26,13 +26,14 @@ jobs:
             echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')" >> "$GITHUB_OUTPUT"
             echo "BASE_REF=$(echo "$PR_INFO" | jq -r '.baseRefName')" >> "$GITHUB_OUTPUT"
             echo "HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')" >> "$GITHUB_OUTPUT"
+            echo "::notice::✅ Processing PR #$(echo "$PR_INFO" | jq -r '.number')"
           else
             echo "::notice::🤖 Automatic PR trigger activated"
             echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
             echo "BASE_REF=${{ github.event.pull_request.base.ref }}" >> "$GITHUB_OUTPUT"
             echo "HEAD_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+            echo "::notice::✅ Processing PR #${{ github.event.pull_request.number }}"
           fi
-          echo "::notice::✅ Processing PR #${{ steps.pr-data.outputs.PR_NUMBER }}"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
