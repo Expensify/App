@@ -135,6 +135,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
             policy?.connections?.quickbooksOnline?.config?.export?.exporter,
             policy?.connections?.xero?.config?.export?.exporter,
+            policy?.connections?.netsuite?.options.config.exporter,
         ];
         const isUserExporter = exporters.includes(details.login);
 

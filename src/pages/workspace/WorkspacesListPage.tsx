@@ -211,6 +211,7 @@ function WorkspacesListPage() {
             policyToLeave?.connections?.quickbooksDesktop?.config?.export?.exporter,
             policyToLeave?.connections?.quickbooksOnline?.config?.export?.exporter,
             policyToLeave?.connections?.xero?.config?.export?.exporter,
+            policyToLeave?.connections?.netsuite?.options.config.exporter,
         ];
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = currentPolicy?.technicalContact;
