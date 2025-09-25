@@ -4210,10 +4210,19 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
+const DEFAULT_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
+    maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+    maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+    maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
+};
+
 function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
+
+    const shouldSetDefaultValues = enabled && isControlPolicy(policy) && policy?.outputCurrency === CONST.CURRENCY.USD;
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -4223,6 +4232,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
                     areRulesEnabled: enabled,
                     preventSelfApproval: false,
                     ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
+                    ...(shouldSetDefaultValues ? DEFAULT_MAX_EXPENSE_VALUES : {}),
                     pendingFields: {
                         areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -4247,7 +4257,7 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
                 value: {
                     areRulesEnabled: !enabled,
                     preventSelfApproval: policy?.preventSelfApproval,
-                    ...(!enabled
+                    ...(!enabled || shouldSetDefaultValues
                         ? {
                               maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt,
                               maxExpenseAmount: policy?.maxExpenseAmount,
