@@ -38,7 +38,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const isReportArchived = useReportIsArchived(reportID);
+    const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -58,12 +58,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportArchived);
+                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportLastVisibleArchived);
             } else {
-                changeReportPolicy(report, policy, reportNextStep, isReportArchived);
+                changeReportPolicy(report, policy, reportNextStep, isReportLastVisibleArchived);
             }
         },
-        [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
+        [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
