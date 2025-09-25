@@ -23,16 +23,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {
-    createTransactionThreadReport,
-    deleteAppReport,
-    downloadReportPDF,
-    exportReportToCSV,
-    exportReportToPDF,
-    exportToIntegration,
-    markAsManuallyExported,
-    openUnreportedExpense,
-} from '@libs/actions/Report';
+import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -50,6 +41,7 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    getAddExpenseDropdownOptions,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
@@ -593,38 +585,7 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
-    const addExpenseDropdownOptions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> = useMemo(
-        () => [
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-                text: translate('iou.createExpense'),
-                icon: Expensicons.Plus,
-                onSelected: () => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
-                },
-            },
-            {
-                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-                text: translate('iou.addUnreportedExpense'),
-                icon: Expensicons.ReceiptPlus,
-                onSelected: () => {
-                    if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                        return;
-                    }
-                    openUnreportedExpense(moneyRequestReport?.reportID);
-                },
-            },
-        ],
-        [moneyRequestReport?.reportID, policy, translate],
-    );
+    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(moneyRequestReport?.reportID, policy), [moneyRequestReport?.reportID, policy]);
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
         const options: Record<string, DropdownOption<string>> = {
