@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render} from '@testing-library/react-native';
+import {render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
@@ -1094,7 +1095,8 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                if (canUserPerformWriteAction(report) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
+                if (canUserPerformWriteAction(report, isReportArchived.current) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1112,7 +1114,8 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
+                if (canUserPerformWriteAction(report, isReportArchived.current) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1409,7 +1412,7 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                if (canUserPerformWriteAction(report) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
+                if (canUserPerformWriteAction(report, false) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1428,7 +1431,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -1448,7 +1451,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (canUserPerformWriteAction(report) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
                 return filtered;
