@@ -58,11 +58,11 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
     return false;
 }
 
-function checkChangedFiles(remote: string): boolean {
+async function checkChangedFiles(remote: string): Promise<boolean> {
     info('Checking changed files for React Compiler compliance...');
 
     try {
-        const changedFiles = Git.getChangedFiles(remote);
+        const changedFiles = await Git.getChangedFiles(remote);
         const filesToCheck = [...new Set(changedFiles)];
 
         if (filesToCheck.length === 0) {
@@ -332,7 +332,7 @@ const CLI_COMMANDS = ['check', 'check-changed'] as const;
 type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
 
 // CLI interface
-function main() {
+async function main() {
     const cli = new CLI({
         positionalArgs: [
             {
@@ -382,7 +382,7 @@ function main() {
                 isPassed = Checker.check(file !== '' ? [file] : undefined, shouldGenerateReport);
                 break;
             case 'check-changed':
-                isPassed = Checker.checkChangedFiles(remote);
+                isPassed = await Checker.checkChangedFiles(remote);
                 break;
             default:
                 logError(`Unknown command: ${String(command)}`);
