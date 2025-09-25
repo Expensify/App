@@ -21,7 +21,13 @@ const Video = class extends View {
     setStatusAsync = jest.fn().mockResolvedValue(undefined);
 }
 
+const ResizeMode = {
+    CONTAIN: "contain",
+    COVER: "cover",
+    STRETCH: "stretch"
+}
+
 // Export default Video
 export default Video;
-export {Audio, Video};
+export {Audio, Video, ResizeMode};
 // Re-export types as empty objects so imports don’t fail
