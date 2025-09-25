@@ -229,9 +229,6 @@ function compute(formula?: string, context?: FormulaContext): string {
         result += value;
     }
 
-    // eslint-disable-next-line no-console
-    console.log('MMDJN compute() after', {formula, context, result});
-
     return result;
 }
 
