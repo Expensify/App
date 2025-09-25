@@ -65,17 +65,15 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 
 ## Running the mobile application using Rock 🪨
 
-This project leverages [Rock](rockjs.dev) to manage builds remotely. By storing the complete build on a remote server, Rock.js eliminates the need for local builds and enables streamlined setup through automated downloads.
+This project leverages [Rock](rockjs.dev) to manage builds. With Rock, the build is downloaded from a remote server first, and if a matching remote build cannot be found, it falls back to building locally. By storing the complete build on a remote server, Rock.js minimizes the need for local builds and enables streamlined setup through automated downloads.
 
 The following steps describe how to configure the project to fully utilize Rock.
 
-### Configuring GitHub CLI
+### Generating GitHub Personal Access Token
 
-To use rock remote builds for mobile applications, you need to have GitHub CLI installed and configured:
+To use rock remote builds for mobile applications, you need to have GitHub Personal Access Token in your `.env` file:
 
-1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
-
-2. Create a GitHub Personal Access Token:
+1. Create a GitHub Personal Access Token:
    - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
    - Click "Generate new token (classic)"
    - Select the following scopes:
@@ -83,19 +81,10 @@ To use rock remote builds for mobile applications, you need to have GitHub CLI i
      - `read:org`
      - `gist`
      - `read:packages`
-   - Copy the generated token
 
-3. Login to GitHub CLI:
-   ```bash
-   echo "YOUR_TOKEN" | gh auth login --with-token
-   ```
-4. Verify the login was successful:
-   ```bash
-   gh auth status
-   ```
-   You should see a message confirming you are authenticated with your GitHub account.
+2. Copy the generated token
 
-5. Add `GITHUB_TOKEN` to `.env` file with your generated token
+3. Add `GITHUB_TOKEN` to `.env` file with your generated token
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
@@ -147,6 +136,36 @@ By default, `react-native` is built from source when building the Android app. H
 
    - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
    - Set `patchedArtifacts.forceBuildFromSource=false`
+
+#### Configuring GitHub CLI
+
+To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
+
+1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
+
+2. Create a GitHub Personal Access Token. (If you already completed this step during the Rock setup, there is no need to repeat it):
+   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select the following scopes:
+     - `repo`
+     - `read:org`
+     - `gist`
+     - `read:packages`
+
+3. Copy the generated token
+
+4. Login to GitHub CLI:
+   ```bash
+   echo "YOUR_TOKEN" | gh auth login --with-token
+   ```
+
+5. Verify the login was successful:
+   ```bash
+   gh auth status
+   ```
+   You should see a message confirming you are authenticated with your GitHub account.
+
+After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
 
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
