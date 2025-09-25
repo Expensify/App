@@ -7001,9 +7001,7 @@ describe('ReportUtils', () => {
         it('returns search route when in search context', () => {
             const reportID = '456';
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
-            expect(getReportURLForCurrentContext(reportID)).toBe(
-                `${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`,
-            );
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
         });
 
         it('falls back to the base report path when reportID is missing', () => {

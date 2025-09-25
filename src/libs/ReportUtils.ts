@@ -11791,9 +11791,7 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
         return `${environmentURL}/r/`;
     }
     const isInSearchContext = isSearchTopmostFullScreenRoute();
-    const relativePath = isInSearchContext
-        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})
-        : ROUTES.REPORT_WITH_ID.getRoute(reportID);
+    const relativePath = isInSearchContext ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route}) : ROUTES.REPORT_WITH_ID.getRoute(reportID);
     return `${environmentURL}/${relativePath}`;
 }
 
