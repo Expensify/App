@@ -2,6 +2,7 @@ import {getPathFromState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import Log from '@libs/Log';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isAuthenticating as isAuthenticatingNetworkStore} from '@libs/Network/NetworkStore';
@@ -9,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network, Session} from '@src/types/onyx';
 import captureRequestsQueueState from './RequestsQueuesState';
-import type {GlobalStateSnapshot, NavigationStateInfo, NetworkStateInfo, SessionStateInfo} from './types';
+import type {ExtraLoadingContext, GlobalStateSnapshot, NavigationStateInfo, NetworkStateInfo, SessionStateInfo} from './types';
 
 let currentSession: OnyxEntry<Session>;
 let currentNetwork: OnyxEntry<Network>;
@@ -88,4 +89,13 @@ function captureAppState(): GlobalStateSnapshot {
     };
 }
 
-export default captureAppState;
+function logAppStateOnLongLoading(extraLoadingContext?: ExtraLoadingContext, timeout?: number): void {
+    Log.warn('ActivityIndicator has been shown for longer than expected', {
+        timeoutMs: timeout,
+        extraLoadingContext,
+        appState: captureAppState(),
+    });
+}
+
+export type {ExtraLoadingContext};
+export default logAppStateOnLongLoading;

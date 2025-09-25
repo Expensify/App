@@ -11,7 +11,7 @@ type MainQueueInfo = {
     queuedCommands?: string[];
 };
 
-type OngoingRequestInfo = Pick<Request, 'command' | 'persistWhenOngoing' | 'isRollback'>
+type OngoingRequestInfo = Pick<Request, 'command' | 'persistWhenOngoing' | 'isRollback'>;
 
 /**
  * Persisted requests state
@@ -37,7 +37,6 @@ type SequentialQueueInfo = {
     /** Whether processing is paused (e.g. due to data gaps/conflicts) */
     isPaused: boolean;
 };
-
 
 /**
  * Request control and failure state. Global state that affects both queue types.
