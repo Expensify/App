@@ -23,7 +23,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -127,6 +127,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             firstRenderRef.current = false;
             Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
                 if (!(login in detailsMap)) {
+                    const userToInvite = getUserToInviteOption({searchValue: login});
+                    if (userToInvite) {
+                        newSelectedOptions.push({...formatMemberForList(userToInvite), isSelected: true});
+                    }
                     return;
                 }
                 newSelectedOptions.push({...detailsMap[login], isSelected: true});

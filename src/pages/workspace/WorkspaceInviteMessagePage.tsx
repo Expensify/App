@@ -216,7 +216,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                                 numberOfLinesTitle={2}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
+                                    Navigation.goBack(route.params.backTo);
                                 }}
                             />
 
