@@ -1,0 +1,29 @@
+# https://docs.codecov.com/docs/codecovyml-reference
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+        target: auto
+    patch:
+      default:
+        informational: true
+        target: auto
+
+codecov:
+  notify:
+    # We shard our tests into 3 chunks, so we want CodeCov to wait for 3 builds before commenting
+    after_n_builds: 3
+
+comment:
+  require_changes: "coverage_drop OR uncovered_patch"
+  layout: "condensed_header, condensed_files, condensed_footer"
+  behavior: default
+
+flags:
+  unit:
+    paths:
+      - src/
+
+ignore:
+  - "src/languages/**"

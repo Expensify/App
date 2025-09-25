@@ -6,6 +6,8 @@ import type {TransactionViolation} from '@src/types/onyx';
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 const transactionReportIDMapping: Record<string, string> = {};
 
+const transactionToReportIDMap: Record<string, string> = {};
+
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
@@ -48,6 +50,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             if (!reportID) {
+                delete transactionToReportIDMap[transactionKey];
                 continue;
             }
 

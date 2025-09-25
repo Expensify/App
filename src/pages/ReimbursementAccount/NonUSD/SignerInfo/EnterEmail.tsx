@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -32,6 +33,7 @@ const {COMPANY_NAME, SIGNER_EMAIL, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_D
 function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -76,6 +78,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
                 inputID={SIGNER_EMAIL}
                 inputMode={CONST.INPUT_MODE.EMAIL}
                 containerStyles={[styles.mt6]}
+                ref={!shouldGatherBothEmails ? inputCallbackRef : undefined}
             />
             {shouldGatherBothEmails && (
                 <InputWrapper
