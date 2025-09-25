@@ -2,16 +2,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {
-    LayoutChangeEvent,
-    MeasureInWindowOnSuccessCallback,
-    NativeSyntheticEvent,
-    TextInput,
-    TextInputContentSizeChangeEventData,
-    TextInputFocusEventData,
-    TextInputKeyPressEventData,
-    TextInputScrollEventData,
-} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -77,7 +68,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     onFocus: () => void;
 
     /** Callback to blur composer */
-    onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onBlur: (event: BlurEvent) => void;
 
     /** Callback when layout of composer changes */
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -442,7 +433,7 @@ function ComposerWithSuggestions({
     );
 
     const handleKeyPress = useCallback(
-        (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        (event: TextInputKeyPressEvent) => {
             const webEvent = event as unknown as KeyboardEvent;
             if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
@@ -510,6 +501,7 @@ function ComposerWithSuggestions({
                 syncSelectionWithOnChangeTextRef.current = null;
 
                 // ensure that selection is set imperatively after all state changes are effective
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
@@ -533,7 +525,7 @@ function ComposerWithSuggestions({
     );
 
     const hideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+        (e: TextInputScrollEvent) => {
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -772,7 +764,7 @@ function ComposerWithSuggestions({
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
     const updateIsFullComposerAvailable = useCallback(
-        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+        (e: TextInputContentSizeChangeEvent) => {
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;

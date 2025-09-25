@@ -1,5 +1,5 @@
 import React from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import SymbolButton from '@components/SymbolButton';
 import useLocalize from '@hooks/useLocalize';
@@ -54,7 +54,7 @@ function BaseTextInputWithSymbol({
                 placeholder={placeholder}
                 ref={ref}
                 selection={selection}
-                onSelectionChange={(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                onSelectionChange={(event: TextInputSelectionChangeEvent) => {
                     onSelectionChange(event);
                 }}
                 onKeyPress={onKeyPress}

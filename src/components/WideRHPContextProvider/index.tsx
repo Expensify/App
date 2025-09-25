@@ -237,6 +237,7 @@ function useShowWideRHPVersion(condition: boolean) {
      */
     useEffect(() => {
         return navigation.addListener('beforeRemove', () => {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 cleanWideRHPRouteKey(route);
             });
