@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
@@ -116,7 +117,7 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const platform = getPlatform(true);
     const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
@@ -392,7 +393,7 @@ function IOURequestStepScan({
             // the participants can be automatically assigned from the report and the user can skip the participants step and go straight
             // to the confirmation step.
             // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-            if (initialTransaction?.isFromGlobalCreate && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            if (!initialTransaction?.isFromGlobalCreate && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -963,9 +964,7 @@ function IOURequestStepScan({
 
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-const IOURequestStepScanWithOnyx = IOURequestStepScan;
-
-const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
+const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
