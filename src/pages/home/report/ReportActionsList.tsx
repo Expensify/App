@@ -757,6 +757,13 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
+    const renderTopReportAction = () => (
+        <>
+            {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
+            <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+        </>
+    );
+
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
@@ -781,12 +788,7 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && topReportAction ? (
-                    <>
-                        {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
-                        <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
-                    </>
-                ) : undefined}
+                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportAction() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
