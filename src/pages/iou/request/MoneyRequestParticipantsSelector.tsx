@@ -84,7 +84,7 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a corporate card transaction */
     isCorporateCardTransaction?: boolean;
-    
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
