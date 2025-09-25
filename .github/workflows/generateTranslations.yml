@@ -17,14 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
     steps:
-      - name: Extract PR information for manual dispatch
-        if: github.event_name == 'workflow_dispatch'
-        id: extract-pr-info
+      - name: Retrieve PR details
+        id: retrieve-PR
         run: |
-          PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number,baseRefName,headRefOid)
-          echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')" >> "$GITHUB_OUTPUT"
-          echo "PR_BASE_REF=$(echo "$PR_INFO" | jq -r '.baseRefName')" >> "$GITHUB_OUTPUT"
-          echo "PR_HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Triggered manually
+            PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number,baseRefName,headRefOid)
+            echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')" >> "$GITHUB_OUTPUT"
+            echo "BASE_REF=$(echo "$PR_INFO" | jq -r '.baseRefName')" >> "$GITHUB_OUTPUT"
+            echo "HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')" >> "$GITHUB_OUTPUT"
+          else
+            # Triggered by PR event
+            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "BASE_REF=${{ github.event.pull_request.base.ref }}" >> "$GITHUB_OUTPUT"
+            echo "HEAD_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
