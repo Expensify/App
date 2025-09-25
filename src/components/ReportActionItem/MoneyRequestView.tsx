@@ -83,6 +83,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
+
 type MoneyRequestViewProps = {
     /** All the data of the report collection */
     allReports: OnyxCollection<OnyxTypes.Report>;
@@ -110,15 +111,15 @@ type MoneyRequestViewProps = {
 };
 
 function MoneyRequestView({
-    allReports,
-    report,
-    expensePolicy,
-    shouldShowAnimatedBackground,
-    readonly = false,
-    updatedTransaction,
-    isFromReviewDuplicates = false,
-    mergeTransactionID,
-}: MoneyRequestViewProps) {
+                              allReports,
+                              report,
+                              expensePolicy,
+                              shouldShowAnimatedBackground,
+                              readonly = false,
+                              updatedTransaction,
+                              isFromReviewDuplicates = false,
+                              mergeTransactionID,
+                          }: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -145,6 +146,8 @@ function MoneyRequestView({
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(updatedTransaction ?? transaction);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+
+    console.log({activePolicyID});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         canBeMissing: true,
         selector: activePolicySelector,
@@ -266,7 +269,8 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || isExpenseUnreported;
+    const areCategoriesEnabledAndHasCategory = categoryForDisplay || hasEnabledOptions(policyCategories ?? {});
+    const shouldShowCategory = (isPolicyExpenseChat && areCategoriesEnabledAndHasCategory) || (isExpenseUnreported && (!activePolicy || areCategoriesEnabledAndHasCategory));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = shouldShowPolicySpecificFields && (transactionTag || hasEnabledTags(policyTagLists));
