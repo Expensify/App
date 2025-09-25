@@ -73,13 +73,17 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const startMultiLevelTagImportFlow = useCallback(() => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
         if (hasVisibleTags) {
-            setIsOverridingMultiTag(true);
+            if (isMultiLevelTags) {
+                setIsOverridingMultiTag(true);
+            } else {
+                setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
+            }
         } else {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
             );
         }
-    }, [hasVisibleTags, policyID, isQuickSettingsFlow, backTo]);
+    }, [hasVisibleTags, policyID, isQuickSettingsFlow, backTo, isMultiLevelTags]);
 
     useFocusEffect(
         useCallback(() => {
@@ -99,7 +103,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const overrideMultiTagPrompt = (
         <Text>
             {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
-            {!hasDependentTags && (
                 <>
                     {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
                     <TextLink
@@ -119,7 +122,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     </TextLink>
                     {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
                 </>
-            )}
         </Text>
     );
 
