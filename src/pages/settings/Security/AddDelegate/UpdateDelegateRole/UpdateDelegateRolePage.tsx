@@ -7,13 +7,11 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -21,11 +19,7 @@ type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const login = route.params.login;
-    const selectedRole = route.params.currentRole;
-
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
+    const {currentRole, login} = route.params;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -33,7 +27,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
         text: translate('delegate.role', {role}),
         keyForList: role,
         alternateText: translate('delegate.roleDescription', {role}),
-        isSelected: role === selectedRole,
+        isSelected: role === currentRole,
     }));
 
     return (
@@ -49,7 +43,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                 <SelectionList
                     isAlternateTextMultilineSupported
                     alternateTextNumberOfLines={4}
-                    initiallyFocusedOptionKey={selectedRole}
+                    initiallyFocusedOptionKey={currentRole}
                     shouldUpdateFocusedIndex
                     headerContent={
                         <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
@@ -66,7 +60,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         </Text>
                     }
                     onSelectRow={(option) => {
-                        if (!option?.value || option?.value === currentDelegate?.role) {
+                        if (!option.value || option.isSelected) {
                             Navigation.dismissModal();
                             return;
                         }
