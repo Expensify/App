@@ -205,21 +205,9 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 }
 
 /**
- * Submit Bank Account step with Plaid data so php can perform some checks.
+ * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
-    const parameters: ConnectBankAccountParams = {
-        bankAccountID,
-        routingNumber: selectedPlaidBankAccount.routingNumber,
-        accountNumber: selectedPlaidBankAccount.accountNumber,
-        bank: selectedPlaidBankAccount.bankName,
-        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
-        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
-        plaidMask: selectedPlaidBankAccount.mask,
-        isSavings: selectedPlaidBankAccount.isSavings,
-        policyID,
-    };
-
+function getOnyxDataForConnectingBankAccount(policyID: string, lastPaymentMethod?: LastPaymentMethodType | string): OnyxData {
     const onyxData = getVBBADataForOnyx();
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
@@ -239,6 +227,27 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
             },
         });
     }
+
+    return onyxData;
+}
+
+/**
+ * Submit Bank Account step with Plaid data so php can perform some checks.
+ */
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
+    const parameters: ConnectBankAccountParams = {
+        bankAccountID,
+        routingNumber: selectedPlaidBankAccount.routingNumber,
+        accountNumber: selectedPlaidBankAccount.accountNumber,
+        bank: selectedPlaidBankAccount.bankName,
+        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
+        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+        plaidMask: selectedPlaidBankAccount.mask,
+        isSavings: selectedPlaidBankAccount.isSavings,
+        policyID,
+    };
+
+    const onyxData = getOnyxDataForConnectingBankAccount(policyID, lastPaymentMethod);
 
     API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, onyxData);
 }
@@ -1074,7 +1083,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
 /**
  * Create the bank account with manually entered data.
  */
-function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string) {
+function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
     const parameters: ConnectBankAccountParams = {
         bankAccountID,
         routingNumber: bankAccount.routingNumber,
@@ -1087,7 +1096,9 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
         policyID,
     };
 
-    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, parameters, getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT));
+    const onyxData = getOnyxDataForConnectingBankAccount(policyID, lastPaymentMethod);
+
+    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, parameters, onyxData);
 }
 
 /**
