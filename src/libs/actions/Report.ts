@@ -1907,23 +1907,14 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
 
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    let optimisticReport: Partial<Report> = {
-        lastMessageText: '',
-        lastVisibleActionCreated: '',
-    };
-    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions, isReportArchived);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-    if (lastMessageText) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
-        const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
-        optimisticReport = {
-            lastMessageText,
-            lastVisibleActionCreated,
-            lastActorAccountID,
-        };
-    }
+    const optimisticLastReportData = optimisticReportLastData(reportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isReportArchived);
+
+    const optimisticReport: Partial<Report> = {
+        ...optimisticLastReportData,
+    };
+
     const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
@@ -4020,6 +4011,16 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
     removeFromRoom(reportID, accountIDList);
 }
 
+function optimisticReportLastData(reportID: string, optimisticReportActions: ReportActions, canUserPerformWriteAction?: boolean, isReportArchived?: boolean) {
+    const lastMessageText = getLastVisibleMessage(reportID, optimisticReportActions, isReportArchived).lastMessageText ?? '';
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions);
+    return {
+        lastMessageText,
+        lastVisibleActionCreated: lastVisibleAction?.created ?? '',
+        lastActorAccountID: lastMessageText ? lastVisibleAction?.actorAccountID : CONST.DEFAULT_NUMBER_ID,
+    };
+}
+
 /** Flag a comment as offensive */
 function flagComment(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -4073,28 +4074,20 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
         },
     ];
 
-    let optimisticReport: Partial<Report> = {
-        lastMessageText: '',
-        lastVisibleActionCreated: '',
-    };
-
-    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, {
-        [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-    } as ReportActions);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-    if (lastMessageText) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, {
+
+    const optimistiLastReportData = optimisticReportLastData(
+        originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        {
             [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-        } as ReportActions);
-        const lastVisibleActionCreated = lastVisibleAction?.created;
-        const lastActorAccountID = lastVisibleAction?.actorAccountID;
-        optimisticReport = {
-            lastMessageText,
-            lastVisibleActionCreated,
-            lastActorAccountID,
-        };
-    }
+        } as ReportActions,
+        canUserPerformWriteAction,
+    );
+
+    const optimisticReport: Partial<Report> = {
+        ...optimistiLastReportData,
+    };
 
     if (shouldHideMessage) {
         optimisticData.push({
@@ -6195,4 +6188,5 @@ export {
     removeFailedReport,
     createTransactionThreadReport,
     openUnreportedExpense,
+    optimisticReportLastData,
 };
