@@ -1,10 +1,5 @@
 import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {
-    GestureResponderEvent,
-    StyleProp,
-    TextInputSubmitEditingEvent,
-    ViewStyle,
-} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';

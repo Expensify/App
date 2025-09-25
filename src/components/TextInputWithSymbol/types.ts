@@ -1,10 +1,4 @@
-import type {
-    NativeSyntheticEvent,
-    StyleProp,
-    TextInputSelectionChangeEvent,
-    TextStyle,
-    ViewStyle,
-} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';

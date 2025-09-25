@@ -1,12 +1,5 @@
 import React from 'react';
-import type {
-    NativeSyntheticEvent,
-    StyleProp,
-    TextInputKeyPressEvent,
-    TextInputSelectionChangeEvent,
-    TextStyle,
-    ViewStyle,
-} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';

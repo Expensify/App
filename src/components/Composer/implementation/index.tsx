@@ -4,10 +4,7 @@ import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {
-    TextInput, TextInputKeyPressEvent,
-    TextInputSelectionChangeEvent,
-} from 'react-native';
+import type {TextInput, TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';

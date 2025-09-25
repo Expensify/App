@@ -11,7 +11,7 @@ const Audio = {
         playAsync: mockPlayAsync,
         pauseAsync: mockPauseAsync,
         unloadAsync: mockUnloadAsync,
-        getStatusAsync: jest.fn().mockResolvedValue({ isLoaded: true, isPlaying: false }),
+        getStatusAsync: jest.fn().mockResolvedValue({isLoaded: true, isPlaying: false}),
         setOnPlaybackStatusUpdate: jest.fn(),
     })),
     setAudioModeAsync: jest.fn(),
@@ -19,13 +19,13 @@ const Audio = {
 
 const Video = class extends View {
     setStatusAsync = jest.fn().mockResolvedValue(undefined);
-}
+};
 
 const ResizeMode = {
-    CONTAIN: "contain",
-    COVER: "cover",
-    STRETCH: "stretch"
-}
+    CONTAIN: 'contain',
+    COVER: 'cover',
+    STRETCH: 'stretch',
+};
 
 // Export default Video
 export default Video;

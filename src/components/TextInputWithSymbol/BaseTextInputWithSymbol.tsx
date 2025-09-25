@@ -1,7 +1,5 @@
 import React from 'react';
-import type {
-    TextInputSelectionChangeEvent,
-} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import SymbolButton from '@components/SymbolButton';
 import useLocalize from '@hooks/useLocalize';
