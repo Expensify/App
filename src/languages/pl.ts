@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1751,7 +1752,7 @@ const translations = {
         compromisedDescription: 'Zauważyłeś coś podejrzanego? Zgłoszenie spowoduje natychmiastowe zablokowanie konta, zatrzymanie transakcji kartą Expensify i uniemożliwienie zmian.',
         domainAdminsDescription: 'Dla administratorów domen: wstrzymuje to również wszystkie działania kart Expensify i działania administracyjne w Twoich domenach.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
-        ourTeamWill: 'Nasz zespół zbada sprawę i usunie nieautoryzowany dostęp. Aby odzyskać dostęp, musisz współpracować z Concierge.',
+        onceLocked: 'Po zablokowaniu, Twoje konto będzie ograniczone do czasu złożenia wniosku o odblokowanie i przeglądu bezpieczeństwa.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',
@@ -3092,11 +3093,13 @@ const translations = {
         selectIncorporationCountry: 'Wybierz kraj rejestracji',
         selectIncorporationState: 'Wybierz stan rejestracji',
         selectAverageReimbursement: 'Wybierz średnią kwotę zwrotu',
+        selectBusinessType: 'Wybierz typ działalności',
         findIncorporationType: 'Znajdź rodzaj inkorporacji',
         findBusinessCategory: 'Znajdź kategorię biznesową',
         findAnnualPaymentVolume: 'Znajdź roczny wolumen płatności',
         findIncorporationState: 'Znajdź stan rejestracji',
         findAverageReimbursement: 'Znajdź średnią kwotę zwrotu',
+        findBusinessType: 'Znajdź typ działalności',
         error: {
             registrationNumber: 'Proszę podać prawidłowy numer rejestracyjny',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3574,7 +3577,8 @@ const translations = {
         receiptPartners: {
             connect: 'Połącz się teraz',
             uber: {
-                subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Połączono z ${organizationName}` : 'Automatyzuj wydatki na podróże i dostawy posiłków w całej swojej organizacji.',
                 sendInvites: 'Zaproś członków',
                 sendInvitesDescription: 'Ci członkowie obszaru roboczego nie mają jeszcze konta Uber for Business. Odznacz wszystkich członków, których nie chcesz zaprosic w tej chwili.',
                 confirmInvite: 'Potwierdź zaproszenie',
@@ -3594,8 +3598,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Zawieszone',
                 },
                 invitationFailure: 'Nie udało się zaprosić członków do Uber for Business',
-                autoRemove: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
-                autoInvite: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
+                autoInvite: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
+                autoRemove: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
                 bannerTitle: 'Expensify + Uber dla firm',
                 bannerDescription: 'Połącz się z Uberem dla Firm, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej organizacji.',
                 emptyContent: {
@@ -4879,6 +4883,13 @@ const translations = {
                 prompt4: 'poprzez eksportowanie swoich tagów.',
                 prompt5: 'Dowiedz się więcej',
                 prompt6: 'o poziomach tagów.',
+            },
+            overrideMultiTagWarning: {
+                title: 'Importuj tagi',
+                prompt1: 'Czy jesteś pewien?',
+                prompt2: ' Istniejące tagi zostaną nadpisane, ale możesz',
+                prompt3: ' pobierz kopię zapasową',
+                prompt4: ' pierwszy.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Znaleźliśmy *${columnCounts} kolumny* w Twoim arkuszu kalkulacyjnym. Wybierz *Nazwa* obok kolumny, która zawiera nazwy tagów. Możesz również wybrać *Włączone* obok kolumny, która ustawia status tagów.`,

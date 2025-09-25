@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1734,7 +1735,7 @@ const translations = {
         compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
         domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
         areYouSure: '您确定要锁定您的Expensify账户吗?',
-        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
+        onceLocked: '一旦锁定，您的账户将被限制，等待解锁请求和安全审查。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',
@@ -3058,11 +3059,13 @@ const translations = {
         selectIncorporationCountry: '选择注册国家/地区',
         selectIncorporationState: '选择注册州',
         selectAverageReimbursement: '选择平均报销金额',
+        selectBusinessType: '选择业务类型',
         findIncorporationType: '查找公司注册类型',
         findBusinessCategory: '查找业务类别',
         findAnnualPaymentVolume: '查找年度支付量',
         findIncorporationState: '查找注册州',
         findAverageReimbursement: '查找平均报销金额',
+        findBusinessType: '查找业务类型',
         error: {
             registrationNumber: '请提供有效的注册号码',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3526,7 +3529,7 @@ const translations = {
         receiptPartners: {
             connect: '立即连接',
             uber: {
-                subtitle: '自动化整个组织的差旅和送餐费用。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) => (organizationName ? `已连接到${organizationName}` : '在您的组织内自动化旅行和餐饮费用。'),
                 sendInvites: '邀请成员',
                 sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
                 confirmInvite: '确认邀请',
@@ -3546,8 +3549,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '已暂停',
                 },
                 invitationFailure: '邀请成员加入Uber for Business失败',
-                autoRemove: '邀请新工作区成员加入 Uber for Business',
-                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                autoInvite: '邀请新工作区成员加入 Uber for Business',
+                autoRemove: '停用已从 Uber for Business 移除的工作区成员',
                 bannerTitle: 'Expensify + Uber 商务版',
                 bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
                 emptyContent: {
@@ -4797,6 +4800,13 @@ const translations = {
                 prompt4: '通过导出您的标签。',
                 prompt5: '了解更多',
                 prompt6: '关于标签级别。',
+            },
+            overrideMultiTagWarning: {
+                title: '导入标签',
+                prompt1: '你确定吗？',
+                prompt2: ' 现有标签将被覆盖，但您可以',
+                prompt3: ' 下载备份文件',
+                prompt4: ' 第一。',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `我们在您的电子表格中找到了*${columnCounts} 列*。在包含标签名称的列旁边选择*名称*。您还可以在设置标签状态的列旁边选择*启用*。`,
