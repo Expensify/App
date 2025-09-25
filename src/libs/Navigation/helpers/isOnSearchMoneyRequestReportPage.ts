@@ -1,9 +1,9 @@
-import {navigationRef} from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
 const isOnSearchMoneyRequestReportPage = (): boolean => {
-    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList> | undefined;
+    const rootState = navigationRef.isReady() ? (navigationRef.getRootState() as State<RootNavigatorParamList>) : null;
     if (!rootState) {
         return false;
     }

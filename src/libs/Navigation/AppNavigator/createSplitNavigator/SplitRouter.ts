@@ -34,7 +34,7 @@ type AdaptStateIfNecessaryArgs = {
  */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
-    const rootState = navigationRef.getRootState();
+    const rootState = navigationRef.isReady() ? navigationRef.getRootState() : null;
 
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
 
