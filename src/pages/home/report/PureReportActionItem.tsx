@@ -411,6 +411,7 @@ function PureReportActionItem({
     draftMessage,
     iouReport,
     taskReport,
+    reportActions,
     linkedReport,
     iouReportOfLinkedReport,
     emojiReactions,
@@ -1146,6 +1147,11 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
             }
+        } else if (
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) &&
+            !reportActions.some((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU))
+        ) {
+            children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
