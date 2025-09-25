@@ -11,6 +11,7 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +51,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isOffline} = useNetwork();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const isLoadingReportFromOnyx = isLoadingOnyxValue(reportResult);
     const shouldWaitForReportSync = !isLoadingReportFromOnyx && !report?.reportID;
@@ -139,6 +141,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     shouldWaitForReportSync={shouldWaitForReportSync}
                                     key="SearchMoneyRequestReportPage_MoneyRequestReportView"
                                     backToRoute={route.params.backTo}
+                                    shouldResetSkipFirstTransactionsChange={!!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -176,6 +179,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         shouldWaitForReportSync={shouldWaitForReportSync}
                                         key="SearchMoneyRequestReportPage_MoneyRequestReportView"
                                         backToRoute={route.params.backTo}
+                                        shouldResetSkipFirstTransactionsChange={!!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />

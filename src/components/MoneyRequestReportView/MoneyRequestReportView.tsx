@@ -53,6 +53,9 @@ type MoneyRequestReportViewProps = {
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    /** We need to reset the skip first transactions change flag to avoid highlighting transactions when navigating to a different report */
+    shouldResetSkipFirstTransactionsChange?: boolean;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -83,7 +86,15 @@ function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
     );
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, shouldWaitForReportSync}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({
+    report,
+    policy,
+    reportMetadata,
+    shouldDisplayReportFooter,
+    backToRoute,
+    shouldWaitForReportSync,
+    shouldResetSkipFirstTransactionsChange = false,
+}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -107,7 +118,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, shouldWaitForReportSync ? [] : transactions);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, shouldWaitForReportSync ? [] : transactions, shouldResetSkipFirstTransactionsChange);
 
     const parentReportAction = useParentReportAction(report);
 
