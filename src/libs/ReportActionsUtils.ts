@@ -710,14 +710,14 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
         return false;
     }
 
-    if (isSubmittedAction(currentAction)) {
+    if (isSubmittedAction(currentAction) || isSubmittedAndClosedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
         return typeof currentActionAdminAccountID === 'number'
             ? currentActionAdminAccountID === adjacentAction.actorAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    if (isSubmittedAction(adjacentAction)) {
+    if (isSubmittedAction(adjacentAction) || isSubmittedAndClosedAction(adjacentAction)) {
         return typeof adjacentAction.adminAccountID === 'number'
             ? currentAction.actorAccountID === adjacentAction.adminAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
