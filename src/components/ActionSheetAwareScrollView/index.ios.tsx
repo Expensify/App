@@ -2,7 +2,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView, ScrollViewProps} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
-import Reanimated, {useAnimatedRef, useAnimatedStyle, useScrollViewOffset} from 'react-native-reanimated';
+import Reanimated, {useAnimatedRef, useAnimatedStyle} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
