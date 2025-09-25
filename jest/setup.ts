@@ -111,6 +111,49 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     clearOldDotAfterSignOut: jest.fn(),
 }));
 
+// Mock lazy asset loading to be synchronous in tests
+jest.mock('../src/hooks/useLazyAsset.ts', () => ({
+    useMemoizedLazyAsset: jest.fn(() => {
+        // Return a mock asset immediately to avoid async loading in tests
+        const mockAsset = { 
+            src: 'mock-icon', 
+            testID: 'mock-asset',
+            // Add common icon properties that tests might expect
+            height: 20,
+            width: 20,
+        };
+        
+        return {
+            asset: mockAsset,
+            isLoaded: true,
+            isLoading: false,
+            hasError: false,
+        };
+    }),
+    default: jest.fn(() => {
+        const mockAsset = { src: 'mock-icon', testID: 'mock-asset' };
+        return {
+            asset: mockAsset,
+            isLoaded: true,
+            isLoading: false,
+            hasError: false,
+        };
+    }),
+}));
+
+// Mock icon loading functions to resolve immediately
+jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
+    loadExpensifyIcon: jest.fn((iconName) => {
+        const mockIcon = {
+            src: `mock-${iconName}`,
+            testID: `mock-icon-${iconName}`,
+            height: 20,
+            width: 20,
+        };
+        return Promise.resolve({ default: mockIcon });
+    }),
+}));
+
 jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
