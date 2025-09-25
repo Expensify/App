@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle} from 'react';
+import React, {useImperativeHandle} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -61,34 +61,35 @@ type ContextMenuItemProps = {
 
     /** Whether the menu item should show loading icon */
     shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ContextMenuItemHandle>;
 };
 
 type ContextMenuItemHandle = {
     triggerPressAndUpdateSuccess?: () => void;
 };
 
-function ContextMenuItem(
-    {
-        onPress,
-        successIcon,
-        successText = '',
-        icon,
-        text,
-        isMini = false,
-        description = '',
-        isAnonymousAction = false,
-        isFocused = false,
-        shouldLimitWidth = true,
-        wrapperStyle,
-        shouldPreventDefaultFocusOnPress = true,
-        buttonRef = {current: null},
-        onFocus = () => {},
-        onBlur = () => {},
-        disabled = false,
-        shouldShowLoadingSpinnerIcon = false,
-    }: ContextMenuItemProps,
-    ref: ForwardedRef<ContextMenuItemHandle>,
-) {
+function ContextMenuItem({
+    onPress,
+    successIcon,
+    successText = '',
+    icon,
+    text,
+    isMini = false,
+    description = '',
+    isAnonymousAction = false,
+    isFocused = false,
+    shouldLimitWidth = true,
+    wrapperStyle,
+    shouldPreventDefaultFocusOnPress = true,
+    buttonRef = {current: null},
+    onFocus = () => {},
+    onBlur = () => {},
+    disabled = false,
+    shouldShowLoadingSpinnerIcon = false,
+    ref,
+}: ContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
@@ -151,5 +152,5 @@ function ContextMenuItem(
 
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default forwardRef(ContextMenuItem);
+export default ContextMenuItem;
 export type {ContextMenuItemHandle};
