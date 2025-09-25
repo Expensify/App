@@ -807,7 +807,7 @@ const translations = {
         getStarted: 'Commencez ci-dessous.',
         anotherLoginPageIsOpen: 'Une autre page de connexion est ouverte.',
         anotherLoginPageIsOpenExplanation: 'Vous avez ouvert la page de connexion dans un onglet séparé. Veuillez vous connecter depuis cet onglet.',
-        welcome: 'Bienvenue !',
+        welcome: 'Bienvenue',
         welcomeWithoutExclamation: 'Bienvenue',
         phrase2: "L'argent parle. Et maintenant que la messagerie et les paiements sont au même endroit, c'est aussi facile.",
         phrase3: 'Vos paiements vous parviennent aussi rapidement que vous pouvez faire passer votre message.',

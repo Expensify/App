@@ -804,7 +804,7 @@ const translations = {
         getStarted: 'Comece abaixo.',
         anotherLoginPageIsOpen: 'Outra página de login está aberta.',
         anotherLoginPageIsOpenExplanation: 'Você abriu a página de login em uma aba separada. Por favor, faça login a partir dessa aba.',
-        welcome: 'Bem-vindo!',
+        welcome: 'bem-vindo',
         welcomeWithoutExclamation: 'Bem-vindo',
         phrase2: 'Dinheiro fala. E agora que bate-papo e pagamentos estão no mesmo lugar, também é fácil.',
         phrase3: 'Seus pagamentos chegam até você tão rápido quanto você consegue se expressar.',

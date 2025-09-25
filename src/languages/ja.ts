@@ -805,7 +805,7 @@ const translations = {
         getStarted: '以下を開始してください。',
         anotherLoginPageIsOpen: '別のログインページが開いています。',
         anotherLoginPageIsOpenExplanation: 'ログインページを別のタブで開きました。そのタブからログインしてください。',
-        welcome: 'ようこそ！',
+        welcome: 'ようこそ',
         welcomeWithoutExclamation: 'ようこそ',
         phrase2: 'お金は語る。そして、チャットと支払いが一つの場所にある今、それは簡単です。',
         phrase3: 'あなたの支払いは、あなたが要点を伝えるのと同じくらい速く届きます。',

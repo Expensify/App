@@ -804,7 +804,7 @@ const translations = {
         getStarted: 'Inizia qui sotto.',
         anotherLoginPageIsOpen: "Un'altra pagina di accesso è aperta.",
         anotherLoginPageIsOpenExplanation: 'Hai aperto la pagina di accesso in una scheda separata. Effettua il login da quella scheda.',
-        welcome: 'Benvenuto!',
+        welcome: 'benvenuto',
         welcomeWithoutExclamation: 'Benvenuto',
         phrase2: 'I soldi parlano. E ora che chat e pagamenti sono in un unico posto, è anche facile.',
         phrase3: 'I tuoi pagamenti ti arrivano velocemente quanto riesci a far capire il tuo punto di vista.',

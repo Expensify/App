@@ -804,7 +804,7 @@ const translations = {
         getStarted: 'Rozpocznij poniżej.',
         anotherLoginPageIsOpen: 'Otwarta jest inna strona logowania.',
         anotherLoginPageIsOpenExplanation: 'Otworzyłeś stronę logowania w osobnej karcie. Zaloguj się z tej karty.',
-        welcome: 'Witamy!',
+        welcome: 'witamy',
         welcomeWithoutExclamation: 'Witamy',
         phrase2: 'Pieniądze mówią. A teraz, gdy czat i płatności są w jednym miejscu, jest to również łatwe.',
         phrase3: 'Twoje płatności docierają do Ciebie tak szybko, jak szybko potrafisz przekazać swoją myśl.',

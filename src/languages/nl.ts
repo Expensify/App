@@ -803,7 +803,7 @@ const translations = {
         getStarted: 'Begin hieronder.',
         anotherLoginPageIsOpen: 'Er is een andere inlogpagina geopend.',
         anotherLoginPageIsOpenExplanation: 'Je hebt de inlogpagina in een apart tabblad geopend. Log alstublieft in vanaf dat tabblad.',
-        welcome: 'Welkom!',
+        welcome: 'welkom',
         welcomeWithoutExclamation: 'Welkom',
         phrase2: 'Geld praat. En nu chat en betalingen op één plek zijn, is het ook gemakkelijk.',
         phrase3: 'Uw betalingen komen net zo snel bij u aan als dat u uw punt kunt overbrengen.',

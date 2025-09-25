@@ -803,7 +803,7 @@ const translations = {
         getStarted: '请从下面开始。',
         anotherLoginPageIsOpen: '另一个登录页面已打开。',
         anotherLoginPageIsOpenExplanation: '您已在单独的标签页中打开了登录页面。请从该标签页登录。',
-        welcome: '欢迎！',
+        welcome: '欢迎',
         welcomeWithoutExclamation: '欢迎',
         phrase2: '金钱会说话。现在聊天和支付合二为一，这也变得简单了。',
         phrase3: '只要你能表达清楚，你的付款就能快速到达。',

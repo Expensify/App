@@ -804,7 +804,7 @@ const translations = {
         getStarted: 'Unten beginnen.',
         anotherLoginPageIsOpen: 'Eine weitere Anmeldeseite ist geöffnet.',
         anotherLoginPageIsOpenExplanation: 'Sie haben die Anmeldeseite in einem separaten Tab geöffnet. Bitte melden Sie sich von diesem Tab aus an.',
-        welcome: 'Willkommen!',
+        welcome: 'willkommen',
         welcomeWithoutExclamation: 'Willkommen',
         phrase2: 'Geld spricht. Und jetzt, da Chat und Zahlungen an einem Ort sind, ist es auch einfach.',
         phrase3: 'Ihre Zahlungen erreichen Sie so schnell, wie Sie Ihren Standpunkt vermitteln können.',
