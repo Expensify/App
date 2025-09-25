@@ -24,8 +24,5 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
-      - name: Install dependencies
-        run: npm ci
-
       - name: Run React Compiler Compliance Check
         run: npm run react-compiler-compliance-check check-changed
