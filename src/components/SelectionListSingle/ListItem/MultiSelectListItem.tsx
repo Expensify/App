@@ -25,18 +25,17 @@ function MultiSelectListItem<TItem extends ListItem>({
     titleStyles,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const isSelected = item.isSelected;
 
     const checkboxComponent = useCallback(() => {
         return (
             <Checkbox
                 shouldSelectOnPressEnter
-                isChecked={isSelected}
+                isChecked={item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 onPress={() => onSelectRow(item)}
             />
         );
-    }, [isSelected, item, onSelectRow]);
+    }, [item, onSelectRow]);
 
     return (
         <RadioListItem
