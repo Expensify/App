@@ -12,7 +12,7 @@ concurrency:
 jobs:
   react-compiler-compliance:
     name: React Compiler Compliance
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.actor != 'OSBotify' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -25,3 +25,6 @@ jobs:
 
       - name: Run React Compiler Compliance Check
         run: npm run react-compiler-compliance-check check-changed
+        env:
+          CI: true
+          GITHUB_TOKEN: ${{ github.token }}
