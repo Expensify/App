@@ -28,6 +28,8 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         rest.onClose?.();
     });
 
+    // This useEffect is needed so that when the onClose function changes, the ref contains the current value of this function.
+    // More information can be found here: https://github.com/Expensify/App/issues/69781
     useEffect(() => {
         handlePopStateRef.current = () => {
             rest.onClose?.();
