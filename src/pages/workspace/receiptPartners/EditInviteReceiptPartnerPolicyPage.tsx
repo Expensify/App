@@ -275,11 +275,11 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 subtitle={translate('workspace.receiptPartners.uber.emptyContent.subtitle')}
                 subtitleStyle={styles.textSupporting}
                 titleStyles={styles.mb2}
-                containerStyle={styles.pb10}
+                containerStyle={[styles.pb4, styles.ph4]}
                 contentFitImage="contain"
             />
         ),
-        [translate, styles.textSupporting, styles.pb10, styles.mb2],
+        [translate, styles.textSupporting, styles.mb2, styles.pb4, styles.ph4],
     );
 
     return (
