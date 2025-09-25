@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSdkBridge';
+import {init, sendEvent, setAttribute, setAuthenticationData, setHashedAttribute} from './GroupIBSdkBridge';
 
 let sessionID: string;
 let identity: string | undefined;
@@ -28,4 +28,4 @@ Onyx.connectWithoutView({
     },
 });
 
-export default {init, sendEvent};
+export default {init, sendEvent, setAttribute, setHashedAttribute};

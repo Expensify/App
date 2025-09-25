@@ -84,8 +84,14 @@ function setAttribute(key: string, value: string): void {
     });
 }
 
+function setHashedAttribute(key: string, value: string): void {
+    fpInstancePromise.then((fp) => {
+        fp.setAttributeTitle(key, value, FPAttributeFormat.Hashed);
+    });
+}
+
 function sendEvent(event: string): void {
     setAttribute('event_type', event);
 }
 
-export {init, sendEvent, setAttribute, setAuthenticationData};
+export {init, sendEvent, setAttribute, setAuthenticationData, setHashedAttribute};
