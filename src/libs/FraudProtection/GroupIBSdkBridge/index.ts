@@ -62,15 +62,10 @@ function setAuthenticationData(identity: string, sessionID: string): void {
     });
 }
 
-function setAttribute(key: string, value: string) {
+function setAttribute(key: string, value: string, shouldHash?: boolean) {
     fpInstancePromise.then((fp) => {
-        fp?.setAttribute?.(key, value, undefined);
-    });
-}
-
-function setHashedAttribute(key: string, value: string) {
-    fpInstancePromise.then((fp) => {
-        fp?.setAttribute?.(key, value, {encryption: 'sha1'});
+        const options = shouldHash ? {encryption: 'sha1'} : undefined;
+        fp?.setAttribute?.(key, value, options);
     });
 }
 
@@ -78,4 +73,4 @@ function sendEvent(event: string) {
     setAttribute('event_type', event);
 }
 
-export {init, sendEvent, setAttribute, setAuthenticationData, setHashedAttribute};
+export {init, sendEvent, setAttribute, setAuthenticationData};

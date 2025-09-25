@@ -78,15 +78,10 @@ function setAuthenticationData(identity: string, sessionID: string): void {
     });
 }
 
-function setAttribute(key: string, value: string): void {
+function setAttribute(key: string, value: string, shouldHash?: boolean): void {
     fpInstancePromise.then((fp) => {
-        fp.setAttributeTitle(key, value, FPAttributeFormat.ClearText);
-    });
-}
-
-function setHashedAttribute(key: string, value: string): void {
-    fpInstancePromise.then((fp) => {
-        fp.setAttributeTitle(key, value, FPAttributeFormat.Hashed);
+        const format = shouldHash ? FPAttributeFormat.Hashed : FPAttributeFormat.ClearText;
+        fp.setAttributeTitle(key, value, format);
     });
 }
 
@@ -94,4 +89,4 @@ function sendEvent(event: string): void {
     setAttribute('event_type', event);
 }
 
-export {init, sendEvent, setAttribute, setAuthenticationData, setHashedAttribute};
+export {init, sendEvent, setAttribute, setAuthenticationData};
