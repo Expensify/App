@@ -26,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -137,13 +138,6 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
     return !Object.values(report).some((value) => value !== undefined && value !== '');
 }
 
-function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
-    if (!parentReportActions || !parentReportActionID) {
-        return;
-    }
-    return parentReportActions[parentReportActionID];
-}
-
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -168,11 +162,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
-        canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
-        canBeMissing: true,
-    });
+
+    const parentReportAction = useParentReportAction(reportOnyx);
+
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
 
@@ -232,6 +224,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const report = useMemo(
         () =>
             reportOnyx && {
+                hasParentAccess: reportOnyx.hasParentAccess,
                 lastReadTime: reportOnyx.lastReadTime,
                 reportID: reportOnyx.reportID,
                 policyID: reportOnyx.policyID,
@@ -357,25 +350,32 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [report]);
 
     const backTo = route?.params?.backTo as string;
-    const onBackButtonPress = useCallback(() => {
-        if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+    const onBackButtonPress = useCallback(
+        (prioritizeBackTo = false) => {
+            if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+                Navigation.goBack();
+                return;
+            }
+            if (prioritizeBackTo && backTo) {
+                Navigation.goBack(backTo as Route);
+                return;
+            }
+            if (isInNarrowPaneModal) {
+                Navigation.dismissModal();
+                return;
+            }
+            if (backTo) {
+                Navigation.goBack(backTo as Route);
+                return;
+            }
+            if (Navigation.getShouldPopToSidebar()) {
+                Navigation.popToSidebar();
+                return;
+            }
             Navigation.goBack();
-            return;
-        }
-        if (backTo) {
-            Navigation.goBack(backTo as Route);
-            return;
-        }
-        if (isInNarrowPaneModal) {
-            Navigation.dismissModal();
-            return;
-        }
-        if (Navigation.getShouldPopToSidebar()) {
-            Navigation.popToSidebar();
-            return;
-        }
-        Navigation.goBack();
-    }, [isInNarrowPaneModal, backTo]);
+        },
+        [isInNarrowPaneModal, backTo],
+    );
 
     let headerView = (
         <HeaderView

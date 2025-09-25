@@ -372,4 +372,7 @@ export default {
     // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
     searchChatReportPreviewHeight: 434,
     searchChatStandardItemHeight: 97,
+
+    // Uber employee invite button width
+    uberEmployeeInviteButtonWidth: 62,
 } as const;

@@ -166,6 +166,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1740,7 +1741,7 @@ const translations = {
             'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
         domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
         areYouSure: 'Are you sure you want to lock your Expensify account?',
-        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
+        onceLocked: 'Once locked, your account will be restricted pending an unlock request and a security review',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Failed to lock account',
@@ -3561,7 +3562,8 @@ const translations = {
         receiptPartners: {
             connect: 'Connect now',
             uber: {
-                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.',
                 sendInvites: 'Send invites',
                 sendInvitesDescription: "These workspace members don't have an Uber for Business account yet. Unselect any members you do not wish to invite at this time.",
                 confirmInvite: 'Confirm invite',
@@ -3581,8 +3583,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspended',
                 },
                 invitationFailure: 'Failed to invite members to Uber for Business',
-                autoRemove: 'Invite new workspace members to Uber for Business',
-                autoInvite: 'Deactivate removed workspace members from Uber for Business',
+                autoInvite: 'Invite new workspace members to Uber for Business',
+                autoRemove: 'Deactivate removed workspace members from Uber for Business',
                 bannerTitle: 'Expensify + Uber for Business',
                 bannerDescription: 'Connect Uber for Business to automate travel and meal delivery expenses across your organization.',
                 emptyContent: {

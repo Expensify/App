@@ -1,8 +1,10 @@
 import type {ValueOf} from 'type-fest';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -60,6 +62,18 @@ type PaymentData = {
     reportID: string;
     amount: number;
     paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    payAsBusiness?: boolean;
+    bankAccountID?: number;
+    fundID?: number;
+    policyID?: string;
+    adminsChatReportID?: number;
+    adminsCreatedReportActionID?: number;
+    expenseChatReportID?: number;
+    expenseCreatedReportActionID?: number;
+    customUnitRateID?: string;
+    customUnitID?: string;
+    ownerEmail?: string;
+    policyName?: string;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
@@ -206,6 +220,14 @@ type SearchParams = {
     shouldCalculateTotals: boolean;
 };
 
+type BankAccountMenuItem = {
+    text: string;
+    description: string;
+    icon: IconAsset;
+    methodID: number | undefined;
+    value: PaymentMethod;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -240,5 +262,7 @@ export type {
     SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
+    SelectedReports,
     SearchTextFilterKeys,
+    BankAccountMenuItem,
 };

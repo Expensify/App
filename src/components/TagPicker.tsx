@@ -1,6 +1,4 @@
 import React, {useMemo, useState} from 'react';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,11 +11,11 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
-    // It's used in withOnyx HOC.
-    // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 
     /** The selected tag of the expense */
