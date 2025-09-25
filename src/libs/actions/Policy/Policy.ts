@@ -2332,7 +2332,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
         areDistanceRatesEnabled,
-        selectedFeatures,
+        selectedFeatures: selectedFeatures ? JSON.stringify(selectedFeatures) : undefined,
     };
 
     if (

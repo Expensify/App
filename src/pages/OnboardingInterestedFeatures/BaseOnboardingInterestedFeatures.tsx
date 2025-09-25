@@ -32,7 +32,7 @@ import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
-import CONST, {FEATURE_IDS} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,57 +68,57 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const features: Feature[] = useMemo(() => {
         return [
             {
-                id: FEATURE_IDS.CATEGORIES,
+                id: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
                 title: translate('workspace.moreFeatures.categories.title'),
                 icon: Illustrations.FolderOpen,
                 enabledByDefault: true,
             },
             {
-                id: FEATURE_IDS.ACCOUNTING,
+                id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: Illustrations.Accounting,
                 enabledByDefault: !!userReportedIntegration,
             },
             {
-                id: FEATURE_IDS.COMPANY_CARDS,
+                id: CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
                 title: translate('workspace.moreFeatures.companyCards.title'),
                 icon: Illustrations.CompanyCard,
                 enabledByDefault: true,
             },
             {
-                id: FEATURE_IDS.WORKFLOWS,
+                id: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 icon: Illustrations.Workflows,
                 enabledByDefault: true,
             },
             {
-                id: FEATURE_IDS.INVOICES,
+                id: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
                 title: translate('workspace.moreFeatures.invoices.title'),
                 icon: Illustrations.InvoiceBlue,
             },
             {
-                id: FEATURE_IDS.RULES,
+                id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
                 title: translate('workspace.moreFeatures.rules.title'),
                 icon: Illustrations.Rules,
                 requiresUpdate: true,
             },
             {
-                id: FEATURE_IDS.DISTANCE_RATES,
+                id: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
                 icon: Illustrations.Car,
             },
             {
-                id: FEATURE_IDS.EXPENSIFY_CARD,
+                id: CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
                 icon: Illustrations.HandCard,
             },
             {
-                id: FEATURE_IDS.TAGS,
+                id: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
                 title: translate('workspace.moreFeatures.tags.title'),
                 icon: Illustrations.Tag,
             },
             {
-                id: FEATURE_IDS.PER_DIEM,
+                id: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
                 title: translate('workspace.moreFeatures.perDiem.title'),
                 icon: Illustrations.PerDiem,
                 requiresUpdate: true,
