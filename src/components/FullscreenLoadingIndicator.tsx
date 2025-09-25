@@ -2,8 +2,8 @@ import React from 'react';
 import type {ActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import type {ExtraLoadingContext} from '@libs/AppState';
+import CONST from '@src/CONST';
 import ActivityIndicator from './ActivityIndicator';
 
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
