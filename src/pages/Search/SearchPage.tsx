@@ -348,10 +348,10 @@ function SearchPage({route}: SearchPageProps) {
             const payButtonOption = {
                 icon: Expensicons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: (isFirstTimePayment && bulkPayButtonOptions?.length) ? Expensicons.ArrowRight : undefined,
+                rightIcon: isFirstTimePayment && bulkPayButtonOptions?.length ? Expensicons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
-                subMenuItems: (isFirstTimePayment && bulkPayButtonOptions?.length) ? bulkPayButtonOptions : undefined,
+                subMenuItems: isFirstTimePayment && bulkPayButtonOptions?.length ? bulkPayButtonOptions : undefined,
                 onSelected: () => onBulkPaySelected(undefined),
             };
             options.push(payButtonOption);
