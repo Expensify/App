@@ -348,6 +348,9 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
+            if (shouldScrollToEndAfterLayout) {
+                setShouldScrollToEndAfterLayout(false);
+            }
         },
     });
 
@@ -720,7 +723,6 @@ function ReportActionsList({
             if (shouldScrollToEndAfterLayout) {
                 InteractionManager.runAfterInteractions(() => {
                     reportScrollManager.scrollToEnd();
-                    setShouldScrollToEndAfterLayout(false);
                 });
             }
         },
