@@ -57,7 +57,7 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [TeleScope, translate, styles.pb10],
     );
 
     return (

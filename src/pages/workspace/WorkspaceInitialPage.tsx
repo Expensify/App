@@ -358,20 +358,36 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         return menuItems;
     }, [
-        featureStates,
-        hasGeneralSettingsError,
-        hasMembersError,
-        hasPolicyCategoryError,
-        hasSyncError,
-        highlightedFeature,
-        policy,
-        policyID,
-        shouldShowProtectedItems,
+        Document,
         singleExecution,
         waitForNavigate,
+        featureStates,
+        Gear,
+        Building,
+        hasGeneralSettingsError,
+        Users,
+        hasMembersError,
+        policy,
+        shouldShowProtectedItems,
+        policyID,
+        Sync,
+        hasSyncError,
+        highlightedFeature,
+        Receipt,
+        Folder,
+        hasPolicyCategoryError,
+        Tag,
+        Coins,
+        Workflows,
+        Feed,
+        Car,
+        ExpensifyCard,
         allFeedsCards,
-        cardsDomainIDs,
         workspaceAccountID,
+        cardsDomainIDs,
+        CreditCard,
+        CalendarSolid,
+        InvoiceGeneric,
     ]);
 
     // We only update feature states if they aren't pending.
@@ -452,7 +468,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             type: CONST.ICON_TYPE_WORKSPACE,
             id: policy.id,
         };
-    }, [policy]);
+    }, [ExpensifyAppIcon, policy]);
 
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 

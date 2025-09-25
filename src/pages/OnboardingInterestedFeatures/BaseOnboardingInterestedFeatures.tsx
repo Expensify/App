@@ -146,7 +146,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 requiresUpdate: true,
             },
         ];
-    }, [translate, userReportedIntegration]);
+    }, [AccountingIcon, CarIcon, CompanyCardIcon, FolderOpenIcon, HandCardIcon, InvoiceBlueIcon, PerDiemIcon, RulesIcon, TagIcon, WorkflowsIcon, translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 

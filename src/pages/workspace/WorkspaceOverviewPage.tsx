@@ -194,7 +194,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [policy?.avatarURL, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [FallbackWorkspaceAvatar, policy?.avatarURL, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

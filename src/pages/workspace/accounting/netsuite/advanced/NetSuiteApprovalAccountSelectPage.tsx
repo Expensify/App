@@ -58,7 +58,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [TeleScope, translate, styles.pb10],
     );
 
     const headerContent = useMemo(
