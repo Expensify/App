@@ -1,3 +1,4 @@
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {emailSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
@@ -44,7 +45,7 @@ function useOnboardingFlowRouter() {
 
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
     const {typeMenuSections} = useSearchTypeMenuSections();
 
     useEffect(() => {
