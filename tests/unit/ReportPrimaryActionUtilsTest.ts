@@ -110,6 +110,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -829,7 +830,9 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, report, {} as Report, transaction, [], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, report, {} as Report, transaction, [], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD,
+        );
     });
 
     it('should return REVIEW DUPLICATES when there are duplicated transactions', async () => {
@@ -857,7 +860,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
+        );
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
@@ -884,7 +889,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 
     it('should return MARK AS CASH for broken connection', async () => {
@@ -910,7 +917,9 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 
     it('Should return empty string when we are waiting for user to add a bank account', async () => {
