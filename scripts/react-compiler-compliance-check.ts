@@ -21,9 +21,14 @@ const ERRORS = {
 
 const IS_CI = process.env.CI === 'true';
 
-type CompilerResults = {
+type HealthcheckJsonResults = {
     success: string[];
-    failures: CompilerFailure[];
+    failures: CompilerFailure;
+};
+
+type CompilerResults = {
+    success: Set<string>;
+    failures: Map<string, CompilerFailure>;
 };
 
 type CompilerFailure = {
@@ -40,21 +45,16 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
         info('Running React Compiler check for all files...');
     }
 
-    const {success, failures} = results;
-
-    const successFileNames = getDistinctFileNames(success, (s) => s, fileToCheck);
-    const failedFileNames = getDistinctFileNames(failures, (f) => f.file, fileToCheck);
-
-    const isPassed = failedFileNames.length === 0;
     const src = createFilesGlob(filesToCheck);
     const results = runCompilerHealthcheck(src);
 
+    const isPassed = results.failures.size === 0;
     if (isPassed) {
         logSuccess('All changed files pass React Compiler compliance check!');
         return true;
     }
 
-    printFailureSummary({success, failures}, successFileNames, failedFileNames);
+    printFailureSummary(results);
 
     if (shouldGenerateReport) {
         generateReport(results, DEFAULT_REPORT_FILENAME);
@@ -79,11 +79,9 @@ function checkChangedFiles(remote: string): boolean {
     } catch (error) {
         if (error instanceof Error && error.message === ERRORS.FAILED_TO_FETCH_FROM_REMOTE) {
             logError(`Could not fetch from remote ${remote}. If your base remote is not ${remote}, please specify another remote with the --remote flag.`);
-            throw error;
         }
 
         logError('Could not determine changed files:', error);
-        throw error;
     }
 }
 
@@ -101,16 +99,36 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
             cwd: process.cwd(),
         });
 
-        return parseCombinedOutput(output);
+        // Parse and then normalize via Set/Map to ensure true uniqueness
+        const parsed = parseCombinedOutput(output);
+
+        // Use Set to deduplicate success entries
+        const successSet = new Set(parsed.success);
+
+        // Use Map keyed by unique file key to deduplicate failures
+        const failureMap = new Map<string, CompilerFailure>();
+        parsed.failures.forEach((failure) => {
+            const key = getUniqueFileKey(failure);
+            // Prefer the first occurrence that has a reason
+            const existing = failureMap.get(key);
+            if (!existing) {
+                failureMap.set(key, failure);
+                return;
+            }
+            if (!existing.reason && failure.reason) {
+                failureMap.set(key, failure);
+            }
+        });
+
+        return {success: successSet, failures: failureMap};
     } catch (error) {
         logError('Failed to run React Compiler healthcheck:', error);
-        throw error;
     }
 }
 
 function parseCombinedOutput(output: string): CompilerResults {
     const lines = output.split('\n');
-    const success: string[] = [];
+    const successSet = new Set<string>();
     const failure = new Map<string, CompilerFailure>();
 
     // First, try to extract JSON from the output
@@ -131,8 +149,8 @@ function parseCombinedOutput(output: string): CompilerResults {
         try {
             const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
             const jsonStr = jsonLines.join('\n');
-            const jsonResult = JSON.parse(jsonStr) as CompilerResults;
-            success.push(...jsonResult.success);
+            const jsonResult = JSON.parse(jsonStr) as HealthcheckJsonResults;
+            jsonResult.success.forEach((success) => successSet.add(success));
         } catch (error) {
             warn('Failed to parse JSON from combined output:', error);
         }
@@ -148,9 +166,7 @@ function parseCombinedOutput(output: string): CompilerResults {
         const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
         if (successMatch) {
             const filePath = successMatch[2];
-            if (!success.includes(filePath)) {
-                success.push(filePath);
-            }
+            successSet.add(filePath);
             continue;
         }
 
@@ -234,34 +250,22 @@ function parseCombinedOutput(output: string): CompilerResults {
         }
     }
 
-    return {success, failures: Array.from(failure.values())};
+    return {success: successSet, failures: failure};
 }
 
 function getUniqueFileKey(failure: CompilerFailure): string {
     return `${failure.file}:${failure.line}:${failure.column}`;
 }
 
-function getDistinctFileNames<T>(items: T[], getFile: (item: T) => string, filesToCheck?: string[]): string[] {
-    const distinctFileNames = new Set<string>();
-    items.forEach((item) => {
-        const file = getFile(item);
-
-        const isFileToCheck = filesToCheck?.includes(file) ?? true;
-        if (distinctFileNames.has(file) || !isFileToCheck) {
-            return;
-        }
 function createFilesGlob(filesToCheck?: string[]): string | undefined {
     if (!filesToCheck || filesToCheck.length === 0) {
         return undefined;
     }
 
-        distinctFileNames.add(file);
-    });
     if (filesToCheck.length === 1) {
         return filesToCheck.at(0);
     }
 
-    return Array.from(distinctFileNames);
     return `**/+(${filesToCheck.join('|')})`;
 }
 
@@ -309,9 +313,9 @@ function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPOR
             {
                 timestamp: new Date().toISOString(),
                 summary: {
-                    total: results.success.length + results.failures.length,
-                    success: results.success.length,
-                    failure: results.failures.length,
+                    total: results.success.size + results.failures.size,
+                    success: results.success.size,
+                    failure: results.failures.size,
                 },
                 success: results.success,
                 failures: results.failures,
@@ -392,7 +396,6 @@ function getChangedFiles(remote: string): string[] {
         }
 
         logError('Could not determine changed files:', error);
-        throw error;
     }
 }
 
@@ -431,6 +434,7 @@ function main() {
             remote: {
                 description: 'Git remote name to use for main branch (default: origin)',
                 required: false,
+                supersedes: ['check-changed'],
                 default: 'origin',
             },
         },
