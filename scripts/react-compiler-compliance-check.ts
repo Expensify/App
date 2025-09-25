@@ -33,20 +33,21 @@ type CompilerFailure = {
     reason: string;
 };
 
-function check(fileToCheck?: string[], shouldGenerateReport = false) {
-    if (fileToCheck) {
-        info(`Running React Compiler check for ${fileToCheck.length} file(s) or glob pattern(s)...`);
+function check(filesToCheck?: string[], shouldGenerateReport = false) {
+    if (filesToCheck) {
+        info(`Running React Compiler check for ${filesToCheck.length} files or glob patterns...`);
     } else {
         info('Running React Compiler check for all files...');
     }
 
-    const results = runCompilerHealthcheck(fileToCheck?.join(' '));
     const {success, failures} = results;
 
     const successFileNames = getDistinctFileNames(success, (s) => s, fileToCheck);
     const failedFileNames = getDistinctFileNames(failures, (f) => f.file, fileToCheck);
 
     const isPassed = failedFileNames.length === 0;
+    const src = createFilesGlob(filesToCheck);
+    const results = runCompilerHealthcheck(src);
 
     if (isPassed) {
         logSuccess('All changed files pass React Compiler compliance check!');
@@ -88,7 +89,14 @@ function checkChangedFiles(remote: string): boolean {
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
     try {
-        const output = execSync(`npx react-compiler-healthcheck --json --verbose ${src ?? '--src'}`, {
+        let srcString = src;
+        if (src) {
+            srcString = src.startsWith('"') ? src : `"${src}"`;
+            srcString = srcString.endsWith('"') ? srcString : `${srcString}"`;
+        }
+
+        const command = `npx react-compiler-healthcheck ${src ? `--src "${srcString}"` : ''} --json --verbose `;
+        const output = execSync(command, {
             encoding: 'utf8',
             cwd: process.cwd(),
         });
@@ -242,11 +250,19 @@ function getDistinctFileNames<T>(items: T[], getFile: (item: T) => string, files
         if (distinctFileNames.has(file) || !isFileToCheck) {
             return;
         }
+function createFilesGlob(filesToCheck?: string[]): string | undefined {
+    if (!filesToCheck || filesToCheck.length === 0) {
+        return undefined;
+    }
 
         distinctFileNames.add(file);
     });
+    if (filesToCheck.length === 1) {
+        return filesToCheck.at(0);
+    }
 
     return Array.from(distinctFileNames);
+    return `**/+(${filesToCheck.join('|')})`;
 }
 
 function printFailureSummary({success, failures}: CompilerResults): void {
