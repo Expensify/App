@@ -18,6 +18,7 @@ jobs:
 
   react-compiler-compliance:
     uses: ./.github/workflows/react-compiler-compliance.yml
+    secrets: inherit
 
   test:
     uses: ./.github/workflows/test.yml
