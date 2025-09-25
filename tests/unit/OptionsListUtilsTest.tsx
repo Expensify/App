@@ -1113,8 +1113,8 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) with workspace rooms before getting share destination options
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (canUserPerformWriteAction(report, isReportArchived.current) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
