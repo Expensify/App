@@ -6395,10 +6395,11 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getMovedTransactionMessage(report: OnyxEntry<Report>) {
+function getMovedTransactionMessage(toReport: OnyxEntry<Report>, fromReport?: OnyxEntry<Report>) {
+    const report: OnyxEntry<Report> = fromReport ?? toReport;
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
-    return translateLocal('iou.movedTransaction', {reportUrl, reportName});
+    return translateLocal(fromReport ? 'iou.movedTransactionFrom' : 'iou.movedTransactionTo', {reportUrl, reportName});
 }
 
 function getUnreportedTransactionMessage() {
