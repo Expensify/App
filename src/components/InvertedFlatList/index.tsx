@@ -1,6 +1,4 @@
-import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
-import type {FlatList} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
 import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
 import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
@@ -11,7 +9,7 @@ import CellRendererComponent from './CellRendererComponent';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
