@@ -1,29 +1,27 @@
-import '@testing-library/react-native';
-import {NativeModulesProxy} from 'expo-modules-core';
+import {View} from 'react-native';
 
-// Create a fake implementation of all ExponentAV methods
-NativeModulesProxy.ExponentAV = {
-    getStatusForVideo: jest.fn(),
-    setAudioMode: jest.fn(),
-    unloadAudioRecorder: jest.fn(),
-    stopAudioRecording: jest.fn(),
-    requestPermissionsAsync: jest.fn(),
-    setInput: jest.fn(),
-    loadForVideo: jest.fn(),
-    setAudioIsEnabled: jest.fn(),
-    prepareAudioRecorder: jest.fn(),
-    replayVideo: jest.fn(),
-    getPermissionsAsync: jest.fn(),
-    unloadForSound: jest.fn(),
-    setStatusForSound: jest.fn(),
-    unloadForVideo: jest.fn(),
-    replaySound: jest.fn(),
-    getAvailableInputs: jest.fn(),
-    getAudioRecordingStatus: jest.fn(),
-    setStatusForVideo: jest.fn(),
-    loadForSound: jest.fn(),
-    pauseAudioRecording: jest.fn(),
-    getStatusForSound: jest.fn(),
-    getCurrentInput: jest.fn(),
-    startAudioRecording: jest.fn(),
+const mockPlayAsync = jest.fn();
+const mockPauseAsync = jest.fn();
+const mockUnloadAsync = jest.fn();
+const mockLoadAsync = jest.fn();
+
+const Audio = {
+    Sound: jest.fn().mockImplementation(() => ({
+        loadAsync: mockLoadAsync,
+        playAsync: mockPlayAsync,
+        pauseAsync: mockPauseAsync,
+        unloadAsync: mockUnloadAsync,
+        getStatusAsync: jest.fn().mockResolvedValue({ isLoaded: true, isPlaying: false }),
+        setOnPlaybackStatusUpdate: jest.fn(),
+    })),
+    setAudioModeAsync: jest.fn(),
 };
+
+const Video = class extends View {
+    setStatusAsync = jest.fn().mockResolvedValue(undefined);
+}
+
+// Export default Video
+export default Video;
+export {Audio, Video};
+// Re-export types as empty objects so imports don’t fail
