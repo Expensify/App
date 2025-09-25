@@ -7,20 +7,46 @@ import type {MaskOnyxState} from './types';
 
 const MASKING_PATTERN = '***';
 const keysToMask = [
-    'plaidLinkToken',
-    'plaidAccessToken',
-    'plaidAccountID',
-    'addressName',
     'addressCity',
+    'addressName',
     'addressStreet',
     'addressZipCode',
-    'street',
+    'avatar',
+    'avatarURL',
+    'bank',
+    'cardName',
+    'cardNumber',
     'city',
-    'state',
-    'zip',
+    'comment',
+    'description',
+    'displayName',
     'edits',
+    'firstName',
     'lastMessageHtml',
     'lastMessageText',
+    'lastName',
+    'legalFirstName',
+    'legalLastName',
+    'merchant',
+    'modifiedMerchant',
+    'name',
+    'oldPolicyName',
+    'owner',
+    'phoneNumber',
+    'plaidAccessToken',
+    'plaidAccountID',
+    'plaidLinkToken',
+    'policyAvatar',
+    'policyName',
+    'primaryLogin',
+    'reportName',
+    'routingNumber',
+    'source',
+    'state',
+    'street',
+    'validateCode',
+    'zip',
+    'zipCode',
 ];
 
 const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID];
@@ -30,6 +56,22 @@ const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 const emailMap = new Map<string, string>();
 
 const getRandomLetter = () => String.fromCharCode(97 + Math.floor(Math.random() * 26));
+
+function getRandomString(length: number): string {
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += getRandomLetter();
+    }
+    return result;
+}
+
+function maskValuePreservingLength(value: unknown) {
+    if (typeof value !== 'string') {
+        return MASKING_PATTERN;
+    }
+
+    return getRandomString(value.length);
+}
 
 function stringContainsEmail(text: string) {
     return emailRegex.test(text);
@@ -55,36 +97,32 @@ function replaceEmailInString(text: string, emailReplacement: string) {
     return text.replace(emailRegex, emailReplacement);
 }
 
-const maskSessionDetails = (onyxState: OnyxState): OnyxState => {
-    const session = onyxState.session as Session;
+const maskSessionDetails = (session: Session): Session => {
+    const allowList = ['email', 'accountID', 'loading', 'creationDate', 'errors'];
     const maskedData: OnyxState = {};
 
     Object.keys(session).forEach((key) => {
-        if (key !== 'authToken' && key !== 'encryptedAuthToken') {
+        if (allowList.includes(key)) {
             maskedData[key] = session[key as keyof Session];
             return;
         }
         maskedData[key] = MASKING_PATTERN;
     });
-
-    return {
-        ...onyxState,
-        session: maskedData,
-    };
+    return maskedData as Session;
 };
 
 const maskCredentials = (credentials: Credentials): Credentials => {
     const allowList = ['login', 'accountID'];
-    const credentialsAllowedData: OnyxState = {};
+    const maskedData: OnyxState = {};
 
     Object.keys(credentials).forEach((key) => {
         if (allowList.includes(key)) {
-            credentialsAllowedData[key] = credentials[key as keyof Credentials];
+            maskedData[key] = credentials[key as keyof Credentials];
             return;
         }
-        credentialsAllowedData[key] = MASKING_PATTERN;
+        maskedData[key] = MASKING_PATTERN;
     });
-    return credentialsAllowedData as Credentials;
+    return maskedData as Credentials;
 };
 
 const maskEmail = (email: string) => {
@@ -134,7 +172,7 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
             if (Array.isArray(value)) {
                 maskedData[key] = value.map(() => MASKING_PATTERN);
             } else {
-                maskedData[key] = MASKING_PATTERN;
+                maskedData[key] = maskValuePreservingLength(value);
             }
         } else if (typeof value === 'string' && Str.isValidEmail(value)) {
             maskedData[propertyName] = maskEmail(value);
@@ -169,7 +207,12 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = data;
 
     // Mask session details by default
-    onyxState = maskSessionDetails(onyxState);
+    if (onyxState.session) {
+        onyxState.session = maskSessionDetails(onyxState.session as Session);
+    }
+    if (onyxState.stashedSession) {
+        onyxState.stashedSession = maskSessionDetails(onyxState.stashedSession as Session);
+    }
 
     // Remove private/sensitive Onyx keys
     onyxState = removePrivateOnyxKeys(onyxState);

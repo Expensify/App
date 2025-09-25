@@ -1,4 +1,5 @@
-import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import type {Ref} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -31,7 +32,12 @@ type ShareTabRef = {
     focus?: () => void;
 };
 
-function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
+type ShareTabProps = {
+    /** Reference to the outer element */
+    ref?: Ref<ShareTabRef>;
+};
+
+function ShareTab({ref}: ShareTabProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -128,4 +134,4 @@ function ShareTab(_: unknown, ref: React.Ref<ShareTabRef>) {
     );
 }
 
-export default forwardRef(ShareTab);
+export default ShareTab;
