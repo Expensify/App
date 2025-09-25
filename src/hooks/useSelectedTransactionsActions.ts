@@ -56,7 +56,7 @@ function useSelectedTransactionsActions({
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
@@ -107,12 +107,12 @@ function useSelectedTransactionsActions({
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs);
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, currentSearchHash);
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions]);
+    }, [duplicateTransactions, duplicateTransactionViolations, reportActions, selectedTransactionIDs, clearSelectedTransactions, currentSearchHash]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
