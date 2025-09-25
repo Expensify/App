@@ -123,7 +123,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     // Hide split option for the submitter if the report is forwarded
-    return (isSubmitter && isAwaitingFirstLevelApproval(report))  || isAdmin || isManager;
+    return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
 }
 
 function isSubmitAction(
