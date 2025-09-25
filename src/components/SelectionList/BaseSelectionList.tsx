@@ -147,6 +147,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     selectedItems = getEmptyArray<string>(),
     isSelected,
+    textInputIcon,
     canShowProductTrainingTooltip,
     renderScrollComponent,
     ref,
@@ -736,6 +737,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     value={textInputValue}
                     placeholder={textInputPlaceholder}
                     autoCorrect={autoCorrect}
+                    icon={textInputIcon}
                     maxLength={textInputMaxLength}
                     onChangeText={onChangeText}
                     inputMode={inputMode}
