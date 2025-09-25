@@ -8,20 +8,22 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
+import {waitForWrites} from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
+import {getActivePaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent} from '@libs/PaymentUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
-import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {buildOptimisticExportIntegrationAction, getReportTransactions, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -31,12 +33,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
+import {saveLastSearchParams} from './ReportNavigation';
+
+type OnyxSearchResponse = {
+    data: [];
+    search: {
+        offset: number;
+        hasMoreResults: boolean;
+    };
+};
 
 function handleActionButtonPress(
     hash: number,
@@ -308,11 +319,13 @@ function search({
     searchKey,
     offset,
     shouldCalculateTotals = false,
+    prevReportsLength,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
+    prevReportsLength?: number;
 }) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -320,11 +333,47 @@ function search({
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
     };
     const jsonQuery = JSON.stringify(query);
+    saveLastSearchParams({
+        queryJSON,
+        offset,
+        allowPostSearchRecount: false,
+    });
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+    waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+            const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+            const reports = Object.keys(response?.data ?? {})
+                .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+            if (response?.search?.offset) {
+                // Indicates that search results are extended from the Report view (with navigation between reports),
+                // using previous results to enable correct counter behavior.
+                if (prevReportsLength) {
+                    saveLastSearchParams({
+                        queryJSON,
+                        offset,
+                        hasMoreResults: !!response?.search?.hasMoreResults,
+                        previousLengthOfResults: prevReportsLength,
+                        allowPostSearchRecount: false,
+                    });
+                }
+            } else {
+                // Applies to all searches from the Search View
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    hasMoreResults: !!response?.search?.hasMoreResults,
+                    previousLengthOfResults: reports.length,
+                    allowPostSearchRecount: true,
+                });
+            }
+        });
+    });
 }
 
 /**
@@ -528,10 +577,21 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+    const reportIDListParams: string[] = [];
+    reportIDList.forEach((reportID) => {
+        const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
+        if (allTransactionIDs.every((transactionID) => transactionIDList.includes(transactionID))) {
+            if (reportIDListParams.includes(reportID)) {
+                return;
+            }
+            reportIDListParams.push(reportID);
+        }
+    });
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
-        reportIDList,
+        reportIDList: reportIDListParams,
         transactionIDList,
     }) as Params;
 
@@ -570,6 +630,66 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 
     API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters);
 }
+
+/**
+ * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * @param integrationsExportTemplates - The user's custom integrations export templates
+ * @param csvExportLayouts - The user's custom account level export templates
+ * @param policy - The user's policy
+ * @param includeReportLevelExport - Whether to include the report level export template
+ * @returns
+ */
+function getExportTemplates(
+    integrationsExportTemplates: ExportTemplate[],
+    csvExportLayouts: Record<string, ExportTemplate>,
+    policy?: Policy,
+    includeReportLevelExport = true,
+): ExportTemplate[] {
+    // Helper function to normalize template data into consistent ExportTemplate format
+    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+        ...template,
+        templateName,
+        description,
+        policyID,
+        type,
+    });
+
+    // By default, we always include the expense level export template
+    const exportTemplates: ExportTemplate[] = [
+        normalizeTemplate(
+            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+            {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
+            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+        ),
+    ];
+
+    // Conditionally include the report level export template
+    if (includeReportLevelExport) {
+        exportTemplates.push(
+            normalizeTemplate(
+                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
+                CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+            ),
+        );
+    }
+
+    // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+    const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
+        .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+        .map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP));
+
+    // If we have a policy, collate a list of the policy-level in-app export templates
+    const policyInAppTemplates = policy
+        ? Object.entries(policy.exportLayouts ?? {}).map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policy.name, policy.id))
+        : [];
+
+    // Update the integrations export templates to include the name, description, policyID, and type
+    const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+
+    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+}
+
 /**
  * Updates the form values for the advanced filters search form.
  */
@@ -617,12 +737,12 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
     if (!selectedTransactions || isEmpty(selectedTransactions)) {
         return true;
     }
-    const neededFilterTransactions = transactionKeys?.filter((transactionIdKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIdKey].reportID));
+    const neededFilterTransactions = transactionKeys?.filter((transactionIDKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIDKey].reportID));
     if (!neededFilterTransactions?.length) {
         return true;
     }
 
-    return neededFilterTransactions.every((transactionIdKey) => selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY);
+    return neededFilterTransactions.every((transactionIDKey) => selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY);
 }
 
 /**
@@ -635,7 +755,7 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-            : transactionKeys.every((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
+            : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0
@@ -647,35 +767,18 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
-                  (transactionIdKey) =>
-                      selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                  (transactionIDKey) =>
+                      selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      ((hasLastPaymentMethod && selectedTransactions[transactionIdKey].policyID) ||
-                          (getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID) &&
-                              selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID)),
+                      ((hasLastPaymentMethod && selectedTransactions[transactionIDKey].policyID) ||
+                          (getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID) &&
+                              selectedTransactions[transactionIDKey].policyID === firstTransaction?.policyID)),
               );
 
     return {
         shouldEnableBulkPayOption: shouldShowBulkPayOption,
         isFirstTimePayment: !hasLastPaymentMethod,
     };
-}
-
-/**
- *
- * @param selectedReports
- * @param selectedTransactions
- * @param currency
- * @returns The formatted amount of the selected reports/transactions.
- */
-function getFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency: string): string {
-    const transactionKeys = Object.keys(selectedTransactions ?? {});
-    const totalAmount =
-        selectedReports.length > 0
-            ? selectedReports.reduce((acc, report) => acc + (Math.abs(report.total) ?? 0), 0)
-            : transactionKeys.reduce((acc, transactionIdKey) => acc + (Math.abs(selectedTransactions[transactionIdKey].amount) ?? 0), 0);
-    const formattedAmount = convertToDisplayString(totalAmount, currency);
-    return formattedAmount ?? '';
 }
 
 /**
@@ -702,7 +805,7 @@ function handleBulkPayItemSelected(
     isUserValidated: boolean | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
 ) {
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
+     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
@@ -717,29 +820,13 @@ function handleBulkPayItemSelected(
         return;
     }
 
-    const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
-    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-
-    const paymentMethod = item.key as PaymentMethod;
-    let paymentType;
-    switch (paymentMethod) {
-        case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
-            paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-            break;
-        case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
-            paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
-            break;
-        default:
-            paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-            break;
-    }
 
     if (!!selectedPolicy || shouldSelectPaymentMethod) {
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
             return;
         }
-        triggerKYCFlow(undefined, paymentType, paymentMethod, selectedPolicy);
+        triggerKYCFlow(undefined, paymentType, item.key as PaymentMethod, selectedPolicy);
 
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -781,8 +868,8 @@ export {
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
     getPayOption,
-    getFormattedAmount,
     isValidBulkPayOption,
     handleBulkPayItemSelected,
     isCurrencySupportWalletBulkPay,
+    getExportTemplates,
 };

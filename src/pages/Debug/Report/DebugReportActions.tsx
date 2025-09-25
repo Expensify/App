@@ -1,8 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +17,7 @@ import {canUserPerformWriteAction, formatReportLastMessageText, getParticipantsA
 import SidebarUtils from '@libs/SidebarUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction, ReportActions} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type DebugReportActionsProps = {
@@ -38,11 +39,23 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (c) => mapOnyxCollectionItems(c, personalDetailsSelector), canBeMissing: false});
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
-        canBeMissing: true,
-    });
+
+    const getSortedAllReportActionsSelector = useCallback(
+        (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
+            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true);
+        },
+        [ifUserCanPerformWriteAction],
+    );
+
+    const [sortedAllReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canEvict: false,
+            selector: getSortedAllReportActionsSelector,
+            canBeMissing: true,
+        },
+        [getSortedAllReportActionsSelector],
+    );
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>));
 
@@ -104,7 +117,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 headerMessage={getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue)}
                 onChangeText={setSearchValue}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
             />
         </ScrollView>
     );

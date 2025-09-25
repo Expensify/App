@@ -1,10 +1,10 @@
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, Alert, View} from 'react-native';
+import {Alert, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
@@ -19,7 +19,6 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     const {translate} = useLocalize();
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
-    const theme = useTheme();
     const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
     const styles = useThemeStyles();
 
@@ -81,12 +80,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     }
 
     if (isLoading) {
-        return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                color={theme.spinner}
-            />
-        );
+        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 
     if (isInWallet) {

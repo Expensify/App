@@ -376,9 +376,9 @@ function getBankName(feedType: CompanyCardFeed): string {
     };
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType?.startsWith(feed));
 
-    if (feedType.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
+    if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
         return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
     }
 
