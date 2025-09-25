@@ -116,7 +116,7 @@ function OfflineWithFeedback({
                 type ChildComponentProps = ChildrenProps & {style?: AllStyles};
                 const childProps = child.props as ChildComponentProps;
                 const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedback.deleted, styles.userSelectNone),
+                    style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedbackDeleted, styles.userSelectNone),
                 };
 
                 if (childProps.children) {
@@ -148,10 +148,10 @@ function OfflineWithFeedback({
             )}
             {!hideChildren && (
                 <View
-                    style={[needsOpacity ? styles.offlineFeedback.pending : styles.offlineFeedback.default, contentContainerStyle]}
+                    style={[needsOpacity ? styles.offlineFeedbackPending : styles.offlineFeedbackDefault, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
                 >
-                    <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
+                    <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedbackDeleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
                 </View>
             )}
             {shouldShowErrorMessages && !shouldDisplayErrorAbove && (

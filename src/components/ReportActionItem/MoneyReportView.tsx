@@ -206,7 +206,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     ) : (
                                         <Text
                                             numberOfLines={1}
-                                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedback.pending]}
+                                            style={[styles.taskTitleMenuItem, styles.alignSelfCenter, !isTotalUpdated && styles.offlineFeedbackPending]}
                                         >
                                             {formattedTotalAmount}
                                         </Text>

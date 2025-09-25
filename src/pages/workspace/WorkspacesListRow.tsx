@@ -164,7 +164,7 @@ function WorkspacesListRow({
 
     const isWide = layoutWidth === CONST.LAYOUT_WIDTH.WIDE;
 
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
         <View style={[styles.flexRow, !shouldUseNarrowLayout && styles.workspaceThreeDotMenu]}>
@@ -230,7 +230,7 @@ function WorkspacesListRow({
                             <TextWithTooltip
                                 text={title}
                                 shouldShowTooltip
-                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                             />
                         </View>
                         {isNarrow && ThreeDotMenuOrPendingIcon}
@@ -252,7 +252,7 @@ function WorkspacesListRow({
                                     />
                                     <Text
                                         numberOfLines={1}
-                                        style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                        style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                     >
                                         {Str.removeSMSDomain(ownerDetails?.login ?? '')}
                                     </Text>
@@ -271,14 +271,14 @@ function WorkspacesListRow({
                             {!!workspaceType && (
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                    style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                 >
                                     {getUserFriendlyWorkspaceType(workspaceType)}
                                 </Text>
                             )}
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                                style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                             >
                                 {translate('workspace.common.plan')}
                             </Text>

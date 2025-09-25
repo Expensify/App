@@ -435,7 +435,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                     shouldRemoveHoverBackground={isCardDeleted}
                                                     disabled={isCardDeleted}
                                                     shouldShowRightIcon={!isCardDeleted}
-                                                    style={[isCardDeleted ? styles.offlineFeedback.deleted : {}]}
+                                                    style={[isCardDeleted ? styles.offlineFeedbackDeleted : {}]}
                                                 />
                                             </OfflineWithFeedback>
                                         );
