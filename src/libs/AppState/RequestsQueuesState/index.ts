@@ -2,12 +2,11 @@
 import {getAll as getAllPersistedRequests, getOngoingRequest} from '@libs/actions/PersistedRequests';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {getAll as getMainQueueRequests} from '@libs/Network/MainQueue';
-import {getShouldFailAllRequests, isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
-import type {MainQueueInfo, PersistedRequestsInfo, RequestAuthInfo, RequestQueuesInfo, SequentialQueueControlInfo, SequentialQueueInfo} from './types';
+import {isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
+import type {LeaderInfo, MainQueueInfo, PersistedRequestsInfo, RequestQueuesInfo, SequentialQueueInfo} from './types';
 
 /**
- * Captures current MainQueue state for debugging loading issues
- * MainQueue is a concurrent launcher for READ/SIDE_EFFECT requests
+ * Captures current MainQueue state.
  */
 function captureMainQueueState(): MainQueueInfo {
     const queuedRequests = getMainQueueRequests();
@@ -19,8 +18,7 @@ function captureMainQueueState(): MainQueueInfo {
 }
 
 /**
- * Captures current PersistedRequests data layer state
- * Tracks WRITE requests stored in Onyx for offline/retry capability
+ * Captures current PersistedRequests state.
  */
 function capturePersistedRequestsState(): PersistedRequestsInfo {
     const persistedRequests = getAllPersistedRequests();
@@ -29,70 +27,44 @@ function capturePersistedRequestsState(): PersistedRequestsInfo {
     return {
         queuedRequestsCount: persistedRequests.length,
         queuedCommands: persistedRequests.map((request) => request.command).filter(Boolean),
-        ongoingRequest: ongoingRequest
+        ongoingRequestInfo: ongoingRequest
             ? {
                   command: ongoingRequest.command,
                   persistWhenOngoing: ongoingRequest.persistWhenOngoing,
+                  isRollback: ongoingRequest.isRollback,
               }
             : undefined,
     };
 }
 
 /**
- * Captures current SequentialQueue control layer state
- * Tracks processing state and execution flow
- */
-function captureSequentialQueueControlState(): SequentialQueueControlInfo {
-    return {
-        isRunning: isSequentialQueueRunning(),
-        isPaused: isSequentialQueuePaused(),
-        currentExecution: determineCurrentExecution(),
-    };
-}
-
-/**
- * Determines current execution state based on available information
- */
-function determineCurrentExecution() {
-    const isRunning = isSequentialQueueRunning();
-    const ongoingRequest = getOngoingRequest();
-
-    if (!isRunning || !ongoingRequest) {
-        return undefined;
-    }
-
-    return {
-        isRetry: ongoingRequest.isRollback ?? false, // Check if request is a rollback/retry
-    };
-}
-
-/**
- * Captures complete SequentialQueue state - both data and control layers
- * Provides comprehensive view of WRITE request processing system
+ * Captures current SequentialQueue state.
  */
 function captureSequentialQueueState(): SequentialQueueInfo {
     return {
-        persistedRequests: capturePersistedRequestsState(),
-        processingControl: captureSequentialQueueControlState(),
+        isRunning: isSequentialQueueRunning(),
+        isPaused: isSequentialQueuePaused(),
     };
 }
 
 /**
- * Captures request authentication and failure state
- * Global state that affects both queue types (unique info only)
+ * Captures leader state (whether this client is the leader).
  */
-function captureRequestAuthState(): RequestAuthInfo {
+function captureLeaderInfo(): LeaderInfo {
     return {
-        shouldFailAllRequests: getShouldFailAllRequests(),
         isClientLeader: isClientTheLeader(),
     };
 }
 
+/**
+ * Captures current requests queues state.
+ */
 function captureRequestsQueueState(): RequestQueuesInfo {
     return {
         mainQueue: captureMainQueueState(),
         sequentialQueue: captureSequentialQueueState(),
-        requestAuth: captureRequestAuthState(),
+        persistedRequests: capturePersistedRequestsState(),
+        leaderInfo: captureLeaderInfo(),
     };
 }
 

@@ -1,18 +1,14 @@
-// AppState types for global state snapshot logging
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type Network from '@src/types/onyx/Network';
 import type {RequestQueuesInfo} from './RequestsQueuesState';
 
 /**
- * Main global state snapshot interface
- * Used for logging context when loading states exceed timeout
+ * Main global state snapshot interface used for logging context when loading states exceed timeout.
  */
 type GlobalStateSnapshot = {
     navigation: NavigationStateInfo;
     session: SessionStateInfo;
     network: NetworkStateInfo;
     requestQueues: RequestQueuesInfo;
-    extraLoadingContext?: ExtraLoadingContext;
 };
 
 /**
@@ -24,32 +20,26 @@ type NavigationStateInfo = {
 };
 
 /**
- * Session and authentication state
+ * Session and authentication state.
  */
 type SessionStateInfo = {
-    /** Whether currently authenticating */
-    isAuthenticating: boolean;
+    /** Whether session is currently loading */
+    isSessionLoading: boolean;
+
+    /** Whether authenticating with short-lived token */
+    isAuthenticatingWithShortLivedToken: boolean;
+
+    /** Whether authenticating from network store */
+    isAuthenticatingFromNetworkStore: boolean;
 };
 
 /**
- * Network connectivity and status
+ * Network connectivity and status.
  */
-type NetworkStateInfo = {
-    /** Network status */
-    networkStatus: ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>;
-
-    /** Network time skew */
-    timeSkew?: number;
-
-    /** Whether forcing offline mode */
-    shouldForceOffline?: boolean;
-
-    /** Whether simulating poor connection */
-    shouldSimulatePoorConnection?: boolean;
-};
+type NetworkStateInfo = Pick<Network, 'networkStatus' | 'timeSkew' | 'shouldForceOffline' | 'shouldSimulatePoorConnection' | 'shouldFailAllRequests'>;
 
 /**
- * Extra loading context for additional debugging information
+ * Extra loading context for additional debugging information.
  */
 type ExtraLoadingContext = Record<string, unknown>;
 
