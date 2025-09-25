@@ -43,15 +43,27 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const policy = usePolicy(policyID);
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-
     const workspaceMembers = useMemo(() => {
         let membersList: MemberForList[] = [];
         if (!policy?.employeeList) {
             return membersList;
         }
 
+        // Get the list of employees from the U4B organization
+        const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
+
         Object.entries(policy.employeeList).forEach(([email, policyEmployee]) => {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+                return;
+            }
+
+            // Skip employees who are in the "Linked" section
+            const employeeStatus = uberEmployees[email]?.status;
+            if (
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED ||
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL ||
+                employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED
+            ) {
                 return;
             }
 
@@ -82,7 +94,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, localeCompare]);
+    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare]);
 
     const sections = useMemo(() => {
         if (workspaceMembers.length === 0) {
@@ -180,7 +192,13 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         Navigation.dismissModal();
     }, []);
 
-    if (isInvitationSent) {
+    // Check if we should skip to "All set" page immediately
+    const shouldSkipToAllSet = useMemo(() => {
+        // Skip if no workspace members can be invited (covers all cases: no employees, only owner, already linked)
+        return workspaceMembers.length === 0;
+    }, [workspaceMembers.length]);
+
+    if (isInvitationSent || shouldSkipToAllSet) {
         return (
             <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
                 <HeaderWithBackButton

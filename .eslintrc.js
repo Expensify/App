@@ -13,6 +13,7 @@ const restrictedImportPaths = [
             'Pressable',
             'Text',
             'ScrollView',
+            'ActivityIndicator',
             'Animated',
             'findNodeHandle',
         ],
@@ -23,6 +24,7 @@ const restrictedImportPaths = [
             "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
+            "For 'ActivityIndicator', please use '@components/ActivityIndicator' instead.",
             "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
         ].join('\n'),
     },
@@ -96,10 +98,6 @@ const restrictedImportPaths = [
         name: 'lodash',
         importNames: ['isEqual'],
         message: "Please use 'deepEqual' from 'fast-equals' instead.",
-    },
-    {
-        name: 'react-native-animatable',
-        message: "Please use 'react-native-reanimated' instead.",
     },
     {
         name: 'react-native-onyx',

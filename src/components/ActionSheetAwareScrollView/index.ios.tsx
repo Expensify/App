@@ -3,17 +3,11 @@ import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView, ScrollViewProps} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
-import Reanimated, {useAnimatedRef, useScrollViewOffset} from 'react-native-reanimated';
+import Reanimated, {useAnimatedRef, useAnimatedStyle, useScrollViewOffset} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
-import useActionSheetKeyboardSpace from './useActionSheetKeyboardSpace';
-
-type ActionSheetAwareScrollViewProps = PropsWithChildren<ScrollViewProps> & {
-    /** Whether to add top spacing for sticky content in inverted list */
-    shouldAddTopSpacing?: boolean;
-    /** Data array passed from FlatList when used as renderScrollComponent */
-    data?: readonly unknown[];
-};
+import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
 const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, shouldAddTopSpacing = false, data, ...rest}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
@@ -35,7 +29,10 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScroll
         [ref, scrollViewAnimatedRef],
     );
 
-    const {animatedStyle} = useActionSheetKeyboardSpace({position});
+    const spacing = useActionSheetKeyboardSpacing(scrollViewAnimatedRef);
+    const animatedStyle = useAnimatedStyle(() => ({
+        paddingTop: spacing.get(),
+    }));
 
     useEffect(() => {
         if (!shouldAddTopSpacing) {
@@ -80,10 +77,10 @@ export default ActionSheetAwareScrollView;
  * @param props - props that will be passed to the ScrollView from FlatList
  * @returns - ActionSheetAwareScrollView for inverted list
  */
-function renderScrollComponent(props: ScrollViewProps) {
+const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props) => {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
-}
+};
 
 /**
  * This function should be used as renderScrollComponent prop for inverted FlatList

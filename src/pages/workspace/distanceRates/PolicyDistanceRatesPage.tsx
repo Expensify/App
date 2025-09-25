@@ -1,5 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -23,7 +25,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -47,6 +48,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
 
 type RateForList = ListItem & {value: string; rate?: number};
@@ -60,7 +62,6 @@ function PolicyDistanceRatesPage({
 }: PolicyDistanceRatesPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -69,7 +70,7 @@ function PolicyDistanceRatesPage({
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
 
     const selectableRates = useMemo(
@@ -81,10 +82,10 @@ function PolicyDistanceRatesPage({
         [customUnitRates],
     );
 
-    const rateIDs = new Set(Object.keys(selectableRates));
+    const rateIDs = useMemo(() => new Set(Object.keys(selectableRates)), [selectableRates]);
 
-    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => {
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
             return Object.values(reports ?? {}).reduce((reportIDs, report) => {
                 if (report && report.policyID === policyID) {
                     reportIDs.add(report.reportID);
@@ -92,11 +93,16 @@ function PolicyDistanceRatesPage({
                 return reportIDs;
             }, new Set<string>());
         },
+        [policyID],
+    );
+
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: policyReportsSelector,
         canBeMissing: true,
     });
 
-    const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
             if (!customUnit?.customUnitID || rateIDs.size === 0) {
                 return undefined;
             }
@@ -123,6 +129,11 @@ function PolicyDistanceRatesPage({
                 {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
+        [customUnit, rateIDs, policyReports],
+    );
+
+    const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionsSelector,
         canBeMissing: true,
     });
 
@@ -488,7 +499,6 @@ function PolicyDistanceRatesPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
                 {Object.values(customUnitRates).length > 0 && (
