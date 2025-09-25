@@ -11190,7 +11190,7 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
             if (originalMessage?.markedManually) {
                 return true;
             }
-            // // exportTemplate type is a CSV export, so we don't count it as an export integration action
+            // exportTemplate type is a CSV export, so we don't count it as an export integration action
             if (originalMessage?.type !== CONST.EXPORT_TEMPLATE) {
                 exportIntegrationActionsCount++;
             }
