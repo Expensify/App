@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {FlatList} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
 import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
@@ -104,4 +104,4 @@ function InvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwarded
 
 InvertedFlatList.displayName = 'InvertedFlatList';
 
-export default forwardRef(InvertedFlatList);
+export default InvertedFlatList;

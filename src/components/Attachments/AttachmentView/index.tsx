@@ -128,7 +128,7 @@ function AttachmentView({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError, onAttachmentLoaded} = attachmentCarouselPagerContext ?? {};
+    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -246,7 +246,11 @@ function AttachmentView({
     }
 
     if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
-        return <DistanceEReceipt transaction={transaction} />;
+        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
+        const isImageReceiptSource = checkIsFileImage(source, file?.name);
+        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
+            return <DistanceEReceipt transaction={transaction} />;
+        }
     }
 
     // For this check we use both source and file.name since temporary file source is a blob
@@ -318,7 +322,6 @@ function AttachmentView({
                         loadComplete={loadComplete}
                         isImage={isImage}
                         onPress={onPress}
-                        onLoad={() => onAttachmentLoaded?.(source, true)}
                         onError={() => {
                             if (isOffline) {
                                 return;

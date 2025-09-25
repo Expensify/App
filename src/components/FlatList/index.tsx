@@ -1,16 +1,17 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
 import {isMobileSafari} from '@libs/Browser';
+import type {CustomFlatListProps} from './types';
 
 // Changing the scroll position during a momentum scroll does not work on mobile Safari.
 // We do a best effort to avoid content jumping by using some hacks on mobile Safari only.
 const IS_MOBILE_SAFARI = isMobileSafari();
 
 function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
-    return function forwardRef(node: FlatList) {
+    return function (node: FlatList) {
         args.forEach((ref) => {
             if (ref == null) {
                 return;
@@ -41,14 +42,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-type AdditionalFlatListProps = {
-    /**
-     * iOS and Android only - Uses the animated keyboard handler capabilities
-     */
-    withAnimatedKeyboardHandler?: boolean;
-};
-
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ...props}: FlatListProps<TItem> & AdditionalFlatListProps, ref: ForwardedRef<FlatList>) {
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ref, ...props}: CustomFlatListProps<TItem>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -204,7 +198,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
-    const setMergedRef = useMergeRefs(scrollRef, ref);
+    const setMergedRef = useMergeRefs(scrollRef, ref as ForwardedRef<FlatList>);
 
     const onRef = useCallback(
         (newRef: FlatList) => {
@@ -259,5 +253,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 }
 
 MVCPFlatList.displayName = 'MVCPFlatList';
-export type {AdditionalFlatListProps};
-export default React.forwardRef(MVCPFlatList);
+
+export default MVCPFlatList;
+
+export type {CustomFlatListProps};

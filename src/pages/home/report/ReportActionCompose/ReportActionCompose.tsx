@@ -20,10 +20,10 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -94,6 +94,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The ID of the transaction thread report if there is a single transaction */
+    transactionThreadReportID?: string;
+
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
 
@@ -136,6 +139,7 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
     reportTransactions,
+    transactionThreadReportID,
     nativeID,
     onLayout,
 }: ReportActionComposeProps) {
@@ -164,7 +168,25 @@ function ReportActionCompose({
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
+    // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
+    const isScrollLikelyLayoutTriggered = useRef(false);
+
+    /**
+     * Reset isScrollLikelyLayoutTriggered to false.
+     *
+     * The function is debounced with a handpicked wait time to address 2 issues:
+     * 1. There is a slight delay between onChangeText and onScroll
+     * 2. Layout change will trigger onScroll multiple times
+     */
+    const debouncedLowerIsScrollLikelyLayoutTriggered = useDebounce(
+        useCallback(() => (isScrollLikelyLayoutTriggered.current = false), []),
+        500,
+    );
+
+    const raiseIsScrollLikelyLayoutTriggered = useCallback(() => {
+        isScrollLikelyLayoutTriggered.current = true;
+        debouncedLowerIsScrollLikelyLayoutTriggered();
+    }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
@@ -316,11 +338,18 @@ function ReportActionCompose({
                 if (Array.isArray(attachmentFileRef.current)) {
                     // Handle multiple files
                     attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
+                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
                     });
                 } else {
                     // Handle single file
-                    addAttachmentReportActions(reportID, attachmentFileRef.current, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
+                    addAttachmentReportActions(
+                        transactionThreadReportID ?? reportID,
+                        reportID,
+                        attachmentFileRef.current,
+                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        newCommentTrimmed,
+                        true,
+                    );
                 }
                 attachmentFileRef.current = null;
             } else {
@@ -329,7 +358,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, personalDetail.timezone],
+        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -619,7 +648,7 @@ function ReportActionCompose({
                                             setMenuVisibility={setMenuVisibility}
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             onAddActionPressed={onAddActionPressed}
                                             onItemSelected={onItemSelected}
                                             onCanceledAttachmentPicker={() => {
@@ -640,8 +669,8 @@ function ReportActionCompose({
                                             }}
                                             suggestionsRef={suggestionsRef}
                                             isNextModalWillOpenRef={isNextModalWillOpenRef}
-                                            isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                                            isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
+                                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                             reportID={reportID}
                                             policyID={report?.policyID}
                                             includeChronos={chatIncludesChronos(report)}

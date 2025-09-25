@@ -829,10 +829,6 @@ const styles = (theme: ThemeColors) =>
             borderBottomLeftRadius: 0,
         },
 
-        buttonCTA: {
-            ...spacing.mh4,
-        },
-
         buttonCTAIcon: {
             marginRight: 22,
             marginLeft: 8,
@@ -3711,6 +3707,11 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'flex-start',
         },
 
+        groupSearchListTableContainerStyle: {
+            minHeight: variables.h28,
+            paddingBottom: 0,
+        },
+
         narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
@@ -4925,13 +4926,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
-            paddingVertical: 8,
             flex: 1,
             userSelect: 'none',
             alignItems: 'center',
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
+            paddingVertical: 6,
         },
 
         searchQueryListItemStyle: {

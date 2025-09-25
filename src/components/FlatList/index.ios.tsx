@@ -1,13 +1,10 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useState} from 'react';
-import type {FlatListProps} from 'react-native';
+import React, {useCallback, useState} from 'react';
 import {FlatList} from 'react-native';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
-import type {AdditionalFlatListProps} from '.';
+import type {CustomFlatListProps} from './types';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
-function CustomFlatList<T>(props: FlatListProps<T> & AdditionalFlatListProps, ref: ForwardedRef<FlatList>) {
-    const {maintainVisibleContentPosition: originalMaintainVisibleContentPosition, withAnimatedKeyboardHandler, ...rest} = props;
+function CustomFlatList<T>({ref, maintainVisibleContentPosition: originalMaintainVisibleContentPosition, withAnimatedKeyboardHandler, ...rest}: CustomFlatListProps<T>) {
     const [isScrolling, setIsScrolling] = useState(false);
 
     const handleScrollBegin = useCallback(() => {
@@ -46,4 +43,4 @@ function CustomFlatList<T>(props: FlatListProps<T> & AdditionalFlatListProps, re
 }
 
 CustomFlatList.displayName = 'CustomFlatListWithRef';
-export default forwardRef(CustomFlatList);
+export default CustomFlatList;

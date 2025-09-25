@@ -188,3 +188,23 @@ jest.mock('@src/hooks/useKeyboardDismissibleFlatListValues.ts', () => {
         }),
     };
 });
+
+// Provide a default global fetch mock for tests that do not explicitly set it up
+// This avoids ReferenceError: fetch is not defined in CI when coverage is enabled
+const globalWithOptionalFetch: typeof globalThis & {fetch?: unknown} = globalThis as typeof globalThis & {fetch?: unknown};
+if (typeof globalWithOptionalFetch.fetch !== 'function') {
+    const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: {get: () => null},
+        // Return a minimal shape our code expects
+        json: () => Promise.resolve({jsonCode: 200}),
+    };
+
+    Object.defineProperty(globalWithOptionalFetch, 'fetch', {
+        value: jest.fn(() => Promise.resolve(mockResponse)),
+        writable: true,
+        configurable: true,
+    });
+}
