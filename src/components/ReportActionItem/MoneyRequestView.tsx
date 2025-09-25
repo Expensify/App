@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
@@ -567,11 +568,7 @@ function MoneyRequestView({
     const shouldShowReport = !!parentReportID || !!actualParentReport;
 
     if (!report?.reportID || !transaction?.transactionID) {
-        return (
-            <View style={styles.pRelative}>
-                <AnimatedEmptyStateBackground />
-            </View>
-        );
+        return <ReportActionsSkeletonView />;
     }
 
     return (
