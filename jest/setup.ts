@@ -108,6 +108,7 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     closeReactNativeApp: jest.fn(),
     completeOnboarding: jest.fn(),
     switchAccount: jest.fn(),
+    clearOldDotAfterSignOut: jest.fn(),
 }));
 
 jest.mock(
