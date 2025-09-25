@@ -127,6 +127,7 @@ function AccountValidatePage() {
 
     useFocusEffect(
         useCallback(() => {
+            // eslint-disable-next-line deprecation/deprecation
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;

@@ -44,6 +44,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
 
     const handleFinishStep = useCallback(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             const updatedCustomLists = customLists.concat([
                 {
