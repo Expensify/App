@@ -1,56 +1,11 @@
-import {hasHeicOrHeifExtension} from '@libs/fileDownload/FileUtils';
+import {canvasFallback, hasHeicOrHeifExtension} from '@libs/fileDownload/FileUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {HeicConverterFunction} from './types';
 
-const MAX_CANVAS_SIZE = 4096;
-const JPEG_QUALITY = 0.85;
-
 type HeicConverter = {
     heicTo: (options: {blob: Blob; type: string}) => Promise<Blob>;
     isHeic: (file: File) => Promise<boolean>;
-};
-
-/**
- * Canvas fallback for converting HEIC to JPEG in web browsers
- */
-const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
-    if (typeof createImageBitmap === 'undefined') {
-        return Promise.reject(new Error('Canvas fallback not supported in this browser'));
-    }
-
-    return createImageBitmap(blob).then((imageBitmap) => {
-        const canvas = document.createElement('canvas');
-
-        const scale = Math.min(1, MAX_CANVAS_SIZE / Math.max(imageBitmap.width, imageBitmap.height));
-
-        canvas.width = Math.floor(imageBitmap.width * scale);
-        canvas.height = Math.floor(imageBitmap.height * scale);
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            throw new Error('Could not get canvas context');
-        }
-
-        ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
-
-        return new Promise<File>((resolve, reject) => {
-            canvas.toBlob(
-                (convertedBlob) => {
-                    if (!convertedBlob) {
-                        reject(new Error('Canvas conversion failed - returned null blob'));
-                        return;
-                    }
-
-                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
-                    const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
-                    resolve(jpegFile);
-                },
-                CONST.IMAGE_FILE_FORMAT.JPEG,
-                JPEG_QUALITY,
-            );
-        });
-    });
 };
 
 const getHeicConverter = () => {
