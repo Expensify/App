@@ -84,11 +84,11 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
     try {
         let srcString = src;
         if (src) {
-            srcString = src.startsWith('"') ? src : `"${src}`;
+            srcString = srcString.startsWith('"') ? src : `"${src}`;
             srcString = srcString.endsWith('"') ? srcString : `${srcString}"`;
         }
 
-        const command = `npx react-compiler-healthcheck ${src ? `--src "${srcString}"` : ''} --json --verbose `;
+        const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --json --verbose `;
         const output = execSync(command, {
             encoding: 'utf8',
             cwd: process.cwd(),
