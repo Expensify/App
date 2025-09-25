@@ -94,7 +94,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - Expo (54.0.7):
+  - Expo (54.0.10):
     - boost
     - DoubleConversion
     - ExpoModulesCore
@@ -140,7 +140,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (3.0.15):
+  - ExpoModulesCore (3.0.18):
     - boost
     - DoubleConversion
     - fast_float
@@ -4563,12 +4563,12 @@ SPEC CHECKSUMS:
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 01474352998b00f61c6fc81351c7e7b595058579
   ExpensifyNitroUtils: 754da0b5688a613f45887edcaf4d942950b82827
-  Expo: fa069f28f223f673be3bc58871d343512dc1c955
+  Expo: bc548dffeaf1a300338bea7dc52c13303c13112d
   ExpoAsset: 4375a46b45b12bbfcf6efac8c8a33aebdb8ba12b
   ExpoFont: d3e56c7cc03d9fd113b90a5513ad32b4bf46b0ff
   ExpoImage: 306dd755c842dba9f3ee654c51834a9cc657e6ca
   ExpoImageManipulator: 7096d6bf874c0a0a649f60733fef8a99c4ad0fe2
-  ExpoModulesCore: 97ff3dcd30b80e9a3d16ae99822eeb291b5b1ce4
+  ExpoModulesCore: 1f5cb7d443f5c12f9a53ce3e2e536a16ef4728a3
   ExpoSecureStore: 833b24a0d7feffef4505184910c058221066011e
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: b8f1312d48447cca7b4abc21ed155db14742bd03
