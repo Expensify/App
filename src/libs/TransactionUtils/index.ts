@@ -18,6 +18,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -1951,7 +1952,12 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
+// Temporarily only for use in the Unreported Expense project
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
+    // TODO: added for development purposes, should be removed once the feature are fully implemented
+    if (!Permissions.canUseUnreportedExpense()) {
+        return false;
+    }
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
