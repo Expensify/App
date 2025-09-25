@@ -25,7 +25,6 @@ function SingleSelectListItem<TItem extends ListItem>({
     titleStyles,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const isSelected = item.isSelected;
 
     const radioCheckboxComponent = useCallback(() => {
         return (
@@ -33,11 +32,11 @@ function SingleSelectListItem<TItem extends ListItem>({
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
                 accessibilityLabel="SingleSelectListItem"
-                isChecked={isSelected}
+                isChecked={item.isSelected}
                 onPress={() => onSelectRow(item)}
             />
         );
-    }, [isSelected, item, onSelectRow]);
+    }, [item, onSelectRow]);
 
     return (
         <RadioListItem
