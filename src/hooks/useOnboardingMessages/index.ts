@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
