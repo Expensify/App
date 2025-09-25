@@ -81,7 +81,7 @@ function LockAccountPage() {
                 prompt={
                     <>
                         <Text style={[styles.mb5]}>{translate('lockAccountPage.areYouSure')}</Text>
-                        <Text style={[styles.mb5]}>{translate('lockAccountPage.ourTeamWill')}</Text>
+                        <Text style={[styles.mb5]}>{translate('lockAccountPage.onceLocked')}</Text>
                     </>
                 }
                 confirmText={translate('lockAccountPage.lockAccount')}
