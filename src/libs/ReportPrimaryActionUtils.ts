@@ -6,7 +6,6 @@ import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
@@ -37,6 +36,7 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    requiresManualSubmission,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {
@@ -85,7 +85,6 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isOpenReport = isOpenReportUtils(report);
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
@@ -110,7 +109,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
         return true;
     }
 
-    return isManualSubmitEnabled && baseIsSubmit;
+    return requiresManualSubmission(report, policy) && baseIsSubmit;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
@@ -256,7 +255,7 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[]) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction, true));
 
     if (!hasDuplicates) {
         return false;
@@ -448,7 +447,8 @@ function getTransactionThreadPrimaryAction(
     parentReport: Report,
     reportTransaction: Transaction,
     violations: TransactionViolation[],
-    policy?: Policy,
+    policy: OnyxEntry<Policy>,
+    isFromReviewDuplicates: boolean,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
     if (isMarkAsResolvedAction(parentReport, violations, policy)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
@@ -459,7 +459,7 @@ function getTransactionThreadPrimaryAction(
     }
 
     if (isReviewDuplicatesAction(parentReport, [reportTransaction])) {
-        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+        return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
     if (isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy)) {
