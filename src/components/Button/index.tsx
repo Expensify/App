@@ -2,7 +2,8 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
@@ -318,7 +319,7 @@ function Button({
         );
 
         const textComponent = secondLineText ? (
-            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
+            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
                 {primaryText}
                 <Text
                     style={[
@@ -330,6 +331,7 @@ function Button({
                         styles.textWhite,
                         styles.textBold,
                     ]}
+                    numberOfLines={1}
                 >
                     {secondLineText}
                 </Text>
