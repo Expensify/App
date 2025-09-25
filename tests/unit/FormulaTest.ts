@@ -7,7 +7,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
@@ -110,13 +110,7 @@ describe('CustomFormula', () => {
                 policyID: 'policy1',
             } as Report,
             policy: {
-                id: 'policy1',
                 name: 'Test Policy',
-                role: 'admin' as const,
-                type: 'team' as const,
-                owner: 'owner@test.com',
-                outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             } as Policy,
         };
 
