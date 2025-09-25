@@ -1,4 +1,3 @@
-import type {PropsWithChildren} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView, ScrollViewProps} from 'react-native';
@@ -11,7 +10,6 @@ import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
 const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, shouldAddTopSpacing = false, data, ...rest}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
-    const position = useScrollViewOffset(scrollViewAnimatedRef);
     const spacerRef = useAnimatedRef<Reanimated.View>();
     const styles = useThemeStyles();
 
