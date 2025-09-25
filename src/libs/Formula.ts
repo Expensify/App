@@ -267,9 +267,9 @@ function getCustomFieldValue(policy: OnyxEntry<Policy>, accountID: number, field
 
     switch (fieldName.toLowerCase()) {
         case 'customfield1':
-            return employee.employeeUserID || '';
+            return employee.employeeUserID ? employee.employeeUserID : '';
         case 'customfield2':
-            return employee.employeePayrollID || '';
+            return employee.employeePayrollID ? employee.employeePayrollID : '';
         default:
             return '';
     }
