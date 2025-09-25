@@ -347,17 +347,18 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                     styles.dFlex,
                     styles.flexRow,
                     shouldShowAddExpenseButton ? styles.justifyContentBetween : styles.justifyContentEnd,
-                    styles.gap2,
+                    styles.gap6,
                     listHorizontalPadding,
                     styles.mb2,
                     styles.alignItemsStart,
                     styles.minHeight7,
+                    styles.flexWrap,
                 ]}
             >
                 {shouldShowAddExpenseButton && (
                     <OfflineWithFeedback
                         pendingAction={report?.pendingFields?.preview}
-                        style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasis0, styles.mwFitContent]}
+                        style={[styles.flexGrow10]}
                     >
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
@@ -371,10 +372,11 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                             }}
+                            style={[styles.mwFitContent]}
                         />
                     </OfflineWithFeedback>
                 )}
-                <View>
+                <View style={[styles.flexGrow1]}>
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
@@ -383,7 +385,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                             ].map(({text, value}) => (
                                 <View
                                     key={text}
-                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
+                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, styles.justifyContentBetween, styles.w100]}
                                 >
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mr3]}

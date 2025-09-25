@@ -29,7 +29,7 @@ function MoneyRequestReportTotalSpend({isEmptyTransactions, totalDisplaySpend, r
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.justifyContentEnd]}>
             {!isEmptyTransactions && (
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, styles.justifyContentBetween, styles.w100]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
                     <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, hasPendingAction && styles.opacitySemiTransparent]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}
