@@ -247,9 +247,7 @@ function getReportSubmissionDate(reportID: string): string | undefined {
     }
 
     // Find the action with type SUBMITTED
-    const submissionAction = Object.values(reportActions).find(
-        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED
-    );
+    const submissionAction = Object.values(reportActions).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 
     return submissionAction?.created;
 }
@@ -269,9 +267,9 @@ function getCustomFieldValue(policy: OnyxEntry<Policy>, accountID: number, field
 
     switch (fieldName.toLowerCase()) {
         case 'customfield1':
-            return employee.employeeUserID ?? '';
+            return employee.employeeUserID || '';
         case 'customfield2':
-            return employee.employeePayrollID ?? '';
+            return employee.employeePayrollID || '';
         default:
             return '';
     }
