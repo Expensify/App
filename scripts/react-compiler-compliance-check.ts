@@ -249,30 +249,35 @@ function getDistinctFileNames<T>(items: T[], getFile: (item: T) => string, files
     return Array.from(distinctFileNames);
 }
 
-function printFailureSummary({success, failures}: CompilerResults, successFileNames: string[], failedFileNames: string[]): void {
-    if (success.length > 0) {
-        logSuccess(`Successfully compiled ${success.length} files with React Compiler:`);
+function printFailureSummary({success, failures}: CompilerResults): void {
+    // const failedFileNames = getDistinctFileNames(Array.from(failures.values()), (f) => f.file, fileToCheck);
+
+    if (success.size > 0) {
+        log();
+        logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
     }
 
-    logError(`Failed to compile ${failedFileNames.length} files with React Compiler:`);
-    log('\n');
-    failedFileNames.forEach((file) => bold(file));
-    log('\n');
+    const tab = '    ';
+
+    const distinctFileNames = new Set<string>();
+    failures.forEach((failure) => {
+        distinctFileNames.add(failure.file);
+    });
+
+    log();
+    logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
+    log();
 
     // Print unique failures for the files that were checked
-    info('Detailed reasons for failures:');
-    log('\n');
-    failures
-        .filter((failure) => failedFileNames.includes(failure.file))
-        .forEach((failure) => {
-            const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-            bold(`${failure.file}${location}`);
-            if (failure.reason) {
-                note(`    ${failure.reason}`);
-            }
-        });
+    failures.forEach((failure) => {
+        const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
+        bold(`${failure.file}${location}`);
+        if (failure.reason) {
+            note(`${tab}${failure.reason}`);
+        }
+    });
 
-    log('\n');
+    log();
     logError('The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
 }
 
