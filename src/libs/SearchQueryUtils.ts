@@ -171,11 +171,11 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
+        const previousValueHasSameOp = queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq';
+        const nextValueHasSameOp = queryFilter.operator === 'eq' && queryFilters?.at(index + 1)?.operator === 'eq';
+
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if (
-            index !== 0 &&
-            ((queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq') || (queryFilter.operator === 'neq' && queryFilters.at(index - 1)?.operator === 'neq'))
-        ) {
+        if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
