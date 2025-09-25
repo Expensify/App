@@ -29,7 +29,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
@@ -105,7 +104,6 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -117,9 +115,8 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
-    const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
     const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
-
+    
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
@@ -221,7 +218,7 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (isAdmin && isDuplicatedWorkspaceEnabled) {
+            if (isAdmin) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
@@ -325,6 +322,7 @@ function WorkspacesListPage() {
             session?.email,
             session?.accountID,
             activePolicyID,
+            duplicateWorkspace?.policyID,
             translate,
             policies,
             fundList,
@@ -342,8 +340,6 @@ function WorkspacesListPage() {
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
             isRestrictedToPreferredWorkspace,
-            duplicateWorkspace?.policyID,
-            isDuplicatedWorkspaceEnabled,
         ],
     );
 
