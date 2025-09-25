@@ -111,13 +111,14 @@ freeTextFilter
     }
 
 standardFilter
-  = _ field:filterKey _ op:filterOperator _  values:identifier {
+  = _ neg:"-"? field:filterKey _ op:filterOperator _ values:identifier {
       expectingNestedQuote = false; nameOperator = false;
 
-      const key = field.name || field;
+      const key = field;
       let operator = op;
 
-      if (field.negated && nonNegatableKeys.has(key)) {
+      // Apply negation only when "-" is present and the key can be negated
+      if (neg && !nonNegatableKeys.has(key)) {
         if (operator === "eq") operator = "neq";
       }
 
@@ -168,11 +169,11 @@ key "key"
     )
 
 filterKey
-  = neg:"-"? k:key {
+  = k:key {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
-      return { name: k, negated: !!neg };
-}
-
+      return k;
+    }
+    
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier

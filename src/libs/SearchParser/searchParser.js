@@ -274,8 +274,8 @@ function peg$parse(input, options) {
   var peg$r11 = /^[,]/;
 
   var peg$e0 = peg$classExpectation([" ", "\t", "\r", "\n", "\xA0"], true, false);
-  var peg$e1 = peg$otherExpectation("key");
-  var peg$e2 = peg$literalExpectation("-", false);
+  var peg$e1 = peg$literalExpectation("-", false);
+  var peg$e2 = peg$otherExpectation("key");
   var peg$e3 = peg$otherExpectation("default key");
   var peg$e4 = peg$literalExpectation(",", false);
   var peg$e5 = peg$literalExpectation("date", true);
@@ -413,22 +413,23 @@ function peg$parse(input, options) {
       }
       return buildFilter("eq", "keyword", word);
     };
-  var peg$f4 = function(field, op, values) {
+  var peg$f4 = function(neg, field, op, values) {
       expectingNestedQuote = false; nameOperator = false;
 
-      const key = field.name || field;
+      const key = field;
       let operator = op;
 
-      if (field.negated && nonNegatableKeys.has(key)) {
+      // Apply negation only when "-" is present and the key can be negated
+      if (neg && !nonNegatableKeys.has(key)) {
         if (operator === "eq") operator = "neq";
       }
 
       return buildFilter(operator, key, values);
     };
-  var peg$f5 = function(neg, k) {
+  var peg$f5 = function(k) {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
-      return { name: k, negated: !!neg };
-};
+      return k;
+    };
   var peg$f6 = function(parts, empty) {
       const value = parts.flat().filter(Boolean).map((word) => {
         if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
@@ -826,20 +827,30 @@ function peg$parse(input, options) {
   }
 
   function peg$parsestandardFilter() {
-    var s0, s1, s2, s3, s4, s5, s6;
+    var s0, s1, s2, s3, s4, s5, s6, s7;
 
     s0 = peg$currPos;
     s1 = peg$parse_();
-    s2 = peg$parsefilterKey();
-    if (s2 !== peg$FAILED) {
-      s3 = peg$parse_();
-      s4 = peg$parsefilterOperator();
-      if (s4 !== peg$FAILED) {
-        s5 = peg$parse_();
-        s6 = peg$parseidentifier();
-        if (s6 !== peg$FAILED) {
+    if (input.charCodeAt(peg$currPos) === 45) {
+      s2 = peg$c0;
+      peg$currPos++;
+    } else {
+      s2 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e1); }
+    }
+    if (s2 === peg$FAILED) {
+      s2 = null;
+    }
+    s3 = peg$parsefilterKey();
+    if (s3 !== peg$FAILED) {
+      s4 = peg$parse_();
+      s5 = peg$parsefilterOperator();
+      if (s5 !== peg$FAILED) {
+        s6 = peg$parse_();
+        s7 = peg$parseidentifier();
+        if (s7 !== peg$FAILED) {
           peg$savedPos = s0;
-          s0 = peg$f4(s2, s4, s6);
+          s0 = peg$f4(s2, s3, s5, s7);
         } else {
           peg$currPos = s0;
           s0 = peg$FAILED;
@@ -985,34 +996,22 @@ function peg$parse(input, options) {
     peg$silentFails--;
     if (s0 === peg$FAILED) {
       s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$e1); }
+      if (peg$silentFails === 0) { peg$fail(peg$e2); }
     }
 
     return s0;
   }
 
   function peg$parsefilterKey() {
-    var s0, s1, s2;
+    var s0, s1;
 
     s0 = peg$currPos;
-    if (input.charCodeAt(peg$currPos) === 45) {
-      s1 = peg$c0;
-      peg$currPos++;
-    } else {
-      s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$e2); }
-    }
-    if (s1 === peg$FAILED) {
-      s1 = null;
-    }
-    s2 = peg$parsekey();
-    if (s2 !== peg$FAILED) {
+    s1 = peg$parsekey();
+    if (s1 !== peg$FAILED) {
       peg$savedPos = s0;
-      s0 = peg$f5(s1, s2);
-    } else {
-      peg$currPos = s0;
-      s0 = peg$FAILED;
+      s1 = peg$f5(s1);
     }
+    s0 = s1;
 
     return s0;
   }

@@ -18,7 +18,14 @@
 // Use the `generate-search-parser` and `generate-autocomplete-parser` scripts to regenerate parsers after modifications.
 }}
 // per-parser initializer (code executed before every parse).
-{ let autocomplete = null; }
+{ 
+  let autocomplete = null; 
+
+  // List fields where you cannot prefix it with "-" to negate it
+  const nonNegatableKeys = new Set([
+    "type", "keyword", "groupCurrency", "groupBy"
+  ]);
+}
 
 query = _ ranges:filterList? _ { return { autocomplete, ranges }; }
 
@@ -28,12 +35,15 @@ filterList
 filter = @(defaultFilter / freeTextFilter)
 
 defaultFilter
-  = _ key:filterKey _ op:filterOperator _ value:identifier? {
+  = _ neg:"-"? key:filterKey _ op:filterOperator _ value:identifier? {
       expectingNestedQuote = false; nameOperator = false; // Reset string parser
+
+      const isNegated = !!neg && !nonNegatableKeys.has(key);
 
       if (!value) {
         autocomplete = {
           key,
+          negated: isNegated,
           value: "",
           start: location().end.offset,
           length: 0,
@@ -43,13 +53,15 @@ defaultFilter
 
       autocomplete = {
         key,
+        negated: isNegated,
         ...value[value.length - 1],
       };
       return value
-        .filter((filter) => filter.length > 0)
-        .map((filter) => ({
+        .filter((v) => v.length > 0)
+        .map((v) => ({
           key,
-          ...filter,
+          negated: isNegated,
+          ...v,
         }));
     }
 
@@ -102,10 +114,10 @@ autocompleteKey "key"
     )
 
 filterKey
-  = neg:"-"? k:autocompleteKey {
+  = k:autocompleteKey {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
-}
+    }
 
 identifier
   = parts:(quotedString / alphanumeric)|1.., ","| empty:","? {

@@ -183,8 +183,8 @@ function peg$parse(input, options) {
   var peg$startRuleFunctions = { query: peg$parsequery };
   var peg$startRuleFunction = peg$parsequery;
 
-  var peg$c0 = ",";
-  var peg$c1 = "-";
+  var peg$c0 = "-";
+  var peg$c1 = ",";
   var peg$c2 = "date";
   var peg$c3 = "amount";
   var peg$c4 = "merchant";
@@ -271,9 +271,9 @@ function peg$parse(input, options) {
   var peg$r9 = /^[ \t\n\r\xA0a-zA-Z]/;
   var peg$r10 = /^[,]/;
 
-  var peg$e0 = peg$literalExpectation(",", false);
-  var peg$e1 = peg$otherExpectation("key");
-  var peg$e2 = peg$literalExpectation("-", false);
+  var peg$e0 = peg$literalExpectation("-", false);
+  var peg$e1 = peg$literalExpectation(",", false);
+  var peg$e2 = peg$otherExpectation("key");
   var peg$e3 = peg$literalExpectation("date", true);
   var peg$e4 = peg$literalExpectation("amount", true);
   var peg$e5 = peg$literalExpectation("merchant", true);
@@ -366,12 +366,15 @@ function peg$parse(input, options) {
 
   var peg$f0 = function(ranges) { return { autocomplete, ranges }; };
   var peg$f1 = function(filters) { return filters.filter(Boolean).flat(); };
-  var peg$f2 = function(key, op, value) {
+  var peg$f2 = function(neg, key, op, value) {
       expectingNestedQuote = false; nameOperator = false; // Reset string parser
+
+      const isNegated = !!neg && !nonNegatableKeys.has(key);
 
       if (!value) {
         autocomplete = {
           key,
+          negated: isNegated,
           value: "",
           start: location().end.offset,
           length: 0,
@@ -381,20 +384,22 @@ function peg$parse(input, options) {
 
       autocomplete = {
         key,
+        negated: isNegated,
         ...value[value.length - 1],
       };
       return value
-        .filter((filter) => filter.length > 0)
-        .map((filter) => ({
+        .filter((v) => v.length > 0)
+        .map((v) => ({
           key,
-          ...filter,
+          negated: isNegated,
+          ...v,
         }));
     };
   var peg$f3 = function() { autocomplete = null; };
-  var peg$f4 = function(neg, k) {
+  var peg$f4 = function(k) {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
-};
+    };
   var peg$f5 = function(parts, empty) {
       const ends = location();
       const value = parts.flat().filter(Boolean); // Filter out undefined values returned by the predicate
@@ -708,22 +713,32 @@ function peg$parse(input, options) {
   }
 
   function peg$parsedefaultFilter() {
-    var s0, s1, s2, s3, s4, s5, s6;
+    var s0, s1, s2, s3, s4, s5, s6, s7;
 
     s0 = peg$currPos;
     s1 = peg$parse_();
-    s2 = peg$parsefilterKey();
-    if (s2 !== peg$FAILED) {
-      s3 = peg$parse_();
-      s4 = peg$parsefilterOperator();
-      if (s4 !== peg$FAILED) {
-        s5 = peg$parse_();
-        s6 = peg$parseidentifier();
-        if (s6 === peg$FAILED) {
-          s6 = null;
+    if (input.charCodeAt(peg$currPos) === 45) {
+      s2 = peg$c0;
+      peg$currPos++;
+    } else {
+      s2 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e0); }
+    }
+    if (s2 === peg$FAILED) {
+      s2 = null;
+    }
+    s3 = peg$parsefilterKey();
+    if (s3 !== peg$FAILED) {
+      s4 = peg$parse_();
+      s5 = peg$parsefilterOperator();
+      if (s5 !== peg$FAILED) {
+        s6 = peg$parse_();
+        s7 = peg$parseidentifier();
+        if (s7 === peg$FAILED) {
+          s7 = null;
         }
         peg$savedPos = s0;
-        s0 = peg$f2(s2, s4, s6);
+        s0 = peg$f2(s2, s3, s5, s7);
       } else {
         peg$currPos = s0;
         s0 = peg$FAILED;
@@ -744,11 +759,11 @@ function peg$parse(input, options) {
     s2 = peg$parseidentifier();
     if (s2 === peg$FAILED) {
       if (input.charCodeAt(peg$currPos) === 44) {
-        s2 = peg$c0;
+        s2 = peg$c1;
         peg$currPos++;
       } else {
         s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$e0); }
+        if (peg$silentFails === 0) { peg$fail(peg$e1); }
       }
     }
     if (s2 !== peg$FAILED) {
@@ -901,34 +916,22 @@ function peg$parse(input, options) {
     peg$silentFails--;
     if (s0 === peg$FAILED) {
       s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$e1); }
+      if (peg$silentFails === 0) { peg$fail(peg$e2); }
     }
 
     return s0;
   }
 
   function peg$parsefilterKey() {
-    var s0, s1, s2;
+    var s0, s1;
 
     s0 = peg$currPos;
-    if (input.charCodeAt(peg$currPos) === 45) {
-      s1 = peg$c1;
-      peg$currPos++;
-    } else {
-      s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$e2); }
-    }
-    if (s1 === peg$FAILED) {
-      s1 = null;
-    }
-    s2 = peg$parseautocompleteKey();
-    if (s2 !== peg$FAILED) {
+    s1 = peg$parseautocompleteKey();
+    if (s1 !== peg$FAILED) {
       peg$savedPos = s0;
-      s0 = peg$f4(s1, s2);
-    } else {
-      peg$currPos = s0;
-      s0 = peg$FAILED;
+      s1 = peg$f4(s1);
     }
+    s0 = s1;
 
     return s0;
   }
@@ -947,11 +950,11 @@ function peg$parse(input, options) {
       s2.push(s3);
       s3 = peg$currPos;
       if (input.charCodeAt(peg$currPos) === 44) {
-        s4 = peg$c0;
+        s4 = peg$c1;
         peg$currPos++;
       } else {
         s4 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$e0); }
+        if (peg$silentFails === 0) { peg$fail(peg$e1); }
       }
       if (s4 !== peg$FAILED) {
         s4 = peg$parsequotedString();
@@ -976,11 +979,11 @@ function peg$parse(input, options) {
     }
     if (s1 !== peg$FAILED) {
       if (input.charCodeAt(peg$currPos) === 44) {
-        s2 = peg$c0;
+        s2 = peg$c1;
         peg$currPos++;
       } else {
         s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$e0); }
+        if (peg$silentFails === 0) { peg$fail(peg$e1); }
       }
       if (s2 === peg$FAILED) {
         s2 = null;
@@ -2881,7 +2884,14 @@ function peg$parse(input, options) {
     return s0;
   }
 
- let autocomplete = null; 
+ 
+  let autocomplete = null; 
+
+  // List fields where you cannot prefix it with "-" to negate it
+  const nonNegatableKeys = new Set([
+    "type", "keyword", "groupCurrency", "groupBy"
+  ]);
+
  
   let nameOperator = false;
   let expectingNestedQuote = false;
