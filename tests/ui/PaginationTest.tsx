@@ -22,7 +22,9 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(120000);
 
-jest.mock('@libs/BootSplash');
+jest.mock('@libs/BootSplash', () => ({
+    hide: jest.fn().mockResolvedValue(undefined),
+}));
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
