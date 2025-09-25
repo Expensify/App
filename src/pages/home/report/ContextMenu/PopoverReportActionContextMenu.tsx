@@ -14,9 +14,9 @@ import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromRep
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
-import {deleteReportComment} from '@libs/actions/Report';
+import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions} from '@src/styles';
@@ -312,6 +312,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             } else {
                 deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, undefined, undefined, isChatIOUReportArchived);
             }
+        } else if (isReportPreviewAction(reportAction)) {
+            deleteAppReport(reportAction.childReportID);
         } else if (reportAction) {
             InteractionManager.runAfterInteractions(() => {
                 deleteReportComment(reportIDRef.current, reportAction, isReportArchived, isOriginalReportArchived);
