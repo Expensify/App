@@ -16,6 +16,9 @@ jobs:
   prettier:
     uses: ./.github/workflows/prettier.yml
 
+  react-compiler-compliance:
+    uses: ./.github/workflows/react-compiler-compliance.yml
+
   test:
     uses: ./.github/workflows/test.yml
     secrets: inherit

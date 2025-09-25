@@ -1,7 +1,6 @@
 name: React Compiler Compliance Check
 
 on:
-  workflow_call:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
