@@ -329,7 +329,6 @@ class Git {
                 pull_number: context.payload.pull_request?.number ?? 0,
             });
 
-            console.log(changedFiles);
             return changedFiles.map((file) => file.filename);
         }
 
