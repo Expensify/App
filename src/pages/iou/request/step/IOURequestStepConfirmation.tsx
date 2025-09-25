@@ -722,6 +722,7 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
+                    receipt: isManualDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                 },
                 backToReport,
             });
@@ -739,6 +740,7 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            receiptFiles,
             backToReport,
         ],
     );
@@ -1113,7 +1115,7 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
