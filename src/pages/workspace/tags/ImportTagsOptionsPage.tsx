@@ -103,25 +103,25 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const overrideMultiTagPrompt = (
         <Text>
             {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
-                <>
-                    {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
-                    <TextLink
-                        onPress={() => {
-                            if (hasIndependentTags && isMultiLevelTags) {
-                                downloadMultiLevelIndependentTagsCSV(policyID, () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            } else {
-                                downloadTagsCSV(policyID, () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            }
-                        }}
-                    >
-                        {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
-                    </TextLink>
-                    {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
-                </>
+            <>
+                {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
+                <TextLink
+                    onPress={() => {
+                        if (hasIndependentTags && isMultiLevelTags) {
+                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                        } else {
+                            downloadTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                        }
+                    }}
+                >
+                    {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
+                </TextLink>
+                {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
+            </>
         </Text>
     );
 
