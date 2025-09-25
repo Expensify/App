@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {requestUnlockAccount} from '@userActions/User';
 import ROUTES from '@src/ROUTES';
 
 function UnlockAccountPage() {
@@ -30,7 +31,10 @@ function UnlockAccountPage() {
                     shouldShowButton
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('unlockAccountPage.chatWithConcierge')}
-                    onButtonPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
+                    onButtonPress={() => {
+                        requestUnlockAccount();
+                        Navigation.navigate(ROUTES.CONCIERGE);
+                    }}
                     containerStyle={styles.h100}
                 />
             </ScrollView>
