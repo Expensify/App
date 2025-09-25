@@ -18,7 +18,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Retrieve PR details
-        id: retrieve-PR
+        id: pr-data
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             # Triggered manually
@@ -39,7 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ steps.pr-data.outputs.HEAD_SHA }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -47,18 +47,8 @@ jobs:
       - name: Check if English translations were modified
         id: check-en-changes
         run: |
-          if [[ "${{ github.event.action }}" == "opened" ]]; then
-            # For newly opened PRs, check if en.ts was changed in the entire PR
-            echo "🆕 PR was just opened - checking entire PR for en.ts changes"
-            if gh pr diff ${{ github.event.pull_request.number }} --name-only | grep -q "^src/languages/en\.ts$"; then
-              echo "EN_CHANGED=true" >> "$GITHUB_OUTPUT"
-              echo "✅ English translations were modified in this PR - will generate translations"
-            else
-              echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
-              echo "⏭️ English translations were not modified in this PR - skipping translation generation"
-            fi
-          else
-            # For synchronize events, only check the new commits that were just pushed
+          if [[ "${{ github.event.action }}" == "synchronize" ]]; then
+            # For PR synchronize events only - check new commits
             echo "🔄 PR was updated - checking only the new commits for en.ts changes"
             git fetch --no-tags --depth=1 --no-recurse-submodules origin ${{ github.event.before }}
             if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "^src/languages/en\.ts$"; then
@@ -67,6 +57,16 @@ jobs:
             else
               echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
               echo "⏭️ English translations were not modified in the new commits - skipping translation generation"
+            fi
+          else
+            # For opened PRs and manual dispatch - check entire PR
+            echo "🆕 Checking entire PR for en.ts changes"
+            if gh pr diff ${{ steps.pr-data.outputs.PR_NUMBER }} --name-only | grep -q "^src/languages/en\.ts$"; then
+              echo "EN_CHANGED=true" >> "$GITHUB_OUTPUT"
+              echo "✅ English translations were modified in this PR - will generate translations"
+            else
+              echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
+              echo "⏭️ English translations were not modified in this PR - skipping translation generation"
             fi
           fi
         env:
