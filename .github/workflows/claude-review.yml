@@ -1,0 +1,49 @@
+name: PR Reviews with Claude Code
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+        with:
+          fetch-depth: 1
+
+      - name: Filter paths
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+            filters: |
+              code:
+                - 'src/**'
+              docs:
+                - 'docs/**/*.md'
+                - 'docs/**/*.csv'
+
+      - name: Run Claude Code (code)
+        if: steps.filter.outputs.code == 'true'
+        uses: anthropics/claude-code-action@7e5b42b197976d16cf1c1994f360e1bf224f5a8f # v1.0.124
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*)"
+
+      - name: Run Claude Code (docs)
+        if: steps.filter.outputs.docs == 'true'
+        uses: anthropics/claude-code-action@7e5b42b197976d16cf1c1994f360e1bf224f5a8f # v1.0.124
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*)"
