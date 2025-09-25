@@ -84,7 +84,7 @@ function runCompilerHealthcheck(src?: string): CompilerResults {
     try {
         let srcString = src;
         if (src) {
-            srcString = src.startsWith('"') ? src : `"${src}"`;
+            srcString = src.startsWith('"') ? src : `"${src}`;
             srcString = srcString.endsWith('"') ? srcString : `${srcString}"`;
         }
 
