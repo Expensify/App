@@ -330,7 +330,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             }
                             Keyboard.dismiss();
                             InteractionManager.runAfterInteractions(() => {
-                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
+                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
                             });
                         }}
                         ref={listRef}

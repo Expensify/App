@@ -23,7 +23,7 @@ import Parser from '@libs/Parser';
 import {getTagLists} from '@libs/PolicyUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {getParsedComment, getReportName, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getChildTransactions, getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -69,6 +69,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const isCategoryRequired = !!policy?.requiresCategory;
     const childTransactions = getChildTransactions(transactionID);
+    const reportName = getReportName(report, policy);
 
     const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
@@ -200,6 +201,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             }}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
+                        />
+                        <MenuItemWithTopDescription
+                            key={translate('common.report')}
+                            description={translate('common.report')}
+                            title={reportName}
+                            numberOfLinesTitle={2}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            interactive={false}
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>

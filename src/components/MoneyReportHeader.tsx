@@ -71,6 +71,7 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
+    getOriginalTransactionWithSplitInfo,
     hasDuplicateTransactions,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -254,6 +255,7 @@ function MoneyReportHeader({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isOnHold = isOnHoldTransactionUtils(transaction);
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -967,7 +969,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
-            text: translate('iou.split'),
+            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {

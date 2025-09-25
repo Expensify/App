@@ -25,6 +25,7 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage, rejectMoneyRequestReason} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
+    getOriginalTransactionWithSplitInfo,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
@@ -105,6 +106,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
+    const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
@@ -295,7 +297,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
-            text: translate('iou.split'),
+            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
