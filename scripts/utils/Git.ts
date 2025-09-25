@@ -349,6 +349,7 @@ class Git {
             }
 
             logError('Could not determine changed files:', error);
+            throw error;
         }
     }
 }

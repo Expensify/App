@@ -77,48 +77,45 @@ async function checkChangedFiles(remote: string): Promise<boolean> {
         }
 
         logError('Could not determine changed files:', error);
+        return false;
     }
 }
 
 function runCompilerHealthcheck(src?: string): CompilerResults {
-    try {
-        let srcString = src;
-        if (src) {
-            srcString = srcString.startsWith('"') ? src : `"${src}`;
-            srcString = srcString.endsWith('"') ? srcString : `${srcString}"`;
-        }
-
-        const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --json --verbose `;
-        const output = execSync(command, {
-            encoding: 'utf8',
-            cwd: process.cwd(),
-        });
-
-        // Parse and then normalize via Set/Map to ensure true uniqueness
-        const parsed = parseCombinedOutput(output);
-
-        // Use Set to deduplicate success entries
-        const successSet = new Set(parsed.success);
-
-        // Use Map keyed by unique file key to deduplicate failures
-        const failureMap = new Map<string, CompilerFailure>();
-        parsed.failures.forEach((failure) => {
-            const key = getUniqueFileKey(failure);
-            // Prefer the first occurrence that has a reason
-            const existing = failureMap.get(key);
-            if (!existing) {
-                failureMap.set(key, failure);
-                return;
-            }
-            if (!existing.reason && failure.reason) {
-                failureMap.set(key, failure);
-            }
-        });
-
-        return {success: successSet, failures: failureMap};
-    } catch (error) {
-        logError('Failed to run React Compiler healthcheck:', error);
+    let srcString = src;
+    if (srcString) {
+        srcString = srcString?.startsWith('"') ? srcString : `"${srcString}`;
+        srcString = srcString?.endsWith('"') ? srcString : `${srcString}"`;
     }
+
+    const command = `npx react-compiler-healthcheck ${src ? `--src ${srcString}` : ''} --json --verbose `;
+    const output = execSync(command, {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+    });
+
+    // Parse and then normalize via Set/Map to ensure true uniqueness
+    const parsed = parseCombinedOutput(output);
+
+    // Use Set to deduplicate success entries
+    const successSet = new Set(parsed.success);
+
+    // Use Map keyed by unique file key to deduplicate failures
+    const failureMap = new Map<string, CompilerFailure>();
+    parsed.failures.forEach((failure) => {
+        const key = getUniqueFileKey(failure);
+        // Prefer the first occurrence that has a reason
+        const existing = failureMap.get(key);
+        if (!existing) {
+            failureMap.set(key, failure);
+            return;
+        }
+        if (!existing.reason && failure.reason) {
+            failureMap.set(key, failure);
+        }
+    });
+
+    return {success: successSet, failures: failureMap};
 }
 
 function parseCombinedOutput(output: string): CompilerResults {
