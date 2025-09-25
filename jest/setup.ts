@@ -115,14 +115,14 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
 jest.mock('../src/hooks/useLazyAsset.ts', () => ({
     useMemoizedLazyAsset: jest.fn(() => {
         // Return a mock asset immediately to avoid async loading in tests
-        const mockAsset = { 
-            src: 'mock-icon', 
+        const mockAsset = {
+            src: 'mock-icon',
             testID: 'mock-asset',
             // Add common icon properties that tests might expect
             height: 20,
             width: 20,
         };
-        
+
         return {
             asset: mockAsset,
             isLoaded: true,
@@ -131,7 +131,7 @@ jest.mock('../src/hooks/useLazyAsset.ts', () => ({
         };
     }),
     default: jest.fn(() => {
-        const mockAsset = { src: 'mock-icon', testID: 'mock-asset' };
+        const mockAsset = {src: 'mock-icon', testID: 'mock-asset'};
         return {
             asset: mockAsset,
             isLoaded: true,
@@ -150,7 +150,7 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
             height: 20,
             width: 20,
         };
-        return Promise.resolve({ default: mockIcon });
+        return Promise.resolve({default: mockIcon});
     }),
 }));
 
