@@ -52,7 +52,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const isLoadingReportFromOnyx = isLoadingOnyxValue(reportResult);
-    const shouldWaitForReportSync = !isLoadingReportFromOnyx && !report;
+    const shouldWaitForReportSync = !isLoadingReportFromOnyx && !report?.reportID;
 
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
