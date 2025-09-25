@@ -3580,7 +3580,7 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pending',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspended',
                 },
-                invitationFailure: 'Failed to invite members to Uber for Business',
+                invitationFailure: 'Failed to invite member to Uber for Business',
                 autoInvite: 'Invite new workspace members to Uber for Business',
                 autoRemove: 'Deactivate removed workspace members from Uber for Business',
                 bannerTitle: 'Expensify + Uber for Business',
