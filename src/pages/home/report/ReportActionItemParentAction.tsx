@@ -131,7 +131,8 @@ function ReportActionItemParentAction({
             }
             return ancestorReportNameValuePairs;
         },
-    });
+        [ancestorReportNameValuePairsSelector],
+    );
 
     return (
         <View style={[styles.pRelative]}>
