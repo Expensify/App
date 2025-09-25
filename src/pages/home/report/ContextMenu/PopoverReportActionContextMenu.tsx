@@ -309,6 +309,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
             }
         } else if (reportAction) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 deleteReportComment(reportIDRef.current, reportAction, isReportArchived, isOriginalReportArchived);
             });

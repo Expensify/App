@@ -444,6 +444,7 @@ function WorkspacesListPage() {
         const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
         if (duplicateWorkspaceIndex > 0) {
             flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
             });
