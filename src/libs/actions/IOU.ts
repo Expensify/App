@@ -4429,7 +4429,6 @@ function getUpdateMoneyRequestParams(
     if (
         policy &&
         isPaidGroupPolicy(policy) &&
-        !isSelfDM(iouReport) &&
         !isInvoice &&
         updatedTransaction &&
         (hasModifiedTag ||
@@ -4457,6 +4456,7 @@ function getUpdateMoneyRequestParams(
             policyCategories ?? {},
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
+            isSelfDM(iouReport)
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({
