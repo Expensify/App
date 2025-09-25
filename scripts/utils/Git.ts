@@ -273,7 +273,7 @@ class Git {
     static getMainBaseCommitHash(remote: string): string {
         // Fetch the main branch from the specified remote to ensure it's available
         try {
-            execSync(`git fetch ${remote} main --no-tags -q`, {encoding: 'utf8'});
+            execSync(`git fetch ${remote} main --no-tags --depth=1 -q`, {encoding: 'utf8'});
         } catch (error) {
             throw new Error(GIT_ERRORS.FAILED_TO_FETCH_FROM_REMOTE);
         }
