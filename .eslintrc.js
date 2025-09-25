@@ -13,6 +13,7 @@ const restrictedImportPaths = [
             'Pressable',
             'Text',
             'ScrollView',
+            'ActivityIndicator',
             'Animated',
             'findNodeHandle',
         ],
@@ -23,6 +24,7 @@ const restrictedImportPaths = [
             "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
+            "For 'ActivityIndicator', please use '@components/ActivityIndicator' instead.",
             "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
         ].join('\n'),
     },
@@ -96,10 +98,6 @@ const restrictedImportPaths = [
         name: 'lodash',
         importNames: ['isEqual'],
         message: "Please use 'deepEqual' from 'fast-equals' instead.",
-    },
-    {
-        name: 'react-native-animatable',
-        message: "Please use 'react-native-reanimated' instead.",
     },
     {
         name: 'react-native-onyx',
@@ -244,6 +242,19 @@ module.exports = {
         'react/prop-types': 'off',
         'react/jsx-key': 'error',
         'react/jsx-no-constructed-context-values': 'error',
+        'react/forbid-component-props': [
+            'error',
+            {
+                forbid: [
+                    {
+                        propName: 'fsClass',
+                        allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
+                        message:
+                            "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components.",
+                    },
+                ],
+            },
+        ],
         'react-native-a11y/has-valid-accessibility-descriptors': [
             'error',
             {

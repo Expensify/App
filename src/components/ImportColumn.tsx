@@ -192,7 +192,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                 <Text
                     numberOfLines={2}
                     ellipsizeMode="tail"
-                    style={[styles.flex1, styles.flexWrap]}
+                    style={[styles.flex1, styles.flexWrap, styles.breakAll]}
                 >
                     {columnValuesString}
                 </Text>
