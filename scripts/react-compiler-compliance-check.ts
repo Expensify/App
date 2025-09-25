@@ -23,11 +23,6 @@ const IS_CI = process.env.CI === 'true';
 
 type CompilerResults = {
     success: string[];
-    failure: string[];
-};
-
-type DetailedCompilerResults = {
-    success: string[];
     failures: CompilerFailure[];
 };
 
@@ -45,7 +40,7 @@ function check(fileToCheck?: string[], shouldGenerateReport = false) {
         info('Running React Compiler check for all files...');
     }
 
-    const results = runCompilerHealthcheck(true, fileToCheck?.join(' '));
+    const results = runCompilerHealthcheck(fileToCheck?.join(' '));
     const {success, failures} = results;
 
     const successFileNames = getDistinctFileNames(success, (s) => s, fileToCheck);
@@ -91,27 +86,21 @@ function checkChangedFiles(remote: string): boolean {
     }
 }
 
-function runCompilerHealthcheck(detailed: false, src?: string): CompilerResults;
-function runCompilerHealthcheck(detailed: true, src?: string): DetailedCompilerResults;
-function runCompilerHealthcheck(detailed: boolean, src?: string): CompilerResults | DetailedCompilerResults {
+function runCompilerHealthcheck(src?: string): CompilerResults {
     try {
-        const output = execSync(`npx react-compiler-healthcheck --json ${detailed ? '--verbose' : ''} ${src ?? '--src'}`, {
+        const output = execSync(`npx react-compiler-healthcheck --json --verbose ${src ?? '--src'}`, {
             encoding: 'utf8',
             cwd: process.cwd(),
         });
 
-        if (detailed) {
-            return parseCombinedOutput(output);
-        }
-
-        return JSON.parse(output) as CompilerResults;
+        return parseCombinedOutput(output);
     } catch (error) {
         logError('Failed to run React Compiler healthcheck:', error);
         throw error;
     }
 }
 
-function parseCombinedOutput(output: string): DetailedCompilerResults {
+function parseCombinedOutput(output: string): CompilerResults {
     const lines = output.split('\n');
     const success: string[] = [];
     const failure = new Map<string, CompilerFailure>();
@@ -260,7 +249,7 @@ function getDistinctFileNames<T>(items: T[], getFile: (item: T) => string, files
     return Array.from(distinctFileNames);
 }
 
-function printFailureSummary({success, failures}: DetailedCompilerResults, successFileNames: string[], failedFileNames: string[]): void {
+function printFailureSummary({success, failures}: CompilerResults, successFileNames: string[], failedFileNames: string[]): void {
     if (success.length > 0) {
         logSuccess(`Successfully compiled ${success.length} files with React Compiler:`);
     }
@@ -287,7 +276,7 @@ function printFailureSummary({success, failures}: DetailedCompilerResults, succe
     logError('The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
 }
 
-function generateReport(results: DetailedCompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
+function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
     log('\n');
     info('Creating React Compiler Compliance Check report:');
 
