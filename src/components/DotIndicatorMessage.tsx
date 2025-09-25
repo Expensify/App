@@ -69,7 +69,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 <>
                     <Text
                         key={index}
-                        style={styles.offlineFeedback.text}
+                        style={styles.offlineFeedbackText}
                     >
                         <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translate('iou.error.receiptFailureMessage')}</Text>
                         <TextLink
@@ -117,13 +117,13 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View style={styles.offlineFeedback.errorDot}>
+            <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
-            <View style={styles.offlineFeedback.textContainer}>{uniqueMessages.map(renderMessage)}</View>
+            <View style={styles.offlineFeedbackTextContainer}>{uniqueMessages.map(renderMessage)}</View>
         </View>
     );
 }

@@ -327,7 +327,7 @@ function WorkspacesListPage() {
                                 layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
-                                style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
+                                style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
                                 isDefault={isDefault}
                                 isLoadingBill={isLoadingBill}
                                 resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
@@ -350,7 +350,7 @@ function WorkspacesListPage() {
             styles.mh5,
             styles.ph5,
             styles.hoveredComponentBG,
-            styles.offlineFeedback.deleted,
+            styles.offlineFeedbackDeleted,
             loadingSpinnerIconIndex,
             shouldCalculateBillNewDot,
             isSupportalAction,

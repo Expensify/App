@@ -11,10 +11,10 @@ function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowD
     return (
         <Text
             numberOfLines={1}
-            style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+            style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
         >
             {processedOwnerName.length !== 0
-                ? EmojiUtils.getProcessedText(processedOwnerName, [styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}, styles.emojisWithTextFontFamily])
+                ? EmojiUtils.getProcessedText(processedOwnerName, [styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}, styles.emojisWithTextFontFamily])
                 : ownerName}
         </Text>
     );
