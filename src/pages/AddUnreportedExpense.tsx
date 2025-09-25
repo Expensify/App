@@ -225,6 +225,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         return newIds;
                     });
                 }}
+                isSelected={(item) => selectedIds.has(item.transactionID)}
                 shouldShowTextInput={shouldShowTextInput}
                 textInputValue={searchValue}
                 textInputLabel={shouldShowTextInput ? translate('iou.findMerchant') : undefined}
