@@ -5,10 +5,10 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
 
 type UserTypingEventListenerProps = {
     /** The report currently being looked at */
@@ -31,7 +31,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             didSubscribeToReportTypingEvents.current = false;
             // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(reportID);
+                unsubscribeFromReportChannel(reportID);
             });
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -55,7 +55,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
                 // eslint-disable-next-line deprecation/deprecation
                 interactionTask = InteractionManager.runAfterInteractions(() => {
-                    Report.subscribeToReportTypingEvents(reportID);
+                    subscribeToReportTypingEvents(reportID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
             }
@@ -66,7 +66,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
                 didSubscribeToReportTypingEvents.current = false;
                 // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
-                    Report.unsubscribeFromReportChannel(reportID);
+                    unsubscribeFromReportChannel(reportID);
                 });
             }
         }
