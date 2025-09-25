@@ -27,6 +27,7 @@ jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
+jest.mock('@libs/BootSplash');
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
