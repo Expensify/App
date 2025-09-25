@@ -153,9 +153,7 @@ function SignInPageLayout({
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View
-                        style={[styles.flex1, styles.flexColumn, isMobileSafari() ? styles.overflowHidden : {}, StyleUtils.getMinimumHeight(backgroundImageHeight)]}
-                    >
+                    <View style={[styles.flex1, styles.flexColumn, isMobileSafari() ? styles.overflowHidden : {}, StyleUtils.getMinimumHeight(backgroundImageHeight)]}>
                         <View style={[styles.pAbsolute, styles.b0, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
                             <BackgroundImage
                                 isSmallScreen
