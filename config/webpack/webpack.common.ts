@@ -168,7 +168,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             }),
 
             // This allows us to interactively inspect JS bundle contents
-            new BundleAnalyzerPlugin(),
+            ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
         ],
         module: {
             rules: [
