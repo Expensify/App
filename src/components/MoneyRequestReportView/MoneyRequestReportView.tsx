@@ -116,6 +116,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
     }, [reportID]);
 
