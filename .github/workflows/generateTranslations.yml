@@ -17,15 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
     steps:
-      # v4
-      - name: Checkout
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
       - name: Extract PR information for manual dispatch
         if: github.event_name == 'workflow_dispatch'
         id: extract-pr-info
@@ -36,6 +27,15 @@ jobs:
           echo "PR_HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      # v4
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
 
       - name: Check if English translations were modified
         id: check-en-changes
