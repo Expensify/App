@@ -1,20 +1,22 @@
-// This was taken from 'react-native-reanimated' Animated.FlatList in order to implement a custom CellRendererComponent
-// This should be updated when the original implementation updates
+/**
+ * This is a copy of the FlatList implementation from 'react-native-reanimated' in order to implement a custom CellRendererComponent.
+ * This should be updated when the original implementation updates
+ * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
+ */
 import React, {forwardRef, useRef} from 'react';
 import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
 import {FlatList} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
 import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
+import {createAnimatedComponent} from 'react-native-reanimated/lib/typescript/createAnimatedComponent';
 
-// eslint-disable-next-line deprecation/deprecation
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+const AnimatedFlatList = createAnimatedComponent(FlatList);
 
-type CellRendererProps<T> = RNCellRendererProps<T>;
-type CellRendererComponentProps<T> = React.ComponentType<CellRendererProps<T>> | null | undefined;
+type CellRendererComponentProps<T> = React.ComponentType<RNCellRendererProps<T>> | null | undefined;
 
 const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRendererComponentProps<Item>, itemLayoutAnimationRef?: React.RefObject<ILayoutAnimationBuilder | undefined>) => {
     // Make CellRendererComponent specifically use the 'Item' type from its parent scope
-    function CellRendererComponent(props: CellRendererProps<Item>) {
+    function CellRendererComponent(props: RNCellRendererProps<Item>) {
         return (
             <Animated.View
                 // TODO TYPESCRIPT This is temporary cast is to get rid of .d.ts file.
@@ -101,7 +103,6 @@ function FlatListForwardRefRender<Item = any>(props: CustomAnimatedFlatListProps
     );
 }
 
-/** This is a copy of the Animated.Flatlist implementation to implement a custom CellRendererComponent */
 const CustomAnimatedFlatList = forwardRef(FlatListForwardRefRender) as <
     // We need explicit any here, because this is the exact same type that is used in React Native types.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
