@@ -805,7 +805,7 @@ function handleBulkPayItemSelected(
     isUserValidated: boolean | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void,
 ) {
-     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
+    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
@@ -819,7 +819,6 @@ function handleBulkPayItemSelected(
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
-
 
     if (!!selectedPolicy || shouldSelectPaymentMethod) {
         if (!isUserValidated) {
