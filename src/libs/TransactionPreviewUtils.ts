@@ -43,7 +43,6 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
