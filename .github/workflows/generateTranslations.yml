@@ -23,15 +23,19 @@ jobs:
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "::notice::🔧 Manual workflow dispatch triggered"
             PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number,baseRefName,headRefOid)
-            echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')" >> "$GITHUB_OUTPUT"
-            echo "BASE_REF=$(echo "$PR_INFO" | jq -r '.baseRefName')" >> "$GITHUB_OUTPUT"
-            echo "HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')" >> "$GITHUB_OUTPUT"
+            {
+              echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')"
+              echo "BASE_REF=$(echo "$PR_INFO" | jq -r '.baseRefName')"
+              echo "HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')"
+            } >> "$GITHUB_OUTPUT"
             echo "::notice::✅ Processing PR #$(echo "$PR_INFO" | jq -r '.number')"
           else
             echo "::notice::🤖 Automatic PR trigger activated"
-            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
-            echo "BASE_REF=${{ github.event.pull_request.base.ref }}" >> "$GITHUB_OUTPUT"
-            echo "HEAD_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+            {
+              echo "PR_NUMBER=${{ github.event.pull_request.number }}"
+              echo "BASE_REF=${{ github.event.pull_request.base.ref }}"
+              echo "HEAD_SHA=${{ github.event.pull_request.head.sha }}"
+            } >> "$GITHUB_OUTPUT"
             echo "::notice::✅ Processing PR #${{ github.event.pull_request.number }}"
           fi
         env:
