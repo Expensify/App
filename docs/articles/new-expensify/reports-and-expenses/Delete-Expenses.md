@@ -62,3 +62,5 @@ Expenses tied to company cards without the **Allow deleting transactions** setti
 
 No, once a report is approved or paid, it cannot be reopened. Only reports in a **Closed** or **Processing** state can be reopened to delete the expenses.
 
+## Can Expensify fully delete expenses for me?
+
