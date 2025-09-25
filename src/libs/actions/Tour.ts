@@ -11,6 +11,7 @@ function startTestDrive(
     hasUserBeenAddedToNudgeMigration: boolean,
     isUserPaidPolicyMember: boolean,
 ) {
+    // eslint-disable-next-line deprecation/deprecation
     InteractionManager.runAfterInteractions(() => {
         if (
             hasUserBeenAddedToNudgeMigration ||
