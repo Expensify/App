@@ -5219,9 +5219,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 12,
             minHeight: '100%',
         },
-        wideRHPMoneyRequestReceiptViewScrollView: {
-            scrollbarGutter: 'stable both-edges',
-        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>

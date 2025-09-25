@@ -17,6 +17,7 @@ function Image({
     style,
     loadingIconSize,
     loadingIndicatorStyles,
+    imageWidthToCalculateHeight,
     ...forwardedProps
 }: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
@@ -24,6 +25,21 @@ function Image({
     const session = useSession();
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
+
+    const aspectRatioStyle = useMemo(() => {
+        if (!shouldSetAspectRatioInStyle || !aspectRatio) {
+            return {};
+        }
+
+        if (!!imageWidthToCalculateHeight && typeof aspectRatio === 'number') {
+            return {
+                width: '100%',
+                height: imageWidthToCalculateHeight / aspectRatio,
+            };
+        }
+
+        return {aspectRatio, height: 'auto'};
+    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight]);
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
@@ -153,14 +169,14 @@ function Image({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, shouldSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
+            style={[style, aspectRatioStyle, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
         />
     );
 }
 
 function imagePropsAreEqual(prevProps: ImageProps, nextProps: ImageProps) {
-    return prevProps.source === nextProps.source;
+    return prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight;
 }
 
 const ImageWithOnyx = React.memo(Image, imagePropsAreEqual);

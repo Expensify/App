@@ -2,6 +2,7 @@ import delay from 'lodash/delay';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {LayoutChangeEvent} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
@@ -21,6 +22,9 @@ type ImageWithSizeLoadingProps = {
 
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 } & ImageProps;
 
 function ImageWithLoading({
@@ -32,6 +36,7 @@ function ImageWithLoading({
     loadingIndicatorStyles,
     resizeMode,
     onLoad,
+    onLayout,
     ...rest
 }: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
@@ -74,7 +79,10 @@ function ImageWithLoading({
     }, [isLoading]);
 
     return (
-        <View style={[styles.w100, styles.h100, containerStyles]}>
+        <View
+            style={[styles.w100, styles.h100, containerStyles]}
+            onLayout={onLayout}
+        >
             <Image
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}

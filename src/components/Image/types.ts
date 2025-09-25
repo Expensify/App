@@ -66,6 +66,9 @@ type ImageOwnProps = BaseImageProps & {
      *  cf https://github.com/Expensify/App/issues/51888
      */
     waitForSession?: () => void;
+
+    /** If you want to calculate the image height dynamically instead of using aspectRatio, pass the width in this property */
+    imageWidthToCalculateHeight?: number;
 };
 
 type ImageProps = ImageOwnProps;

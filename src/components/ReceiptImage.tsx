@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +14,9 @@ import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import type {TransactionListItemType} from './SelectionList/types';
 import ThumbnailImage from './ThumbnailImage';
+
+// It is used to avoid updating the image width in a loop.
+const MIN_UPDATE_WIDTH_DIFF = 1000;
 
 type Style = {height: number; borderRadius: number; margin: number};
 
@@ -140,6 +143,8 @@ function ReceiptImage({
     onLoad,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
+    const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
+    const lastUpdateWidthTimestampRef = useRef(new Date().getTime());
 
     if (isEmptyReceipt) {
         return (
@@ -209,6 +214,12 @@ function ReceiptImage({
 
     return (
         <ImageWithLoading
+            onLayout={(e) => {
+                if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
+                    setReceiptImageWidth(e.nativeEvent.layout.width);
+                }
+                lastUpdateWidthTimestampRef.current = e.timeStamp;
+            }}
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
@@ -218,6 +229,7 @@ function ReceiptImage({
             objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             onLoad={onLoad}
             shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
+            imageWidthToCalculateHeight={receiptImageWidth}
         />
     );
 }
