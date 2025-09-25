@@ -38,8 +38,6 @@ type CompilerFailure = {
     reason: string;
 };
 
-/** Commands */
-
 function check(fileToCheck?: string[], shouldGenerateReport = false) {
     if (fileToCheck) {
         info(`Running React Compiler check for ${fileToCheck.length} file(s) or glob pattern(s)...`);
@@ -92,8 +90,6 @@ function checkChangedFiles(remote: string): boolean {
         throw error;
     }
 }
-
-/** Helper functions */
 
 function runCompilerHealthcheck(detailed: false, src?: string): CompilerResults;
 function runCompilerHealthcheck(detailed: true, src?: string): DetailedCompilerResults;
