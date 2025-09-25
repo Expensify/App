@@ -1122,7 +1122,6 @@ const translations = {
         deleteReceipt: 'Excluir recibo',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movei esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1449,6 +1448,8 @@ const translations = {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de o encaminharmos através do restante do fluxo de trabalho de aprovação.',
             },
         },
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
     },
     transactionMerge: {
         listPage: {

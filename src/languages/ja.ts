@@ -1123,7 +1123,6 @@ const translations = {
         deleteReceipt: '領収書を削除',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `from <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました。`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1451,6 +1450,8 @@ const translations = {
                 subtitle: '承認ワークフローの残りの部分を経由する前に、このレポートの追加の承認者を選択してください。',
             },
         },
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `<a href="${reportUrl}">${reportName}</a> に` : ''}を移動しました`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `from <a href="${reportUrl}">${reportName}</a>` : ''}`,
     },
     transactionMerge: {
         listPage: {

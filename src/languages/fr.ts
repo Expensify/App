@@ -1125,7 +1125,6 @@ const translations = {
         deleteReceipt: 'Supprimer le reçu',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `déplacé cette dépense vers votre <a href="${reportUrl}">espace personnel</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1456,6 +1455,8 @@ const translations = {
                 subtitle: "Choisissez un approbateur supplémentaire pour ce rapport avant de le faire passer par le reste du flux de travail d'approbation.",
             },
         },
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
     },
     transactionMerge: {
         listPage: {
