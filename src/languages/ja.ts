@@ -2198,7 +2198,7 @@ const translations = {
         enterAuthenticatorCode: '認証コードを入力してください',
         enterRecoveryCode: 'リカバリーコードを入力してください',
         requiredWhen2FAEnabled: '2FAが有効になっている場合に必要',
-        requestNewCode: '新しいコードをリクエスト',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `<a>${timeRemaining}</a>後に新しいコードをリクエストしてください`,
         requestNewCodeAfterErrorOccurred: '新しいコードをリクエストする',
         error: {
             pleaseFillMagicCode: 'マジックコードを入力してください',
