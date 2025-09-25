@@ -40,9 +40,12 @@ const SCREENS = {
     },
     SEARCH: {
         ROOT: 'Search_Root',
+        ROOT_VERIFY_ACCOUNT: 'Search_Root_Verify_Account',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
+        MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: 'Search_Money_Request_Report_Verify_Account',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
+        REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
         ADVANCED_FILTERS_GROUP_BY_RHP: 'Search_Advanced_Filters_GroupBy_RHP',
@@ -245,6 +248,7 @@ const SCREENS = {
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
+        REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -257,9 +261,11 @@ const SCREENS = {
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
+        CREATE_VERIFY_ACCOUNT: 'Create_Verify_Account',
         HOLD: 'Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
+        STEP_CONFIRMATION_VERIFY_ACCOUNT: 'Money_Request_Step_Confirmation_Verify_Account',
         START: 'Money_Request_Start',
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
@@ -763,6 +769,7 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
+    REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
         ROOT: 'Share_Root',
