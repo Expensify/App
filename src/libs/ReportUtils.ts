@@ -156,7 +156,6 @@ import {
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
-    getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
@@ -191,7 +190,6 @@ import {
     isActionOfType,
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
-    isClosedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -3854,16 +3852,6 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
     return report?.reportName;
 }
 
-function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {
-    const lastClosedReportAction = getLastClosedReportAction(reportActions);
-
-    if (!lastClosedReportAction) {
-        return undefined;
-    }
-
-    return isClosedAction(lastClosedReportAction) ? getOriginalMessage(lastClosedReportAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-}
-
 /**
  * Given a report field, check if the field is for the report title.
  */
@@ -4344,7 +4332,11 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
+        if (isUnreportedExpense) {
+            return true;
+        }
+
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return false;
         }
 
@@ -4354,7 +4346,7 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+        if (isInvoiceReport(moneyRequestReport)) {
             return (
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
@@ -4367,18 +4359,16 @@ function canEditFieldOfMoneyRequest(
 
         // If the report is Open, then only submitters, admins can move expenses
         const isOpen = isOpenExpenseReport(moneyRequestReport);
-        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+        if (isOpen && !isSubmitter && !isAdmin) {
             return false;
         }
 
-        return isUnreportedExpense
-            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 0
-            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1 ||
-                  (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
+        return (
+            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+            ).length > 1 ||
+            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+        );
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -7175,6 +7165,7 @@ type BuildOptimisticChatReportParams = {
     description?: string;
     avatarUrl?: string;
     optimisticReportID?: string;
+    isPinned?: boolean;
 };
 
 function buildOptimisticChatReport({
@@ -7193,6 +7184,7 @@ function buildOptimisticChatReport({
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
+    isPinned = false,
 }: BuildOptimisticChatReportParams): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
@@ -7209,7 +7201,7 @@ function buildOptimisticChatReport({
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
-        isPinned: false,
+        isPinned,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,
@@ -7869,6 +7861,10 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
     };
 }
 
+function shouldPinAdminRoomByDefault() {
+    return !isExpensifyTeam(currentUserEmail);
+}
+
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
     const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
@@ -7879,6 +7875,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
             policyID,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: policyName,
+            isPinned: shouldPinAdminRoomByDefault(),
         }),
     };
     const adminsChatReportID = adminsChatData.reportID;
@@ -12068,7 +12065,6 @@ export {
     getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
-    getArchiveReason,
     getApprovalChain,
     isIndividualInvoiceRoom,
     hasOutstandingChildRequest,

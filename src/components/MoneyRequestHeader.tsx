@@ -70,7 +70,7 @@ type MoneyRequestHeaderProps = {
     parentReportAction: OnyxEntry<ReportAction>;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: () => void;
+    onBackButtonPress: (prioritizeModalDismiss?: boolean) => void;
 };
 
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
@@ -431,7 +431,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                         removeTransaction(transaction.transactionID);
                     }
-                    onBackButtonPress();
+                    onBackButtonPress(true);
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
