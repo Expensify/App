@@ -321,6 +321,17 @@ class Git {
     }
 
     static async getChangedFiles(remote: string): Promise<string[]> {
+        if (IS_CI) {
+            const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
+                owner: 'Expensify',
+                repo: 'App',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                pull_number: context.payload.pull_request?.number ?? 0,
+            });
+
+            return changedFiles.map((file) => file.filename);
+        }
+
         try {
             // Get files changed in the current branch/commit
             const mainBaseCommitHash = this.getMainBaseCommitHash(remote);
