@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1762,7 +1763,7 @@ const translations = {
             "Vous remarquez quelque chose d'inhabituel ? Signalez-le pour verrouiller immédiatement votre compte, bloquer les transactions Expensify Card et empêcher toute modification.",
         domainAdminsDescription: "Pour les administrateurs de domaine : cela suspend aussi l'activité de la carte Expensify et les actions d'administration sur vos domaines.",
         areYouSure: 'Êtes-vous sûr de vouloir verrouiller votre compte Expensify ?',
-        ourTeamWill: "Notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez collaborer avec Concierge.",
+        onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un examen de sécurité.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Échec du verrouillage du compte',
@@ -3576,7 +3577,8 @@ const translations = {
         receiptPartners: {
             connect: 'Connectez-vous maintenant',
             uber: {
-                subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Connecté à ${organizationName}` : 'Automatisez les frais de voyage et de livraison de repas dans toute votre organisation.',
                 sendInvites: 'Inviter des membres',
                 sendInvitesDescription:
                     "Ces membres de l'espace de travail n'ont pas encore de compte Uber for Business. Désélectionnez les membres que vous ne souhaitez pas inviter pour le moment.",
@@ -3597,8 +3599,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
                 },
                 invitationFailure: "Échec de l'invitation des membres à Uber for Business",
-                autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
-                autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
+                autoInvite: "Inviter de nouveaux membres de l'espace de travail sur Uber",
+                autoRemove: "Désactiver les membres supprimés de l'espace de travail sur Uber",
                 bannerTitle: 'Expensify + Uber pour les entreprises',
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
                 emptyContent: {
