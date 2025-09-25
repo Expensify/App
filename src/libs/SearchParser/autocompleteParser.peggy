@@ -102,7 +102,7 @@ autocompleteKey "key"
     )
 
 filterKey
-  = k:autocompleteKey {
+  = neg:"-"? k:autocompleteKey {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }

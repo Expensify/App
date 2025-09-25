@@ -35,6 +35,11 @@
     sortOrder: "desc",
   };
 
+  // List fields where you cannot prefix it with "-" to negate it
+  const nonNegatableKeys = new Set([
+    "type", "keyword", "groupCurrency", "groupBy"
+  ]);
+
   function applyDefaults(filters) {
     return {
       ...defaultValues,
@@ -108,7 +113,15 @@ freeTextFilter
 standardFilter
   = _ field:filterKey _ op:filterOperator _  values:identifier {
       expectingNestedQuote = false; nameOperator = false;
-      return buildFilter(op, field, values);
+
+      const key = field.name || field;
+      let operator = op;
+
+      if (field.negated && nonNegatableKeys.has(key)) {
+        if (operator === "eq") operator = "neq";
+      }
+
+      return buildFilter(operator, key, values);
     }
 
 key "key"
@@ -155,9 +168,9 @@ key "key"
     )
 
 filterKey
-  = k:key {
+  = neg:"-"? k:key {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
-      return k;
+      return { name: k, negated: !!neg };
 }
 
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
