@@ -42,7 +42,7 @@ describe('Translator - Chinese Brackets Fix', () => {
             expect(result).toBe(expected);
         });
 
-        it('should fix Chinese brackets in autolinks for URLs', () => {
+        it('should fix Chinese brackets for URLs', () => {
             const input = '【https://example.com】';
             const expected = '[https://example.com]';
             const result = translator.fixChineseBracketsInMarkdown(input);
