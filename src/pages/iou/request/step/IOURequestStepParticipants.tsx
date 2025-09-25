@@ -255,8 +255,10 @@ function IOURequestStepParticipants({
 
         const newReportID = selectedReportID.current;
         transactions.forEach((transaction) => {
-            setMoneyRequestTag(transaction.transactionID, '');
-            setMoneyRequestCategory(transaction.transactionID, '');
+            if (!isMovingTransactionFromTrackExpense) {
+                setMoneyRequestTag(transaction.transactionID, '');
+                setMoneyRequestCategory(transaction.transactionID, '');
+            }
             if (participants?.at(0)?.reportID !== newReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: newReportID}, true);
             }
@@ -307,7 +309,7 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, backTo]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
