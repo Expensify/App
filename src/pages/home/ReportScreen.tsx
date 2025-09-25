@@ -444,6 +444,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         // Clear the URL after all interactions are processed to ensure all updates are completed before hiding the skeleton
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 clearDeleteTransactionNavigateBackUrl();
