@@ -1036,7 +1036,7 @@ function MoneyRequestConfirmationList({
             <SettlementButton
                 pressOnEnter
                 onPress={confirm}
-                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 chatReportID={reportID}
                 shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}
