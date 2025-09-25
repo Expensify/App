@@ -24,7 +24,6 @@ Runs `react-compiler-healthcheck` in verbose mode, parses output, and summarizes
 > [!NOTE]
 > This script uses `origin` as the base remote by default. If your GH remote is named differently, use the `--remote <name>` flag.
 
-
 #### Check entire codebase or a specific file/glob
 
 ```bash
@@ -39,7 +38,7 @@ npm run react-compiler-compliance-check check "src/**/*.tsx"         # Check glo
 npm run react-compiler-compliance-check check-changed
 ```
 
-#### Generate a detailed report (saved as `./react-compiler-report.json`):
+#### Generate a detailed report (saved as `./react-compiler-report.json`)
 
 You can use the `--report` flag with both of the above commands:
 
