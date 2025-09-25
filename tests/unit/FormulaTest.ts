@@ -517,8 +517,8 @@ describe('CustomFormula', () => {
         });
 
         test('should return formula when invalid field is specified', () => {
-            expect(compute('{report:submit:from:invalidfield}', mockContext)).toBe('{report:submit:from:invalidfield}');
-            expect(compute('{report:submit:to:invalidfield}', mockContext)).toBe('{report:submit:to:invalidfield}');
+            expect(compute('{report:submit:from:invalidField}', mockContext)).toBe('{report:submit:from:invalidField}');
+            expect(compute('{report:submit:to:invalidField}', mockContext)).toBe('{report:submit:to:invalidField}');
         });
 
         test('should handle missing personal details for specific accountID', () => {
@@ -551,7 +551,7 @@ describe('CustomFormula', () => {
                 },
             };
 
-            // Should return empty string for custom fields when employee not found
+            // Should return formula string for custom fields when employee not found
             expect(compute('{report:submit:from:customfield1}', contextWithDifferentEmail)).toBe('{report:submit:from:customfield1}');
             expect(compute('{report:submit:from:customfield2}', contextWithDifferentEmail)).toBe('{report:submit:from:customfield2}');
         });
