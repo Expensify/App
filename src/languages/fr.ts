@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -856,9 +857,24 @@ const translations = {
         markAsUnread: 'Marquer comme non lu',
         markAsRead: 'Marquer comme lu',
         editAction: ({action}: EditActionParams) => `Editer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Supprimer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Êtes-vous sûr de vouloir supprimer ce ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'} ?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Supprimer ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Êtes-vous sûr de vouloir supprimer ce ${type} ?`;
+        },
         onlyVisible: 'Visible uniquement pour',
         replyInThread: 'Répondre dans le fil de discussion',
         joinThread: 'Rejoindre le fil de discussion',
@@ -3576,7 +3592,8 @@ const translations = {
         receiptPartners: {
             connect: 'Connectez-vous maintenant',
             uber: {
-                subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Connecté à ${organizationName}` : 'Automatisez les frais de voyage et de livraison de repas dans toute votre organisation.',
                 sendInvites: 'Inviter des membres',
                 sendInvitesDescription:
                     "Ces membres de l'espace de travail n'ont pas encore de compte Uber for Business. Désélectionnez les membres que vous ne souhaitez pas inviter pour le moment.",
@@ -5551,12 +5568,6 @@ const translations = {
                 description:
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
                 onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
-            },
-            reports: {
-                title: 'Rapports',
-                description:
-                    'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
-                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',
