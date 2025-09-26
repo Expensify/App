@@ -855,8 +855,24 @@ const translations = {
         markAsUnread: '未読としてマーク',
         markAsRead: '既読にする',
         editAction: ({action}: EditActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を編集`,
-        deleteAction: ({action}: DeleteActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `この${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除してもよろしいですか？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `${type}を削除`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `この${type}を削除してもよろしいですか?`;
+        },
         onlyVisible: 'にのみ表示',
         replyInThread: 'スレッドで返信',
         joinThread: 'スレッドに参加する',
