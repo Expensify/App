@@ -281,10 +281,11 @@ export default {
 
     searchTypeColumnWidth: 52,
 
-    gbrTooltipShiftHorizontal: -15,
-    gbrTooltipShiftVertical: -10,
-    fabTooltipShiftHorizontal: -11,
-    lhbFabTooltipShiftHorizontal: 4,
+    gbrTooltipShiftHorizontal: -14,
+    gbrTooltipShiftVertical: -16,
+    lhbFabTooltipShiftHorizontal: 8,
+    lhbFabTooltipShiftVertical: 12,
+    lhbFabTooltipShiftVerticalMobile: 6,
     workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
@@ -292,6 +293,8 @@ export default {
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
+    inviteMemberListItemTooltipShiftVertical: -8,
+    inviteMemberListItemTooltipShiftHorizontal: 4,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -369,4 +372,7 @@ export default {
     // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
     searchChatReportPreviewHeight: 434,
     searchChatStandardItemHeight: 97,
+
+    // Uber employee invite button width
+    uberEmployeeInviteButtonWidth: 62,
 } as const;

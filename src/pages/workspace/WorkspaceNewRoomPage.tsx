@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -61,7 +62,12 @@ type WorkspaceNewRoomPageRef = {
     focus?: () => void;
 };
 
-function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef>) {
+type WorkspaceNewRoomPageProps = {
+    /** Forwarded ref to pass to the room name input */
+    ref?: Ref<WorkspaceNewRoomPageRef>;
+};
+
+function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate, localeCompare} = useLocalize();
@@ -314,4 +320,4 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
 
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default forwardRef(WorkspaceNewRoomPage);
+export default WorkspaceNewRoomPage;
