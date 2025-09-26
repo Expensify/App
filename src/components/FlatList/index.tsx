@@ -94,7 +94,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         }
 
         const contentView = getContentView();
-        if (contentView == null) {
+        if (!contentView) {
             return;
         }
 
