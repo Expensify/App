@@ -59,6 +59,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const firstRenderRef = useRef(true);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
+    const initialSelectedAccountIDs = useMemo(() => new Set(invitedEmailsToAccountIDsDraft ? Object.values(invitedEmailsToAccountIDsDraft) : []), [invitedEmailsToAccountIDsDraft]);
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -168,7 +169,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers, areOptionsInitialized, inviteOptions.personalDetails, inviteOptions.userToInvite]);
 
     const sections: MembersSection[] = useMemo(() => {
-        const sectionsArr: MembersSection[] = [];
+        let memberList: MemberForList[] = [];
 
         if (!areOptionsInitialized) {
             return [];
@@ -188,37 +189,47 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             });
         }
 
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptions,
-            shouldShow: true,
-        });
+        const personalDetailsFormatted = Object.values(personalDetails).map((item) => formatMemberForList(item));
 
-        // Filtering out selected users from the search results
-        const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => formatMemberForList(item));
-
-        sectionsArr.push({
-            title: translate('common.contacts'),
-            data: personalDetailsFormatted,
-            shouldShow: !isEmptyObject(personalDetailsFormatted),
-        });
+        if (!isEmptyObject(personalDetailsFormatted)) {
+            memberList.push(...personalDetailsFormatted);
+        }
 
         Object.values(usersToInvite).forEach((userToInvite) => {
-            const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
+            memberList.push(formatMemberForList(userToInvite));
+        });
 
-            if (hasUnselectedUserToInvite) {
-                sectionsArr.push({
-                    title: undefined,
-                    data: [formatMemberForList(userToInvite)],
-                    shouldShow: true,
-                });
+        const selectedAccountLoginsSet = new Set(filterSelectedOptions.map((option) => option.login));
+        memberList = memberList.map((member) => {
+            if (selectedAccountLoginsSet.has(member.login)) {
+                return {
+                    ...member,
+                    isSelected: true,
+                };
+            }
+            return member;
+        });
+
+        const first: MemberForList[] = [];
+        const last: MemberForList[] = [];
+        memberList.forEach((member) => {
+            if (member.accountID && initialSelectedAccountIDs.has(member.accountID)) {
+                first.push(member);
+            } else {
+                last.push(member);
             }
         });
 
-        return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCode]);
+        const newAddedMembers = filterSelectedOptions.filter((selectedOption) => !memberList.some((member) => member.login === selectedOption.login));
+
+        return [
+            {
+                title: undefined,
+                data: [...newAddedMembers, ...first, ...last],
+                shouldShow: true,
+            },
+        ];
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, usersToInvite, countryCode, initialSelectedAccountIDs]);
 
     const toggleOption = (option: MemberForList) => {
         clearErrors(route.params.policyID);

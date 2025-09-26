@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -9,7 +8,6 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -45,7 +43,6 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
-type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
 function RoomInvitePage({
     betas,
     report,
@@ -119,7 +116,7 @@ function RoomInvitePage({
     }, [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode]);
 
     const sections = useMemo(() => {
-        const sectionsArr: Sections = [];
+        let memberList: MemberForList[] = [];
 
         const {personalDetails, userToInvite} = inviteOptions;
         if (!areOptionsInitialized) {
@@ -138,33 +135,41 @@ function RoomInvitePage({
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptionsFormatted,
-        });
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.includes(login)) : [];
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
+        const personalDetailsFormatted = personalDetails.map((personalDetail) => formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
-        sectionsArr.push({
-            title: translate('common.contacts'),
-            data: personalDetailsFormatted,
-        });
+        memberList.push(...personalDetailsFormatted);
 
         if (hasUnselectedUserToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [formatMemberForList(userToInvite)],
-            });
+            memberList.push(formatMemberForList(userToInvite));
         }
 
-        return sectionsArr;
-    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate]);
+        const selectedAccountLoginsSet = new Set(filterSelectedOptions.map((option) => option.login));
+        memberList = memberList.map((member) => {
+            if (selectedAccountLoginsSet.has(member.login)) {
+                return {
+                    ...member,
+                    isSelected: true,
+                };
+            }
+            return member;
+        });
+
+        const newAddedMembers = filterSelectedOptions
+            .filter((selectedOption) => !memberList.some((member) => member.login === selectedOption.login))
+            .map((member) => formatMemberForList(member));
+
+        return [
+            {
+                title: undefined,
+                data: [...newAddedMembers, ...memberList],
+                shouldShow: true,
+            },
+        ];
+    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {

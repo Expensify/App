@@ -139,6 +139,7 @@ function BaseSelectionList<TItem extends ListItem>({
     isScreenFocused = false,
     shouldSubscribeToArrowKeyEvents = true,
     shouldClearInputOnSelect = true,
+    disableScrollOnSelect = false,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     fixedNumItemsForLoader,
@@ -482,7 +483,7 @@ function BaseSelectionList<TItem extends ListItem>({
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1 && !isItemSelected(item)) {
+                if (sections.length > 1 && !isItemSelected(item) && !disableScrollOnSelect) {
                     // If we're selecting an item, scroll to its position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
@@ -517,6 +518,7 @@ function BaseSelectionList<TItem extends ListItem>({
             shouldPreventDefaultFocusOnSelectRow,
             sections.length,
             isItemSelected,
+            disableScrollOnSelect,
             isSmallScreenWidth,
             scrollToIndex,
             clearInputAfterSelect,
