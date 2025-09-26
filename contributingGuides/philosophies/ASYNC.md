@@ -10,7 +10,7 @@ Async code is everywhere in our app: API calls, storage access, background tasks
 
 ## Rules
 
-### - Use async/await for sequential flows
+### - Sequential flows SHOULD use async/await
    When order matters, `async/await` expresses intent in a clear, linear style.
    Example: Upload a file → Parse it → Save results.
 
@@ -21,15 +21,34 @@ Async code is everywhere in our app: API calls, storage access, background tasks
     ```
 
 ### - Independent steps MUST be run in parallel
-   If two operations don’t depend on each other, start them together.
-   Example: Fetch user data and permissions concurrently with `Promise.all`.
+   If two operations don’t depend on each other, start them together. Here are the different ways to run them in parallel:
 
-    ```ts
-    const [user, permissions] = await Promise.all([
-    getUser(),
-    getPermissions(),
-    ]);
-    ```
+   - **`Promise.all`**: All must succeed, fails fast on first rejection. Use when you need every result.
+
+     ```ts
+     const [user, permissions] = await Promise.all([
+      getUser(),
+      getPermissions(),
+     ]);
+     ```
+
+   - **`Promise.allSettled`**: Wait for everything, regardless of failures. Use when you don't need all results.
+
+     ```ts
+     const results = await Promise.allSettled([syncReceipts(), syncInvoices(), syncReports()]);
+     const succeeded = results.filter(r => r.status === 'fulfilled');
+     const failed = results.filter(r => r.status === 'rejected');
+     ```
+
+   - **`Promise.any`**: Return the first successful result, ignore failures until one resolves. Great for redundant sources.
+
+     ```ts
+     const fastConfig = await Promise.any([
+       fetchFromCDN(),
+       fetchFromBackup(),
+       fetchFromLocalMirror(),
+     ]);
+     ```
 
 ### - UI SHOULD launch independent async calls in parallel
    Components should not wait for one API call before starting another unless there is a dependency. Rendering must never be blocked by network requests.
@@ -68,7 +87,7 @@ Async code is everywhere in our app: API calls, storage access, background tasks
 
 ## More Examples
 
-### 1) Error handling
+### 1) Error handling SHOULD use `.catch()`
 
 Error handling style depends on context. If you’re handling a single async operation, `.catch()` is concise and effective.
 
