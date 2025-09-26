@@ -11791,7 +11791,46 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
         return `${environmentURL}/r/`;
     }
     const isInSearchContext = isSearchTopmostFullScreenRoute();
-    const relativePath = isInSearchContext ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route}) : ROUTES.REPORT_WITH_ID.getRoute(reportID);
+    if (!isInSearchContext) {
+        return `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
+    }
+
+    // Navigation can return routes with a leading slash or missing when still mounting.
+    // Normalize everything to match the path shape used by ROUTES helpers.
+    const normalizeRoute = (route?: string) => {
+        if (!route) {
+            return undefined;
+        }
+        return route.startsWith('/') ? route.substring(1) : route;
+    };
+
+    const activeRoute = normalizeRoute(Navigation.getActiveRoute());
+
+    let backToRoute: string | undefined;
+
+    if (activeRoute) {
+        const [, queryString = ''] = activeRoute.split('?');
+        if (queryString) {
+            const params = new URLSearchParams(queryString);
+            const encodedBackTo = params.get('backTo');
+            if (encodedBackTo) {
+                // Prefer the backTo param when present; it points to the exact search state we left.
+                backToRoute = normalizeRoute(decodeURIComponent(encodedBackTo));
+            }
+        }
+
+        if (!backToRoute && activeRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
+            // Otherwise keep the current search route (preserves tab + filters) as the return target.
+            backToRoute = activeRoute;
+        }
+    }
+
+    if (!backToRoute || !backToRoute.startsWith(ROUTES.SEARCH_ROOT.route)) {
+        // Fall back to the generic search home when we can't recover a valid route.
+        backToRoute = ROUTES.SEARCH_ROOT.route;
+    }
+
+    const relativePath = ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: backToRoute});
     return `${environmentURL}/${relativePath}`;
 }
 

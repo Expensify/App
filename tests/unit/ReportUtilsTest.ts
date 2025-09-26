@@ -11,6 +11,7 @@ import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
@@ -151,6 +152,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
             },
         })),
     },
+    getActiveRoute: jest.fn(() => 'search?q=type:report'),
 }));
 
 const testDate = DateUtils.getDBTime();
@@ -6988,9 +6990,13 @@ describe('ReportUtils', () => {
             mockIsSearchTopmostFullScreenRoute.mockRestore();
         });
 
+        const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
+
         beforeEach(() => {
             mockIsSearchTopmostFullScreenRoute.mockReset();
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+            mockGetActiveRoute.mockReset();
+            mockGetActiveRoute.mockReturnValue('search?q=type:report');
         });
 
         it('returns report route when not in search context', () => {
@@ -7001,6 +7007,29 @@ describe('ReportUtils', () => {
         it('returns search route when in search context', () => {
             const reportID = '456';
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const encodedBackTo = 'search%3Fq%3Dtype%3Areport';
+            mockGetActiveRoute.mockReturnValue(`search/r/999?backTo=${encodedBackTo}`);
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:report'})}`);
+        });
+
+        it('uses current search route when no backTo parameter is present', () => {
+            const reportID = '111';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('search?q=type:invoice');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:invoice'})}`);
+        });
+
+        it('normalizes leading slash in search routes', () => {
+            const reportID = '222';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('/search?q=type:card');
+            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: 'search?q=type:card'})}`);
+        });
+
+        it('falls back to default search route when current route is unavailable', () => {
+            const reportID = '789';
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            mockGetActiveRoute.mockReturnValue('');
             expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: ROUTES.SEARCH_ROOT.route})}`);
         });
 
