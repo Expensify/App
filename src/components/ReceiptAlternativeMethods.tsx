@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
-import Icon from '@components/Icon';
-import {ChatBubble, Download, Mail} from '@components/Icon/Expensicons';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import Icon from './Icon';
+import {ChatBubble, Download, Mail} from './Icon/Expensicons';
+import Text from './Text';
+import TextLink from './TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useHasPhoneNumber from '@hooks/useHasPhoneNumber';
