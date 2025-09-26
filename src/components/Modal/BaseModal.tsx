@@ -109,7 +109,6 @@ function BaseModal({
         (callHideCallback = true) => {
             shouldCallHideModalOnUnmount.current = false;
             if (areAllModalsHidden()) {
-                willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);
                 }
@@ -318,7 +317,14 @@ function BaseModal({
                             saveFocusState();
                             onModalWillShow?.();
                         }}
-                        onModalWillHide={onModalWillHide}
+                        onModalWillHide={() => {
+                            // Reset willAlertModalBecomeVisible when modal is about to hide
+                            // This ensures it's cleared before any other components check its value
+                            if (areAllModalsHidden()) {
+                                willAlertModalBecomeVisible(false);
+                            }
+                            onModalWillHide?.();
+                        }}
                         onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}

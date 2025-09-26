@@ -11,7 +11,7 @@ The UI binds to the data stored on the local device's database (Onyx).
 ## Rules
 ### - The UI MUST use `useOnyx` to get data and subscribe to changes of that data in Onyx
 ### - The UI MUST NOT call any Onyx methods directly
-### - The UI MUST trigger an an action when something needs to happen
+### - The UI MUST trigger an action when something needs to happen
 For example, a person inputs data, the UI calls an action and passes the user's input.
 
 ### - The UI SHOULD anticipate missing or incomplete data

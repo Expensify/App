@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -25,11 +25,14 @@ type BaseTwoFactorAuthFormProps = {
     onFocus?: () => void;
 
     shouldAutoFocusOnMobile?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTwoFactorAuthFormRef>;
 };
 
 const isMobile = !canFocusInputOnScreenFocus();
 
-function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -129,4 +132,4 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus,
     );
 }
 
-export default forwardRef(BaseTwoFactorAuthForm);
+export default BaseTwoFactorAuthForm;
