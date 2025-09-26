@@ -3,8 +3,8 @@ import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList} from '@src/types/onyx';
+import type AccountVerifications from '@src/types/onyx/AccountVerifications';
 import type {ACHData, ACHDataReimbursementAccount, BankAccountStep, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
-import AccountVerifications from '@src/types/onyx/AccountVerifications';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 
