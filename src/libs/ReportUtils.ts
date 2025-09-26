@@ -12213,4 +12213,5 @@ export type {
     MissingPaymentMethod,
     OptimisticNewReport,
     SelfDMParameters,
+    OptimisticHoldReportAction,
 };
