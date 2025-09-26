@@ -23,7 +23,7 @@ Exceptions:
 
 ### - SHOULD use human readable names before using IDs
 Example:
-1. `domain/expensify.com/settings` - It's better to user the domain name "expensify.com" rather than an ID because it is readable, won't ever change, and is not a privacy or security concern
+1. `domain/expensify.com/settings` - It's better to use the domain name "expensify.com" rather than an ID because it is readable, won't ever change, and is not a privacy or security concern
 
 Exceptions:
 - When there would be PII (personally identifiable information) that would leak in the URL like email addresses, use an ID instead
