@@ -854,8 +854,24 @@ const translations = {
         markAsUnread: 'Segna come non letto',
         markAsRead: 'Segna come letto',
         editAction: ({action}: EditActionParams) => `Modifica ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Elimina ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Sei sicuro di voler eliminare questo ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'commento';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'spesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapporto';
+            }
+            return `Elimina ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'commento';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'spesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapporto';
+            }
+            return `Sei sicuro di voler eliminare questo ${type}?`;
+        },
         onlyVisible: 'Visibile solo a',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
@@ -6694,7 +6710,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta che ${email} deve risolvere.`
-                    : 'Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta che devi risolvere.';
+                    : 'Impossibile associare automaticamente la ricevuta a causa di una connessione bancaria interrotta.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Chiedi a ${member} di contrassegnarlo come contante o attendi 7 giorni e riprova` : 'In attesa di unione con la transazione della carta.';

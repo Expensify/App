@@ -857,9 +857,24 @@ const translations = {
         markAsUnread: 'Marquer comme non lu',
         markAsRead: 'Marquer comme lu',
         editAction: ({action}: EditActionParams) => `Editer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Supprimer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Êtes-vous sûr de vouloir supprimer ce ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'} ?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Supprimer ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Êtes-vous sûr de vouloir supprimer ce ${type} ?`;
+        },
         onlyVisible: 'Visible uniquement pour',
         replyInThread: 'Répondre dans le fil de discussion',
         joinThread: 'Rejoindre le fil de discussion',
@@ -6693,7 +6708,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que ${email} doit corriger.`
-                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que vous devez réparer.";
+                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
