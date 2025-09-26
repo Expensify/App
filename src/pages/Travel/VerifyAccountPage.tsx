@@ -8,10 +8,15 @@ import type SCREENS from '@src/SCREENS';
 type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
+    const {domain, backTo} = route.params;
+    
+    // Determine where to navigate after successful OTP validation
+    const navigateForwardTo = backTo || ROUTES.TRAVEL_TCS.getRoute(domain);
+    
     return (
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.TRAVEL_MY_TRIPS}
-            navigateForwardTo={ROUTES.TRAVEL_TCS.getRoute(route.params.domain)}
+            navigateForwardTo={navigateForwardTo}
         />
     );
 }

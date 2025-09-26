@@ -25,6 +25,15 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
         if (!policy) {
             return;
         }
+        
+        // Always validate OTP first before allowing address submission
+        if (!isUserValidated) {
+            // After OTP validation, redirect back to this address page
+            const currentRoute = ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain, route.params.backTo);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, currentRoute));
+            return;
+        }
+        
         updateAddress(policy?.id, {
             addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
             city: values.city.trim(),
@@ -32,10 +41,6 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain));
-            return;
-        }
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});
     };
 

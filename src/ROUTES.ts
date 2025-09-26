@@ -2409,7 +2409,7 @@ const ROUTES = {
     },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/:domain/${VERIFY_ACCOUNT}`,
-        getRoute: (domain: string) => `travel/${domain}/${VERIFY_ACCOUNT}` as const,
+        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/${VERIFY_ACCOUNT}`, backTo),
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',
