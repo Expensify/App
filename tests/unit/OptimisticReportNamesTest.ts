@@ -3,9 +3,9 @@ import type {UpdateContext} from '@libs/OptimisticReportNames';
 import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
-import CONST from '@src/CONST';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
