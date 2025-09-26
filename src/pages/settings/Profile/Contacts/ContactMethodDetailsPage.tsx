@@ -90,11 +90,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
 
-    // We need to store loginData in a ref to ensure clearError() has access to the latest loginData value.
-    // This fixes an issue where removing an unverified contact method from a second device would trigger clearError()
-    const loginDataRef = useRef(loginData);
-    loginDataRef.current = loginData;
-
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
@@ -348,7 +343,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
                             // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
-                            if (!loginData.partnerUserID || !loginDataRef.current) {
+                            if (!loginData.partnerUserID) {
                                 return;
                             }
                             clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
