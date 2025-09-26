@@ -1,8 +1,13 @@
-import {getRootState} from '@libs/Navigation/navigationRef';
+import navigationRef from '@libs/Navigation/navigationRef';
 import SCREENS from '@src/SCREENS';
 
 const isOnSearchMoneyRequestReportPage = (): boolean => {
-    const rootState = getRootState();
+    if (!navigationRef.isReady()) {
+        return false;
+    }
+
+    const rootState = navigationRef.getRootState();
+
     if (!rootState) {
         return false;
     }
