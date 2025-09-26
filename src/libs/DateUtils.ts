@@ -139,6 +139,13 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
     return isSameDay(date, yesterdayInTimeZone);
 }
 
+function isYesterday2(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
+    const yesterdayInTimeZone = toZonedTime(yesterday, timeZone);
+    return isSameDay(date, yesterdayInTimeZone);
+}
+
 /**
  * We have to fall back to older timezone names for native platforms that do not ship with newer timezone names to avoid a crash.
  * Memoize to prevent unnecessary calculation as timezone support will not change on runtime on a platform.
@@ -929,6 +936,7 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    isYesterday2,
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
