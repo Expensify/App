@@ -558,7 +558,10 @@ function getSuggestedSearchesVisibility(
         const isExporter = policy.exporter === currentUserEmail;
         const isApprover = policy.approver === currentUserEmail;
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-        const hasExportError = (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!hasSynchronizationErrorMessage(policy, connection, false));
+
+        const hasExportError = (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => {
+            return !!hasSynchronizationErrorMessage(policy, connection, false);
+        });
         const isPaymentEnabled = arePaymentsEnabled(policy);
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
