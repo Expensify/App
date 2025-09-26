@@ -83,8 +83,8 @@ function parseMessage(messages: Message[] | undefined) {
     });
 
     const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'expense(s)')
-        .replace(/%Expenses/g, 'Expense(s)')
+        .replace(/%expenses/g, 'expenses')
+        .replace(/%Expenses/g, 'Expenses')
         .replace(/%tobe/g, 'are');
 
     return `<next-step>${formattedHtml}</next-step>`;
