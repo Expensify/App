@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, { OnyxCollection } from 'react-native-onyx';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -2444,6 +2444,32 @@ describe('SearchUIUtils', () => {
         expect(isAmountLengthLong3).toBe(true);
         expect(isTaxAmountLengthLong2).toBe(true);
     });
+
+    describe('Test getSuggestedSearchesVisibility', () => {
+        test('Should not show export if there are no valid connections', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyID]: {
+                    exporter: adminEmail,
+                    accountID: adminAccountID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    connections: [],
+                    policyID,
+                },
+            }   
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(
+                ()
+            )
+
+//             function getSuggestedSearchesVisibility(
+//     currentUserEmail: string | undefined,
+//     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
+//     policies: OnyxCollection<OnyxTypes.Policy>,
+//     reports?: OnyxCollection<OnyxTypes.Report>,
+//     currentUserAccountID?: number,
+// ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean> {
+        })
+    })
 
     describe('Test getColumnsToShow', () => {
         test('Should only show columns when at least one transaction has a value for them', () => {

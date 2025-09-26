@@ -2290,6 +2290,7 @@ export {
     getSuggestedSearches,
     getListItem,
     getSections,
+    getSuggestedSearchesVisibility,
     getShouldShowMerchant,
     getSortedSections,
     isTransactionGroupListItemType,
