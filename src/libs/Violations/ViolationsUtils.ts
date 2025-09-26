@@ -443,7 +443,7 @@ const ViolationsUtils = {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
         }
 
-        if ((isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) || isSelfDM) {
+        if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
         }
         return {
