@@ -3,7 +3,7 @@ import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
@@ -81,24 +81,25 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Reference to the outer element */
+    ref?: Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {
     focus?: () => void;
 };
 
-function MoneyRequestParticipantsSelector(
-    {
-        participants = CONST.EMPTY_ARRAY,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        onFinish = (_value?: string) => {},
-        onParticipantsAdded,
-        iouType,
-        action,
-        isPerDiemRequest = false,
-    }: MoneyRequestParticipantsSelectorProps,
-    ref: Ref<InputFocusRef>,
-) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onFinish = (_value?: string) => {},
+    onParticipantsAdded,
+    iouType,
+    action,
+    isPerDiemRequest = false,
+    ref,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -629,9 +630,6 @@ function MoneyRequestParticipantsSelector(
     );
 }
 
-MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
+MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
-export default memo(
-    forwardRef(MoneyRequestParticipantsSelector),
-    (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
-);
+export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
