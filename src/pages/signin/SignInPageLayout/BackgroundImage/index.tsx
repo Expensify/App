@@ -1,8 +1,6 @@
 import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
-import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
-import ImageSVG from '@components/ImageSVG';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
 import CONST from '@src/CONST';
@@ -58,11 +56,6 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
             >
                 <BackgroundComponent width={width} />
             </Animated.View>
-            {isSmallScreen && (
-                <View style={styles.signInPageGradientTopMobile}>
-                    <ImageSVG src={SignInGradient} />
-                </View>
-            )}
         </Suspense>
     );
 }
