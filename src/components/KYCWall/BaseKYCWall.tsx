@@ -157,7 +157,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, onSuccessfulKYC, source, walletTerms?.source, policies],
+        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, policies],
     );
 
     /**
