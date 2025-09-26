@@ -19,6 +19,8 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {hasSynchronizationErrorMessage} from '@src/libs/actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@src/libs/actions/connections/QuickbooksOnline';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
@@ -58,6 +60,11 @@ jest.mock('@src/libs/actions/connections', () => ({
 jest.mock('@src/libs/actions/connections/QuickbooksOnline', () => ({
     shouldShowQBOReimbursableExportDestinationAccountError: jest.fn(),
 }));
+
+const mockedHasSynchronizationErrorMessage = hasSynchronizationErrorMessage as jest.MockedFunction<typeof hasSynchronizationErrorMessage>;
+const mockedShouldShowQBOReimbursableExportDestinationAccountError = shouldShowQBOReimbursableExportDestinationAccountError as jest.MockedFunction<
+    typeof shouldShowQBOReimbursableExportDestinationAccountError
+>;
 
 const testDate = DateUtils.getDBTime();
 const employeeList: PolicyEmployeeList = {
