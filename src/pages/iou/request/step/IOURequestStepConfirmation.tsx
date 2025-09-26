@@ -982,7 +982,6 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             report,
-            transactions,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
