@@ -4266,6 +4266,7 @@ function completeOnboarding({
     wasInvited,
     selectedInterestedFeatures = [],
     shouldSkipTestDriveModal,
+    isInvitedAccountant,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4279,6 +4280,7 @@ function completeOnboarding({
     wasInvited?: boolean;
     selectedInterestedFeatures?: string[];
     shouldSkipTestDriveModal?: boolean;
+    isInvitedAccountant?: boolean;
 }) {
     const onboardingData = prepareOnboardingOnyxData(
         introSelected,
@@ -4290,6 +4292,7 @@ function completeOnboarding({
         wasInvited,
         companySize,
         selectedInterestedFeatures,
+        isInvitedAccountant,
     );
     if (!onboardingData) {
         return;
