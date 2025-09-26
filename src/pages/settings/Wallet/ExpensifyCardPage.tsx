@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -84,6 +85,8 @@ function ExpensifyCardPage({
     const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
+    const {asset: Flag} = useMemoizedLazyAsset(() => loadExpensifyIcon('Flag'));
+    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadExpensifyIcon('MoneySearch'));
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -280,7 +283,7 @@ function ExpensifyCardPage({
                                     <MenuItemWithTopDescription
                                         title={translate('cardPage.reportFraud')}
                                         titleStyle={styles.walletCardMenuItem}
-                                        icon={Expensicons.Flag}
+                                        icon={Flag}
                                         shouldShowRightIcon
                                         onPress={() => {
                                             if (isAccountLocked) {
@@ -331,7 +334,7 @@ function ExpensifyCardPage({
                                         <MenuItemWithTopDescription
                                             title={translate('cardPage.reportTravelFraud')}
                                             titleStyle={styles.walletCardMenuItem}
-                                            icon={Expensicons.Flag}
+                                            icon={Flag}
                                             shouldShowRightIcon
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                         />
@@ -354,7 +357,7 @@ function ExpensifyCardPage({
                                 />
                                 <MenuItem
                                     title={translate('reportCardLostOrDamaged.screenTitle')}
-                                    icon={Expensicons.Flag}
+                                    icon={Flag}
                                     shouldShowRightIcon
                                     onPress={() => {
                                         if (isAccountLocked) {
@@ -367,7 +370,7 @@ function ExpensifyCardPage({
                             </>
                         )}
                         <MenuItem
-                            icon={Expensicons.MoneySearch}
+                            icon={MoneySearch}
                             title={translate('workspace.common.viewTransactions')}
                             style={styles.mt3}
                             onPress={() => {

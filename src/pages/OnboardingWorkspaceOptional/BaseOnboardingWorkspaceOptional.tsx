@@ -3,11 +3,12 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +49,9 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const ICON_SIZE = 48;
+    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadIllustration('MoneyReceipts'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadIllustration('Tag'));
+    const {asset: ReportReceiptIcon} = useMemoizedLazyAsset(() => loadIllustration('ReportReceipt'));
 
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
 
@@ -57,15 +61,15 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
 
     const section: Item[] = [
         {
-            icon: Illustrations.MoneyReceipts,
+            icon: MoneyReceiptsIcon,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionOne',
         },
         {
-            icon: Illustrations.Tag,
+            icon: TagIcon,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionTwo',
         },
         {
-            icon: Illustrations.ReportReceipt,
+            icon: ReportReceiptIcon,
             titleTranslationKey: 'onboarding.workspace.explanationModal.descriptionThree',
         },
     ];

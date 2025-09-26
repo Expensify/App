@@ -1,15 +1,16 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Xero from '@libs/actions/connections/Xero';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateXeroTenantID} from '@libs/actions/connections/Xero';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -17,7 +18,7 @@ import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -35,7 +36,8 @@ function XeroOrganizationConfigurationPage({
     const xeroConfig = policy?.connections?.xero?.config;
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const {asset: TeleScope} = useMemoizedLazyAsset(() => loadIllustration('Telescope'));
 
     const sections =
         policy?.connections?.xero?.data?.tenants.map((tenant) => ({
@@ -59,14 +61,14 @@ function XeroOrganizationConfigurationPage({
             return;
         }
 
-        Xero.updateXeroTenantID(policyID, keyForList, xeroConfig?.tenantID);
+        updateXeroTenantID(policyID, keyForList, xeroConfig?.tenantID);
         Navigation.goBack();
     };
 
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.xero.noAccountsFound')}
@@ -74,7 +76,7 @@ function XeroOrganizationConfigurationPage({
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [TeleScope, translate, styles.pb10],
     );
 
     return (
@@ -93,9 +95,9 @@ function XeroOrganizationConfigurationPage({
             title="workspace.xero.organization"
             listEmptyContent={listEmptyContent}
             pendingAction={xeroConfig?.pendingFields?.tenantID}
-            errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
+            errors={getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
+            onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
             shouldSingleExecuteRowSelect
         />
     );

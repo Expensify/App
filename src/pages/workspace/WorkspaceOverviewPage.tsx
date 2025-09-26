@@ -9,8 +9,8 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import {FallbackWorkspaceAvatar, ImageCropSquareMask, QrCode, Transfer, Trashcan, UserPlus} from '@components/Icon/Expensicons';
-import {Building} from '@components/Icon/Illustrations';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,6 +18,7 @@ import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -67,6 +68,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useThemeIllustrations();
+    const {asset: BuildingIcon} = useMemoizedLazyAsset(() => loadIllustration('Building'));
+
+    const {asset: FallbackWorkspaceAvatar} = useMemoizedLazyAsset(() => loadExpensifyIcon('FallbackWorkspaceAvatar'));
+    const {asset: ImageCropSquareMask} = useMemoizedLazyAsset(() => loadExpensifyIcon('ImageCropSquareMask'));
+    const {asset: QrCode} = useMemoizedLazyAsset(() => loadExpensifyIcon('QrCode'));
+    const {asset: Transfer} = useMemoizedLazyAsset(() => loadExpensifyIcon('Transfer'));
+    const {asset: Trashcan} = useMemoizedLazyAsset(() => loadExpensifyIcon('Trashcan'));
+    const {asset: UserPlus} = useMemoizedLazyAsset(() => loadExpensifyIcon('UserPlus'));
+
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
@@ -184,7 +194,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [policy?.avatarURL, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [FallbackWorkspaceAvatar, policy?.avatarURL, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -316,7 +326,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
-            icon={Building}
+            icon={BuildingIcon}
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
