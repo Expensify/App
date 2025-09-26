@@ -33,7 +33,7 @@ function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
         }, [onScreenFocus]),
     );
 
-    if (props.withAnimatedKeyboardHandler) {
+    if (props.shouldUseAnimatedKeyboardHandler) {
         return (
             <KeyboardDismissibleFlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading

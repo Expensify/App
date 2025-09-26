@@ -2,10 +2,8 @@ import type {ForwardedRef} from 'react';
 import type {FlatList, FlatListProps} from 'react-native';
 
 type AdditionalFlatListProps = {
-    /**
-     * iOS and Android only - Uses the animated keyboard handler capabilities
-     */
-    withAnimatedKeyboardHandler?: boolean;
+    /** Whether to use the animated keyboard handler capabilities on native (iOS and Android) */
+    shouldUseAnimatedKeyboardHandler?: boolean;
 };
 
 type CustomFlatListProps<T> = FlatListProps<T> &

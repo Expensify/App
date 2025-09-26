@@ -746,7 +746,7 @@ function MoneyRequestReportActionsList({
                     </>
                 ) : (
                     <FlatList
-                        withAnimatedKeyboardHandler
+                        shouldUseAnimatedKeyboardHandler
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"

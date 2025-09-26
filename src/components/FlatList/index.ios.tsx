@@ -4,7 +4,7 @@ import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList
 import type {CustomFlatListProps} from './types';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
-function CustomFlatList<T>({ref, maintainVisibleContentPosition: originalMaintainVisibleContentPosition, withAnimatedKeyboardHandler, ...rest}: CustomFlatListProps<T>) {
+function CustomFlatList<T>({ref, maintainVisibleContentPosition: originalMaintainVisibleContentPosition, shouldUseAnimatedKeyboardHandler, ...rest}: CustomFlatListProps<T>) {
     const [isScrolling, setIsScrolling] = useState(false);
 
     const handleScrollBegin = useCallback(() => {
@@ -17,7 +17,7 @@ function CustomFlatList<T>({ref, maintainVisibleContentPosition: originalMaintai
 
     const maintainVisibleContentPosition = isScrolling ? undefined : originalMaintainVisibleContentPosition;
 
-    if (withAnimatedKeyboardHandler) {
+    if (shouldUseAnimatedKeyboardHandler) {
         return (
             <KeyboardDismissibleFlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
