@@ -267,7 +267,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -10000},
             };
 
-            const result = computeReportNameIfNeeded('NOEXIST', mockContext, update, {} as WorkingUpdates);
+            const result = computeReportNameIfNeeded('NO_EXIST', mockContext, update, {} as WorkingUpdates);
             expect(result).toBeNull();
         });
     });
