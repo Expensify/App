@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import type {ConfirmButtonOptions, ListItem} from '@components/SelectionListSingle/types';
+import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type FooterProps<TItem extends ListItem> = {
