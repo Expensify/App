@@ -13,7 +13,7 @@ import {
     formatDistance,
     getDate,
     getDay,
-    intervalToDuration,
+    intervalDuration,
     isAfter,
     isBefore,
     isSameDay,
@@ -106,6 +106,24 @@ function getLocalDateFromDatetime(locale: Locale | undefined, currentSelectedTim
  * @returns True if the date is today; otherwise, false.
  */
 function isToday(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const currentDateInTimeZone = toZonedTime(currentDate, timeZone);
+    return isSameDay(date, currentDateInTimeZone);
+}
+
+function isToday1(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const currentDateInTimeZone = toZonedTime(currentDate, timeZone);
+    return isSameDay(date, currentDateInTimeZone);
+}
+
+function isToday2(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const currentDateInTimeZone = toZonedTime(currentDate, timeZone);
+    return isSameDay(date, currentDateInTimeZone);
+}
+
+function isToday3(date: Date, timeZone: SelectedTimezone): boolean {
     const currentDate = new Date();
     const currentDateInTimeZone = toZonedTime(currentDate, timeZone);
     return isSameDay(date, currentDateInTimeZone);
@@ -927,6 +945,9 @@ const DateUtils = {
     getDayValidationErrorKey,
     getTimeValidationErrorKey,
     isToday,
+    isToday1,
+    isToday2,
+    isToday3,
     isTomorrow,
     isYesterday,
     getMonthNames,
