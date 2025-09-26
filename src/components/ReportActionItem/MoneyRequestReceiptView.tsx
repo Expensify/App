@@ -287,7 +287,7 @@ function MoneyRequestReceiptView({
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.h100]}>
+                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}>
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}
