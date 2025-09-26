@@ -507,7 +507,6 @@ class ComprehensiveStylesFinder {
     private getUnusedStyles(): StyleDefinition[] {
         // Whatever remains in styleDefinitions are the unused styles
         const unused = Array.from(this.styleDefinitions.values());
-        // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
         return unused.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
     }
 }
