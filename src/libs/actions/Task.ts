@@ -466,7 +466,7 @@ function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: st
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string, shouldOnlyCreateOptimisticData = false): OnyxData {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
@@ -475,8 +475,10 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
 
     const {optimisticData, successData, failureData, parameters} = buildTaskData(taskReport, taskReportID);
 
-    playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    if (!shouldOnlyCreateOptimisticData) {
+        playSound(SOUNDS.SUCCESS);
+        API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    }
     return {optimisticData, successData, failureData};
 }
 
@@ -1312,7 +1314,7 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
-function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData {
+function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask, shouldOnlyCreateOptimisticData?: boolean): OnyxData {
     const taskReportID = introSelected?.[taskName];
     const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`];
@@ -1321,7 +1323,7 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
     if (taskReportID && canActionTask(taskReport, currentUserAccountID, parentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                return completeTask(taskReport);
+                return completeTask(taskReport, undefined, shouldOnlyCreateOptimisticData);
             }
         }
     }
