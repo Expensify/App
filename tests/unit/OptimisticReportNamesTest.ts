@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {UpdateContext} from '@libs/OptimisticReportNames';
-import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
-import {applyUpdateToCache} from '@libs/OptimisticReportNamesCache';
+import {computeReportNameIfNeeded, shouldComputeReportName, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 import type {WorkingUpdates} from '@libs/OptimisticReportNamesCache';
+import {applyUpdateToCache} from '@libs/OptimisticReportNamesCache';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
@@ -111,7 +111,7 @@ describe('OptimisticReportNames', () => {
 
             const workingUpdates = applyUpdateToCache({}, update, mockContext);
 
-            const result = computeReportNameIfNeeded(mockReport, mockContext, update, workingUpdates);
+            const result = computeReportNameIfNeeded('123', mockContext, update, workingUpdates);
             expect(result).toEqual('Expense Report - $200.00');
         });
 
@@ -131,15 +131,7 @@ describe('OptimisticReportNames', () => {
             };
             const workingUpdates = applyUpdateToCache({}, update, context);
 
-            const result = computeReportNameIfNeeded(
-                {
-                    ...mockReport,
-                    reportName: 'Expense Report - $100.00',
-                },
-                context,
-                update,
-                workingUpdates,
-            );
+            const result = computeReportNameIfNeeded('456', context, update, workingUpdates);
             expect(result).toBeNull();
         });
     });
@@ -275,7 +267,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -10000},
             };
 
-            const result = computeReportNameIfNeeded(undefined, mockContext, update, {} as WorkingUpdates);
+            const result = computeReportNameIfNeeded('NOEXIST', mockContext, update, {} as WorkingUpdates);
             expect(result).toBeNull();
         });
     });
@@ -312,52 +304,6 @@ describe('OptimisticReportNames', () => {
             expect(result).toHaveLength(2);
             expect(result.at(0)).toEqual(update); // Original transaction update
             expect(result.at(1)?.key).toBe('report_123'); // New report update
-        });
-
-        test('getReportByTransactionID should find report from transaction', () => {
-            const contextWithTransaction = {
-                ...mockContext,
-                allTransactions: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    transactions_abc123: {
-                        transactionID: 'abc123',
-                        reportID: '123',
-                        amount: -7500,
-                        created: '2024-01-15',
-                        currency: 'USD',
-                        merchant: 'Test Store',
-                    },
-                },
-            };
-
-            const result = getReportByTransactionID('abc123', contextWithTransaction, {});
-
-            expect(result).toEqual(mockReport);
-            expect(result?.reportID).toBe('123');
-        });
-
-        test('getReportByTransactionID should return undefined for missing transaction', () => {
-            const result = getReportByTransactionID('nonexistent', mockContext, {});
-            expect(result).toBeUndefined();
-        });
-
-        test('getReportByTransactionID should return undefined for transaction without reportID', () => {
-            const contextWithIncompleteTransaction = {
-                ...mockContext,
-                allTransactions: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    transactions_incomplete: {
-                        transactionID: 'incomplete' as OnyxKey,
-                        amount: -1000,
-                        currency: 'USD',
-                        merchant: 'Store',
-                        // Missing reportID
-                    } as unknown as Transaction,
-                },
-            };
-
-            const result = getReportByTransactionID('incomplete', contextWithIncompleteTransaction, {});
-            expect(result).toBeUndefined();
         });
 
         test('should handle transaction updates that rely on context lookup', () => {

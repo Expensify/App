@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import type {WorkingUpdates} from './OptimisticReportNamesCache';
-import {getCachedTransactionByID} from './OptimisticReportNamesCache';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
@@ -492,14 +491,8 @@ function getOldestTransactionDate(reportID: string, context: FormulaContext): st
         // Use updated transaction data if available and matches this transaction
 
         // FormulaContext transaction is the most current, so it takes priority
-        let currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
+        const currentTransaction = context?.transaction && transaction.transactionID === context.transaction.transactionID ? context.transaction : transaction;
 
-        // If not the FormulaContext transaction, check working cache for this specific transaction
-        if (!context?.transaction || transaction.transactionID !== context.transaction.transactionID) {
-            if (context.workingUpdates && context?.updateContext) {
-                currentTransaction = getCachedTransactionByID(transaction.transactionID, context.updateContext, context.workingUpdates) ?? currentTransaction;
-            }
-        }
         const created = getCreated(currentTransaction);
         if (!created) {
             return;
