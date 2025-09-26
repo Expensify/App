@@ -992,8 +992,9 @@ describe('PolicyUtils', () => {
         } as OnyxEntry<Policy>;
 
         it('does return an ERROR RBR when a sync error exists for an admin', () => {
-            const policyWithConnectionFailures: OnyxEntry<Policy> = {
+            const policyWithConnectionFailures = {
                 ...baseAdminPolicy,
+                // Failed sync
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                         verified: false,
@@ -1014,10 +1015,90 @@ describe('PolicyUtils', () => {
             expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
-        it('does not return an ERROR RBR when a sync error exists for a user', () => {});
+        it('does not return an ERROR RBR when a sync error exists for a user', () => {
+            const policyWithConnectionFailures = {
+                ...baseUserPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
 
-        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {});
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toBeUndefined();
+        });
 
-        it('does not return an ERROR RBR when no sync error exists for a user', () => {});
+        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
+            const policyWithoutConnections = {
+                ...baseAdminPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseAdminPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result2).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync error exists for a user', () => {
+            const policyWithoutConnections = {
+                ...baseUserPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseUserPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result2).toBeUndefined();
+        });
     });
 });
