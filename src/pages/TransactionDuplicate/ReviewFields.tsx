@@ -48,9 +48,9 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
 
     const optionRows = useMemo(
         () =>
-            filteredOptions?.map((option, index) => ({
+            filteredOptions?.map((option, idx) => ({
                 text: option.text,
-                keyForList: `${option.text}-${index}`,
+                keyForList: `${option.text}-${idx}`,
                 value: option.value,
             })),
         [filteredOptions],
