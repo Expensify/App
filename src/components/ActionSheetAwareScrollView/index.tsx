@@ -1,26 +1,30 @@
-// this whole file is just for other platforms
-// iOS version has everything implemented
-import type {ReactNode} from 'react';
 import React, {forwardRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatedScrollViewProps, SharedValue} from 'react-native-reanimated';
-import Animated from 'react-native-reanimated';
+import type {AnimatedRef} from 'react-native-reanimated';
+import Animated, {useAnimatedRef} from 'react-native-reanimated';
+import type Reanimated from 'react-native-reanimated';
 import type {AnimatedScrollView} from 'react-native-reanimated/lib/typescript/component/ScrollView';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import type {ActionSheetAwareScrollViewProps} from './types';
+import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-type PropsWithAnimatedChildren = AnimatedScrollViewProps & {
-    children?: ReactNode | SharedValue<ReactNode>;
-};
+const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>((props, ref) => {
+    const fallbackRef = useAnimatedRef<Reanimated.ScrollView>();
+    const combinedRef = ref ?? fallbackRef;
 
-const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, PropsWithAnimatedChildren>((props, ref) => (
-    <Animated.ScrollView
-        ref={ref}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-    >
-        {props.children}
-    </Animated.ScrollView>
-));
+    const {onScroll} = usePreventScrollOnKeyboardInteraction({scrollViewRef: combinedRef as AnimatedRef<Reanimated.ScrollView>, onScroll: props.onScroll});
+
+    return (
+        <Animated.ScrollView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={combinedRef}
+            onScroll={onScroll}
+        >
+            {props.children}
+        </Animated.ScrollView>
+    );
+});
 
 export default ActionSheetAwareScrollView;
 
@@ -33,7 +37,7 @@ export default ActionSheetAwareScrollView;
  * @returns {React.ReactElement} - ActionSheetAwareScrollView
  */
 
-function renderScrollComponent(props: PropsWithAnimatedChildren) {
+function renderScrollComponent(props: ActionSheetAwareScrollViewProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
 }
