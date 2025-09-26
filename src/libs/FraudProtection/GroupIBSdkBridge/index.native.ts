@@ -1,7 +1,7 @@
 import {FP, FPAttributeFormat} from 'group-ib-fp';
+import {getApiRoot} from '@libs/ApiUtils';
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import Log from '@libs/Log';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import enableCapabilities from './enableCapabilities/index';
 
@@ -10,13 +10,13 @@ const cidIOSMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-i-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-i-expensify-stg',
     [CONST.ENVIRONMENT.DEV]: 'gib-i-expensify-uat',
-    [CONST.ENVIRONMENT.ADHOC]: 'gib-i-expensify-uat',
+    [CONST.ENVIRONMENT.ADHOC]: 'gib-i-expensify-stg',
 };
 const cidAndroidMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-a-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-a-expensify-stg',
     [CONST.ENVIRONMENT.DEV]: 'gib-a-expensify-uat',
-    [CONST.ENVIRONMENT.ADHOC]: 'gib-a-expensify-uat',
+    [CONST.ENVIRONMENT.ADHOC]: 'gib-a-expensify-stg',
 };
 
 let resolveFpInstancePromise: (fp: FP) => void = () => {};
@@ -38,9 +38,10 @@ function init(): Promise<void> {
 
         const fp = FP.getInstance();
 
-        let targetBaseURL;
+        let targetBaseURL = oldDotURL;
         if (env === CONST.ENVIRONMENT.DEV) {
-            targetBaseURL = CONFIG.EXPENSIFY.DEFAULT_API_ROOT;
+            targetBaseURL = getApiRoot();
+            Log.info(`[Fraud Protection] Fraud protection backend URL: ${targetBaseURL}`);
             fp.enableDebugLogs();
         }
 
@@ -49,7 +50,7 @@ function init(): Promise<void> {
             Log.warn(`[Fraud Protection] setCustomerId error: ${error}`);
         });
 
-        targetBaseURL = oldDotURL.endsWith('/') ? oldDotURL.slice(0, -1) : oldDotURL;
+        targetBaseURL = targetBaseURL.endsWith('/') ? targetBaseURL.slice(0, -1) : targetBaseURL;
         fp.setTargetURL(`${targetBaseURL}/api/fl`, (error: string) => {
             Log.warn(`[Fraud Protection] setTargetURL error: ${error}`);
         });
