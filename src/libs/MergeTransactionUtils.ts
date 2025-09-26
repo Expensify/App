@@ -54,6 +54,14 @@ function getReceiptFileName(receipt?: Receipt) {
     return receipt?.source?.split('/')?.pop();
 }
 
+function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
+    if (mergeField.field === 'attendees') {
+        return translate('transactionMerge.detailsPage.pleaseSelectAttendees');
+    }
+
+    return translate('transactionMerge.detailsPage.pleaseSelectError', {field: mergeField.label});
+}
+
 /**
  * Fills the receipt.source for a transaction if it's missing
  * Workaround while wait BE to fix the receipt.source
@@ -434,6 +442,7 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
+    getMergeFieldErrorText,
 };
 
 export type {MergeFieldKey, MergeFieldData};
