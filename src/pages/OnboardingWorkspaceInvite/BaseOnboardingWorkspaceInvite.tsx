@@ -221,39 +221,43 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         setSelectedOptions(newSelectedOptions);
     };
 
-    const completeOnboarding = useCallback(() => {
-        completeOnboardingReport({
-            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
-            firstName: currentUserPersonalDetails.firstName,
-            lastName: currentUserPersonalDetails.lastName,
-            adminsChatReportID: onboardingAdminsChatReportID,
-            onboardingPolicyID,
-            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
-        });
+    const completeOnboarding = useCallback(
+        (isInvitedAccountant: boolean) => {
+            completeOnboardingReport({
+                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
+                firstName: currentUserPersonalDetails.firstName,
+                lastName: currentUserPersonalDetails.lastName,
+                adminsChatReportID: onboardingAdminsChatReportID,
+                onboardingPolicyID,
+                shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
+                isInvitedAccountant,
+            });
 
-        setOnboardingAdminsChatReportID();
-        setOnboardingPolicyID();
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
 
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            onboardingPolicyID,
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                onboardingPolicyID,
+                onboardingAdminsChatReportID,
+                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+                // See https://github.com/Expensify/App/issues/57167 for more details
+                (session?.email ?? '').includes('+'),
+            );
+        },
+        [
+            currentUserPersonalDetails.firstName,
+            onboardingMessages,
+            currentUserPersonalDetails.lastName,
             onboardingAdminsChatReportID,
-            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-            // See https://github.com/Expensify/App/issues/57167 for more details
-            (session?.email ?? '').includes('+'),
-        );
-    }, [
-        currentUserPersonalDetails.firstName,
-        onboardingMessages,
-        currentUserPersonalDetails.lastName,
-        onboardingAdminsChatReportID,
-        onboardingPolicyID,
-        isSmallScreenWidth,
-        isBetaEnabled,
-        session?.email,
-    ]);
+            onboardingPolicyID,
+            isSmallScreenWidth,
+            isBetaEnabled,
+            session?.email,
+        ],
+    );
 
     const inviteUser = useCallback(() => {
         let isValid = true;
@@ -277,7 +281,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, onboardingPolicyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber);
-        completeOnboarding();
+        completeOnboarding(true);
     }, [completeOnboarding, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject, formatPhoneNumber]);
 
     useEffect(() => {
@@ -305,7 +309,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                     <Button
                         large
                         text={translate('common.skip')}
-                        onPress={() => completeOnboarding()}
+                        onPress={() => completeOnboarding(false)}
                     />
                 </View>
                 <View>
