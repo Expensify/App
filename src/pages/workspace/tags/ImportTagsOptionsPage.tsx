@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanPolicyTags, downloadMultiLevelIndependentTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
+import {cleanPolicyTags, downloadMultiLevelTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,7 +25,6 @@ import {
     goBackFromInvalidPolicy,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
-    hasIndependentTags as hasIndependentTagsPolicyUtils,
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -56,8 +55,8 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
+    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
+        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
 
@@ -107,8 +106,8 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
                 <TextLink
                     onPress={() => {
-                        if (hasIndependentTags && isMultiLevelTags) {
-                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                        if (isMultiLevelTags) {
+                            downloadMultiLevelTagsCSV(policyID, () => {
                                 setIsDownloadFailureModalVisible(true);
                             });
                         } else {
@@ -133,8 +132,8 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
                     <TextLink
                         onPress={() => {
-                            if (hasIndependentTags && isMultiLevelTags) {
-                                downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                            if (isMultiLevelTags) {
+                                downloadMultiLevelTagsCSV(policyID, () => {
                                     setIsDownloadFailureModalVisible(true);
                                 });
                             } else {

@@ -39,7 +39,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearPolicyTagErrors,
     deletePolicyTags,
-    downloadMultiLevelIndependentTagsCSV,
+    downloadMultiLevelTagsCSV,
     downloadTagsCSV,
     openPolicyTagsPage,
     setPolicyTagsRequired,
@@ -58,7 +58,6 @@ import {
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
-    hasIndependentTags as hasIndependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
@@ -100,8 +99,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
+    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
+        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
@@ -415,7 +414,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        if (hasVisibleTags && !hasDependentTags) {
+        if (hasVisibleTags) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
@@ -425,8 +424,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     close(() => {
-                        if (hasIndependentTags) {
-                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                        if (isMultiLevelTags) {
+                            downloadMultiLevelTagsCSV(policyID, () => {
                                 setIsDownloadFailureModalVisible(true);
                             });
                         } else {
@@ -441,7 +440,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, hasDependentTags, hasVisibleTags, isOffline, policyID, hasIndependentTags, hasAccountingConnections, navigateToImportSpreadsheet]);
+    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID]);
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
