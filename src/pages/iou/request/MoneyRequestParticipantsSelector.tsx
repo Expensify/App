@@ -209,6 +209,7 @@ function MoneyRequestParticipantsSelector({
         participants,
         isPerDiemRequest,
         canShowManagerMcTest,
+        isCorporateCardTransaction,
     ]);
 
     const chatOptions = useMemo(() => {
