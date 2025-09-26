@@ -42,7 +42,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
-import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
+import {selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -123,10 +123,10 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import KYCWall from './KYCWall';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
+import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
@@ -1140,42 +1140,6 @@ function MoneyReportHeader({
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
         selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, confirmPayment, isUserValidated, confirmApproval, moneyRequestReport);
 
-    const KYCMoreDropdown = (
-        <KYCWall
-            onSuccessfulKYC={(payment) => confirmPayment(payment)}
-            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            isDisabled={isOffline}
-            source={CONST.KYC_WALL_SOURCE.REPORT}
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            anchorAlignment={{
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-            }}
-        >
-            {(triggerKYCFlow, buttonRef) => (
-                <ButtonWithDropdownMenu
-                    success={false}
-                    onPress={() => {}}
-                    onSubItemSelected={(item, index, event) => {
-                        if (!isSecondaryActionAPaymentOption(item)) {
-                            return;
-                        }
-                        onPaymentSelect(event, item.value, triggerKYCFlow);
-                    }}
-                    buttonRef={buttonRef}
-                    shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={shouldDisplayNarrowVersion && applicableSecondaryActions.length >= 5}
-                    customText={translate('common.more')}
-                    options={applicableSecondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
-                    shouldUseModalPaddingStyle
-                />
-            )}
-        </KYCWall>
-    );
-
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -1192,7 +1156,16 @@ function MoneyReportHeader({
                 {!shouldDisplayNarrowVersion && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
-                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
+                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={moneyRequestReport}
+                                onPaymentSelect={onPaymentSelect}
+                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={applicableSecondaryActions}
+                            />
+                        )}
                         {shouldShowSelectedTransactionsButton && (
                             <View>
                                 <ButtonWithDropdownMenu
@@ -1223,7 +1196,16 @@ function MoneyReportHeader({
                 ) : (
                     <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                        {!!applicableSecondaryActions.length && KYCMoreDropdown}
+                        {!!applicableSecondaryActions.length && (
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={moneyRequestReport}
+                                onPaymentSelect={onPaymentSelect}
+                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={applicableSecondaryActions}
+                            />
+                        )}
                     </View>
                 ))}
 
