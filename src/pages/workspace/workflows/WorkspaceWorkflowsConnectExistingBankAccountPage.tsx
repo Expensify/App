@@ -25,6 +25,7 @@ type WorkspaceWorkflowsConnectExistingBankAccountPageProps = PlatformStackScreen
 function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWorkflowsConnectExistingBankAccountPageProps) {
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const policyName = policy?.name ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -42,6 +43,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             reimburserEmail: newReimburserEmail,
+            lastPaymentMethod: lastPaymentMethod?.[policyID]
         });
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
     };

@@ -221,7 +221,7 @@ function getOnyxDataForConnectingBankAccount(policyID: string, lastPaymentMethod
                         name: CONST.IOU.PAYMENT_TYPE.VBBA,
                     },
                     lastUsed: {
-                        name: lastUsedPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.VBBA,
+                        name: CONST.IOU.PAYMENT_TYPE.VBBA,
                     },
                 },
             },

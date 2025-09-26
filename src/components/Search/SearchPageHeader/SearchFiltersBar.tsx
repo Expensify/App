@@ -91,6 +91,7 @@ function SearchFiltersBar({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
+    const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -651,6 +652,7 @@ function SearchFiltersBar({
                 <KYCWall
                     chatReportID={currentSelectedReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    iouReport={selectedIOUReport}
                     addBankAccountRoute={
                         isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined
                     }
