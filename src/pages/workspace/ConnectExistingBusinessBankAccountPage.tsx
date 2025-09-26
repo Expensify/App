@@ -25,6 +25,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const policyName = policy?.name ?? '';
+    const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const styles = useThemeStyles();
@@ -68,6 +69,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                     itemIconRight={Expensicons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
+                    filterCurrency={policyCurrency}
                     shouldHideDefaultBadge
                 />
             </ScrollView>
