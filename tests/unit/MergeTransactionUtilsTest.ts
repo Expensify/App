@@ -520,7 +520,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for merchant
-            const result = getDisplayValue('merchant', transaction, translateLocal);
+            const result = getDisplayValue('merchant', transaction, undefined, translateLocal);
 
             // Then it should return empty string
             expect(result).toBe('');
@@ -535,8 +535,8 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for boolean fields
-            const reimbursableResult = getDisplayValue('reimbursable', transaction, translateLocal);
-            const billableResult = getDisplayValue('billable', transaction, translateLocal);
+            const reimbursableResult = getDisplayValue('reimbursable', transaction, undefined, translateLocal);
+            const billableResult = getDisplayValue('billable', transaction, undefined, translateLocal);
 
             // Then it should return translated Yes/No values
             expect(reimbursableResult).toBe('common.yes');
@@ -552,7 +552,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for amount
-            const result = getDisplayValue('amount', transaction, translateLocal);
+            const result = getDisplayValue('amount', transaction, undefined, translateLocal);
 
             // Then it should return formatted currency string
             expect(result).toBe('$10.00');
@@ -568,7 +568,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for description
-            const result = getDisplayValue('description', transaction, translateLocal);
+            const result = getDisplayValue('description', transaction, undefined, translateLocal);
 
             // Then it should return cleaned text without HTML and with spaces instead of line breaks
             expect(result).toBe('This is a test description with line breaks and more text');
@@ -582,7 +582,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for tag
-            const result = getDisplayValue('tag', transaction, translateLocal);
+            const result = getDisplayValue('tag', transaction, undefined, translateLocal);
 
             // Then it should return sanitized tag names separated by commas
             expect(result).toBe('Department, Engineering, Frontend');
@@ -598,8 +598,8 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for string fields
-            const merchantResult = getDisplayValue('merchant', transaction, translateLocal);
-            const categoryResult = getDisplayValue('category', transaction, translateLocal);
+            const merchantResult = getDisplayValue('merchant', transaction, undefined, translateLocal);
+            const categoryResult = getDisplayValue('category', transaction, undefined, translateLocal);
 
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
