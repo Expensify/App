@@ -272,6 +272,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                         shouldDisableStrikeThrough
                                     >
                                         <MenuItem
+                                            errorTextStyle={styles.mt2}
                                             brickRoadIndicator={menuItem.brickRoadIndicator}
                                             key={menuItem.title}
                                             // eslint-disable-next-line react/jsx-props-no-spreading
