@@ -2059,20 +2059,22 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
-        it('returns true when @here mention makes lastMentionedTime newer than lastReadTime', () => {
+        it('returns true for @here mention in an admin room', () => {
+            const adminRoom = createAdminRoom(42);
             const report = {
-                ...LHNTestUtils.getFakeReport(),
-                lastReadTime: '2024-01-01 00:00:00.000',
-                lastMentionedTime: '2024-01-01 00:00:01.000',
+                ...adminRoom,
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
             };
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
-        it('returns false when @here mention time is not newer than lastReadTime', () => {
+        it('returns false for @here in an admin room when user already read after mention', () => {
+            const adminRoom2 = createAdminRoom(43);
             const report = {
-                ...LHNTestUtils.getFakeReport(),
-                lastReadTime: '2024-01-01 00:00:01.000',
-                lastMentionedTime: '2024-01-01 00:00:01.000',
+                ...adminRoom2,
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
             };
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
         });
