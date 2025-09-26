@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import {getGroupChatDraft, getGroupChatName} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {setGroupDraft, updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,8 +46,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
             const errors: Errors = {};
             const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-            const nameLength = [...name.trim()].length;
+            const nameLength = StringUtils.getUTF8ByteLength(name.trim());
             if (nameLength > CONST.REPORT_NAME_LIMIT) {
                 errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
             }

@@ -70,9 +70,9 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-import SelectionList from './SelectionList';
-import type {SectionListDataType} from './SelectionList/types';
-import UserListItem from './SelectionList/UserListItem';
+import SelectionList from './SelectionListWithSections';
+import type {SectionListDataType} from './SelectionListWithSections/types';
+import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -198,6 +198,8 @@ type MoneyRequestConfirmationListProps = {
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
 
+const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
+
 function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
@@ -244,11 +246,11 @@ function MoneyRequestConfirmationList({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});

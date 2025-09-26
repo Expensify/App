@@ -600,6 +600,7 @@ const CONST = {
                 NATURE_OF_BUSINESS: 'NatureOfBusiness',
                 PURPOSE_OF_TRANSACTION: 'PurposeOfTransaction',
                 TRADE_VOLUME_RANGE: 'TradeVolumeRange',
+                BUSINESS_TYPE: 'BusinessType',
             },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -706,7 +707,6 @@ const CONST = {
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        DUPLICATE_WORKSPACE: 'duplicatePolicyNewDot',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1505,6 +1505,7 @@ const CONST = {
         INTEGRATIONS: 'integrations',
         IN_APP: 'in-app',
     },
+    EXPORT_TEMPLATE: 'exportTemplate',
     NEXT_STEP: {
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -7306,6 +7307,10 @@ const FRAUD_PROTECTION_EVENT = {
     MERGE_ACCOUNT: 'MergeAccount',
     TOGGLE_TWO_FACTOR_AUTH: 'ToggleTwoFactorAuth',
     ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
+    ADD_BILLING_CARD: 'AddBillingCard',
+    VIEW_VIRTUAL_CARD_PAN: 'ViewVirtualCardPAN',
+    BUSINESS_BANK_ACCOUNT_SETUP: 'BusinessBankAccountSetup',
+    PERSONAL_BANK_ACCOUNT_SETUP: 'PersonalBankAccountSetup',
 };
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
