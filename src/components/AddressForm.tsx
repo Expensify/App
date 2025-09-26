@@ -1,11 +1,12 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AddressSearch from './AddressSearch';
@@ -13,6 +14,7 @@ import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormOnyxValues} from './Form/types';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import type {State} from './StateSelector';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
@@ -55,6 +57,9 @@ type AddressFormProps = {
 
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
+
+    /** Function to clear address street error */
+    onClearAddressStreetError?: () => void;
 };
 
 function AddressForm({
@@ -69,6 +74,7 @@ function AddressForm({
     street2 = '',
     submitButtonText = '',
     zip = '',
+    onClearAddressStreetError = () => {},
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,6 +84,10 @@ function AddressForm({
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const isUSAForm = country === CONST.COUNTRY.US;
+
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const isPersonalDetailsForm = !!onClearAddressStreetError;
+    const addressStreetError = isPersonalDetailsForm ? privatePersonalDetails?.errorFields?.addressStreet : undefined;
 
     /**
      * @param translate - translate function
@@ -164,25 +174,32 @@ function AddressForm({
             addBottomSafeAreaPadding
         >
             <View>
-                <InputWrapper
-                    InputComponent={AddressSearch}
-                    inputID={INPUT_IDS.ADDRESS_LINE_1}
-                    label={translate('common.addressLine', {lineNumber: 1})}
-                    onValueChange={(data: unknown, key: unknown) => {
-                        onAddressChanged(data, key);
-                    }}
-                    defaultValue={street1}
-                    renamedInputKeys={{
-                        street: INPUT_IDS.ADDRESS_LINE_1,
-                        street2: INPUT_IDS.ADDRESS_LINE_2,
-                        city: INPUT_IDS.CITY,
-                        state: INPUT_IDS.STATE,
-                        zipCode: INPUT_IDS.ZIP_POST_CODE,
-                        country: INPUT_IDS.COUNTRY as Country,
-                    }}
-                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                    shouldSaveDraft={shouldSaveDraft}
-                />
+                <OfflineWithFeedback
+                    errors={addressStreetError}
+                    errorRowStyles={[styles.mt2]}
+                    onClose={onClearAddressStreetError}
+                >
+                    <InputWrapper
+                        InputComponent={AddressSearch}
+                        inputID={INPUT_IDS.ADDRESS_LINE_1}
+                        label={translate('common.addressLine', {lineNumber: 1})}
+                        onValueChange={(data: unknown, key: unknown) => {
+                            onAddressChanged(data, key);
+                            onClearAddressStreetError();
+                        }}
+                        defaultValue={street1}
+                        renamedInputKeys={{
+                            street: INPUT_IDS.ADDRESS_LINE_1,
+                            street2: INPUT_IDS.ADDRESS_LINE_2,
+                            city: INPUT_IDS.CITY,
+                            state: INPUT_IDS.STATE,
+                            zipCode: INPUT_IDS.ZIP_POST_CODE,
+                            country: INPUT_IDS.COUNTRY as Country,
+                        }}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        shouldSaveDraft={shouldSaveDraft}
+                    />
+                </OfflineWithFeedback>
             </View>
             <View style={styles.formSpaceVertical} />
             <InputWrapper
