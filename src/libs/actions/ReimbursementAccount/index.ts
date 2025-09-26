@@ -1,12 +1,11 @@
 import Onyx from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { ReimbursementAccountForm } from '@src/types/form';
+import type {ReimbursementAccountForm} from '@src/types/form';
 import {ACHData, ACHDataReimbursementAccount, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
-
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './errors';
