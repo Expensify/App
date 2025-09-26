@@ -70,6 +70,7 @@ import {
     isPayer,
     isReportOutstanding,
     isRootGroupChat,
+    isSelfDMOrSelfDMThread,
     parseReportRouteParams,
     populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
@@ -7308,5 +7309,124 @@ describe('ReportUtils', () => {
                 expect(shouldEnableNegative(chatReport, teamPolicy, CONST.IOU.TYPE.SPLIT)).toBe(false);
             });
         });
+    });
+
+    describe('isSelfDMOrSelfDMThread', () => {
+        let standardSelfDMReport: Report;
+        let movedSelfDMReport: Report;
+        let regularDMReport: Report;
+        let groupChatReport: Report;
+
+        beforeEach(() => {
+            // Standard self-DM with proper chatType
+            standardSelfDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // Self-DM that was moved from workspace (empty chatType)
+            movedSelfDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // Regular 1:1 DM with another user
+            regularDMReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    12345678: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // Group chat with multiple participants
+            groupChatReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    12345678: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    87654321: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+        });
+
+        describe('standard self-DM detection', () => {
+            it('should return true for standard self-DM with proper chatType', () => {
+                expect(isSelfDMOrSelfDMThread(standardSelfDMReport)).toBe(true);
+            });
+
+            it('should return true for moved self-DM with empty chatType', () => {
+                expect(isSelfDMOrSelfDMThread(movedSelfDMReport)).toBe(true);
+            });
+        });
+
+
+        describe('non-self-DM reports', () => {
+            it('should return false for regular 1:1 DM', () => {
+                expect(isSelfDMOrSelfDMThread(regularDMReport)).toBe(false);
+            });
+
+            it('should return false for group chat', () => {
+                expect(isSelfDMOrSelfDMThread(groupChatReport)).toBe(false);
+            });
+        });
+
+        describe('edge cases', () => {
+            it('should return false for undefined report', () => {
+                expect(isSelfDMOrSelfDMThread(undefined)).toBe(false);
+            });
+
+
+            it('should return false for report with no participants', () => {
+                const reportWithNoParticipants = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: undefined,
+                    participants: {},
+                };
+                expect(isSelfDMOrSelfDMThread(reportWithNoParticipants)).toBe(false);
+            });
+
+
+            it('should return false for non-chat report types', () => {
+                const expenseReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    participants: {
+                        [currentUserAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
+                    },
+                };
+                expect(isSelfDMOrSelfDMThread(expenseReport)).toBe(false);
+            });
+        });
+
     });
 });
