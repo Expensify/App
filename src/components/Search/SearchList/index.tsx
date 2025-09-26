@@ -38,7 +38,6 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import navigationRef from '@libs/Navigation/navigationRef';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
@@ -267,7 +266,7 @@ function SearchList({
                 return;
             }
 
-            listRef.current.scrollToIndex({index, animated, viewOffset: variables.contentHeaderHeight});
+            listRef.current.scrollToIndex({index, animated, viewPosition: 0});
         },
         [data],
     );
