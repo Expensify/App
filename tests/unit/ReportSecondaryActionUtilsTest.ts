@@ -587,7 +587,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
-    it('includes CHANGE_WORKSPACE option for submitted IOU report and manager being the payer of the new policy', async () => {
+    it('does not include CHANGE_WORKSPACE option for submitted IOU report and manager being the payer of the new policy', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.IOU,
@@ -617,7 +617,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
 
     it('includes CHANGE_WORKSPACE option for open expense report submitter', async () => {
