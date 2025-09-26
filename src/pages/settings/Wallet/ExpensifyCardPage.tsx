@@ -383,7 +383,7 @@ function ExpensifyCardPage({
                 {cardToAdd !== undefined && (
                     <AddToWalletButton
                         card={cardToAdd}
-                        buttonStyle={styles.alignSelfCenter}
+                        style={styles.alignSelfCenter}
                         cardHolderName={displayName ?? ''}
                         cardDescription={expensifyCardTitle}
                     />
