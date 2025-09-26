@@ -35,7 +35,7 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
         }
         ```
 
-    - _Example:_ For a single search snapshot, an integer `sequenceNumber` is used. This is a simple implementation, but generally is not a scalable solution, because it requires that all the data you're paging over needs to be sorted before you can access it by an integer offset and limit.
+    - _Example:_ For a single search snapshot, an integer `sequenceNumber` is used. This is a simple implementation, but generally is not a scalable solution, because offset-based approaches require the database to scan and discard all prior rows up to the offset, which becomes slow for large dataset pagination.
 
 3. Using your cursor as inputs, define a database query to _quickly_ access a limited number (a single page) of the resource in question. Test it for the highest volume of data you can find (i.e: the report with the most actions, the account with access to the most reports, etc...). If you do this well, you should find that the query execution time is unaffected by the total search volume (the total length of the "list" that you're paging over).
     - A good starting point for this is to write your query using a [row value comparison](https://www.sqlite.org/rowvalue.html). Then, if necessary, consider creating a sorted `COVERING` index for the row value you're searching over. For example:
