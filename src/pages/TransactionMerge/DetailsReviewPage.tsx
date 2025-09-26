@@ -18,6 +18,7 @@ import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
 import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
+    getMergeFieldErrorText,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -218,7 +219,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                             key={mergeField.field}
                             mergeField={mergeField}
                             onValueSelected={handleSelect}
-                            errorText={hasErrors[mergeField.field] ? translate('transactionMerge.detailsPage.pleaseSelectError', {field: mergeField.label}) : undefined}
+                            errorText={hasErrors[mergeField.field] ? getMergeFieldErrorText(translate, mergeField) : undefined}
                         />
                     ))}
                 </ScrollView>
