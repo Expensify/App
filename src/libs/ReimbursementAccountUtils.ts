@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ACHData, ACHDataReimbursementAccount, BankAccountStep, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import AccountVerifications from '@src/types/onyx/AccountVerifications';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 
@@ -120,7 +121,7 @@ function mapBankAccountToACHData(bankAccountList?: BankAccountList): Partial<ACH
         isControllingOfficer: additionalData?.isControllingOfficer,
         isFromNewDot: true,
         lastUpdate: additionalData?.lastUpdate,
-        verifications: additionalData?.verifications,
+        verifications: additionalData?.verifications as AccountVerifications,
         country: additionalData?.country as Country,
         beneficialOwners: JSON.stringify(additionalData?.beneficialOwners),
     };

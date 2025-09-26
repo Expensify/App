@@ -10,7 +10,6 @@ import TextLink from '@components/TextLink';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';

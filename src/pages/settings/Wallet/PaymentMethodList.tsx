@@ -27,7 +27,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {AccountData, BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -91,9 +91,6 @@ type PaymentMethodListProps = {
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
-
-    /** Type of payment method to filter by */
-    filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
 
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
@@ -184,7 +181,6 @@ function PaymentMethodList({
     policyID = '',
     onAddBankAccountPress = () => {},
     itemIconRight,
-    filterType,
     shouldHideDefaultBadge = false,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
@@ -360,7 +356,6 @@ function PaymentMethodList({
         bankAccountList,
         styles,
         isOffline,
-        filterType,
         isLoadingCardList,
         cardList,
         illustrations,
