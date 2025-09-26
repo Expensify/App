@@ -900,7 +900,6 @@ function setWorkspaceReimbursement({policyID, reimbursementChoice, bankAccountID
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
-    console.log('lastUsedPaymentMethod', lastUsedPaymentMethod)
 
     const optimisticData: OnyxUpdate[] = [
         {

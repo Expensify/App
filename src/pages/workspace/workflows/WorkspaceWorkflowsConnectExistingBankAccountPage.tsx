@@ -43,7 +43,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             reimburserEmail: newReimburserEmail,
-            lastPaymentMethod: lastPaymentMethod?.[policyID]
+            lastPaymentMethod: lastPaymentMethod?.[policyID],
         });
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
     };
