@@ -60,6 +60,8 @@ This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather th
 
 By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
 
+**Note:** Any changes to files involved in generating a fingerprint (e.g., `package.json`) will trigger a local build.
+
 The following steps describe how to configure the project to fully utilize Rock.
 
 ### Generating GitHub Personal Access Token
@@ -85,12 +87,28 @@ To take advantage of remote builds, setup your GitHub Personal Access Token (PAT
 After completing these steps, you should be able to start both mobile platform apps using the remote build.
 
 ### Troubleshooting
-* If fetching cached builds for mobile fails, verify that both workflows in the GitHub repository have completed successfully. If they did not, Rock will be unable to fetch the cached builds. 
+* Try re-installing dependencies:
+    - `npm run i-standalone` for the standalone app
+    - `npm install` for the hybrid app
+
+* Try running `npm run ios` or `npm run android` again
 
 * If you’re still encountering errors, you can try running:
-    - `git clean -fdx`
-    - `git clean -fdx ./Mobile-Expensify`
-    - You may also want to reinstall node_modules.
+    - `git clean -fdx ios/` when running iOS
+    - `git clean -fdx android/` when running Android
+    - `git clean -fdx ./Mobile-Expensify` when running hybrid app
+
+* Then try running `npm run ios` or `npm run android` again
+
+* If the issue persists, verify that both workflows in the GitHub repository have completed successfully:
+    - [iOS builds](https://github.com/Expensify/App/actions/workflows/remote-build-ios.yml)
+    - [Android builds](https://github.com/Expensify/App/actions/workflows/remote-build-android.yml)
+    If the workflows are still running, open them and verify they match your fingerprint. Once complete, Rock should download the remote build. If not, check whether the last main commit hash merged into your branch has the same fingerprint as yours.
+
+    If the fingerprints do not match, run:
+    - `npx rock fingerprint -p ios --verbose` for iOS
+    - `npx rock fingerprint -p android --verbose` for Android
+    Compare the results with the GitHub Actions output to see which files have different fingerprints.
 
 * In the event of workflow failures, it is recommended to have the option to manually build the application. The following steps will cover the manual build process.  
 
