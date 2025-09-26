@@ -56,12 +56,15 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                             fill={theme.textSupporting}
                         />
                     </View>
-                    <TextLink
-                        href={downloadAppHref}
-                        style={[styles.textLabelSupporting, styles.textBlue, styles.flex1]}
-                    >
-                        {translate('receipt.alternativeMethodsDownloadApp')}
-                    </TextLink>
+                    <Text style={[styles.textLabelSupporting, styles.flex1]}>
+                        <TextLink
+                            href={downloadAppHref}
+                            style={[styles.textLabelSupporting, styles.textBlue]}
+                        >
+                            {translate('receipt.alternativeMethodsDownloadApp')}
+                        </TextLink>
+                        {translate('receipt.alternativeMethodsDownloadAppSuffix')}
+                    </Text>
                 </View>
             )}
 

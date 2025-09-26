@@ -1033,7 +1033,8 @@ const translations = {
     receipt: {
         alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `Text receipts to ${phoneNumber} (US numbers only)`,
         alternativeMethodsForwardReceipts: 'Forward receipts to',
-        alternativeMethodsDownloadApp: 'Download the app to scan from your phone',
+        alternativeMethodsDownloadApp: 'Download the app',
+        alternativeMethodsDownloadAppSuffix: ' to scan from your phone',
         alternativeMethodsTitle: 'Other ways to add receipts:',
         alternativeMethodsAddPhoneNumberSuffix: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => ` to text receipts to ${phoneNumber}`,
         alternativeMethodsAddPhoneNumberLink: 'Add your number',
