@@ -1018,32 +1018,32 @@ describe('PolicyUtils', () => {
         });
 
         it('returns ERROR when there is an accounting sync error for admin', () => {
-            hasSynchronizationErrorMessage.mockReturnValue(true);
-            shouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
+            mockedHasSynchronizationErrorMessage.mockReturnValue(true);
+            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
 
             const result = getPolicyBrickRoadIndicatorStatus(baseAdminPolicy, false);
             expect(result).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
         it('does not return ERROR for non-admin even if sync error exists', () => {
-            hasSynchronizationErrorMessage.mockReturnValue(true);
-            shouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
+            mockedHasSynchronizationErrorMessage.mockReturnValue(true);
+            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
 
             const result = getPolicyBrickRoadIndicatorStatus(baseUserPolicy, false);
             expect(result).toBeUndefined();
         });
 
         it('returns ERROR when QBO reimbursable export destination account error exists (admin)', () => {
-            hasSynchronizationErrorMessage.mockReturnValue(false);
-            shouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(true);
+            mockedHasSynchronizationErrorMessage.mockReturnValue(false);
+            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(true);
 
             const result = getPolicyBrickRoadIndicatorStatus(baseAdminPolicy, false);
             expect(result).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
         it('returns undefined when there are no accounting issues', () => {
-            hasSynchronizationErrorMessage.mockReturnValue(false);
-            shouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
+            mockedHasSynchronizationErrorMessage.mockReturnValue(false);
+            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
 
             const result = getPolicyBrickRoadIndicatorStatus(baseAdminPolicy, false);
             expect(result).toBeUndefined();
