@@ -47,6 +47,8 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
+    const isItemDisabled = !!isDisabled && !isSelected;
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -55,7 +57,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                     onSelectRow(item);
                     setIsSelected((val) => !val);
                 }}
-                disabled={isDisabled && !isSelected}
+                disabled={isItemDisabled}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
@@ -80,6 +82,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                         onSelectRow(item);
                         setIsSelected((val) => !val);
                     }}
+                    isDisabled={isItemDisabled}
                     shouldShowCheckbox
                     style={styles.p3}
                 />
