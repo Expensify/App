@@ -59,7 +59,7 @@ function getMergeFieldErrorText(translate: LocaleContextProps['translate'], merg
         return translate('transactionMerge.detailsPage.pleaseSelectAttendees');
     }
 
-    return translate('transactionMerge.detailsPage.pleaseSelectError', {field: mergeField.label});
+    return translate('transactionMerge.detailsPage.pleaseSelectError', {field: mergeField.label.toLowerCase()});
 }
 
 /**
