@@ -621,7 +621,7 @@ function MoneyRequestConfirmationList({
     );
 
     useEffect(() => {
-        if (!isTypeSplit || !transaction?.splitShares) {
+        if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
             return;
         }
 
