@@ -1,4 +1,4 @@
-import Onyx, { OnyxCollection } from 'react-native-onyx';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -26,6 +26,7 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -2447,29 +2448,50 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSuggestedSearchesVisibility', () => {
         test('Should not show export if there are no valid connections', () => {
+            const policyKey = `policy_${policyID}`;
+
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [policyID]: {
+                [policyKey]: {
                     exporter: adminEmail,
-                    accountID: adminAccountID,
+                    approver: adminEmail,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                     role: CONST.POLICY.ROLE.ADMIN,
-                    connections: [],
-                    policyID,
-                },
-            }   
+                    // Failed connection
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'Error',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                } as OnyxTypes.Policy,
+            };
 
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(
-                ()
-            )
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, {}, adminAccountID);
+            expect(response.export).toBe(false);
 
-//             function getSuggestedSearchesVisibility(
-//     currentUserEmail: string | undefined,
-//     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
-//     policies: OnyxCollection<OnyxTypes.Policy>,
-//     reports?: OnyxCollection<OnyxTypes.Report>,
-//     currentUserAccountID?: number,
-// ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean> {
-        })
-    })
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastSync = {
+                errorDate: '',
+                errorMessage: '',
+                isAuthenticationError: false,
+                isConnected: true,
+                isSuccessful: true,
+                source: 'NEWEXPENSIFY',
+                successfulDate: new Date().toISOString(),
+            };
+
+            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, {}, adminAccountID);
+            expect(response2.export).toBe(true);
+        });
+    });
 
     describe('Test getColumnsToShow', () => {
         test('Should only show columns when at least one transaction has a value for them', () => {
