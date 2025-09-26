@@ -33,7 +33,7 @@ You can update the following profile settings:
    - Polish (Polski)
    - Portuguese (Português – Brasil)
    - Japanese (日本語)
-   - Chinese (中文（简体）)
+   - Chinese (中文 (简体))
 
 ---
 
