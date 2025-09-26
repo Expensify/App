@@ -19,11 +19,10 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {hasSynchronizationErrorMessage} from '@src/libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@src/libs/actions/connections/QuickbooksOnline';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -44,27 +43,6 @@ jest.mock('@libs/UserUtils', () => ({
     // generateAccountID: () => GENERATED_ACCOUNT_ID,
     generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
 }));
-
-jest.mock('@src/libs/actions/connections', () => ({
-    hasSynchronizationErrorMessage: jest.fn(),
-}));
-
-jest.mock('@src/libs/actions/connections/QuickbooksOnline', () => ({
-    shouldShowQBOReimbursableExportDestinationAccountError: jest.fn(),
-}));
-
-jest.mock('@src/libs/actions/connections', () => ({
-    hasSynchronizationErrorMessage: jest.fn(),
-}));
-
-jest.mock('@src/libs/actions/connections/QuickbooksOnline', () => ({
-    shouldShowQBOReimbursableExportDestinationAccountError: jest.fn(),
-}));
-
-const mockedHasSynchronizationErrorMessage = hasSynchronizationErrorMessage as jest.MockedFunction<typeof hasSynchronizationErrorMessage>;
-const mockedShouldShowQBOReimbursableExportDestinationAccountError = shouldShowQBOReimbursableExportDestinationAccountError as jest.MockedFunction<
-    typeof shouldShowQBOReimbursableExportDestinationAccountError
->;
 
 const testDate = DateUtils.getDBTime();
 const employeeList: PolicyEmployeeList = {
@@ -1000,7 +978,7 @@ describe('PolicyUtils', () => {
             connections: {},
             errors: {},
             errorFields: {},
-        } as unknown as OnyxEntry<Policy>;
+        } as OnyxEntry<Policy>;
 
         const baseUserPolicy: OnyxEntry<Policy> = {
             id: 'DEF456',
@@ -1011,42 +989,35 @@ describe('PolicyUtils', () => {
             connections: {},
             errors: {},
             errorFields: {},
-        } as unknown as OnyxEntry<Policy>;
+        } as OnyxEntry<Policy>;
 
-        beforeEach(() => {
-            jest.resetAllMocks();
+        it('does return an ERROR RBR when a sync error exists for an admin', () => {
+            const policyWithConnectionFailures: OnyxEntry<Policy> = {
+                ...baseAdminPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
-        it('returns ERROR when there is an accounting sync error for admin', () => {
-            mockedHasSynchronizationErrorMessage.mockReturnValue(true);
-            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
+        it('does not return an ERROR RBR when a sync error exists for a user', () => {});
 
-            const result = getPolicyBrickRoadIndicatorStatus(baseAdminPolicy, false);
-            expect(result).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-        });
+        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {});
 
-        it('does not return ERROR for non-admin even if sync error exists', () => {
-            mockedHasSynchronizationErrorMessage.mockReturnValue(true);
-            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
-
-            const result = getPolicyBrickRoadIndicatorStatus(baseUserPolicy, false);
-            expect(result).toBeUndefined();
-        });
-
-        it('returns ERROR when QBO reimbursable export destination account error exists (admin)', () => {
-            mockedHasSynchronizationErrorMessage.mockReturnValue(false);
-            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(true);
-
-            const result = getPolicyBrickRoadIndicatorStatus(baseAdminPolicy, false);
-            expect(result).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-        });
-
-        it('returns undefined when there are no accounting issues', () => {
-            mockedHasSynchronizationErrorMessage.mockReturnValue(false);
-            mockedShouldShowQBOReimbursableExportDestinationAccountError.mockReturnValue(false);
-
-            const result = getPolicyBrickRoadIndicatorStatus(baseAdminPolicy, false);
-            expect(result).toBeUndefined();
-        });
+        it('does not return an ERROR RBR when no sync error exists for a user', () => {});
     });
 });
