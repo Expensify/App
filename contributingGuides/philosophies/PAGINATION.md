@@ -64,11 +64,7 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
     - The list live-updates and the user can "jump" to an arbitrary point in the list without loading all the data between the start of the list and that point.
     - The list doesn't live-update (i.e: if a user scrolls back in the list, and while they're looking at older items, they're not receiving newer items as they come in).
 
-    If bidirectional pagination is needed, ensure that queries and API endpoints fetch data from a given cursor in both directions. In the example query above, it could be as simple as switching `<` to `>=` and making the comparator and sort order explicit for each direction.
-
-> [!NOTE]
-> At the time of writing, [RecyclerListView](https://github.com/Flipkart/recyclerlistview) and [FlashList](https://github.com/Shopify/flash-list) _do not_ support bidirectional pagination.
-> React Native's built-in [FlatList](https://reactnative.dev/docs/flatlist) and [legend-list](https://github.com/LegendApp/legend-list) are some examples that _do_ support bidirectional pagination via the `onStartReached` prop.
+    If bidirectional pagination is needed, ensure that queries and API endpoints fetch data from a given cursor in both directions. In the example query above, it could be as simple as switching `<` to `>=` and making the comparator and sort order explicit for each direction. Also ensure that if a front-end list library is used, it supports bidirectional pagination (i.e: both an `onEndReached` and `onStartReached` param).
 
 5. Determine whether it's possible for **gaps** to appear in the data. It's non-trivial to list all the ways gaps can appear in a list, but here are a couple of examples, one real and one contrived:
     - "Comment linking"
