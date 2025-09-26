@@ -99,7 +99,7 @@ describe('CustomFormula', () => {
     });
 
     describe('compute()', () => {
-        let mockContext: FormulaContext = {
+        const mockContext: FormulaContext = {
             report: {
                 reportID: '123',
                 reportName: '',
@@ -231,82 +231,6 @@ describe('CustomFormula', () => {
         test('should preserve exact spacing around formula parts', () => {
             const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
-        });
-
-        describe('report:reimbursable', () => {
-            let mockedTransactions: Transaction[] = [];
-
-            beforeEach(() => {
-                mockContext = {
-                    report: {reportID: '123', currency: 'USD'} as Report,
-                    policy: null as unknown as Policy,
-                };
-
-                jest.clearAllMocks();
-                mockReportUtils.getReportTransactions.mockImplementation(() => mockedTransactions);
-            });
-
-            test('sums reimbursable amounts across transactions', () => {
-                mockedTransactions = [
-                    {transactionID: 'trans1', amount: 10000, reimbursable: true, merchant: 'A'},
-                    {transactionID: 'trans2', amount: 5000, reimbursable: false, merchant: 'B'},
-                    {transactionID: 'trans3', amount: 2500, reimbursable: true, merchant: 'C'},
-                ] as Transaction[];
-
-                expect(compute('{report:reimbursable}', mockContext)).toBe('$125.00');
-            });
-
-            test('uses context transaction to override reimbursable flag', () => {
-                mockedTransactions = [
-                    {transactionID: 'trans1', amount: 10000, reimbursable: true, merchant: 'A'},
-                    {transactionID: 'trans2', amount: 5000, reimbursable: false, merchant: 'B'},
-                ] as Transaction[];
-
-                mockContext = {
-                    report: {reportID: '123', currency: 'USD'} as Report,
-                    policy: null as unknown as Policy,
-                    transaction: {transactionID: 'x2', reportID: '123', amount: 5000, reimbursable: true, merchant: 'B'} as Transaction,
-                };
-
-                expect(compute('{report:reimbursable}', mockContext)).toBe('$150.00');
-            });
-
-            test('includes new context transaction not in list', () => {
-                mockedTransactions = [{transactionID: 'trans1', amount: 5000, reimbursable: true, merchant: 'A'}] as Transaction[];
-
-                mockContext = {
-                    report: {reportID: '123', currency: 'USD'} as Report,
-                    policy: null as unknown as Policy,
-                    transaction: {transactionID: 'trans2', reportID: '123', amount: 2500, reimbursable: true, merchant: 'B'} as Transaction,
-                };
-
-                expect(compute('{report:reimbursable}', mockContext)).toBe('$75.00');
-            });
-
-            test('returns $0.00 when no reimbursable transactions', () => {
-                mockedTransactions = [{transactionID: 'trans1', amount: 10000, reimbursable: false, merchant: 'A'}] as Transaction[];
-                expect(compute('{report:reimbursable}', mockContext)).toBe('$0.00');
-            });
-
-            test('returns $0.00 when there are no transactions', () => {
-                mockedTransactions = [];
-                expect(compute('{report:reimbursable}', mockContext)).toBe('$0.00');
-            });
-
-            test('handles undefined amounts', () => {
-                mockedTransactions = [
-                    {transactionID: 'trans1', amount: undefined, reimbursable: true, merchant: 'A'},
-                    {transactionID: 'trans2', amount: 5000, reimbursable: true, merchant: 'B'},
-                ] as Transaction[];
-
-                expect(compute('{report:reimbursable}', mockContext)).toBe('$50.00');
-            });
-
-            test('calls getReportTransactions with reportID', () => {
-                mockedTransactions = [];
-                compute('{report:reimbursable}', mockContext);
-                expect(mockReportUtils.getReportTransactions).toHaveBeenCalledWith('123');
-            });
         });
     });
 

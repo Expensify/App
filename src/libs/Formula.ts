@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getAllReportActions} from './ReportActionsUtils';
-import {getReportTransactions} from './ReportUtils';
+import {getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction} from './TransactionUtils';
 
 type FormulaPart = {
@@ -251,7 +251,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'total':
             return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'reimbursable':
-            return formatAmount(getReportReimbursableAmount(report.reportID, context), getCurrencySymbol(report.currency ?? '') ?? report.currency);
+            return formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, getCurrencySymbol(report.currency ?? '') ?? report.currency);
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -417,47 +417,6 @@ function formatAmount(amount: number | undefined, currency: string | undefined):
     }
 
     return formattedAmount;
-}
-
-/**
- * Get all transactions for a report, including any context transaction.
- * Updates an existing transaction if it matches the context or adds it if new.
- */
-function getAllReportTransactionsWithContext(reportID: string, context?: FormulaContext): Transaction[] {
-    const transactions = [...getReportTransactions(reportID)];
-    const contextTransaction = context?.transaction;
-
-    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
-        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
-        if (transactionIndex >= 0) {
-            transactions[transactionIndex] = contextTransaction;
-        } else {
-            transactions.push(contextTransaction);
-        }
-    }
-
-    return transactions;
-}
-
-/**
- * Calculate the reimbursable amount for a report, similar to getMoneyRequestSpendBreakdown
- */
-function getReportReimbursableAmount(reportID: string, context?: FormulaContext): number {
-    const transactions = getAllReportTransactionsWithContext(reportID, context);
-
-    let total = 0;
-    let nonReimbursable = 0;
-
-    transactions.forEach((transaction) => {
-        const amount = Math.abs(transaction.amount ?? 0);
-        total += amount;
-        if (!transaction.reimbursable) {
-            nonReimbursable += amount;
-        }
-    });
-
-    const reimbursable = total - nonReimbursable;
-    return Math.abs(reimbursable); // Return positive value for display
 }
 
 /**
