@@ -534,6 +534,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     if (policy === undefined) {
                         return;
                     }
+
                     // Disable the selected tags
                     setWorkspaceTagEnabled(policyData, tagsToDisable, 0);
                 },
@@ -550,6 +551,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     if (policy === undefined) {
                         return;
                     }
+
                     // Enable the selected tags
                     setWorkspaceTagEnabled(policyData, tagsToEnable, 0);
                 },

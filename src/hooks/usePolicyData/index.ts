@@ -13,14 +13,11 @@ import type PolicyData from './types';
  * @param policyID The ID of the policy to retrieve data for.
  * @returns An object containing policy data
  */
-
 function usePolicyData(policyID?: string): PolicyData {
     const policy = usePolicy(policyID);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
-
     const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true}, [policyID]);
     const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true}, [policyID]);
-
     const [reports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
@@ -29,6 +26,7 @@ function usePolicyData(policyID?: string): PolicyData {
                 if (!policyID || !allReports || !allReportsTransactionsAndViolations) {
                     return {};
                 }
+
                 // Filter reports to only include those that belong to the specified policy and have associated transactions
                 return Object.keys(allReportsTransactionsAndViolations).reduce<Record<string, Report>>((acc, reportID) => {
                     const policyReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -41,12 +39,10 @@ function usePolicyData(policyID?: string): PolicyData {
         },
         [policyID, allReportsTransactionsAndViolations],
     );
-
     const transactionsAndViolations = useMemo(() => {
         if (!reports || !allReportsTransactionsAndViolations) {
             return {};
         }
-
         return Object.keys(reports).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, reportID) => {
             if (allReportsTransactionsAndViolations[reportID]) {
                 acc[reportID] = allReportsTransactionsAndViolations[reportID];
@@ -54,10 +50,8 @@ function usePolicyData(policyID?: string): PolicyData {
             return acc;
         }, {});
     }, [reports, allReportsTransactionsAndViolations]);
-
     return {
         transactionsAndViolations,
-
         tags: tags ?? {},
         categories: categories ?? {},
         policy: policy as OnyxValueWithOfflineFeedback<Policy>,

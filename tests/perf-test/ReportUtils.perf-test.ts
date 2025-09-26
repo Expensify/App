@@ -265,7 +265,6 @@ describe('ReportUtils', () => {
 
         const policyTags = createRandomPolicyTags('Tags', 8);
         const policyCategories = createRandomPolicyCategories(8);
-
         await Onyx.multiSet({
             ...reportCollection,
             ...transactionCollection,
@@ -274,13 +273,9 @@ describe('ReportUtils', () => {
             [ONYXKEYS.COLLECTION.POLICY_TAGS]: {[policy.id]: policyTags},
             [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {[policy.id]: policyCategories},
         });
-
         await waitForBatchedUpdates();
-
         const {result: policyData} = renderHook(() => usePolicyData(policy.id));
-
         const onyxData = {optimisticData: [], failureData: []};
-
         await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData.current, policyOptimisticData));
     });
 

@@ -290,6 +290,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     if (policy === undefined) {
                         return;
                     }
+
                     // Disable the selected tags
                     setWorkspaceTagEnabled(policyData, tagsToDisable, orderWeight);
                 },
@@ -306,6 +307,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     if (policy === undefined) {
                         return;
                     }
+
                     // Enable the selected tags
                     setWorkspaceTagEnabled(policyData, tagsToEnable, orderWeight);
                 },

@@ -1876,7 +1876,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
  * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
  * @param onyxData - The OnyxData object to push updates to
- * @param policyData - The current policy
+ * @param policyData - The current policy Data
  * @param policyUpdate - Changed policy properties, if none pass empty object
  * @param policyCategoriesUpdate - Changed categories properties, if none pass empty object
  * @param policyTagsUpdate - Changed tag properties, if none pass empty object
@@ -1944,18 +1944,13 @@ function pushTransactionViolationsOnyxData(
         if (isInvoiceReport(report)) {
             continue;
         }
-
         const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
-
         if (isEmptyObject(reportTransactionsAndViolations)) {
             continue;
         }
-
         const {transactions, violations} = reportTransactionsAndViolations;
-
         for (const transaction of Object.values(transactions)) {
             const existingViolations = violations[transaction.transactionID];
-
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
                 existingViolations ?? [],
