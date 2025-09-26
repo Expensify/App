@@ -1,6 +1,7 @@
 import {useCallback} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import useIsPolicyConnectedToUberReceiptPartner from './useIsPolicyConnectedToUberReceiptPartner';
 import useLocalize from './useLocalize';
 import usePolicy from './usePolicy';
 
@@ -9,6 +10,8 @@ export default function useGetReceiptPartnersIntegrationData({policyID}: {policy
     const {translate} = useLocalize();
 
     const uber = policy?.receiptPartners?.uber;
+    const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
+    const shouldShowEnterCredentialsError = isUberConnected && !!uber?.error;
 
     const getReceiptPartnersIntegrationData = useCallback(
         (receiptPartnerName: string) => {
@@ -29,5 +32,5 @@ export default function useGetReceiptPartnersIntegrationData({policyID}: {policy
         [translate, uber?.errorFields, uber?.errors, uber?.organizationName],
     );
 
-    return {getReceiptPartnersIntegrationData};
+    return {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected};
 }
