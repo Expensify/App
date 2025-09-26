@@ -32,7 +32,7 @@ const dismiss = (): Promise<void> => {
 
 const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     return new Promise((resolve) => {
-        // This fixes a bug specific to a Android < 16 
+        // This fixes a bug specific to a Android < 16
         // https://github.com/Expensify/App/issues/70692
         if (!isVisible || getPlatform() !== CONST.PLATFORM.ANDROID) {
             cb();
