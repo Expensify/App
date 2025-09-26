@@ -282,7 +282,7 @@ describe('DateUtils', () => {
     });
 
     describe('isCardExpired', () => {
-        it.only('should return true when the card is expired', () => {
+        it('should return true when the card is expired', () => {
             const cardMonth = 1;
             const cardYear = new Date().getFullYear() - 1;
             expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(true);
