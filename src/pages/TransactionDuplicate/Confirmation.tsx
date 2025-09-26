@@ -35,6 +35,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 function Confirmation() {
     const styles = useThemeStyles();
@@ -64,7 +65,7 @@ function Confirmation() {
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
 
-    const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates ?? []);
+    const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates ?? getEmptyArray());
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const transactionsMergeParams = useMemo(
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
