@@ -138,6 +138,30 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
     const yesterdayInTimeZone = toZonedTime(yesterday, timeZone);
     return isSameDay(date, yesterdayInTimeZone);
 }
+function isYesterday1(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
+    const yesterdayInTimeZone = toZonedTime(yesterday, timeZone);
+    return isSameDay(date, yesterdayInTimeZone);
+}
+function isYesterday2(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
+    const yesterdayInTimeZone = toZonedTime(yesterday, timeZone);
+    return isSameDay(date, yesterdayInTimeZone);
+}
+function isYesterday3(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
+    const yesterdayInTimeZone = toZonedTime(yesterday, timeZone);
+    return isSameDay(date, yesterdayInTimeZone);
+}
+function isYesterday4(date: Date, timeZone: SelectedTimezone): boolean {
+    const currentDate = new Date();
+    const yesterday = subDays(currentDate, 1); // Get the date for yesterday in the current time zone
+    const yesterdayInTimeZone = toZonedTime(yesterday, timeZone);
+    return isSameDay(date, yesterdayInTimeZone);
+}
 
 /**
  * We have to fall back to older timezone names for native platforms that do not ship with newer timezone names to avoid a crash.
@@ -929,6 +953,10 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    isYesterday1,
+    isYesterday2,
+    isYesterday3,
+    isYesterday4,
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
