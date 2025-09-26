@@ -375,8 +375,38 @@ function SettlementButton({
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-            return;
+            const activeRoute = Navigation.getActiveRoute();
+
+            if (activeRoute.includes(ROUTES.SEARCH_ROOT.getRoute({query: ''}))) {
+                Navigation.navigate(ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT);
+                return;
+            }
+            if (reportID && activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
+                Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+                return;
+            }
+            if (reportID && activeRoute.includes(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}))) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+                return;
+            }
+            if (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(chatReportID))) {
+                Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(chatReportID));
+                return;
+            }
+            if (reportID && activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(reportID))) {
+                Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+                return;
+            }
+            if (activeRoute.includes(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, chatReportID))) {
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, chatReportID),
+                );
+                return;
+            }
+            if (activeRoute.includes(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, chatReportID))) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_VERIFY_ACCOUNT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, chatReportID));
+                return;
+            }
         }
 
         if (policy && shouldRestrictUserBillableActions(policy.id)) {
