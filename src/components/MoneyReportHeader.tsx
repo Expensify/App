@@ -111,6 +111,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
+import ApprovalButton from './ApprovalButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -716,10 +717,27 @@ function MoneyReportHeader({
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
-            <Button
-                success
-                onPress={confirmApproval}
-                text={translate('iou.approve')}
+            <ApprovalButton
+                isAnyTransactionOnHold={isAnyTransactionOnHold}
+                isDelegateAccessRestricted={isDelegateAccessRestricted}
+                hasOnlyHeldExpenses={hasOnlyHeldExpenses}
+                hasValidNonHeldAmount={hasValidNonHeldAmount}
+                nonHeldAmount={nonHeldAmount}
+                fullAmount={fullAmount}
+                onApprove={(isFullApproval) => {
+                    setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+                    startApprovedAnimation();
+                    approveMoneyRequest(moneyRequestReport, isFullApproval);
+                    if (currentSearchQueryJSON) {
+                        search({
+                            searchKey: currentSearchKey,
+                            shouldCalculateTotals: true,
+                            offset: 0,
+                            queryJSON: currentSearchQueryJSON,
+                        });
+                    }
+                }}
+                onConfirmApproval={confirmApproval}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
