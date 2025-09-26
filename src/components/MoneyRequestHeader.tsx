@@ -8,6 +8,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,7 +71,7 @@ type MoneyRequestHeaderProps = {
     parentReportAction: OnyxEntry<ReportAction>;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: () => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean) => void;
 };
 
 function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
@@ -106,7 +107,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
+    const isFromReviewDuplicates = !!route.params.backTo?.replace(/\?.*/g, '').endsWith('/duplicates/review');
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
@@ -177,9 +180,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!report || !parentReport || !transaction) {
             return '';
         }
-        const isFromReviewDuplicates = !!route.params.backTo?.replace(/\?.*/g, '').endsWith('/duplicates/review');
         return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy, isFromReviewDuplicates);
-    }, [parentReport, policy, report, transaction, transactionViolations, route.params.backTo]);
+    }, [parentReport, policy, report, transaction, transactionViolations, isFromReviewDuplicates]);
 
     const primaryActionImplementation = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
@@ -362,7 +364,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => onBackButtonPress(isFromReviewDuplicates)}
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
@@ -426,7 +428,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
+                        deleteTrackExpense(
+                            report?.parentReportID,
+                            transaction.transactionID,
+                            parentReportAction,
+                            duplicateTransactions,
+                            duplicateTransactionViolations,
+                            true,
+                            isParentReportArchived,
+                        );
                     } else {
                         deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                         removeTransaction(transaction.transactionID);

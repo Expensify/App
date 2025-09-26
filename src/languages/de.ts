@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -857,8 +858,24 @@ const translations = {
         markAsUnread: 'Als ungelesen markieren',
         markAsRead: 'Als gelesen markieren',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Löschen ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Möchten Sie dieses ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'} wirklich löschen?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Löschen ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Möchten Sie dieses ${type} wirklich löschen?`;
+        },
         onlyVisible: 'Nur sichtbar für',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
@@ -1764,7 +1781,7 @@ const translations = {
         compromisedDescription: 'Etwas stimmt nicht mit deinem Konto? Eine Meldung sperrt dein Konto sofort, stoppt neue Expensify Card-Transaktionen und verhindert Änderungen.',
         domainAdminsDescription: 'Für Domain-Admins: Dies pausiert auch alle Aktivitäten und Admin-Aktionen der Expensify Card in deiner Domain.',
         areYouSure: 'Bist du sicher, dass du dein Expensify-Konto sperren willst?',
-        ourTeamWill: 'Unser Team wird den Zugriff prüfen und unbefugte Aktivitäten entfernen. Um wieder Zugriff zu erhalten, arbeite bitte mit Concierge zusammen.',
+        onceLocked: 'Sobald gesperrt, wird Ihr Konto eingeschränkt, bis eine Entsperranfrage und eine Sicherheitsüberprüfung erfolgt sind.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Konto konnte nicht gesperrt werden',
@@ -3573,7 +3590,8 @@ const translations = {
         receiptPartners: {
             connect: 'Jetzt verbinden',
             uber: {
-                subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Verbunden mit ${organizationName}` : 'Automatisieren Sie Reise- und Essenslieferungskosten in Ihrer Organisation.',
                 sendInvites: 'Mitglieder einladen',
                 sendInvitesDescription: 'Diese Workspace-Mitglieder haben noch kein Uber for Business-Konto. Deaktivieren Sie alle Mitglieder, die Sie derzeit nicht einladen möchten.',
                 confirmInvite: 'Einladung bestätigen',
@@ -3593,8 +3611,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
                 invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
-                autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
-                autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
+                autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
+                autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
                 bannerTitle: 'Expensify + Uber ren pekin angang',
                 bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
                 emptyContent: {
