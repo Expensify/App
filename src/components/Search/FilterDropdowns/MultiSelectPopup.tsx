@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListSingle';
+import MultiSelectListItem from '@components/SelectionListSingle/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionListSingle/ListItem/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -81,7 +81,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
             <View style={[styles.getSelectionListPopoverHeight(items.length, windowHeight, false)]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                 />
