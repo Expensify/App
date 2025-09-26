@@ -1831,10 +1831,47 @@ function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAcco
 }
 
 /**
- * Returns true if the report is an expense report or a group policy and the iouType is not split.
+ * Checks if a report is a self-DM or belongs to a self-DM context
+ * (including moved reports and threads within self-DMs)
+ */
+function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
+    if (!report || !currentUserAccountID) {
+        return false;
+    }
+    
+    // Standard self-DM check
+    if (isSelfDM(report)) {
+        return true;
+    }
+    
+    // Check if it's a chat with only the current user as participant
+    // BUT only if it's not a thread report (threads should be checked against parent)
+    if (report.type === CONST.REPORT.TYPE.CHAT && report.participants && !report.parentReportID) {
+        const participantIds = Object.keys(report.participants).map(Number);
+        const otherParticipants = participantIds.filter(id => id !== currentUserAccountID);
+        
+        // If only current user is participant, it's a self-DM
+        if (otherParticipants.length === 0 && participantIds.includes(currentUserAccountID)) {
+            return true;
+        }
+    }
+    
+    // For thread reports, check the parent
+    if (report.parentReportID) {
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+        return isSelfDMOrSelfDMThread(parentReport);
+    }
+    
+    return false;
+}
+
+/**
+ * Returns true if the report is an expense report, a group policy, a self-DM, or the iouType is create, and the iouType is not split or invoice.
  */
 function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string) {
-    return (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || iouType === CONST.IOU.TYPE.CREATE) && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.INVOICE;
+    const isSelfDMReport = isSelfDMOrSelfDMThread(report);
+
+    return (isExpenseReport(report) || isGroupPolicy(policy?.type ?? '') || isSelfDMReport || iouType === CONST.IOU.TYPE.CREATE) && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.INVOICE;
 }
 
 /**
@@ -12024,6 +12061,7 @@ export {
     isReportOwner,
     isReportParticipant,
     isSelfDM,
+    isSelfDMOrSelfDMThread,
     isSettled,
     isSystemChat,
     isTaskReport,
