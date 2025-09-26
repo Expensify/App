@@ -1,12 +1,17 @@
 # Data Binding Philosophy
 The UI binds to the data stored on the local device's database (Onyx).
 
-- Onyx is a Pub/Sub library to connect the application to the data stored on disk.
+#### Related Philosophies
+- [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
+- [Data Flow Philosophy](/contributingGuides/philosophies/DATA-FLOW.md)
+
+#### Terminology
+- **Onyx** - A Pub/Sub library to connect the application to the data stored on disk.
 
 ## Rules
 ### - The UI MUST use `useOnyx` to get data and subscribe to changes of that data in Onyx
 ### - The UI MUST NOT call any Onyx methods directly
-### - The UI MUST trigger an an action when something needs to happen
+### - The UI MUST trigger an action when something needs to happen
 For example, a person inputs data, the UI calls an action and passes the user's input.
 
 ### - The UI SHOULD anticipate missing or incomplete data
