@@ -3059,7 +3059,7 @@ function clearUberEmployeeError(policyID: string, email: string) {
         receiptPartners: {
             uber: {
                 employees: {
-                    [email]: null,
+                    [email]: {errors: null},
                 },
             },
         },

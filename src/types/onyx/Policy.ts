@@ -158,6 +158,10 @@ type UberReceiptPartner = {
         }>
     >;
     /**
+     * Whether credentials are invalid
+     */
+    error?: string;
+    /**
      * Collection of errors coming from BE
      */
     errors?: OnyxCommon.Errors;
