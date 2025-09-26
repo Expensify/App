@@ -5,6 +5,7 @@ import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, us
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
@@ -16,7 +17,7 @@ import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -54,9 +55,24 @@ type SearchPageNarrowProps = {
         total: number | undefined;
         currency: string | undefined;
     };
+    currentSelectedPolicyID?: string | undefined;
+    currentSelectedReportID?: string | undefined;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, metadata, footerData}: SearchPageNarrowProps) {
+function SearchPageNarrow({
+    queryJSON,
+    headerButtonsOptions,
+    searchResults,
+    isMobileSelectionModeEnabled,
+    metadata,
+    footerData,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    latestBankItems,
+    confirmPayment,
+}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -219,6 +235,10 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                             headerButtonsOptions={headerButtonsOptions}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            currentSelectedPolicyID={currentSelectedPolicyID}
+                            currentSelectedReportID={currentSelectedReportID}
+                            latestBankItems={latestBankItems}
+                            confirmPayment={confirmPayment}
                         />
                     </>
                 )}
