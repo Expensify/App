@@ -320,6 +320,9 @@ type StateValue = {
 };
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
+type ReceiptAlternativeMethodsPhoneNumberParams = {
+    phoneNumber: string;
+};
 /* eslint-disable max-len */
 const translations = {
     common: {
@@ -1022,11 +1025,11 @@ const translations = {
         }),
     },
     receipt: {
-        alternativeMethodsTextReceipts: 'Text receipts to {{phoneNumber}} (US numbers only)',
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `Text receipts to ${phoneNumber} (US numbers only)`,
         alternativeMethodsForwardReceipts: 'Forward receipts to',
         alternativeMethodsDownloadApp: 'Download the app to scan from your phone',
         alternativeMethodsTitle: 'Other ways to add receipts:',
-        alternativeMethodsAddPhoneNumberSuffix: ' to text receipts to {{phoneNumber}}',
+        alternativeMethodsAddPhoneNumberSuffix: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => ` to text receipts to ${phoneNumber}`,
         alternativeMethodsAddPhoneNumberLink: 'Add your number',
         desktopSubtitleMultiple: 'or drag and drop them here',
         desktopSubtitleSingle: 'or drag and drop them here',
