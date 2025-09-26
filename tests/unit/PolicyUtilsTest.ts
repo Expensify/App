@@ -232,6 +232,22 @@ describe('PolicyUtils', () => {
             expect(result?.current).toBe(18441278);
         });
 
+        it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 0,
+            };
+            const lastSelectedExpensifyCardFeed = 11111;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
+                paymentBankAccountID: 1234,
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(lastSelectedExpensifyCardFeed);
+        });
+
         it('should return workspaceAccountID for given policyID', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
