@@ -799,7 +799,11 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1]}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1,
+                        shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
+                    ]}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
