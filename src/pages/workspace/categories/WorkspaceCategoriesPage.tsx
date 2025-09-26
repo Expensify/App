@@ -257,6 +257,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         deleteWorkspaceCategories(policyId, selectedCategories, policyTagLists, allTransactionViolations);
         setDeleteCategoriesConfirmModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedCategories([]);
         });
