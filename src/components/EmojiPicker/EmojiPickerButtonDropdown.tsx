@@ -47,7 +47,7 @@ function EmojiPickerButtonDropdown(
             hideEmojiPicker();
             return;
         }
-        KeyboardUtils.executeAfterKeyboardDidHide(() => {
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
             showEmojiPicker(
                 onModalHide,
                 (emoji) => onInputChange(emoji),

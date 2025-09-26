@@ -1,5 +1,7 @@
 import {Keyboard} from 'react-native';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 
 let isVisible = false;
 
@@ -28,26 +30,28 @@ const dismiss = (): Promise<void> => {
     });
 };
 
-const executeAfterKeyboardDidHide = (cb: () => void): Promise<void> => {
-    if (!isVisible) {
-        cb();
-    }
+const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     return new Promise((resolve) => {
-        const check = (e: {height: number}) => {
+        // This fixes a bug specific to a Android < 16 
+        // https://github.com/Expensify/App/issues/70692
+        if (!isVisible || getPlatform() !== CONST.PLATFORM.ANDROID) {
+            cb();
+            resolve();
+            return;
+        }
+
+        const keyboardDidHideSubscription = KeyboardEvents.addListener('keyboardDidHide', (e: {height: number; target: number}) => {
             if (e.height !== 0) {
                 return;
             }
             cb();
             resolve();
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            test.remove();
-        };
-
-        const test = KeyboardEvents.addListener('keyboardDidHide', check);
+            keyboardDidHideSubscription.remove();
+        });
         Keyboard.dismiss();
     });
 };
 
-const utils = {dismiss, executeAfterKeyboardDidHide};
+const utils = {dismiss, dismissKeyboardAndExecute};
 
 export default utils;
