@@ -4,7 +4,7 @@ import React, {forwardRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView} from 'react-native';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
-import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+import type {ActionSheetAwareScrollViewProps} from './types';
 
 const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>((props, ref) => (
     <ScrollView
@@ -25,6 +25,7 @@ export default ActionSheetAwareScrollView;
  * @param {Object} props - props that will be passed to the ScrollView from FlatList
  * @returns {React.ReactElement} - ActionSheetAwareScrollView
  */
-const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = undefined;
+const renderScrollComponent = undefined;
+const renderScrollComponentWithTopSpacing = undefined;
 
-export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
+export {renderScrollComponent, renderScrollComponentWithTopSpacing, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
