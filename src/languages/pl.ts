@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -853,8 +854,24 @@ const translations = {
         markAsUnread: 'Oznacz jako nieprzeczytane',
         markAsRead: 'Oznacz jako przeczytane',
         editAction: ({action}: EditActionParams) => `Edytuj ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Usuń ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Czy na pewno chcesz usunąć ten ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'komentarz';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'wydatek';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'raport';
+            }
+            return `Usuń ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'komentarz';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'wydatek';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'raport';
+            }
+            return `Czy na pewno chcesz usunąć ten ${type}?`;
+        },
         onlyVisible: 'Widoczne tylko dla',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
@@ -3576,7 +3593,8 @@ const translations = {
         receiptPartners: {
             connect: 'Połącz się teraz',
             uber: {
-                subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Połączono z ${organizationName}` : 'Automatyzuj wydatki na podróże i dostawy posiłków w całej swojej organizacji.',
                 sendInvites: 'Zaproś członków',
                 sendInvitesDescription: 'Ci członkowie obszaru roboczego nie mają jeszcze konta Uber for Business. Odznacz wszystkich członków, których nie chcesz zaprosic w tej chwili.',
                 confirmInvite: 'Potwierdź zaproszenie',
@@ -3596,8 +3614,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Zawieszone',
                 },
                 invitationFailure: 'Nie udało się zaprosić członków do Uber for Business',
-                autoRemove: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
-                autoInvite: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
+                autoInvite: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
+                autoRemove: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
                 bannerTitle: 'Expensify + Uber dla firm',
                 bannerDescription: 'Połącz się z Uberem dla Firm, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej organizacji.',
                 emptyContent: {

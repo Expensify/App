@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -853,8 +854,24 @@ const translations = {
         markAsUnread: 'Segna come non letto',
         markAsRead: 'Segna come letto',
         editAction: ({action}: EditActionParams) => `Modifica ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Elimina ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Sei sicuro di voler eliminare questo ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'commento';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'spesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapporto';
+            }
+            return `Elimina ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'commento';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'spesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapporto';
+            }
+            return `Sei sicuro di voler eliminare questo ${type}?`;
+        },
         onlyVisible: 'Visibile solo a',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
@@ -3582,7 +3599,8 @@ const translations = {
         receiptPartners: {
             connect: 'Connettiti ora',
             uber: {
-                subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Connesso a ${organizationName}` : 'Automatizza le spese di viaggio e consegna pasti in tutta la tua organizzazione.',
                 sendInvites: 'Invita membri',
                 sendInvitesDescription: 'Questi membri del workspace non hanno ancora un account Uber for Business. Deseleziona tutti i membri che non desideri invitare in questo momento.',
                 confirmInvite: 'Conferma invito',
@@ -3602,8 +3620,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Sospeso',
                 },
                 invitationFailure: 'Impossibile invitare i membri a Uber for Business',
-                autoRemove: "Invita nuovi membri dell'area di lavoro su Uber for Business",
-                autoInvite: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
+                autoInvite: "Invita nuovi membri dell'area di lavoro su Uber for Business",
+                autoRemove: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
                 bannerTitle: 'Expensify + Uber per le aziende',
                 bannerDescription: 'Connetti Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti nella tua organizzazione.',
                 emptyContent: {
