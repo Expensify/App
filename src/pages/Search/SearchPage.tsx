@@ -493,6 +493,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedPolicyIDs,
         selectedReportIDs,
         selectedTransactionReportIDs,
+        isBetaBulkPayEnabled,
     ]);
 
     const handleDeleteExpenses = () => {
