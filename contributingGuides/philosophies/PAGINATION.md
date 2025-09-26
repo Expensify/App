@@ -15,9 +15,9 @@ One example of data that's appropriate for pagination is reportActions (chat mes
 One example of data that's appropriate to lazy-load but not necessarily ideal for pagination is avatar images. It's too costly to load all avatar images for all users when the app loads, so we only fetch avatar images that a user wants to see on-demand. Another example might be `personalDetails`.
 
 ## How to implement pagination
-1. Clearly define a deterministic sorting order of the data in question.
+1. Clearly define a sorting order of the data in question. No two items in the list may be considered equal in the sorting order.
 2. Define a "cursor" - a unique piece of data that encapsulates all the data you need to pinpoint the location of a single item in the list.
-    - Each item in the list _MUST_ be unique. No ties allowed: typically this means your cursor should include an ID.
+    - Each item in the list _MUST_ be unique. Typically this means your cursor should include an ID.
     - The cursor _MUST_ be serializable so it can be sent in a network request.
     - The cursor _SHOULD_ include only the minimal fields required to define the location of an item in the list.
     - _Example:_ For `reportActions`, we use the `created` timestamp, since `reportActions` are generally sorted by order of creation. A better cursor would have been a composite of:
