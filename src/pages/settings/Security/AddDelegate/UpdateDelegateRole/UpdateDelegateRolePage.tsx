@@ -19,8 +19,7 @@ type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const login = route.params.login;
-    const currentRole = route.params.currentRole;
+    const {currentRole, login} = route.params;
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -61,13 +60,11 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         </Text>
                     }
                     onSelectRow={(option) => {
-                        if (option.isSelected) {
+                        if (!option.value || option.isSelected) {
                             Navigation.dismissModal();
                             return;
                         }
-                        if (option?.value) {
-                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
-                        }
+                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
                     }}
                     sections={[{data: roleOptions}]}
                     ListItem={RadioListItem}
