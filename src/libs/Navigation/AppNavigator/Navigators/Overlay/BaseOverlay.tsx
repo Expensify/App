@@ -30,7 +30,7 @@ function BaseOverlay({onPress, hasMarginRight = false, progress, hasMarginLeft =
     return (
         <Animated.View
             id="BaseOverlay"
-            style={styles.overlayStyles({progress: progress ?? current.progress, hasMarginRight, hasMarginLeft})}
+            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayStyles({progress: progress ?? current.progress, hasMarginRight, hasMarginLeft})]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.
