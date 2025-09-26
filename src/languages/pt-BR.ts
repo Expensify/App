@@ -854,9 +854,24 @@ const translations = {
         markAsUnread: 'Marcar como não lida',
         markAsRead: 'Marcar como lido',
         editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Excluir ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Tem certeza de que deseja excluir este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'comentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'despesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'relatório';
+            }
+            return `Excluir ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'comentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'despesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'relatório';
+            }
+            return `Tem certeza de que deseja excluir este ${type}?`;
+        },
         onlyVisible: 'Apenas visível para',
         replyInThread: 'Responder no tópico',
         joinThread: 'Participar do tópico',
@@ -5542,11 +5557,6 @@ const translations = {
                 title: 'Viagem',
                 description: 'Expensify Travel é uma nova plataforma de reserva e gestão de viagens corporativas que permite aos membros reservar acomodações, voos, transporte e mais.',
                 onlyAvailableOnPlan: 'Viagens estão disponíveis no plano Collect, a partir de',
-            },
-            reports: {
-                title: 'Relatórios',
-                description: 'Crie relatórios de despesas organizados para acompanhar seus gastos empresariais, enviá-los para aprovação e otimizar seu processo de reembolso.',
-                onlyAvailableOnPlan: 'Os relatórios estão disponíveis no plano Collect, a partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multiníveis',

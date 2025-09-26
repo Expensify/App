@@ -854,8 +854,24 @@ const translations = {
         markAsUnread: 'Oznacz jako nieprzeczytane',
         markAsRead: 'Oznacz jako przeczytane',
         editAction: ({action}: EditActionParams) => `Edytuj ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Usuń ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Czy na pewno chcesz usunąć ten ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'komentarz';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'wydatek';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'raport';
+            }
+            return `Usuń ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'komentarz';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'wydatek';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'raport';
+            }
+            return `Czy na pewno chcesz usunąć ten ${type}?`;
+        },
         onlyVisible: 'Widoczne tylko dla',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
@@ -5531,11 +5547,6 @@ const translations = {
                 description:
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
-            },
-            reports: {
-                title: 'Raporty',
-                description: 'Twórz uporządkowane raporty wydatków, aby śledzić swoje wydatki biznesowe, przesyłać je do zatwierdzenia i usprawniać proces zwrotu kosztów.',
-                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
             },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',

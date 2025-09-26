@@ -854,8 +854,24 @@ const translations = {
         markAsUnread: 'Segna come non letto',
         markAsRead: 'Segna come letto',
         editAction: ({action}: EditActionParams) => `Modifica ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Elimina ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Sei sicuro di voler eliminare questo ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'spesa' : 'commento'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'commento';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'spesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapporto';
+            }
+            return `Elimina ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'commento';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'spesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapporto';
+            }
+            return `Sei sicuro di voler eliminare questo ${type}?`;
+        },
         onlyVisible: 'Visibile solo a',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
@@ -5551,11 +5567,6 @@ const translations = {
                 description:
                     'Expensify Travel è una nuova piattaforma aziendale per la prenotazione e la gestione dei viaggi che consente ai membri di prenotare alloggi, voli, trasporti e altro.',
                 onlyAvailableOnPlan: 'Il viaggio è disponibile nel piano Collect, a partire da',
-            },
-            reports: {
-                title: 'Report',
-                description: 'Crea report spese organizzati per tenere traccia delle tue spese aziendali, inviarli per approvazione e semplificare il processo di rimborso.',
-                onlyAvailableOnPlan: 'I report sono disponibili nel piano Collect, a partire da ',
             },
             multiLevelTags: {
                 title: 'Tag multi-livello',

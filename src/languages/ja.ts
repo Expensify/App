@@ -855,8 +855,24 @@ const translations = {
         markAsUnread: '未読としてマーク',
         markAsRead: '既読にする',
         editAction: ({action}: EditActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を編集`,
-        deleteAction: ({action}: DeleteActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `この${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除してもよろしいですか？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `${type}を削除`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `この${type}を削除してもよろしいですか?`;
+        },
         onlyVisible: 'にのみ表示',
         replyInThread: 'スレッドで返信',
         joinThread: 'スレッドに参加する',
@@ -5505,11 +5521,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
-            },
-            reports: {
-                title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',

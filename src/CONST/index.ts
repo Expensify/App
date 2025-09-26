@@ -1504,6 +1504,7 @@ const CONST = {
         INTEGRATIONS: 'integrations',
         IN_APP: 'in-app',
     },
+    EXPORT_TEMPLATE: 'exportTemplate',
     NEXT_STEP: {
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -6959,14 +6960,6 @@ const CONST = {
                 description: 'workspace.upgrade.travel.description' as const,
                 icon: 'Luggage',
             },
-            reports: {
-                id: 'reports' as const,
-                alias: 'reports',
-                name: 'Reports',
-                title: 'workspace.upgrade.reports.title' as const,
-                description: 'workspace.upgrade.reports.description' as const,
-                icon: 'ReportReceipt',
-            },
             distanceRates: {
                 id: 'distanceRates' as const,
                 alias: 'distance-rates',
@@ -7313,6 +7306,10 @@ const FRAUD_PROTECTION_EVENT = {
     MERGE_ACCOUNT: 'MergeAccount',
     TOGGLE_TWO_FACTOR_AUTH: 'ToggleTwoFactorAuth',
     ADD_SECONDARY_LOGIN: 'AddSecondaryLogin',
+    ADD_BILLING_CARD: 'AddBillingCard',
+    VIEW_VIRTUAL_CARD_PAN: 'ViewVirtualCardPAN',
+    BUSINESS_BANK_ACCOUNT_SETUP: 'BusinessBankAccountSetup',
+    PERSONAL_BANK_ACCOUNT_SETUP: 'PersonalBankAccountSetup',
 };
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

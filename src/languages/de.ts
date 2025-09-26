@@ -858,8 +858,24 @@ const translations = {
         markAsUnread: 'Als ungelesen markieren',
         markAsRead: 'Als gelesen markieren',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Löschen ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Möchten Sie dieses ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'} wirklich löschen?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Löschen ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Möchten Sie dieses ${type} wirklich löschen?`;
+        },
         onlyVisible: 'Nur sichtbar für',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
@@ -5543,12 +5559,6 @@ const translations = {
                 description:
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
-            },
-            reports: {
-                title: 'Berichte',
-                description:
-                    'Erstellen Sie organisierte Spesenabrechnungen, um Ihre Geschäftsausgaben zu verfolgen, zur Genehmigung einzureichen und Ihren Erstattungsprozess zu optimieren.',
-                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
             },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',

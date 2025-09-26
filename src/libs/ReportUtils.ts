@@ -154,6 +154,7 @@ import {
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getIntegrationSyncFailedMessage,
+    getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastVisibleAction,
@@ -2604,11 +2605,61 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
+function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
+    const transaction = reportTransactions.at(0);
+    const transactionID = transaction?.transactionID;
+    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
+    const isReportOpenOrProcessing = isOpenReport(report) || isProcessingReport(report);
+    const isSingleTransaction = reportTransactions.length === 1;
+
+    if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransaction(t))) {
+        return true;
+    }
+
+    const isUnreported = isSelfDM(report);
+    if (isUnreported) {
+        return isOwner;
+    }
+
+    if (isInvoiceReport(report)) {
+        return report?.ownerAccountID === currentUserAccountID && isReportOpenOrProcessing && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+
+    // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
+    // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
+    if (isIOUReport(report)) {
+        return isSingleTransaction && isOwner && isReportOpenOrProcessing;
+    }
+
+    if (isExpenseReport(report)) {
+        const isCardTransactionWithCorporateLiability =
+            isSingleTransaction && isCardTransactionTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+
+        if (isCardTransactionWithCorporateLiability) {
+            return false;
+        }
+
+        const isReportSubmitter = isCurrentUserSubmitter(report);
+        const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+        const isForwarded = isProcessingReport(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
+
+        return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
+    }
+
+    return false;
+}
+
 /**
  * Can only delete if the author is this user and the action is an ADD_COMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  */
-function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, transaction: OnyxEntry<Transaction> | undefined): boolean {
+function canDeleteReportAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    reportID: string | undefined,
+    transaction: OnyxEntry<Transaction> | undefined,
+    transactions: OnyxCollection<Transaction>,
+    childReportActions: OnyxCollection<ReportAction>,
+): boolean {
     const report = getReportOrDraftReport(reportID);
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
@@ -2632,6 +2683,14 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
             }
             return true;
         }
+    }
+
+    if (report && isReportPreviewAction(reportAction)) {
+        return canDeleteMoneyRequestReport(
+            report,
+            Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
+            Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
+        );
     }
 
     if (
@@ -4332,11 +4391,7 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        if (isUnreportedExpense) {
-            return true;
-        }
-
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
             return false;
         }
 
@@ -4346,7 +4401,7 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        if (isInvoiceReport(moneyRequestReport)) {
+        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
             return (
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
@@ -4359,16 +4414,18 @@ function canEditFieldOfMoneyRequest(
 
         // If the report is Open, then only submitters, admins can move expenses
         const isOpen = isOpenExpenseReport(moneyRequestReport);
-        if (isOpen && !isSubmitter && !isAdmin) {
+        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
             return false;
         }
 
-        return (
-            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-            ).length > 1 ||
-            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
-        );
+        return isUnreportedExpense
+            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+              ).length > 0
+            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+              ).length > 1 ||
+                  (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -11187,11 +11244,15 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
     for (const action of reportActionList) {
         if (isExportIntegrationAction(action)) {
+            const originalMessage = getOriginalMessage(action);
             // We consider any reports marked manually as exported to be exported, so we shortcut here.
-            if (getOriginalMessage(action)?.markedManually) {
+            if (originalMessage?.markedManually) {
                 return true;
             }
-            exportIntegrationActionsCount++;
+            // exportTemplate type is a CSV export, so we don't count it as an export integration action
+            if (originalMessage?.type !== CONST.EXPORT_TEMPLATE) {
+                exportIntegrationActionsCount++;
+            }
         }
         if (isIntegrationMessageAction(action)) {
             integrationMessageActionsCount++;
@@ -11787,6 +11848,7 @@ export {
     canCreateRequest,
     canCreateTaskInReport,
     canCurrentUserOpenReport,
+    canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canHoldUnholdReportAction,
     canEditReportPolicy,
