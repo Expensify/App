@@ -2068,6 +2068,15 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
+        it('returns false when @here mention time is not newer than lastReadTime', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                lastReadTime: '2024-01-01 00:00:01.000',
+                lastMentionedTime: '2024-01-01 00:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
         it('returns true when the report is an outstanding task', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
