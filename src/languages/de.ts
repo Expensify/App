@@ -1035,6 +1035,10 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsAddPhoneNumberSuffix: ' to text receipts to {{phoneNumber}}',
+        alternativeMethodsAddPhoneNumberLink: 'Add your number',
+        desktopSubtitleMultiple: 'or drag and drop them here',
+        desktopSubtitleSingle: 'or drag and drop them here',
         upload: 'Beleg hochladen',
         uploadMultiple: 'Belege hochladen',
         dragReceiptBeforeEmail: 'Ziehen Sie eine Quittung auf diese Seite oder leiten Sie eine Quittung weiter an',

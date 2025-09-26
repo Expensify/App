@@ -1022,6 +1022,10 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsAddPhoneNumberSuffix: ' to text receipts to {{phoneNumber}}',
+        alternativeMethodsAddPhoneNumberLink: 'Add your number',
+        desktopSubtitleMultiple: 'or drag and drop them here',
+        desktopSubtitleSingle: 'or drag and drop them here',
         upload: '上传收据',
         uploadMultiple: '上传收据',
         dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',

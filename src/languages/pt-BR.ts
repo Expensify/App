@@ -1030,6 +1030,10 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsAddPhoneNumberSuffix: ' to text receipts to {{phoneNumber}}',
+        alternativeMethodsAddPhoneNumberLink: 'Add your number',
+        desktopSubtitleMultiple: 'or drag and drop them here',
+        desktopSubtitleSingle: 'or drag and drop them here',
         upload: 'Fazer upload de recibo',
         uploadMultiple: 'Fazer upload de recibos',
         dragReceiptBeforeEmail: 'Arraste um recibo para esta página, encaminhe um recibo para',

@@ -15,8 +15,6 @@ import Shutter from '@assets/images/shutter.svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
-import CopyTextToClipboard from '@components/CopyTextToClipboard';
-import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -25,6 +23,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -1004,8 +1003,7 @@ function IOURequestStepScan({
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [alternativeMethodsHeight, setAlternativeMethodsHeight] = useState(0);
     // We use isMobile() here to explicitly hide the alternative methods component on both mobile web and native apps
-    const shouldHideAlternativeMethods =
-        isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
         <View
@@ -1025,9 +1023,7 @@ function IOURequestStepScan({
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
-                <Text style={[styles.subTextFileUpload]}>
-                    {translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}
-                </Text>
+                <Text style={[styles.subTextFileUpload]}>{translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}</Text>
             </View>
 
             <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>
@@ -1078,9 +1074,7 @@ function IOURequestStepScan({
                             dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
                         />
                     </DragAndDropConsumer>
-                    {!shouldHideAlternativeMethods && (
-                        <ReceiptAlternativeMethods onLayout={(e) => setAlternativeMethodsHeight(e.nativeEvent.layout.height)} />
-                    )}
+                    {!shouldHideAlternativeMethods && <ReceiptAlternativeMethods onLayout={(e) => setAlternativeMethodsHeight(e.nativeEvent.layout.height)} />}
                     {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal

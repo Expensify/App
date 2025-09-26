@@ -1029,6 +1029,10 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsAddPhoneNumberSuffix: ' to text receipts to {{phoneNumber}}',
+        alternativeMethodsAddPhoneNumberLink: 'Add your number',
+        desktopSubtitleMultiple: 'or drag and drop them here',
+        desktopSubtitleSingle: 'or drag and drop them here',
         upload: 'Carica ricevuta',
         uploadMultiple: 'Carica ricevute',
         dragReceiptBeforeEmail: 'Trascina una ricevuta su questa pagina, inoltra una ricevuta a',

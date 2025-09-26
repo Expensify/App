@@ -13,8 +13,9 @@ describe('useHasPhoneNumber', () => {
     afterEach(() => Onyx.clear());
 
     it('should return false when user has only email login', async () => {
-        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {'user@company.com': {partnerUserID: 'user@company.com'}});
-        await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@company.com'});
+        const emailLogin = 'user@company.com';
+        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {[emailLogin]: {partnerUserID: emailLogin}});
+        await Onyx.merge(ONYXKEYS.SESSION, {email: emailLogin});
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useHasPhoneNumber());
@@ -35,7 +36,8 @@ describe('useHasPhoneNumber', () => {
     });
 
     it('should return true when login list contains an E164 phone number', async () => {
-        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {['+12345678901@expensify.sms']: {partnerUserID: '+12345678901@expensify.sms'}});
+        const smsLogin = '+12345678901@expensify.sms';
+        await Onyx.merge(ONYXKEYS.LOGIN_LIST, {[smsLogin]: {partnerUserID: smsLogin}});
         await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@company.com'});
         await waitForBatchedUpdates();
 
@@ -44,5 +46,4 @@ describe('useHasPhoneNumber', () => {
         await waitFor(() => expect(result.current.isLoaded).toBe(true));
         expect(result.current.hasPhoneNumber).toBe(true);
     });
-
 });

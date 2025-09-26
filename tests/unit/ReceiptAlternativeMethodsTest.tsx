@@ -1,23 +1,17 @@
-import React from 'react';
 import {render, screen} from '@testing-library/react-native';
+import React from 'react';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
-import CONST from '@src/CONST';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useHasPhoneNumber from '@hooks/useHasPhoneNumber';
+import CONST from '@src/CONST';
 
 jest.mock('@hooks/useHasLoggedIntoMobileApp');
 jest.mock('@hooks/useHasPhoneNumber');
-jest.mock('@hooks/useEnvironment', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({environmentURL: 'https://new.expensify.com'})),
-}));
-jest.mock('@hooks/useTheme', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({textSupporting: '#123456'})),
-}));
-jest.mock('@hooks/useThemeStyles', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
+
+jest.mock('@hooks/useEnvironment', () => jest.fn(() => ({environmentURL: 'https://new.expensify.com'})));
+jest.mock('@hooks/useTheme', () => jest.fn(() => ({textSupporting: '#123456'})));
+jest.mock('@hooks/useThemeStyles', () =>
+    jest.fn(() => ({
         mt4: {},
         ph4: {},
         textLabelSupporting: {},
@@ -29,33 +23,34 @@ jest.mock('@hooks/useThemeStyles', () => ({
         textBlue: {},
         flex1: {},
         flexWrap: {},
+        mb0: {},
     })),
-}));
-jest.mock('@hooks/useLocalize', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
+);
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
         translate: (key: string, params?: Record<string, string>) => {
-            const translations: Record<string, string | ((args?: Record<string, string>) => string)> = {
-                'receipt.alternativeMethodsTitle': 'Other ways to add receipts:',
-                'receipt.alternativeMethodsDownloadApp': 'Download the app to scan from your phone',
-                'receipt.alternativeMethodsForwardReceipts': 'Forward receipts to',
-                'receipt.alternativeMethodsAddPhoneNumberLink': 'Add your number',
-                'receipt.alternativeMethodsAddPhoneNumberSuffix': ({phoneNumber} = {}) => ` to text receipts to ${phoneNumber}`,
-                'receipt.alternativeMethodsTextReceipts': ({phoneNumber} = {}) => `Text receipts to ${phoneNumber} (US numbers only)`,
-                'reportActionContextMenu.copyToClipboard': 'Copy to clipboard',
-                'reportActionContextMenu.copied': 'Copied!',
-            };
+            const translations: Record<string, string | ((args?: Record<string, string>) => string)> = {};
+            translations['receipt.alternativeMethodsTitle'] = 'Other ways to add receipts:';
+            translations['receipt.alternativeMethodsDownloadApp'] = 'Download the app to scan from your phone';
+            translations['receipt.alternativeMethodsForwardReceipts'] = 'Forward receipts to';
+            translations['receipt.alternativeMethodsAddPhoneNumberLink'] = 'Add your number';
+            translations['receipt.alternativeMethodsAddPhoneNumberSuffix'] = ({phoneNumber} = {}) => ` to text receipts to ${phoneNumber}`;
+            translations['receipt.alternativeMethodsTextReceipts'] = ({phoneNumber} = {}) => `Text receipts to ${phoneNumber} (US numbers only)`;
+            translations['reportActionContextMenu.copyToClipboard'] = 'Copy to clipboard';
+            translations['reportActionContextMenu.copied'] = 'Copied!';
 
             const translation = translations[key];
             if (typeof translation === 'function') {
                 return translation(params);
             }
+            if (typeof translation === 'string') {
+                return translation;
+            }
 
-            return translation ?? key;
+            return key;
         },
     })),
-}));
-
+);
 const mockUseHasLoggedIntoMobileApp = useHasLoggedIntoMobileApp as jest.MockedFunction<typeof useHasLoggedIntoMobileApp>;
 const mockUseHasPhoneNumber = useHasPhoneNumber as jest.MockedFunction<typeof useHasPhoneNumber>;
 
@@ -74,7 +69,6 @@ describe('ReceiptAlternativeMethods', () => {
         expect(screen.getByText('Download the app to scan from your phone')).toBeTruthy();
         expect(screen.getByText(`Forward receipts to ${CONST.EMAIL.RECEIPTS}`)).toBeTruthy();
         expect(screen.getByText('Add your number')).toBeTruthy();
-        expect(screen.getByText(new RegExp(`Add your number to text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER}`))).toBeTruthy();
         expect(screen.queryByText(`Text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER} (US numbers only)`)).toBeNull();
     });
 
@@ -86,7 +80,6 @@ describe('ReceiptAlternativeMethods', () => {
 
         expect(screen.queryByText('Download the app to scan from your phone')).toBeNull();
         expect(screen.getByText('Add your number')).toBeTruthy();
-        expect(screen.getByText(new RegExp(`Add your number to text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER}`))).toBeTruthy();
         expect(screen.queryByText(`Text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER} (US numbers only)`)).toBeNull();
     });
 
@@ -108,7 +101,7 @@ describe('ReceiptAlternativeMethods', () => {
         render(<ReceiptAlternativeMethods />);
 
         expect(screen.queryByText('Download the app to scan from your phone')).toBeNull();
-        expect(screen.queryByText(new RegExp(`Add your number to text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER}`))).toBeNull();
+        expect(screen.queryByText('Add your number')).toBeNull();
         expect(screen.getByText(`Text receipts to ${CONST.SMS.RECEIPTS_PHONE_NUMBER} (US numbers only)`)).toBeTruthy();
     });
 

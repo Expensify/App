@@ -1031,6 +1031,10 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsAddPhoneNumberSuffix: ' to text receipts to {{phoneNumber}}',
+        alternativeMethodsAddPhoneNumberLink: 'Add your number',
+        desktopSubtitleMultiple: 'or drag and drop them here',
+        desktopSubtitleSingle: 'or drag and drop them here',
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
         dragReceiptBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',

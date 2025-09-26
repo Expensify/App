@@ -1033,6 +1033,10 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsAddPhoneNumberSuffix: ' to text receipts to {{phoneNumber}}',
+        alternativeMethodsAddPhoneNumberLink: 'Add your number',
+        desktopSubtitleMultiple: 'or drag and drop them here',
+        desktopSubtitleSingle: 'or drag and drop them here',
         upload: 'Télécharger le reçu',
         uploadMultiple: 'Télécharger des reçus',
         dragReceiptBeforeEmail: 'Faites glisser un reçu sur cette page, transférez un reçu à',

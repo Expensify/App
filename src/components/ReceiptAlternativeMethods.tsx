@@ -12,8 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {addLeadingForwardSlash} from '@src/libs/Url';
+import ROUTES from '@src/ROUTES';
 
 type ReceiptAlternativeMethodsProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -44,9 +44,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
             style={[styles.mt4, styles.ph4]}
             onLayout={onLayout}
         >
-            <Text style={[styles.textLabelSupporting, styles.mb3]}>
-                {translate('receipt.alternativeMethodsTitle')}
-            </Text>
+            <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('receipt.alternativeMethodsTitle')}</Text>
 
             {shouldShowDownloadApp && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
@@ -78,8 +76,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                 </View>
                 <View style={[styles.flex1]}>
                     <Text style={[styles.textLabelSupporting]}>
-                        {translate('receipt.alternativeMethodsForwardReceipts')}
-                        {' '}
+                        {translate('receipt.alternativeMethodsForwardReceipts')}{' '}
                         <TextLink
                             href={receiptsMailto}
                             style={[styles.textLabelSupporting, styles.textBlue]}
@@ -122,9 +119,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                             fill={theme.textSupporting}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting, styles.flex1]}>
-                        {translate('receipt.alternativeMethodsTextReceipts', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})}
-                    </Text>
+                    <Text style={[styles.textLabelSupporting, styles.flex1]}>{translate('receipt.alternativeMethodsTextReceipts', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})}</Text>
                 </View>
             )}
         </View>
