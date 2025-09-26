@@ -2617,8 +2617,10 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
     }
 
     const isUnreported = isSelfDM(report);
+    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
+
     if (isUnreported) {
-        return isOwner;
+        return isOwner && canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport(report)) {
@@ -2632,10 +2634,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
     }
 
     if (isExpenseReport(report)) {
-        const isCardTransactionWithCorporateLiability =
-            isSingleTransaction && isCardTransactionTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
-
-        if (isCardTransactionWithCorporateLiability) {
+        if (isSingleTransaction && !canCardTransactionBeDeleted) {
             return false;
         }
 
@@ -2680,6 +2679,9 @@ function canDeleteReportAction(
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
                 return canDeleteTransaction(report) && isCardTransactionCanBeDeleted;
+            }
+            if (isTrackExpenseAction(reportAction)) {
+                return isCardTransactionCanBeDeleted;
             }
             return true;
         }
