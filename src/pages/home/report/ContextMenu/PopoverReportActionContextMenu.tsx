@@ -10,6 +10,7 @@ import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionShee
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
@@ -298,6 +299,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
 
+    const chatIouReportID = useGetChatIouReportIDFromReportAction(reportActionRef.current);
+    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
@@ -306,7 +310,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             if (isTrackExpenseAction(reportAction)) {
                 deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, isReportArchived);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, undefined, undefined, isChatIOUReportArchived);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
@@ -318,7 +322,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived, isOriginalReportArchived, isChatIOUReportArchived]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));

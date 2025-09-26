@@ -11,12 +11,21 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
+import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, clearSplitTransactionDraftErrors, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {
+    addSplitExpenseField,
+    clearSplitTransactionDraftErrors,
+    getIOUActionForTransactions,
+    initDraftSplitExpenseDataForEdit,
+    saveSplitTransactions,
+    updateSplitExpenseAmountField,
+} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -27,7 +36,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -64,6 +73,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isCardTransaction(transaction);
+
+    const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+    const chatIouReportID = useGetChatIouReportIDFromReportAction(iouActions.at(0));
+    const isChatReportArchived = useReportIsArchived(chatIouReportID);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -104,8 +122,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [draftTransaction, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isCard, currentSearchHash, transactionID, translate, transactionDetails?.currency]);
+        saveSplitTransactions(draftTransaction, currentSearchHash, isChatReportArchived);
+    }, [draftTransaction, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isChatReportArchived, isCard, currentSearchHash, transactionID, translate, transactionDetails?.currency]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {

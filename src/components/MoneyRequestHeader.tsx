@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -109,6 +110,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const isFromReviewDuplicates = !!route.params.backTo?.replace(/\?.*/g, '').endsWith('/duplicates/review');
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
+    const chatIouReportID = useGetChatIouReportIDFromReportAction(parentReportAction);
+    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
@@ -438,7 +441,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isParentReportArchived,
                         );
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true, undefined, isChatIOUReportArchived);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
