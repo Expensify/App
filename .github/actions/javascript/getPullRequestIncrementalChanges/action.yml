@@ -14,6 +14,9 @@ inputs:
   FILE_PATHS:
     description: 'JSON array of file paths to check (e.g., ["src/languages/en.ts", "package.json"]). If not provided, all files in the PR will be checked.'
     required: false
+  PULL_REQUEST_NUMBER:
+    description: 'Pull request number to check. If provided, treats the PR as if it was opened (regardless of current event type). If not provided, requires a pull_request event.'
+    required: false
 
 outputs:
   CHANGED_FILES:

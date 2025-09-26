@@ -11590,16 +11590,32 @@ const Git_1 = __importDefault(__nccwpck_require__(7037));
  * Main function to check all specified files
  */
 async function run() {
-    // Ensure this is a pull_request event
-    if (github_1.context.eventName !== 'pull_request') {
-        throw new Error(`This action can only be run on pull_request events, but was run on: ${github_1.context.eventName}`);
-    }
-    const eventPayload = github_1.context.payload;
-    const prNumber = eventPayload.pull_request.number;
     const filePathsInput = (0, ActionUtils_1.getJSONInput)('FILE_PATHS', { required: false });
+    const pullRequestNumberInput = (0, ActionUtils_1.getJSONInput)('PULL_REQUEST_NUMBER', { required: false });
+    let prNumber;
+    let isOpenedAction = false;
+    if (pullRequestNumberInput) {
+        // PULL_REQUEST_NUMBER provided - treat as opened action regardless of event type
+        prNumber = pullRequestNumberInput;
+        isOpenedAction = true;
+        console.log(`🔢 Using provided PR number ${prNumber} - treating as opened action`);
+    }
+    else {
+        // No PULL_REQUEST_NUMBER - must be a pull_request event
+        if (github_1.context.eventName !== 'pull_request') {
+            throw new Error(`This action can only be run on pull_request events, but was run on: ${github_1.context.eventName}. Provide PULL_REQUEST_NUMBER input to use with other event types.`);
+        }
+        const eventPayload = github_1.context.payload;
+        prNumber = eventPayload.pull_request.number;
+        isOpenedAction = eventPayload.action === 'opened';
+        // Validate that it's an opened or synchronize action
+        if (eventPayload.action !== 'opened' && eventPayload.action !== 'synchronize') {
+            throw new Error(`This action can only be run on pull_request opened or synchronize events, but was run on: ${eventPayload.action}`);
+        }
+    }
     let changedFiles = [];
-    if (eventPayload.action === 'opened') {
-        console.log('🆕 PR was just opened, including all files in the PR');
+    if (isOpenedAction) {
+        console.log('🆕 PR treated as opened, including all files in the PR');
         changedFiles = (await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -11612,10 +11628,15 @@ async function run() {
             changedFiles = changedFiles.filter((file) => filePathsInput.includes(file));
         }
     }
-    else if (eventPayload.action === 'synchronize') {
+    else {
         console.log('🔄 PR was updated, checking only the new commits');
-        const beforeSha = github_1.context.payload.before;
-        const afterSha = github_1.context.payload.after;
+        // For synchronize events, we need before/after SHAs from the payload
+        if (github_1.context.eventName !== 'pull_request' || github_1.context.payload.action !== 'synchronize') {
+            throw new Error('Synchronize logic requires pull_request event context');
+        }
+        const eventPayload = github_1.context.payload;
+        const beforeSha = eventPayload.before;
+        const afterSha = eventPayload.after;
         // Ensure we have valid git refs, fetching them if needed
         console.log(`🔍 Checking for local changes with push range ${beforeSha}..${afterSha}${filePathsInput ? `, looking for files ${JSON.stringify(filePathsInput)}` : ''}`);
         await Promise.all([Git_1.default.ensureRef(beforeSha), Git_1.default.ensureRef(afterSha)]);
@@ -11667,9 +11688,6 @@ async function run() {
                 console.log(`⏭️ ${filePath} has changes in both push and PR but no overlapping content - likely from merged commits`);
             }
         }
-    }
-    else {
-        throw new Error(`This action can only be run on pull_request opened or synchronize events, but was run on: ${eventPayload.action}`);
     }
     console.log(`📈 Total files changed: ${changedFiles.length}`);
     core.startGroup('📊 Changed files:');
