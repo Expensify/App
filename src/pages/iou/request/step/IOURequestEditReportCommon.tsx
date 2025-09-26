@@ -1,12 +1,12 @@
-import { createPoliciesSelector } from '@selectors/Policy';
-import React, { useMemo } from 'react';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import {createPoliciesSelector} from '@selectors/Policy';
+import React, {useMemo} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import { useOptionsList } from '@components/OptionListContextProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type { ListItem } from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -14,15 +14,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import { getPersonalPolicy, isPolicyAdmin } from '@libs/PolicyUtils';
-import { getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected } from '@libs/ReportUtils';
+import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Route } from '@src/ROUTES';
-import type { Policy } from '@src/types/onyx';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {Route} from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
-
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
