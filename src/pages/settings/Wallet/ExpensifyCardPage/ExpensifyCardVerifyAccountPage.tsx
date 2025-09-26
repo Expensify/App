@@ -43,7 +43,7 @@ function ExpensifyCardVerifyAccountPage({
                     ...prevState,
                     [cardID]: '',
                 }));
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
             })
             .catch((error: string) => {
                 // Displaying magic code errors is handled in the modal, no need to set it on the card

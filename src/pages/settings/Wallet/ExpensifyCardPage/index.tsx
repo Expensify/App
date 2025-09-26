@@ -12,6 +12,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -111,7 +112,13 @@ function ExpensifyCardPage({
         return virtualCards?.at(0);
     }, [virtualCards]);
 
-    const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardContext();
+    const {cardsDetails, setCardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardContext();
+
+    // This resets card details when we exit the page.
+    useBeforeRemove(() => {
+        setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
+    });
+
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
