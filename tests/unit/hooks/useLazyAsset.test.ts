@@ -112,10 +112,9 @@ describe('useLazyAsset', () => {
         const importFn1 = jest.fn(() => Promise.resolve({default: mockAsset}));
         const importFn2 = jest.fn(() => Promise.resolve({default: mockFallbackAsset}));
 
-        const {result, rerender} = renderHook(
-            (props: {importFn: () => Promise<{default: {type: string; id: string}}>}) => useLazyAsset(props.importFn),
-            {initialProps: {importFn: importFn1}}
-        );
+        const {result, rerender} = renderHook((props: {importFn: () => Promise<{default: {type: string; id: string}}>}) => useLazyAsset(props.importFn), {
+            initialProps: {importFn: importFn1},
+        });
 
         expect(result.current.asset).toBeDefined();
 
@@ -168,10 +167,9 @@ describe('useMemoizedLazyAsset', () => {
         const importFn1 = jest.fn(() => Promise.resolve({default: mockAsset}));
         const importFn2 = jest.fn(() => Promise.resolve({default: mockFallbackAsset}));
 
-        const {result, rerender} = renderHook(
-            (props: {importFn: () => Promise<{default: {type: string; id: string}}>}) => useMemoizedLazyAsset(props.importFn),
-            {initialProps: {importFn: importFn1}}
-        );
+        const {result, rerender} = renderHook((props: {importFn: () => Promise<{default: {type: string; id: string}}>}) => useMemoizedLazyAsset(props.importFn), {
+            initialProps: {importFn: importFn1},
+        });
 
         expect(result.current.asset).toBeDefined();
 
