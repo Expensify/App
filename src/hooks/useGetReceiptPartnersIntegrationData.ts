@@ -16,7 +16,7 @@ export default function useGetReceiptPartnersIntegrationData({policyID}: {policy
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
                     return {
                         title: CONST.POLICY.RECEIPT_PARTNERS.NAME_USER_FRIENDLY[CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER],
-                        description: translate('workspace.receiptPartners.uber.subtitle'),
+                        description: translate('workspace.receiptPartners.uber.subtitle', {organizationName: uber?.organizationName ?? ''}),
                         icon: Expensicons.Uber,
                         errorFields: uber?.errorFields,
                         errors: uber?.errors,
@@ -26,7 +26,7 @@ export default function useGetReceiptPartnersIntegrationData({policyID}: {policy
                     return undefined;
             }
         },
-        [translate, uber?.errorFields, uber?.errors],
+        [translate, uber?.errorFields, uber?.errors, uber?.organizationName],
     );
 
     return {getReceiptPartnersIntegrationData};
