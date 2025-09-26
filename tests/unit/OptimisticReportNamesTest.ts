@@ -5,6 +5,7 @@ import {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReport
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
@@ -35,7 +36,7 @@ describe('OptimisticReportNames', () => {
     } as Report;
 
     const mockContext: UpdateContext = {
-        betas: ['authAutoReportTitle'],
+        betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
         betaConfiguration: {},
         allReports: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
