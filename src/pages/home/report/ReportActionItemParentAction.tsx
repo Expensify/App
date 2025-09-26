@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -121,19 +121,26 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (allPairs) => {
-            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
 
-            return Object.fromEntries(
-                Object.entries(allPairs ?? {}).filter(([key]) => {
-                    const id = key.split('_').at(1);
-                    return id && ancestorIDsToSelect.has(id);
-                }),
-            );
+    const ancestorReportNameValuePairsSelector = useCallback((allPairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
+        const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+
+        return Object.fromEntries(
+            Object.entries(allPairs ?? {}).filter(([key]) => {
+                const id = key.split('_').at(1);
+                return id && ancestorIDsToSelect.has(id);
+            }),
+        );
+    }, []);
+
+    const [ancestorReportNameValuePairs] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        {
+            canBeMissing: true,
+            selector: ancestorReportNameValuePairsSelector,
         },
-    });
+        [ancestorReportNameValuePairsSelector],
+    );
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
