@@ -20,7 +20,6 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import type VideoPlayerProps from './types';
@@ -69,7 +68,6 @@ function BaseVideoPlayer({
     const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
-    const [hasError, setHasError] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
@@ -98,6 +96,12 @@ function BaseVideoPlayer({
     const isLoading = useMemo(() => {
         return status === 'loading';
     }, [status]);
+
+    const hasError = useMemo(() => {
+        // No need to set hasError while offline, since the offline indicator is already shown.
+        // Once the user reconnects, if the video is unsupported, the error will be triggered again.
+        return status === 'error' && !isOffline;
+    }, [isOffline, status]);
 
     const isBuffering = useMemo(() => {
         return bufferedPosition <= 0;
@@ -218,19 +222,12 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
-        if (payload.status === 'readyToPlay' && isFirstLoad) {
-            isReadyForDisplayRef.current = true;
-            playVideo();
-            setIsFirstLoad(false);
+        if (payload.status !== 'readyToPlay' || !isFirstLoad) {
+            return;
         }
-        if (payload.error) {
-            // No need to set hasError while offline, since the offline indicator is already shown.
-            // Once the user reconnects, if the video is unsupported, the error will be triggered again.
-            if (isOffline) {
-                return;
-            }
-            setHasError(true);
-        }
+        isReadyForDisplayRef.current = true;
+        playVideo();
+        setIsFirstLoad(false);
     });
 
     useEventListener(videoPlayerRef.current, 'playToEnd', () => {
@@ -307,17 +304,15 @@ function BaseVideoPlayer({
     // update shared video elements
     useEffect(() => {
         // On mobile safari, we need to auto-play when sharing video element here
-        // alert(isMobileSafari());
         shareVideoPlayerElements(
             videoPlayerRef.current,
             videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
-            isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
-            // isUploading || isFullScreenRef.current || isMobileSafari(),
+            isUploading || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError,
             {shouldUseSharedVideoElement, url, reportID},
         );
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, reportID, videoPlayerRef, isFullScreenRef]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, reportID, videoPlayerRef, isFullScreenRef, hasError]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
