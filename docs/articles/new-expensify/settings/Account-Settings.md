@@ -22,6 +22,20 @@ You can update the following profile settings:
 - **Personal Information** – Add or update your legal name, birth date, and address.
 
 ---
+# Supported Languages
+
+   - English
+   - German (Deutsch)
+   - Spanish (Español)
+   - French (Français)
+   - Italian (Italiano)
+   - Dutch (Nederlands)
+   - Polish (Polski)
+   - Portuguese (Português – Brasil)
+   - Japanese (日本語)
+   - Chinese (中文（简体）)
+
+---
 
 # How to Update Profile and Preferences
 
@@ -39,24 +53,7 @@ To update your timezone:
 2. Click **Timezone** and select the correct time zone from the list.
 
 ## Language
-
-Expensify supports multiple languages, making it easier for members across the globe to use the app in their preferred language.
-
-**You can update your Expensify account to display in any of the following languages:**
-
-- English
-- Español (Spanish)
-- Deutsch (German)
-- Français (French)
-- Italiano (Italian)
-- 日本語 (Japanese)
-- Nederlands (Dutch)
-- Polski (Polish)
-- Português (BR) (Brazilian Portuguese)
-- 中文 (简体) (Simplified Chinese)
-
-**How to change your language setting:**
-
+To change your language:
 1. In the navigation tabs, select **Account > Preferences**.
 2. Tap or click on **Language**.
 3. Choose your preferred language from the list.
@@ -68,7 +65,7 @@ Expensify supports multiple languages, making it easier for members across the g
 ## Notifications
 
 To manage notification settings:
-1. Go to **Account > Preferences**.
+1. Go to **Account > Preferences > App preferences**.
 2. Adjust the notification toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
