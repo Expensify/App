@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -852,8 +853,24 @@ const translations = {
         markAsUnread: '标记为未读',
         markAsRead: '标记为已读',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteAction: ({action}: DeleteActionParams) => `删除 ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `您确定要删除此${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}吗？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `删除 ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `您确定要删除此${type}吗？`;
+        },
         onlyVisible: '仅对...可见',
         replyInThread: '在线程中回复',
         joinThread: '加入线程',
@@ -1734,7 +1751,7 @@ const translations = {
         compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
         domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
         areYouSure: '您确定要锁定您的Expensify账户吗?',
-        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
+        onceLocked: '一旦锁定，您的账户将被限制，等待解锁请求和安全审查。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',
@@ -3533,7 +3550,7 @@ const translations = {
         receiptPartners: {
             connect: '立即连接',
             uber: {
-                subtitle: '自动化整个组织的差旅和送餐费用。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) => (organizationName ? `已连接到${organizationName}` : '在您的组织内自动化旅行和餐饮费用。'),
                 sendInvites: '邀请成员',
                 sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
                 confirmInvite: '确认邀请',
@@ -3553,8 +3570,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '已暂停',
                 },
                 invitationFailure: '邀请成员加入Uber for Business失败',
-                autoRemove: '邀请新工作区成员加入 Uber for Business',
-                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                autoInvite: '邀请新工作区成员加入 Uber for Business',
+                autoRemove: '停用已从 Uber for Business 移除的工作区成员',
                 bannerTitle: 'Expensify + Uber 商务版',
                 bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
                 emptyContent: {
