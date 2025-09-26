@@ -211,6 +211,10 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
+function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return isCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+}
+
 function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEnabled?: boolean): IOURequestType {
     if (isManualDistanceEnabled) {
         if (isManualDistanceRequest(transaction)) {
@@ -2065,6 +2069,7 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
+    isCorporateCardTransaction,
     isExpenseUnreported,
 };
 
