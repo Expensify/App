@@ -65,22 +65,21 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 
 ## Running the mobile application using Rock 🪨
 
-This project leverages [Rock](rockjs.dev) to manage builds. With Rock, the build is downloaded from a remote server first, and if a matching remote build cannot be found, it falls back to building locally. By storing the complete build on a remote server, Rock.js minimizes the need for local builds and enables streamlined setup through automated downloads.
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run ios` or `npm run android`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from a server. If a matching remote build isn’t available, it automatically falls back to building locally.
+
+By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
 
 The following steps describe how to configure the project to fully utilize Rock.
 
 ### Generating GitHub Personal Access Token
 
-To use rock remote builds for mobile applications, you need to have GitHub Personal Access Token in your `.env` file:
+To take advantage of remote builds, setup your GitHub Personal Access Token (PAT) in your `.env` file:
 
 1. Create a GitHub Personal Access Token:
    - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
    - Click "Generate new token (classic)"
-   - Select the following scopes:
+   - Select the following scope:
      - `repo`
-     - `read:org`
-     - `gist`
-     - `read:packages`
 
 2. Copy the generated token
 
@@ -89,6 +88,7 @@ To use rock remote builds for mobile applications, you need to have GitHub Perso
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
 * To start metro server run: `npm run start`
+**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
 * To run application on a **Development Simulator**: `npm run ios` or `npm run android`
 
 After completing these steps, you should be able to start both mobile platform apps using the remote build.
@@ -143,7 +143,7 @@ To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
 
 1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
 
-2. Create a GitHub Personal Access Token. (If you already completed this step during the Rock setup, there is no need to repeat it):
+2. Create a GitHub Personal Access Token:
    - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
    - Click "Generate new token (classic)"
    - Select the following scopes:
