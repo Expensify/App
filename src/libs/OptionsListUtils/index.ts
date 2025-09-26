@@ -311,12 +311,6 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
-    callback: (value) => (nvpDismissedProductTraining = value),
-});
-
 /**
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
@@ -1708,7 +1702,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 /**
  * Whether user submitted already an expense or scanned receipt
  */
-function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
+function getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean {
     return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
 }
 
@@ -1724,12 +1718,17 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
  * based on dynamic business logic and feature flags.
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
-function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
+function getRestrictedLogins(
+    config: GetOptionsConfig,
+    options: OptionList,
+    canShowManagerMcTest: boolean,
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+): Record<string, boolean> {
     const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
     return {
         [CONST.EMAIL.MANAGER_MCTEST]:
             !canShowManagerMcTest ||
-            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
+            (getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
             isCurrentUserMemberOfAnyPolicy(),
     };
@@ -1753,10 +1752,11 @@ function getValidOptions(
         searchString,
         maxElements,
         includeUserToInvite = false,
+        nvpDismissedProductTraining,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
-    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
+    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
