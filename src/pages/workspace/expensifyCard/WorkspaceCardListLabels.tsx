@@ -23,9 +23,9 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     const {isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
-    const workspaceAccountID = useDefaultFundID(policyID);
+    const defaultFundID = useDefaultFundID(policyID);
 
-    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`, {canBeMissing: true});
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`, {canBeMissing: true});
     const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
 
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;

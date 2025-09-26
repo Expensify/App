@@ -39,11 +39,11 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-    const workspaceAccountID = useDefaultFundID(policyID);
+    const defaultFundID = useDefaultFundID(policyID);
 
     const currency = useCurrencyForExpensifyCard({policyID});
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
     const card = cardsList?.[cardID];
 
     const getPromptTextKey = useMemo((): ConfirmationWarningTranslationPaths => {
@@ -82,7 +82,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         setIsConfirmModalVisible(false);
 
         updateExpensifyCardLimit(
-            workspaceAccountID,
+            defaultFundID,
             Number(cardID),
             newLimit,
             newAvailableSpend,
