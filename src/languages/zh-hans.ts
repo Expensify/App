@@ -3222,6 +3222,9 @@ const translations = {
         thisStep: '此步骤已完成',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事或高级管理人员的签署人信息。`,
+        error: {
+            emailsMustBeDifferent: '电子邮件地址必须不同',
+        },
     },
     agreementsStep: {
         agreements: '协议',

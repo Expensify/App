@@ -3266,6 +3266,9 @@ const translations = {
         thisStep: 'Deze stap is voltooid',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `verbindt een zakelijke bankrekening in ${currency} eindigend op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarinformatie van een directeur of senior functionaris.`,
+        error: {
+            emailsMustBeDifferent: 'E-mailadressen moeten verschillend zijn',
+        },
     },
     agreementsStep: {
         agreements: 'Overeenkomsten',

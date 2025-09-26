@@ -58,6 +58,10 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
                 errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
+            if (shouldGatherBothEmails && values[SIGNER_EMAIL] === values[SECOND_SIGNER_EMAIL]) {
+                errors[SECOND_SIGNER_EMAIL] = translate('signerInfoStep.error.emailsMustBeDifferent');
+            }
+
             return errors;
         },
         [shouldGatherBothEmails, shouldGatherOnlySecondSignerEmail, translate],
