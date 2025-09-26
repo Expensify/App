@@ -27,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -65,7 +66,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
-import usePermissions from '@hooks/usePermissions';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -105,7 +105,7 @@ function SearchPage({route}: SearchPageProps) {
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
 
-    const isBetaBulkPayEnabled = isBetaEnabled(CONST.BETAS.PAMENT_BUTTONS);
+    const isBetaBulkPayEnabled = isBetaEnabled(CONST.BETAS.PAYMENT_BUTTONS);
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
@@ -344,9 +344,20 @@ function SearchPage({route}: SearchPageProps) {
                 },
             });
         }
+        const shouldEnableExpenseBulk = selectedReports.length
+            ? selectedReports.every(
+                  (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+              )
+            : selectedTransactionsKeys.every(
+                  (id) =>
+                      selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                      selectedTransactions[id].policyID &&
+                      getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
+              );
+
         const {shouldEnableBulkPayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && (isBetaBulkPayEnabled ? shouldEnableBulkPayOption : shouldEnableExpenseBulk);
 
         if (shouldShowPayOption) {
             const payButtonOption = {

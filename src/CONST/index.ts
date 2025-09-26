@@ -707,7 +707,7 @@ const CONST = {
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        PAMENT_BUTTONS: 'paymentButtons'
+        PAYMENT_BUTTONS: 'paymentButtons',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
