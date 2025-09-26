@@ -1426,7 +1426,7 @@ const translations = {
             reasonPageDescription: 'Explique por que você está rejeitando essa despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
-            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir o(s) problema(s) e marcar como resolvido para permitir o envio.',
+            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir os problemas e marcar como resolvido para permitir o envio.',
             reportActions: {
                 rejectedExpense: 'rejeitou esta despesa',
                 markedAsResolved: 'marcou o motivo da rejeição como resolvido',
@@ -6692,7 +6692,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que ${email} precisa corrigir.`
-                    : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que você precisa corrigir.';
+                    : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Peça a ${member} para marcar como dinheiro ou espere 7 dias e tente novamente.` : 'Aguardando a fusão com a transação do cartão.';

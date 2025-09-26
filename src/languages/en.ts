@@ -1412,7 +1412,7 @@ const translations = {
             reasonPageDescription: "Explain why you're rejecting this expense.",
             rejectReason: 'Rejection reason',
             markAsResolved: 'Mark as resolved',
-            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
+            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issues and mark as resolved to enable submission.',
             reportActions: {
                 rejectedExpense: 'rejected this expense',
                 markedAsResolved: 'marked the rejection reason as resolved',
@@ -6655,9 +6655,7 @@ const translations = {
                 return "Can't auto-match receipt due to broken bank connection";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin
-                    ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix`
-                    : "Can't auto-match receipt due to broken bank connection which you need to fix";
+                return isAdmin ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix` : "Can't auto-match receipt due to broken bank connection";
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Ask ${member} to mark as a cash or wait 7 days and try again` : 'Awaiting merge with card transaction.';

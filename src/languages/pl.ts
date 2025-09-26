@@ -1426,7 +1426,7 @@ const translations = {
             reasonPageDescription: 'Wyjaśnij, dlaczego odrzucasz ten wydatek.',
             rejectReason: 'Powód odrzucenia',
             markAsResolved: 'Oznacz jako rozwiązane',
-            rejectedStatus: 'Ten wydatek został odrzucony. Oczekiwanie, aż rozwiążesz problem(y) i oznaczysz jako rozwiązane, aby umożliwić przesłanie.',
+            rejectedStatus: 'Ten wydatek został odrzucony. Czekamy na Ciebie, aby naprawić problemy i oznaczyć jako rozwiązane, aby umożliwić przesłanie.',
             reportActions: {
                 rejectedExpense: 'odrzucił ten wydatek',
                 markedAsResolved: 'oznaczył powód odrzucenia jako rozwiązany',
@@ -6678,7 +6678,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem, które ${email} musi naprawić.`
-                    : 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem, które musisz naprawić.';
+                    : 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Poproś ${member}, aby oznaczył jako gotówkę lub poczekaj 7 dni i spróbuj ponownie.` : 'Oczekiwanie na połączenie z transakcją kartową.';

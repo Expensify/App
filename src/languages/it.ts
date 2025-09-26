@@ -1427,7 +1427,7 @@ const translations = {
             reasonPageDescription: 'Spiega perché rifiuti questa spesa.',
             rejectReason: 'Motivo del rifiuto',
             markAsResolved: 'Segna come risolto',
-            rejectedStatus: 'Questa spesa è stata rifiutata. In attesa che tu risolva il/i problema/i e la segni come risolta per abilitare l’invio.',
+            rejectedStatus: "Questa spesa è stata rifiutata. In attesa che tu risolva i problemi e la contrassegni come risolta per abilitarne l'invio.",
             reportActions: {
                 rejectedExpense: 'ha rifiutato questa spesa',
                 markedAsResolved: 'ha segnato il motivo del rifiuto come risolto',
@@ -6709,7 +6709,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta che ${email} deve risolvere.`
-                    : 'Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta che devi risolvere.';
+                    : 'Impossibile associare automaticamente la ricevuta a causa di una connessione bancaria interrotta.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Chiedi a ${member} di contrassegnarlo come contante o attendi 7 giorni e riprova` : 'In attesa di unione con la transazione della carta.';
