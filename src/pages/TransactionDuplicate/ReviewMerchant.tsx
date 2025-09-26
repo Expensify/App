@@ -46,17 +46,13 @@ function ReviewMerchant() {
         route.params.threadReportID,
         route.params.backTo,
     );
-    const options = useMemo(
-        () =>
-            compareResult.change.merchant?.map((merchant) =>
-                !merchant
-                    ? {text: translate('violations.none'), value: ''}
-                    : {
-                          text: merchant,
-                          value: merchant,
-                      },
-            ),
-        [compareResult.change.merchant, translate],
+    const options = compareResult.change.merchant?.map((merchant) =>
+        !merchant
+            ? {text: translate('violations.none'), value: ''}
+            : {
+                  text: merchant,
+                  value: merchant,
+              },
     );
 
     const setMerchant = (data: FieldItemType<'merchant'>) => {

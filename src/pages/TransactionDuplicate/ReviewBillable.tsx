@@ -45,14 +45,10 @@ function ReviewBillable() {
         route.params.threadReportID,
         route.params.backTo,
     );
-    const options = useMemo(
-        () =>
-            compareResult.change.billable?.map((billable) => ({
-                text: billable ? translate('common.yes') : translate('common.no'),
-                value: billable ?? false,
-            })),
-        [compareResult.change.billable, translate],
-    );
+    const options = compareResult.change.billable?.map((billable) => ({
+        text: billable ? translate('common.yes') : translate('common.no'),
+        value: billable ?? false,
+    }));
 
     const setBillable = (data: FieldItemType<'billable'>) => {
         if (data.value !== undefined) {
