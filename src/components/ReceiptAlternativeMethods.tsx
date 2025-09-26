@@ -1,10 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
-import Icon from './Icon';
-import {ChatBubble, Download, Mail} from './Icon/Expensicons';
-import Text from './Text';
-import TextLink from './TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useHasPhoneNumber from '@hooks/useHasPhoneNumber';
@@ -14,6 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
 import ROUTES from '@src/ROUTES';
+import Icon from './Icon';
+import {ChatBubble, Download, Mail} from './Icon/Expensicons';
+import Text from './Text';
+import TextLink from './TextLink';
 
 type ReceiptAlternativeMethodsProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
