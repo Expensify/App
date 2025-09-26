@@ -16,8 +16,8 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
 
 ## How to implement pagination
 1. Clearly define a sorting order of the data in question. No two items in the list may be considered equal in the sorting order.
-2. Define a "cursor" - a unique piece of data that encapsulates all the data you need to pinpoint the location of a single item in the list.
-    - Each item in the list MUST be unique. Typically this means your cursor should include an ID.
+2. Define a "cursor" - a unique piece of data that encapsulates all the data needed to pinpoint the location of a single item in the list.
+    - Each item in the list MUST be unique. Typically this means the cursor should include an ID.
     - The cursor MUST be serializable so it can be sent in a network request. An example of something that's not serializable is a function.
     - The cursor SHOULD include only the minimal fields required to define the location of an item in the list.
     - _Example:_ For `reportActions`, we use the `created` timestamp, since `reportActions` are generally sorted by order of creation. A better cursor would have been a composite of:
@@ -37,8 +37,8 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
 
     - _Example:_ For a single search snapshot, an integer `sequenceNumber` is used. This is a simple implementation, but generally is not a scalable solution, because offset-based approaches require the database to scan and discard all prior rows up to the offset, which becomes slow for large dataset pagination.
 
-3. Using your cursor as inputs, define a database query to _quickly_ access a limited number (a single page) of the resource in question. Test it for the highest volume of data you can find (i.e: the report with the most actions, the account with access to the most reports, etc...). If you do this well, you should find that the query execution time is unaffected by the total search volume (the total length of the "list" that you're paging over).
-    - A good starting point for this is to write your query using a [row value comparison](https://www.sqlite.org/rowvalue.html). Then, if necessary, consider creating a sorted `COVERING` index for the row value you're searching over. For example:
+3. Using the cursor as input, define a database query to _quickly_ access a limited number (a single page) of the resource in question. Test it for the highest volume of data available (i.e: the report with the most actions, the account with access to the most reports, etc...). If implemented well, the query execution time should be unaffected by the total search volume (the total length of the "list" that is being paged over).
+    - A good starting point for this is to write the query using a [row value comparison](https://www.sqlite.org/rowvalue.html). Then, if necessary, consider creating a sorted `COVERING` index for the row value being searched over. For example:
 
         ```sql
         CREATE TABLE chatMessages (
@@ -51,7 +51,7 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
         CREATE INDEX idx_chatMessages_created_id
             ON chatMessages (created, id);
 
-        -- Query a single page using your cursor as the "OFFSET"
+        -- Query a single page using the cursor as the "OFFSET"
         SELECT *
         FROM chatMessages
         WHERE (created, id) < ('2025-09-01 10:02:00', 3)
@@ -59,18 +59,18 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
         LIMIT 50;
         ```
 
-4. Determine whether your use-case calls for **unidirectional** or **bidirectional** pagination. Generally, **bidirectional** pagination will be useful if:
+4. Determine whether the use-case calls for **unidirectional** or **bidirectional** pagination. Generally, **bidirectional** pagination will be useful if:
 
     - The list live-updates and the user can "jump" to an arbitrary point in the list without loading all the data between the start of the list and that point.
     - The list doesn't live-update (i.e: if a user scrolls back in the list, and while they're looking at older items, they're not receiving newer items as they come in).
 
-    If you need bidirectional pagination, you'll need to ensure that you craft queries and API endpoints to fetch data from a given cursor in both directions. In the example query above, it could be as simple as switching `<` to `>=` and making the comparator and sort order explicit for each direction.
+    If bidirectional pagination is needed, ensure that queries and API endpoints fetch data from a given cursor in both directions. In the example query above, it could be as simple as switching `<` to `>=` and making the comparator and sort order explicit for each direction.
 
 > [!NOTE]
 > At the time of writing, [RecyclerListView](https://github.com/Flipkart/recyclerlistview) and [FlashList](https://github.com/Shopify/flash-list) _do not_ support bidirectional pagination.
 > React Native's built-in [FlatList](https://reactnative.dev/docs/flatlist) and [legend-list](https://github.com/LegendApp/legend-list) are some examples that _do_ support bidirectional pagination via the `onStartReached` prop.
 
-5. Determine whether it's possible for **gaps** to appear in your data. It's non-trivial to list all the ways gaps can appear in a list, but here are a couple of examples, one real and one contrived:
+5. Determine whether it's possible for **gaps** to appear in the data. It's non-trivial to list all the ways gaps can appear in a list, but here are a couple of examples, one real and one contrived:
     - "Comment linking"
         1. User has a simple paginated list of integers in ascending order, and it currently contains items 1-50.
         2. User jumps to the middle of the list (say for simplicity that they are looking at items 15-35)
@@ -83,13 +83,13 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
         2. New data appears at the front of the list, say items 201-250. We add these items to the list as we normally would if they're looking at the front of the list.
         3. Now there is a gap between items 101-200 (the data we evicted) :boom:
 
-    If it turns out you _do_ need a strategy for gap detection, here's a high-level summary of how you'd handle it:
+    If a strategy for gap detection is required, here's a high-level summary of how it can be handled:
 
-    1. Start keeping track of the pages you've loaded in a dedicated Onyx key for pagination (e.g., `report_123_actions_pages`). This is a _sorted_ list of ranges.
-    2. Post-process network responses using the [Pagination middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts) to keep track of the start and end point of the page you loaded in a request, and [merge it with existing pages if it overlaps](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L104).
-    3. When rendering your list, use that pages key for your sorting order, and insert "gap markers" between the edges of the pages you've loaded.
-    4. When rendering your list, [only render a single continuous chunk](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L166) containing your current "anchor point" (the reportAction you linked to, for example), up until you reach the end of the list in either direction or a gap marker.
-    5. Then when you scroll, you'll hit your gap marker and can make network requests to fill in the gap.
+    1. Keep track of the pages loaded in a dedicated Onyx key for pagination (e.g., `report_123_actions_pages`). This is a _sorted_ list of ranges.
+    2. Post-process network responses using the [Pagination middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts) to keep track of the start and end point of the page loaded in a request, and [merge it with existing pages if it overlaps](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L104).
+    3. When rendering the list, use that pages key for the sorting order, and insert "gap markers" between the edges of the pages that have been loaded.
+    4. When rendering the list, [render only a single continuous chunk](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L166) containing the current "anchor point" (the reportAction linked to, for example), up until reaching the end of the list in either direction or a gap marker.
+    5. Then, when scrolling, the gap marker will be reached and network requests can fill the gap.
 
     More details can be found in [the Pagination middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts). Efforts were made to generalize this code, but so far it has only been used for reportActions.
 
