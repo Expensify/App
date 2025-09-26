@@ -409,22 +409,29 @@ function BasePopoverMenu({
     }, [menuItems, setFocusedIndex]);
 
     const menuContainerStyle = useMemo(() => {
+        const DEFAULT_MAX_HEIGHT_OFFSET = 250;
+        const SAFE_BOTTOM_SPACE = variables.h20;
+
+        if (!shouldEnableMaxHeight) {
+            return isSmallScreenWidth ? [] : [styles.createMenuContainer];
+        }
+
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
+            return [{maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}];
         }
 
         const isTopAnchored = anchorAlignment?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
         const top = anchorPosition?.vertical;
-        let desktopMaxHeightStyle = {};
-        if (shouldEnableMaxHeight) {
-            if (isTopAnchored && typeof top === 'number') {
-                desktopMaxHeightStyle = {maxHeight: windowHeight - Math.round(top) - 20};
-            } else {
-                desktopMaxHeightStyle = {maxHeight: windowHeight - 250};
-            }
+
+        // Reserve space for footer actions when expanding downward.
+        if (isTopAnchored && typeof top === 'number') {
+            const computed = windowHeight - Math.round(top) - SAFE_BOTTOM_SPACE;
+            const maxHeight = Math.max(0, computed);
+            return [styles.createMenuContainer, {maxHeight}];
         }
 
-        return {...styles.createMenuContainer, ...desktopMaxHeightStyle};
+        // Fallback for other anchor cases
+        return [styles.createMenuContainer, {maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}];
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, anchorAlignment, anchorPosition]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
