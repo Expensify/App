@@ -16,6 +16,7 @@ import {getBankAccountRoute, getPolicyExpenseChat, isExpenseReport as isExpenseR
 import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
+import {isPolicyMember} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -123,7 +124,8 @@ function KYCWall({
                 if (iouReport && isIOUReport(iouReport)) {
                     if (policy) {
                         const policyExpenseChatReportID = getPolicyExpenseChat(iouReport.ownerAccountID, policy.id, allReports)?.reportID;
-                        if (!policyExpenseChatReportID) {
+                        const isMemberOfPolicy = isPolicyMember(policy, iouReport.ownerAccountID);
+                        if (!isMemberOfPolicy) {
                             const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber) ?? {};
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
