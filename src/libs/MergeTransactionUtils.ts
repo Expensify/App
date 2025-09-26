@@ -443,6 +443,7 @@ export {
     buildMergeFieldsData,
     getReportIDForExpense,
     getMergeFieldErrorText,
+    MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData};
