@@ -2122,6 +2122,19 @@ describe('ReportUtils', () => {
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
+
+        it('returns false when awaiting approval but parent accessible or user is not approver', () => {
+            const reportWithParentAccess = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: true,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess)).toBe(false);
+        });
     });
 
     describe('getChatRoomSubtitle', () => {
