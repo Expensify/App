@@ -5,14 +5,18 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 "OPTIONAL" are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
 ## Contents
+* [Beta Usage Philosophy](/contributingGuides/philosophies/BETAS.md)
 * [Cross-Platform Philosophy](/contributingGuides/philosophies/CROSS-PLATFORM.md)
 * [Data Flow Philosophy](/contributingGuides/philosophies/DATA-FLOW.md)
 * [Data Binding Philosophy](/contributingGuides/philosophies/DATA-BINDING.md)
 * [Deploying Philosophy](/contributingGuides/philosophies/DEPLOYING.md)
 * [Directory Structure and File Naming Philosophy](/contributingGuides/philosophies/DIRECTORIES.md)
-* [Internationalization Philosophy](/contributingGuides/philosophies/INTERNATIONALIZATION.md)
 * [HybridApp Philosophy](/contributingGuides/philosophies/HYBRID-APP.md)
+* [Small Incremental Releases Philosophy](/contributingGuides/philosophies/INCREMENTAL-RELEASES.md)
+* [Internationalization Philosophy](/contributingGuides/philosophies/INTERNATIONALIZATION.md)
 * [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md)
 * [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
+* [Overengineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
+* [Preoptimizing Philosophy](/contributingGuides/philosophies/PREOPTIMIZING.md)
 * [Routing Philosophy](/contributingGuides/philosophies/ROUTING.md)
 * [Security Philosophy](/contributingGuides/philosophies/SECURITY.md)
