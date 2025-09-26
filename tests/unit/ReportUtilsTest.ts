@@ -2134,6 +2134,17 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(reportWithParentAccess)).toBe(false);
+
+            const reportWithDifferentManager = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: 999999,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
         });
     });
 
