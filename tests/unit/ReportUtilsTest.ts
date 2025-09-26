@@ -2109,6 +2109,19 @@ describe('ReportUtils', () => {
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
         });
+
+        it('returns true when expense report is awaiting current user approval without parent access', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
     });
 
     describe('getChatRoomSubtitle', () => {
