@@ -168,7 +168,8 @@ function getOnyxTargetTransactionData(
 
             return !deepEqual(mergeValue, targetValue);
         }),
-    ) as TransactionChanges;
+    );
+    filteredTransactionChanges.comment = filteredTransactionChanges.description;
 
     if (isUnreportedExpense) {
         data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy);
