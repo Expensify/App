@@ -89,6 +89,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
     }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
@@ -153,7 +154,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (prevValidatedDate || !loginData?.validatedDate || !loginData) {
+        if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
