@@ -54,26 +54,86 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 * To run the **development web app**: `npm run web`
 * Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
 
-## Running the iOS app 📱
+## Running the mobile application using Rock 🪨
+
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run ios` or `npm run android`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from a server. If a matching remote build isn’t available, it automatically falls back to building locally.
+
+By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
+
+**Note:** Any changes to files involved in generating a fingerprint (e.g., `package.json`) will trigger a local build.
+
+The following steps describe how to configure the project to fully utilize Rock.
+
+### Generating GitHub Personal Access Token
+
+To take advantage of remote builds, setup your GitHub Personal Access Token (PAT) in your `.env` file:
+
+1. Create a GitHub Personal Access Token:
+   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select the following scope:
+     - `repo`
+
+2. Copy the generated token
+
+3. Add `GITHUB_TOKEN` to `.env` file with your generated token
+
+### Running the mobile application 📱
+* To install project dependencies run: `npm install`
+* To start metro server run: `npm run start`
+**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
+* To run application on a **Development Simulator**: `npm run ios` or `npm run android`
+
+After completing these steps, you should be able to start both mobile platform apps using the remote build.
+
+### Troubleshooting
+* Try re-installing dependencies:
+    - `npm run i-standalone` for the standalone app
+    - `npm install` for the hybrid app
+
+* Try running `npm run ios` or `npm run android` again
+
+* If you’re still encountering errors, you can try running:
+    - `git clean -fdx ios/` when running iOS
+    - `git clean -fdx android/` when running Android
+    - `git clean -fdx ./Mobile-Expensify` when running hybrid app
+
+* Then try running `npm run ios` or `npm run android` again
+
+* If the issue persists, verify that both workflows in the GitHub repository have completed successfully:
+    - [iOS builds](https://github.com/Expensify/App/actions/workflows/remote-build-ios.yml)
+    - [Android builds](https://github.com/Expensify/App/actions/workflows/remote-build-android.yml)
+    If the workflows are still running, open them and verify they match your fingerprint. Once complete, Rock should download the remote build. If not, check whether the last main commit hash merged into your branch has the same fingerprint as yours.
+
+    If the fingerprints do not match, run:
+    - `npx rock fingerprint -p ios --verbose` for iOS
+    - `npx rock fingerprint -p android --verbose` for Android
+    Compare the results with the GitHub Actions output to see which files have different fingerprints.
+
+* In the event of workflow failures, it is recommended to have the option to manually build the application. The following steps will cover the manual build process.  
+
+## Running the mobile application using manual builds
+
+### Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
     * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
-* Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
-    * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
-    * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
 * Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions.
     * For help with MapBox token, you can see [this Slack thread](https://expensify.slack.com/archives/C01GTK53T8Q/p1692740856745279?thread_ts=1692322511.804599&cid=C01GTK53T8Q)
-* To install the iOS dependencies, run: `npm install && npm run pod-install`
+* To install the dependencies, run: `npm install`
+* To start metro server run: `npm run start`
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 If you want to run the app on an actual physical iOS device, please follow the instructions [here](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BUILD_APP_ON_PHYSICAL_IOS_DEVICE.md).
 
-## Running the Android app 🤖
+### Running the Android app 🤖
 * Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
 * Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
+* To install dependencies, run `npm install` if you haven’t already done so during the iOS setup process.
+* To start metro server run: `npm run start`
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
@@ -100,13 +160,15 @@ To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
      - `read:org`
      - `gist`
      - `read:packages`
-   - Copy the generated token
 
-3. Login to GitHub CLI:
+3. Copy the generated token
+
+4. Login to GitHub CLI:
    ```bash
    echo "YOUR_TOKEN" | gh auth login --with-token
    ```
-4. Verify the login was successful:
+
+5. Verify the login was successful:
    ```bash
    gh auth status
    ```
