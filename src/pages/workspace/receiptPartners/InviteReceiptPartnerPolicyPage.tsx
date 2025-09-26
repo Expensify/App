@@ -192,7 +192,13 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         Navigation.dismissModal();
     }, []);
 
-    if (isInvitationSent) {
+    // Check if we should skip to "All set" page immediately
+    const shouldSkipToAllSet = useMemo(() => {
+        // Skip if no workspace members can be invited (covers all cases: no employees, only owner, already linked)
+        return workspaceMembers.length === 0;
+    }, [workspaceMembers.length]);
+
+    if (isInvitationSent || shouldSkipToAllSet) {
         return (
             <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
                 <HeaderWithBackButton

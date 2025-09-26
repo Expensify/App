@@ -175,12 +175,9 @@ function Image({
     );
 }
 
-function imagePropsAreEqual(prevProps: ImageProps, nextProps: ImageProps) {
-    return prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight;
-}
+Image.displayName = 'Image';
 
-const ImageWithOnyx = React.memo(Image, imagePropsAreEqual);
-
-ImageWithOnyx.displayName = 'Image';
-
-export default ImageWithOnyx;
+export default React.memo(
+    Image,
+    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
+);

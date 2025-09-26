@@ -88,7 +88,7 @@ function useReportActionAvatars({
     const reportPolicyID = iouReport?.policyID ?? chatReport?.policyID;
     const chatReportPolicyIDExists = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID;
     const changedPolicyID = actionChildReport?.policyID ?? iouReport?.policyID;
-    const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== (chatReport?.policyID ?? iouReport?.policyID);
+    const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== (reportPolicyID ?? iouReport?.policyID);
     const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
 
     const policyID = shouldUseChangedPolicyID ? changedPolicyID : (passedPolicyID ?? retrievedPolicyID);
@@ -155,7 +155,7 @@ function useReportActionAvatars({
 
     const isWorkspacePolicy = !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const isATripRoom = isTripRoom(chatReport);
-    const isWorkspaceWithoutChatReportProp = !chatReport && isWorkspacePolicy;
+    const isWorkspaceWithoutChatReportProp = !chatReport?.reportID && isWorkspacePolicy;
     const isAnInvoiceRoom = isInvoiceRoom(chatReport);
     const isAWorkspaceChat = (isPolicyExpenseChat(chatReport) || isWorkspaceWithoutChatReportProp) && !isAnInvoiceRoom;
     const isATripPreview = action?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW;
@@ -201,8 +201,8 @@ function useReportActionAvatars({
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
-    const isChatReportOnlyProp = !iouReport && chatReport;
-    const isWorkspaceChatWithoutChatReport = !chatReport && isAWorkspaceChat;
+    const isChatReportOnlyProp = !iouReport && chatReport?.reportID;
+    const isWorkspaceChatWithoutChatReport = !chatReport?.reportID && isAWorkspaceChat;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const usePersonalDetailsAvatars = (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
@@ -210,7 +210,7 @@ function useReportActionAvatars({
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
         getIcons(onyxReport, personalDetails, avatar ?? fallbackIcon ?? FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
 
-    const reportIcons = getIconsWithDefaults(chatReport ?? iouReport);
+    const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
     const delegateAvatar: IconType | undefined = delegatePersonalDetails
         ? {

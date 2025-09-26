@@ -1,3 +1,4 @@
+import {activePolicySelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -148,7 +149,7 @@ function MoneyRequestView({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+        selector: activePolicySelector,
     });
     // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
     const policy = isExpenseUnreported ? activePolicy : expensePolicy;
@@ -849,7 +850,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={isExpenseUnreported ? '' : getReportName(actualParentReport) || actualParentReport?.reportName}
+                            title={getReportName(actualParentReport) || actualParentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -857,20 +858,6 @@ function MoneyRequestView({
                                 if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
                                     return;
                                 }
-
-                                if (!policy) {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                            iouType,
-                                            action: CONST.IOU.ACTION.EDIT,
-                                            transactionID: transaction?.transactionID,
-                                            reportID: report.reportID,
-                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                        }),
-                                    );
-                                    return;
-                                }
-
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
