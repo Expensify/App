@@ -86,34 +86,6 @@ By default, `react-native` is built from source when building the Android app. H
    - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
    - Set `patchedArtifacts.forceBuildFromSource=false`
 
-#### Configuring GitHub CLI
-
-To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
-
-1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
-
-2. Create a GitHub Personal Access Token:
-   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
-   - Click "Generate new token (classic)"
-   - Select the following scopes:
-     - `repo`
-     - `read:org`
-     - `gist`
-     - `read:packages`
-   - Copy the generated token
-
-3. Login to GitHub CLI:
-   ```bash
-   echo "YOUR_TOKEN" | gh auth login --with-token
-   ```
-4. Verify the login was successful:
-   ```bash
-   gh auth status
-   ```
-   You should see a message confirming you are authenticated with your GitHub account.
-
-After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
-
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
