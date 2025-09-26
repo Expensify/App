@@ -3,6 +3,7 @@ import {
     buildMergedTransactionData,
     getDisplayValue,
     getMergeableDataAndConflictFields,
+    getMergeFieldErrorText,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
@@ -660,6 +661,19 @@ describe('MergeTransactionUtils', () => {
             expect(result).toBe('Department, Engineering, Frontend');
         });
 
+        it('should return correct value for attendees field', () => {
+            const transaction = createRandomTransaction(0);
+            transaction.comment = transaction.comment ?? {};
+            transaction.comment.attendees = [
+                {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
+                {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
+            ];
+
+            const result = getDisplayValue('attendees', transaction, translateLocal);
+
+            expect(result).toBe('Test User 2, Test User 1');
+        });
+
         it('should return string values directly', () => {
             // Given a transaction with string fields
             const transaction = {
@@ -676,6 +690,38 @@ describe('MergeTransactionUtils', () => {
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+    });
+
+    describe('getMergeFieldErrorText', () => {
+        it('should return specific error message for attendees field', () => {
+            // Given a merge field data object for attendees field
+            const mergeField = {
+                field: 'attendees' as const,
+                label: 'Attendees',
+                options: [],
+            };
+
+            // When we get the error text for attendees field
+            const result = getMergeFieldErrorText(translateLocal, mergeField);
+
+            // Then it should return the specific attendees error message
+            expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectAttendees'));
+        });
+
+        it('should return generic error message for merchant field', () => {
+            // Given a merge field data object for merchant field
+            const mergeField = {
+                field: 'merchant' as const,
+                label: 'Merchant',
+                options: [],
+            };
+
+            // When we get the error text for merchant field
+            const result = getMergeFieldErrorText(translateLocal, mergeField);
+
+            // Then it should return the generic error message with lowercase field name
+            expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
         });
     });
 });
