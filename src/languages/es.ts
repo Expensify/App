@@ -7143,7 +7143,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `No se puede adjuntar recibo debido a un problema con la conexión a tu banco que ${email} necesita arreglar`
-                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco que necesitas arreglar';
+                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
