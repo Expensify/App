@@ -3,8 +3,10 @@ import {fireEvent, render, screen, userEvent, within} from '@testing-library/rea
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
+import CONST from '@src/CONST';
 
-const monthNames = DateUtils.getMonthNames();
+const LOCALE = CONST.LOCALES.DEFAULT;
+const monthNames = DateUtils.getMonthNames(LOCALE);
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
@@ -15,6 +17,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn(),
+        preferredLocale: 'en',
     })),
 );
 

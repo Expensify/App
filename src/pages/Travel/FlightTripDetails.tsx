@@ -25,7 +25,7 @@ type FlightTripDetailsProps = {
 function FlightTripDetails({reservation, prevReservation, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
@@ -35,8 +35,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         FIRST: translate('travel.flightDetails.cabinClasses.first'),
     };
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
