@@ -10,11 +10,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {
+    addLeadingZero,
+    handleNegativeAmountFlipping,
+    replaceAllDigits,
+    replaceCommasWithPeriod,
+    stripCommaFromAmount,
+    stripDecimalsFromAmount,
+    stripSpacesFromAmount,
+    validateAmount,
+} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
+import * as Expensicons from './Icon/Expensicons';
+import ScrollView from './ScrollView';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -30,6 +42,9 @@ type NumberWithSymbolFormProps = {
 
     /** Number of decimals to display in the number */
     decimals?: number;
+
+    /** Currency of the input */
+    currency?: string;
 
     /** Whether the big number pad should be shown */
     shouldShowBigNumberPad?: boolean;
@@ -51,6 +66,18 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
+
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
+
+    /** Whether to allow flipping amount */
+    allowFlippingAmount?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
@@ -85,6 +112,7 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 function NumberWithSymbolForm({
     value: number,
     symbol = '',
+    currency = '',
     symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
     hideSymbol = false,
     decimals = 0,
@@ -108,11 +136,15 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    isNegative = false,
+    allowFlippingAmount = false,
+    toggleNegative,
+    clearNegative,
     ref,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
-    const {toLocaleDigit, numberFormat} = useLocalize();
+    const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
@@ -175,7 +207,10 @@ function NumberWithSymbolForm({
             // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
             // More info: https://github.com/Expensify/App/issues/16974
             const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
-            const finalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
+            const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
+
+            const finalNumber = handleNegativeAmountFlipping(rawFinalNumber, allowFlippingAmount, toggleNegative);
+
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
             if (!validateAmount(finalNumber, decimals, maxLength)) {
@@ -198,7 +233,7 @@ function NumberWithSymbolForm({
             });
             onInputChange?.(strippedNumber);
         },
-        [decimals, maxLength, onInputChange],
+        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative],
     );
 
     /**
@@ -209,7 +244,8 @@ function NumberWithSymbolForm({
         // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
-        const replacedCommasNumber = replaceCommasWithPeriod(newNumberWithoutSpaces);
+        const replacedCommasNumber = handleNegativeAmountFlipping(replaceCommasWithPeriod(newNumberWithoutSpaces), allowFlippingAmount, toggleNegative);
+
         const withLeadingZero = addLeadingZero(replacedCommasNumber);
 
         if (!validateAmount(withLeadingZero, decimals, maxLength)) {
@@ -235,7 +271,7 @@ function NumberWithSymbolForm({
     // Modifies the number to match changed decimals.
     useEffect(() => {
         // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength)) {
+        if (validateAmount(currentNumber, decimals, maxLength, allowFlippingAmount)) {
             return;
         }
 
@@ -287,6 +323,11 @@ function NumberWithSymbolForm({
      */
     const textInputKeyPress = (event: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = event.nativeEvent.key.toLowerCase();
+
+        if (!textInput.current?.value && key === 'backspace' && isNegative) {
+            clearNegative?.();
+        }
+
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessibility keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
@@ -303,8 +344,10 @@ function NumberWithSymbolForm({
     useImperativeHandle(numberFormRef, () => ({
         clearSelection,
         updateNumber: (newNumber: string) => {
-            setCurrentNumber(newNumber);
-            setSelection({start: newNumber.length, end: newNumber.length});
+            const updatedNumber = handleNegativeAmountFlipping(newNumber, allowFlippingAmount, toggleNegative);
+
+            setCurrentNumber(updatedNumber);
+            setSelection({start: updatedNumber.length, end: updatedNumber.length});
         },
         getNumber: () => currentNumber,
     }));
@@ -377,7 +420,7 @@ function NumberWithSymbolForm({
                 setSelection({start, end});
             }}
             onKeyPress={textInputKeyPress}
-            isSymbolPressable={isSymbolPressable}
+            isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
             symbolTextStyle={symbolTextStyle}
             style={style}
             containerStyle={containerStyle}
@@ -400,19 +443,36 @@ function NumberWithSymbolForm({
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            isNegative={isNegative}
+            toggleNegative={toggleNegative}
             onFocus={props.onFocus}
         />
     );
 
     return (
-        <>
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
             {shouldWrapInputInContainer ? (
-                <View
-                    id={NUMBER_VIEW_ID}
-                    onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
-                    style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-                >
-                    {textInputComponent}
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View
+                        id={NUMBER_VIEW_ID}
+                        onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
+                        style={[styles.moneyRequestAmountContainer, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                    >
+                        {textInputComponent}
+                    </View>
+
+                    {isSymbolPressable && !!currency && !canUseTouchScreen && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.DownArrow}
+                            onPress={onSymbolButtonPress}
+                            style={styles.minWidth18}
+                            isContentCentered
+                            text={currency}
+                        />
+                    )}
+
                     {!!errorText && (
                         <FormHelpMessage
                             style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
@@ -424,6 +484,34 @@ function NumberWithSymbolForm({
             ) : (
                 textInputComponent
             )}
+
+            <View>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
+                    {isSymbolPressable && canUseTouchScreen && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.DownArrow}
+                            onPress={onSymbolButtonPress}
+                            style={styles.minWidth18}
+                            isContentCentered
+                            text={currency}
+                        />
+                    )}
+                    {allowFlippingAmount && canUseTouchScreen && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.PlusMinus}
+                            onPress={toggleNegative}
+                            style={styles.minWidth18}
+                            isContentCentered
+                            text={translate('iou.flip')}
+                        />
+                    )}
+                </View>
+            </View>
+
             {shouldShowBigNumberPad || !!footer ? (
                 <View
                     onMouseDown={(event) => focusTextInput(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
@@ -440,7 +528,7 @@ function NumberWithSymbolForm({
                     {footer}
                 </View>
             ) : null}
-        </>
+        </ScrollView>
     );
 }
 
