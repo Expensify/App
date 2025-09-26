@@ -23,6 +23,7 @@ type EditCategoryPageProps =
 function EditCategoryPage({route}: EditCategoryPageProps) {
     const {backTo, policyID, categoryName: currentCategoryName} = route.params;
     const policyData = usePolicyData(policyID);
+    const {categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT;
@@ -34,23 +35,22 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
 
             if (!newCategoryName) {
                 errors.categoryName = translate('workspace.categories.categoryRequiredError');
-            } else if (policyData.categories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
+            } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
                 errors.categoryName = translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH});
             }
-
             return errors;
         },
-        [policyData.categories, currentCategoryName, translate],
+        [policyCategories, currentCategoryName, translate],
     );
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
-            if (policyData.policy !== undefined && currentCategoryName !== newCategoryName) {
+            if (currentCategoryName !== newCategoryName) {
                 renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: values.categoryName});
             }
 
@@ -93,7 +93,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                     onSubmit={editCategory}
                     validateEdit={validate}
                     categoryName={currentCategoryName}
-                    policyCategories={policyData.categories}
+                    policyCategories={policyCategories}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

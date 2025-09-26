@@ -258,9 +258,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: onDisabledOrganizeSwitchPress,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
-                if (policyData.policy === undefined) {
-                    return;
-                }
                 enablePolicyCategories(policyData, isEnabled, true);
             },
         },
@@ -273,9 +270,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             disabledAction: onDisabledOrganizeSwitchPress,
             action: (isEnabled: boolean) => {
-                if (policyData.policy === undefined) {
-                    return;
-                }
                 enablePolicyTags(policyData, isEnabled);
             },
         },

@@ -77,9 +77,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        if (policyData.policy !== undefined) {
-            deletePolicyTags(policyData, [currentPolicyTag.name]);
-        }
+        deletePolicyTags(policyData, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };

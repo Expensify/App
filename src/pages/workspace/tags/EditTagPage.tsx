@@ -63,7 +63,7 @@ function EditTagPage({route}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
-            if (policyData.policy !== undefined && currentTagName !== tagName) {
+            if (currentTagName !== tagName) {
                 renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight);
             }
             Keyboard.dismiss();

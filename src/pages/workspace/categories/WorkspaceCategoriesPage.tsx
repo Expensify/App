@@ -138,9 +138,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            if (policyData.policy === undefined) {
-                return;
-            }
             setWorkspaceCategoryEnabled(policyData, {[categoryName]: {name: categoryName, enabled: value}});
         },
         [policyData],
@@ -360,9 +357,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        if (policyData.policy === undefined || Object.keys(categoriesToDisable).length === 0) {
-                            return;
-                        }
                         setWorkspaceCategoryEnabled(policyData, categoriesToDisable);
                     },
                 });
@@ -385,9 +379,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        if (policyData.policy === undefined || Object.keys(categoriesToEnable).length === 0) {
-                            return;
-                        }
                         setWorkspaceCategoryEnabled(policyData, categoriesToEnable);
                     },
                 });

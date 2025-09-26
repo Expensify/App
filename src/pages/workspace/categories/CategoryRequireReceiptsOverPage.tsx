@@ -89,9 +89,6 @@ function CategoryRequireReceiptsOverPage({
                     sections={[{data: requireReceiptsOverListData}]}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
-                        if (policyData.policy === undefined) {
-                            return;
-                        }
                         if (typeof item.value === 'number') {
                             setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
                         } else {

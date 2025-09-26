@@ -48,9 +48,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
 
     const updateWorkspaceRequiresCategory = useCallback(
         (value: boolean) => {
-            if (policyData.policy === undefined) {
-                return;
-            }
             setWorkspaceRequiresCategory(policyData, value);
         },
         [policyData],

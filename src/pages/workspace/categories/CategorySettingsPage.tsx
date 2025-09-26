@@ -136,9 +136,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        if (policyData.policy !== undefined) {
-            deleteWorkspaceCategories(policyData, [categoryName]);
-        }
+        deleteWorkspaceCategories(policyData, [categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };

@@ -201,9 +201,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            if (policyData.policy === undefined) {
-                return;
-            }
             setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
         [policyData],
@@ -211,9 +208,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            if (policyData.policy === undefined) {
-                return;
-            }
             setPolicyTagsRequired(policyData, value, orderWeight);
         },
         [policyData],
@@ -376,9 +370,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        if (policyData.policy !== undefined) {
-            deletePolicyTags(policyData, selectedTags);
-        }
+        deletePolicyTags(policyData, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
