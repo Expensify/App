@@ -183,16 +183,6 @@ function getExpenseReportedStatusOptions(): Array<MultiSelectItem<SingularSearch
     ];
 }
 
-function getChatStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
-    return [
-        {text: translateLocal('common.unread'), value: CONST.SEARCH.STATUS.CHAT.UNREAD},
-        {text: translateLocal('common.sent'), value: CONST.SEARCH.STATUS.CHAT.SENT},
-        {text: translateLocal('common.attachments'), value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
-        {text: translateLocal('common.links'), value: CONST.SEARCH.STATUS.CHAT.LINKS},
-        {text: translateLocal('search.filters.pinned'), value: CONST.SEARCH.STATUS.CHAT.PINNED},
-    ];
-}
-
 function getInvoiceStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translateLocal('common.outstanding'), value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
@@ -512,10 +502,39 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
     };
 }
 
+/**
+ * Check if a user has any expense reports assigned to them for approval
+ */
+function hasPendingApprovalTasks(reports: OnyxCollection<OnyxTypes.Report>, currentUserAccountID?: number): boolean {
+    if (!reports || !currentUserAccountID) {
+        return false;
+    }
+
+    const hasPending = Object.values(reports).some((report) => {
+        if (!report) {
+            return false;
+        }
+
+        const isExpenseReport = report.type === CONST.REPORT.TYPE.EXPENSE;
+        const isSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
+        const isAssignedToUser = report.managerID === currentUserAccountID;
+
+        if (isExpenseReport && isSubmitted && isAssignedToUser) {
+            return true;
+        }
+
+        return false;
+    });
+
+    return hasPending;
+}
+
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    reports?: OnyxCollection<OnyxTypes.Report>,
+    currentUserAccountID?: number,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean> {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
@@ -548,7 +567,10 @@ function getSuggestedSearchesVisibility(
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo);
+
+        const hasPendingApprovals = hasPendingApprovalTasks(reports, currentUserAccountID);
+        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo || hasPendingApprovals);
+
         const isEligibleForExportSuggestion = isExporter;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
@@ -1242,8 +1264,9 @@ function getTaskSections(
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
     // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
-    if (!iouReportAction) {
-        openReport(item.report.reportID);
+    const iouReportID = item.report?.reportID ?? item.reportID;
+    if (!iouReportAction && iouReportID && iouReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+        openReport(iouReportID);
     }
     const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
     if (transactionThreadReport?.reportID) {
@@ -1700,15 +1723,13 @@ function getSortedReportData(data: TransactionReportGroupListItemType[], localeC
     for (const report of data) {
         report.transactions = getSortedTransactionData(report.transactions, localeCompare, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
-    return data.sort((a, b) => {
-        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
-        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated ? b.transactions?.at(0)?.modifiedCreated : b.transactions?.at(0)?.created;
 
-        if (!aNewestTransaction || !bNewestTransaction) {
+    return data.sort((a, b) => {
+        if (!a.created || !b.created) {
             return 0;
         }
 
-        return localeCompare(bNewestTransaction.toLowerCase(), aNewestTransaction.toLowerCase());
+        return localeCompare(b.created.toLowerCase(), a.created.toLowerCase());
     });
 }
 
@@ -1832,11 +1853,12 @@ function createTypeMenuSections(
     activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
+    reports?: OnyxCollection<OnyxTypes.Report>,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies);
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, reports, currentUserAccountID);
 
     // Todo section
     {
@@ -2054,8 +2076,6 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
 
 function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.CHAT:
-            return getChatStatusOptions();
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getInvoiceStatusOptions();
         case CONST.SEARCH.DATA_TYPES.TRIP:
@@ -2076,6 +2096,11 @@ function getHasOptions(type: SearchDataTypes) {
                 {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
                 {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+            ];
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return [
+                {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
             ];
         default:
             return [];
@@ -2121,13 +2146,13 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
-    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH] as SearchDatePreset[];
+    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.NEVER] as SearchDatePreset[];
 
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return [...defaultPresets, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
-            return [...defaultPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
+            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
         default:
             return defaultPresets;
     }
