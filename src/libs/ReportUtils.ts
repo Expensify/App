@@ -4324,8 +4324,10 @@ function canEditFieldOfMoneyRequest(
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
+        // Unreported transaction from OldDot can have the reportID as an empty string
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         // The distance rate can be modified only on the distance expense reports
-        return isExpenseReport(moneyRequestReport) && isDistanceRequest(transaction);
+        return (isUnreportedExpense || isExpenseReport(moneyRequestReport)) && isDistanceRequest(transaction);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
