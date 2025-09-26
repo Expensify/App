@@ -1,7 +1,7 @@
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
+import navigationRef, {getRootState} from '@libs/Navigation/navigationRef';
 import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -19,7 +19,7 @@ type Params = {
 
 // Gets the latest workspace navigation state, restoring from session or preserved state if needed.
 const getWorkspaceNavigationRouteState = () => {
-    const rootState = navigationRef.isReady() ? navigationRef.getRootState() : null;
+    const rootState = getRootState();
 
     // Only consider main (fullscreen) routes for top-level navigation context.
     const topmostFullScreenRoute = rootState?.routes?.findLast((route) => isFullScreenName(route.name));

@@ -3,7 +3,7 @@ import {StackActions, StackRouter} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
-import navigationRef from '@libs/Navigation/navigationRef';
+import {getRootState} from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -34,7 +34,7 @@ type AdaptStateIfNecessaryArgs = {
  */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
-    const rootState = navigationRef.isReady() ? navigationRef.getRootState() : null;
+    const rootState = getRootState();
 
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
 
