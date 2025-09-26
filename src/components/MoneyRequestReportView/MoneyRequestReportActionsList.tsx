@@ -706,7 +706,7 @@ function MoneyRequestReportActionsList({
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
                 {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields
                             report={report}
                             policy={policy}
