@@ -17,9 +17,9 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
 ## How to implement pagination
 1. Clearly define a sorting order of the data in question. No two items in the list may be considered equal in the sorting order.
 2. Define a "cursor" - a unique piece of data that encapsulates all the data you need to pinpoint the location of a single item in the list.
-    - Each item in the list _MUST_ be unique. Typically this means your cursor should include an ID.
-    - The cursor _MUST_ be serializable so it can be sent in a network request.
-    - The cursor _SHOULD_ include only the minimal fields required to define the location of an item in the list.
+    - Each item in the list MUST be unique. Typically this means your cursor should include an ID.
+    - The cursor MUST be serializable so it can be sent in a network request.
+    - The cursor SHOULD include only the minimal fields required to define the location of an item in the list.
     - _Example:_ For `reportActions`, we use the `created` timestamp, since `reportActions` are generally sorted by order of creation. A better cursor would have been a composite of:
 
         ```ts
