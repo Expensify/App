@@ -1,0 +1,10 @@
+name: 'Check SVG compression'
+description: 'Check if all changed SVG files are properly compressed'
+inputs:
+  GITHUB_TOKEN:
+    description: 'Auth token for GitHub operations'
+    required: true
+    default: ${{ github.token }}
+runs:
+  using: 'node20'
+  main: './index.js'
