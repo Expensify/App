@@ -1,6 +1,7 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -376,10 +377,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldShowRedDotIndicator: true,
                 description: connectionMessage,
                 rightComponent: isSyncInProgress ? (
-                    <ActivityIndicator
-                        style={[styles.popoverMenuIcon]}
-                        color={theme.spinner}
-                    />
+                    <ActivityIndicator style={[styles.popoverMenuIcon]} />
                 ) : (
                     <ThreeDotsMenu
                         shouldSelfPosition
@@ -410,7 +408,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         shouldShowCardReconciliationOption,
         shouldShowSynchronizationError,
         synchronizationError,
-        theme.spinner,
         overflowMenu,
         integrationSpecificMenuItems,
         accountingIntegrations,

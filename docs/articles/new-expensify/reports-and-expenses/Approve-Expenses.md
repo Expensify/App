@@ -42,6 +42,25 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 ---
 
+# Change Approver
+
+**To add an approver:**
+
+1. From the Report, open the **More** dropdown at the top of the expense.
+2. Select **Change approver**.
+3. Select **Add approver**.
+4. Select the approver and save.
+5. The approver you selected is now the current approver, and the prescribed workflow will continue after their approval. 
+
+**To bypass approvers:**
+
+1. From the Report, open the **More** dropdown at the top of the expense.
+2. Select **Change approver**.
+3. Select **Bypass approvers**.
+4. You are now the final approver, and the prescribed workflow has been bypassed.
+
+---
+
 # Hold an Expense
 
 **To place an expense on hold:**
@@ -86,4 +105,7 @@ Expensify Card expenses show as pending until the merchant posts them. This can 
 
 ## What are expense reports?
 Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Reports > Expenses**.
+
+## Why can’t I see “Bypass approvers”?
+Only workspace admins can bypass the prescribed approval workflow. If “Prevent Self-Approval” is enabled, an admin cannot bypass approvals to approve their own report. 
 

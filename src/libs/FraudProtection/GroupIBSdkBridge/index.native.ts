@@ -78,9 +78,10 @@ function setAuthenticationData(identity: string, sessionID: string): void {
     });
 }
 
-function setAttribute(key: string, value: string): void {
+function setAttribute(key: string, value: string, shouldHash?: boolean): void {
     fpInstancePromise.then((fp) => {
-        fp.setAttributeTitle(key, value, FPAttributeFormat.ClearText);
+        const format = shouldHash ? FPAttributeFormat.Hashed : FPAttributeFormat.ClearText;
+        fp.setAttributeTitle(key, value, format);
     });
 }
 

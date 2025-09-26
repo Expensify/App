@@ -125,6 +125,7 @@ function BaseValidateCodeForm({
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
+    const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useImperativeHandle(innerRef, () => ({
@@ -309,7 +310,7 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
-                errors={canShowError ? finalValidateError : undefined}
+                errors={canShowError ? (finalValidateError ?? defaultValidateCodeError) : defaultValidateCodeError}
                 errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => {
                     clearError();

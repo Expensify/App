@@ -51,6 +51,11 @@ type HybridApp = {
      * assumes that we use the new partner name.
      */
     shouldUseNewPartnerName?: boolean;
+
+    /**
+     * Indicates if user is singing in with SAML
+     */
+    signingInWithSAML?: boolean;
 };
 
 export default HybridApp;
