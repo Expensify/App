@@ -6209,7 +6209,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão acima.',
+            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório\n usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',

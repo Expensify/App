@@ -6220,7 +6220,7 @@ const translations = {
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
-            emptyStateSubtitle: 'Vous pouvez ajouter des dépenses à ce rapport en utilisant le bouton ci-dessus.',
+            emptyStateSubtitle: "Vous pouvez ajouter des dépenses à ce rapport\n en utilisant le bouton ci-dessous ou l'option « Ajouter une dépense » dans le menu Plus ci-dessus.",
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
