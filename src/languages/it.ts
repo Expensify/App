@@ -3631,7 +3631,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Imposta le tariffe di diaria per controllare la spesa giornaliera dei dipendenti.',
+            subtitle: `<muted-text>Imposta le tariffe di diaria per controllare la spesa giornaliera dei dipendenti. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Scopri di più</a>.</muted-text>`,
             amount: 'Importo',
             deleteRates: () => ({
                 one: 'Elimina tariffa',
