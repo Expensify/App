@@ -11,6 +11,7 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     addSplitExpenseField,
+    approveMoneyRequest,
     calculateDiffAmount,
     canApproveIOU,
     canCancelPayment,
@@ -8612,6 +8613,197 @@ describe('actions/IOU', () => {
                     }),
                 ]),
             );
+        });
+    });
+
+    describe('approveMoneyRequest with take control', () => {
+        const adminAccountID = 1;
+        const managerAccountID = 2;
+        const employeeAccountID = 3;
+        const adminEmail = 'admin@test.com';
+        const managerEmail = 'manager@test.com';
+        const employeeEmail = 'employee@test.com';
+
+        let expenseReport: Report;
+        let policy: Policy;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+
+            // Set up personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [managerAccountID]: {
+                    accountID: managerAccountID,
+                    login: managerEmail,
+                    displayName: 'Manager User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Set up session as admin (who will approve)
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            // Create policy with approval hierarchy
+            policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: 'user',
+                        submitsTo: managerEmail,
+                    },
+                    [managerEmail]: {
+                        email: managerEmail,
+                        role: 'user',
+                        submitsTo: adminEmail,
+                        forwardsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: 'admin',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: managerAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should set report to approved when admin takes control and approves', async () => {
+            // Admin takes control
+            const takeControlAction = {
+                reportActionID: 'takeControl1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                actorAccountID: adminAccountID,
+                created: '2023-01-01T10:00:00.000Z',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+            });
+
+            // Admin approves the report
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be approved since admin took control and is the last approver
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('should invalidate take control when report is resubmitted after take control', async () => {
+            // Admin takes control first
+            const takeControlAction = {
+                reportActionID: 'takeControl3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                actorAccountID: adminAccountID,
+                created: '2023-01-01T10:00:00.000Z',
+            };
+
+            // Employee resubmits after take control (invalidates it)
+            const submittedAction = {
+                reportActionID: 'submitted1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: employeeAccountID,
+                created: '2023-01-01T11:00:00.000Z', // After take control
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+                [submittedAction.reportActionID]: submittedAction,
+            });
+
+            // Set session as manager (normal approver)
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: managerEmail,
+                accountID: managerAccountID,
+            });
+
+            // Manager approves the report
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be submitted to admin (normal flow) since take control was invalidated
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+
+        it('should handle take control with SUBMITTED_AND_CLOSED action invalidation', async () => {
+            // Admin takes control
+            const takeControlAction = {
+                reportActionID: 'takeControl7',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                actorAccountID: adminAccountID,
+                created: '2023-01-01T10:00:00.000Z',
+            };
+
+            // Employee submits and closes after take control (invalidates it)
+            const submittedAndClosedAction = {
+                reportActionID: 'submittedClosed1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                actorAccountID: employeeAccountID,
+                created: '2023-01-01T11:00:00.000Z', // After take control
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+                [submittedAndClosedAction.reportActionID]: submittedAndClosedAction,
+            });
+
+            // Set session as manager (normal approver)
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: managerEmail,
+                accountID: managerAccountID,
+            });
+
+            // Manager approves the report
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be submitted to admin (normal flow) since take control was invalidated
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
     });
 });
