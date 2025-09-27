@@ -298,6 +298,15 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
+      - name: Setup Python for node-gyp
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Ensure setuptools for node-gyp
+        run: python -m pip install --upgrade pip setuptools
+
       - name: Load Desktop credentials from 1Password
         id: load-credentials
         # v2
@@ -321,6 +330,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
           S3_BUCKET: ${{ github.ref == 'refs/heads/production' && vars.PRODUCTION_S3_BUCKET || vars.STAGING_S3_BUCKET }}
+          PYTHON: ${{ steps.setup-python.outputs.python-path }}
 
       - name: Upload desktop sourcemaps artifact
         # v4
