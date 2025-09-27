@@ -1,11 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -15,8 +15,8 @@ import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getShareDestinationOptions} from '@libs/OptionsListUtils';
+import type {SearchOption, SearchOptionData} from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isArchivedReport, isCanceledTaskReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
@@ -38,12 +38,11 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<SearchOption<Report>>, archivedReportsIDList: ArchivedReportsIDSet) =>
-    (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
-        const report = option.item;
+const reportFilter = (reportOptions: Array<SearchOptionData>, archivedReportsIDList: ArchivedReportsIDSet) =>
+    (reportOptions ?? []).reduce((filtered: Array<SearchOptionData>, report) => {
         const isReportArchived = archivedReportsIDList.has(report?.reportID);
         if (canUserPerformWriteAction(report, isReportArchived) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
-            filtered.push(option);
+            filtered.push(report);
         }
         return filtered;
     }, []);
@@ -64,16 +63,21 @@ function TaskShareDestinationSelectorModal() {
         onSingleSelect: selectReportHandler,
     });
 
+    console.log(availableOptions, 'availableOptions');
+
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: (all): ArchivedReportsIDSet => {
+            console.log(all, 'all');
             const ids = new Set<string>();
             if (!all) {
+                console.log(1);
                 return ids;
             }
 
             const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
             for (const [key, value] of Object.entries(all)) {
+                console.log({value, key});
                 if (isArchivedReport(value)) {
                     const reportID = key.slice(prefixLength);
                     ids.add(reportID);
@@ -83,13 +87,27 @@ function TaskShareDestinationSelectorModal() {
         },
     });
 
+    console.log(archivedReportsIdSet, 'archivedReportsIdSet');
+
     const filteredOptions = useMemo(() => {
-        const filteredReports = reportFilter(availableOptions.recentReports as Array<SearchOption<Report>>, archivedReportsIdSet);
+        const filteredReports = availableOptions.recentReports.filter((option) => {
+            // Check if this is a report option with a reportID
+            if (!option.reportID) {
+                return true; // Keep non-report options (like personal details)
+            }
+
+            // For reports, check if user can create tasks
+            const isReportArchived = archivedReportsIdSet.has(option.reportID);
+            const reportData = {reportID: option.reportID} as Report; // We need at least reportID for the checks
+
+            return canUserPerformWriteAction(reportData, isReportArchived) && canCreateTaskInReport(reportData) && !isCanceledTaskReport(reportData);
+        });
+
         return {
             ...availableOptions,
-            recentReports: filteredReports ?? [],
+            recentReports: filteredReports,
         };
-    }, [availableOptions.recentReports, archivedReportsIdSet]);
+    }, [availableOptions, archivedReportsIdSet]);
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
@@ -122,34 +140,6 @@ function TaskShareDestinationSelectorModal() {
         searchInServer(searchTerm);
     }, [searchTerm]);
 
-    // const shouldShowEmptyState = areOptionsInitialized && searchTerm.trim() === '' && sections.length === 0 && didScreenTransitionEnd;
-
-    // if (shouldShowEmptyState) {
-    //     return (
-    //         <ScreenWrapper
-    //             includeSafeAreaPaddingBottom={false}
-    //             testID="TaskShareDestinationSelectorModal"
-    //             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
-    //         >
-    //             <HeaderWithBackButton
-    //                 title={translate('common.share')}
-    //                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK.getRoute())}
-    //             />
-    //             <EmptyStateComponent
-    //                 cardStyles={[styles.appBG]}
-    //                 cardContentStyles={[styles.pt5, styles.pb0]}
-    //                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-    //                 headerMedia={LottieAnimations.GenericEmptyState}
-    //                 title={'No share members'}
-    //                 subtitle={'It appears that you do not have a user with whom you can share this task.'}
-    //                 headerStyles={[styles.emptyStateMoneyRequestReport]}
-    //                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-    //                 headerContentStyles={styles.emptyStateFolderWebStyles}
-    //             />
-    //         </ScreenWrapper>
-    //     );
-    // }
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -171,7 +161,7 @@ function TaskShareDestinationSelectorModal() {
                         textInputValue={searchTerm}
                         headerMessage={headerMessage}
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={!didScreenTransitionEnd}
+                        showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? sections.length === 0 : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
                         onEndReached={onListEndReached}

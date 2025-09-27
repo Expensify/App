@@ -132,10 +132,28 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    /* Testing getShareDestinationOptions */
+    /* Testing getValidOptions for share destination */
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
+        await measureFunction(() =>
+            getValidOptions(
+                {reports: options.reports, personalDetails: options.personalDetails},
+                {
+                    betas: mockedBetas,
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            ),
+        );
     });
 
     /* Testing getMemberInviteOptions */
