@@ -1408,7 +1408,7 @@ const translations = {
             reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
-            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
+            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones los problemas y lo marques como resuelto para poder enviarlo.',
             reportActions: {
                 rejectedExpense: 'rechazó este gasto',
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
@@ -7143,7 +7143,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `No se puede adjuntar recibo debido a un problema con la conexión a tu banco que ${email} necesita arreglar`
-                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco que necesitas arreglar';
+                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin

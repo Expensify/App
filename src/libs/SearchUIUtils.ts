@@ -19,10 +19,10 @@ import type {
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
-import ChatListItem from '@components/SelectionList/ChatListItem';
-import TaskListItem from '@components/SelectionList/Search/TaskListItem';
-import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
+import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
+import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
     ListItem,
     ReportActionListItemType,
@@ -34,7 +34,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
-} from '@components/SelectionList/types';
+} from '@components/SelectionListWithSections/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
