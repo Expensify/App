@@ -34,7 +34,6 @@ import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByI
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {isOnHoldByTransactionID} from './TransactionUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
 type LastVisibleMessage = {
@@ -1998,14 +1997,6 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
     return translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
 }
 
-/**
- * Check if the linked transaction is on hold
- */
-function isLinkedTransactionHeld(reportActionID: string | undefined, reportID: string | undefined): boolean {
-    const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
-    return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
-}
-
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? (getOriginalMessage(reportAction)?.mentionedAccountIDs ?? []) : [];
 }
@@ -3158,7 +3149,6 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isLinkedTransactionHeld,
     isMemberChangeAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
