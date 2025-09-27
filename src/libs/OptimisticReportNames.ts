@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -11,7 +11,7 @@ import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
-import {getTitleReportField, isArchivedReport} from './ReportUtils';
+import {getTitleReportField, isArchivedReport, isValidReport} from './ReportUtils';
 
 /**
  * Get the object type from an Onyx key
@@ -195,8 +195,8 @@ function getReportFromUpdates(reportID: string, updates: OnyxUpdate[]): Report |
             return false;
         }
 
-        const reportUpdate = update.value as Partial<Report> | undefined;
-        if (!reportUpdate || !isValidReportType(reportUpdate.type)) {
+        const reportUpdate = update.value as OnyxEntry<Report> | undefined;
+        if (!reportUpdate || isValidReport(reportUpdate) || !isValidReportType(reportUpdate.type)) {
             return false;
         }
 
