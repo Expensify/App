@@ -1,10 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
@@ -178,6 +179,8 @@ function IOURequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
+    const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
+
     const {isBetaEnabled} = usePermissions();
     const manualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
@@ -193,6 +196,18 @@ function IOURequestStartPage({
             },
         },
     );
+
+    const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        // We runAfterInteractions since the function is called in the animate block on web-based
+        // implementation, this fixes an animation glitch and matches the native internal delay
+        InteractionManager.runAfterInteractions(() => {
+            // 3 - PerDiem
+            if (index !== 3) {
+                return;
+            }
+            perDiemInputRef.current?.focus?.();
+        });
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -239,6 +254,7 @@ function IOURequestStartPage({
                                 lazyLoadEnabled
                                 // We're disabling swipe on mWeb fo the Per Diem tab because the keyboard will hang on the other tab after switching
                                 disableSwipe={(isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN) || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && isMobile())}
+                                onTabSelect={onTabSelectFocusHandler}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -293,6 +309,7 @@ function IOURequestStartPage({
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : perDiemCustomUnits.at(0)?.policyID}
                                                         route={route}
                                                         navigation={navigation}
+                                                        ref={perDiemInputRef}
                                                     />
                                                 )}
                                             </TabScreenWithFocusTrapWrapper>
