@@ -11,7 +11,7 @@ import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
-import {getTitleReportField, isArchivedReport, isValidReport, isArchivedReport} from './ReportUtils';
+import {isArchivedReport, isValidReport} from './ReportUtils';
 
 /**
  * Get the title field from report name value pairs
