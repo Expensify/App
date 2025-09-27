@@ -1,3 +1,5 @@
+import {format as dateFnsFormat} from 'date-fns';
+import {formatInTimeZone} from 'date-fns-tz';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -352,7 +354,26 @@ function getSubstring(value: string, args: string[]): string {
 }
 
 /**
- * Format a date value with support for multiple date formats
+ * Get ordinal suffix for a day (st, nd, rd, th)
+ */
+function getOrdinalSuffix(day: number): string {
+    if (day >= 11 && day <= 13) {
+        return 'th';
+    }
+    switch (day % 10) {
+        case 1:
+            return 'st';
+        case 2:
+            return 'nd';
+        case 3:
+            return 'rd';
+        default:
+            return 'th';
+    }
+}
+
+/**
+ * Format a date value with comprehensive token-based date format support
  */
 function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): string {
     if (!dateString) {
@@ -368,32 +389,119 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
         const day = date.getDate();
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        // Use date-fns for localized month and day names (automatically uses locale from IntlStore)
+        const fullMonthName = dateFnsFormat(date, 'MMMM');
+        const shortMonthName = dateFnsFormat(date, 'MMM');
+        const fullDayName = dateFnsFormat(date, 'EEEE');
+        const shortDayName = dateFnsFormat(date, 'EEE');
 
-        switch (format) {
-            case 'M/dd/yyyy':
-                return `${month}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'MMMM dd, yyyy':
-                return `${monthNames.at(month - 1)} ${day.toString().padStart(2, '0')}, ${year}`;
-            case 'dd MMM yyyy':
-                return `${day.toString().padStart(2, '0')} ${shortMonthNames.at(month - 1)} ${year}`;
-            case 'yyyy/MM/dd':
-                return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'MMMM, yyyy':
-                return `${monthNames.at(month - 1)}, ${year}`;
-            case 'yy/MM/dd':
-                return `${year.toString().slice(-2)}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'dd/MM/yy':
-                return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
-            case 'yyyy':
-                return year.toString();
-            case 'MM/dd/yyyy':
-                return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'yyyy-MM-dd':
-            default:
-                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        // Calculate additional date values
+        const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+        const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Monday, 7 = Sunday
+        const dayOfYear = Math.floor((date.getTime() - new Date(year, 0, 1).getTime()) / (1000 * 60 * 60 * 24));
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        // Calculate ISO week number
+        const januaryFirst = new Date(year, 0, 1);
+        const daysSinceJanuary = Math.floor((date.getTime() - januaryFirst.getTime()) / (1000 * 60 * 60 * 24));
+        const januaryFirstDayOfWeek = januaryFirst.getDay();
+        const daysToMonday = januaryFirstDayOfWeek === 0 ? -6 : 1 - januaryFirstDayOfWeek;
+        const weekNumber = Math.ceil((daysSinceJanuary - daysToMonday + 1) / 7);
+
+        // Use a two-phase placeholder system to prevent token conflicts
+        let result = format;
+
+        // Get time values for time formatting using local timezone
+        const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const hours = parseInt(formatInTimeZone(date, localTimezone, 'H'), 10);
+        const minutes = parseInt(formatInTimeZone(date, localTimezone, 'm'), 10);
+        const seconds = parseInt(formatInTimeZone(date, localTimezone, 's'), 10);
+        let hours12 = hours;
+        if (hours === 0) {
+            hours12 = 12;
+        } else if (hours > 12) {
+            hours12 = hours - 12;
         }
+        const meridiem = hours >= 12 ? 'pm' : 'am';
+        const meridiemUpperCase = hours >= 12 ? 'PM' : 'AM';
+
+        // Phase 1: Replace tokens with unique placeholders
+        const tokens = [
+            // Special combinations first
+            {token: 'jS', value: `${day}${getOrdinalSuffix(day)}`},
+
+            // Year formats (longest to shortest)
+            {token: 'yyyy', value: year.toString()},
+            {token: 'YYYY', value: year.toString()},
+            {token: 'yy', value: year.toString().slice(-2)},
+            {token: 'Y', value: year.toString()},
+            {token: 'y', value: year.toString().slice(-2)},
+
+            // Month formats (longest to shortest)
+            {token: 'MMMM', value: fullMonthName},
+            {token: 'MMM', value: shortMonthName},
+            {token: 'MM', value: month.toString().padStart(2, '0')},
+            {token: 'M', value: month.toString()},
+            {token: 'F', value: fullMonthName},
+            {token: 'n', value: month.toString()},
+
+            // Day formats (longest to shortest)
+            {token: 'dddd', value: fullDayName},
+            {token: 'ddd', value: shortDayName},
+            {token: 'dd', value: day.toString().padStart(2, '0')},
+            {token: 'd', value: day.toString().padStart(2, '0')},
+            {token: 'j', value: day.toString()},
+            {token: 'l', value: fullDayName},
+            {token: 'D', value: shortDayName},
+            {token: 'w', value: dayOfWeek.toString()},
+            {token: 'N', value: isoDayOfWeek.toString()},
+            {token: 'z', value: dayOfYear.toString()},
+            {token: 'W', value: weekNumber.toString().padStart(2, '0')},
+            {token: 'S', value: getOrdinalSuffix(day)},
+
+            // Time formats (longest to shortest)
+            {token: 'tt', value: meridiemUpperCase},
+            {token: 'hh', value: hours12.toString().padStart(2, '0')},
+            {token: 'HH', value: hours.toString().padStart(2, '0')},
+            {token: 'mm', value: minutes.toString().padStart(2, '0')},
+            {token: 'ss', value: seconds.toString().padStart(2, '0')},
+            {token: 'H', value: hours.toString()},
+            {token: 'h', value: hours12.toString()},
+            {token: 'G', value: hours.toString()},
+            {token: 'g', value: hours12.toString()},
+            {token: 'i', value: minutes.toString().padStart(2, '0')},
+            {token: 't', value: daysInMonth.toString()},
+            {token: 's', value: seconds.toString().padStart(2, '0')},
+            {token: 'A', value: meridiemUpperCase},
+            {token: 'a', value: meridiem},
+        ];
+
+        // Sort tokens by length (longest first)
+        tokens.sort((a, b) => b.token.length - a.token.length);
+
+        // Phase 1: Replace tokens with unique placeholders (using only digits and special chars)
+        const placeholderMap: Record<string, string> = {};
+        for (let i = 0; i < tokens.length; i++) {
+            const tokenData = tokens.at(i);
+            if (!tokenData) {
+                continue;
+            }
+            const {token, value} = tokenData;
+            const placeholder = `###${i.toString().padStart(3, '0')}###`;
+            const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+
+            if (result.includes(token)) {
+                result = result.replace(regex, placeholder);
+                placeholderMap[placeholder] = value;
+            }
+        }
+
+        // Phase 2: Replace placeholders with actual values
+        for (const [placeholder, value] of Object.entries(placeholderMap)) {
+            result = result.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
+        }
+
+        return result;
     } catch {
         return '';
     }
