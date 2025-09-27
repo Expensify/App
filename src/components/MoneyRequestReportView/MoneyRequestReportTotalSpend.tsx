@@ -43,7 +43,7 @@ function MoneyRequestReportTotalSpend({hasComments, isLoadingReportActions, isEm
                 exiting={isFocused ? FadeOut : undefined}
             >
                 {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
-            </Animated.Text>{' '}
+            </Animated.Text>
             {!isEmptyTransactions && (
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
