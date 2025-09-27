@@ -48,6 +48,7 @@ import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+import SigningOutPage from '@pages/SigningOutPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -294,7 +295,7 @@ function AuthScreens() {
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
-            Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
+            Session.signOutAndRedirectToSignIn(false, isSupportalTransition, false, false, true);
             return;
         }
 
@@ -772,6 +773,13 @@ function AuthScreens() {
                     name={SCREENS.BANK_CONNECTION_COMPLETE}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.SIGNING_OUT}
+                    component={SigningOutPage}
+                    options={{
+                        animation: Animations.NONE,
+                    }}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
