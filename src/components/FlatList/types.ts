@@ -1,17 +1,18 @@
 import type {ForwardedRef} from 'react';
 import type {FlatList, FlatListProps} from 'react-native';
 
-type AdditionalFlatListProps = {
+type CustomFlatListProps<T> = FlatListProps<T> & {
     /**
      * Whether to use the animated keyboard handler capabilities on native (iOS and Android)
      * Allows for interactive keyboard dimissal when the user drags the keyboard down
      */
     enableAnimatedKeyboardDismissal?: boolean;
+
+    /**
+     * Ref to the FlatList component
+     */
+    ref?: ForwardedRef<FlatList>;
 };
 
-type CustomFlatListProps<T> = FlatListProps<T> &
-    AdditionalFlatListProps & {
-        ref?: ForwardedRef<FlatList>;
-    };
-
-export type {AdditionalFlatListProps, CustomFlatListProps};
+// eslint-disable-next-line import/prefer-default-export
+export type {CustomFlatListProps};

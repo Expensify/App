@@ -7,7 +7,7 @@ import type {CustomFlatListProps} from './types';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
+function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, ...props}: CustomFlatListProps<T>) {
     const lastScrollOffsetRef = useRef(0);
 
     const onScreenFocus = useCallback(() => {
@@ -33,7 +33,7 @@ function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
         }, [onScreenFocus]),
     );
 
-    if (props.enableAnimatedKeyboardDismissal) {
+    if (enableAnimatedKeyboardDismissal) {
         return (
             <KeyboardDismissibleFlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
