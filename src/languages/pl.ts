@@ -658,8 +658,6 @@ const translations = {
         reschedule: 'Przełożyć na inny termin',
         general: 'Ogólne',
         workspacesTabTitle: 'Przestrzenie robocze',
-        getTheApp: 'Pobierz aplikację',
-        scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
         submitTo: 'Wyślij do',
         forwardTo: 'Przekaż do',

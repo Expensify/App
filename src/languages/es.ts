@@ -640,8 +640,6 @@ const translations = {
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
-        getTheApp: 'Descarga la app',
-        scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
@@ -1020,12 +1018,12 @@ const translations = {
     },
     receipt: {
         alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Forward receipts to <a href="mailto:${email}">${email}</a></muted-text-label>`,
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download the app</a> to scan from your phone</muted-text-label>`,
+            `<muted-text-label>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</muted-text-label>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Reenvía recibos a <a href="mailto:${email}">${email}</a></muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Descarga la aplicación</a> para escanear desde tu teléfono</muted-text-label>`,
         alternativeMethodsTitle: 'Other ways to add receipts:',
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
+            `<muted-text-label><a href="${contactMethodsUrl}">Añade tu número</a> para enviar recibos por SMS a ${phoneNumber}</muted-text-label>`,
         desktopSubtitleMultiple: 'or drag and drop them here',
         desktopSubtitleSingle: 'or drag and drop them here',
         upload: 'Subir recibo',

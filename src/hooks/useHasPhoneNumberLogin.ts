@@ -13,9 +13,9 @@ const useHasPhoneNumberLogin = () => {
 
     const hasPhoneNumberLogin = isPrimaryEmailPhone || smsLoginExists;
 
-    const isLoaded = loginListResult.status !== 'loading' && sessionResult.status !== 'loading';
+    const isPhoneNumberLoaded = loginListResult.status !== 'loading' && sessionResult.status !== 'loading';
 
-    return {hasPhoneNumberLogin, isLoaded};
+    return {hasPhoneNumberLogin, isPhoneNumberLoaded};
 };
 
 export default useHasPhoneNumberLogin;

@@ -658,8 +658,6 @@ const translations = {
         reschedule: '再スケジュールする',
         general: '一般',
         workspacesTabTitle: 'ワークスペース',
-        getTheApp: 'アプリを入手',
-        scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',
         headsUp: 'ご注意ください！',
         submitTo: '送信先',
         forwardTo: '転送先',

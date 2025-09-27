@@ -20,7 +20,7 @@ describe('useHasPhoneNumberLogin', () => {
 
         const {result} = renderHook(() => useHasPhoneNumberLogin());
 
-        await waitFor(() => expect(result.current.isLoaded).toBe(true));
+        await waitFor(() => expect(result.current.isPhoneNumberLoaded).toBe(true));
         expect(result.current.hasPhoneNumberLogin).toBe(false);
     });
 
@@ -31,7 +31,7 @@ describe('useHasPhoneNumberLogin', () => {
 
         const {result} = renderHook(() => useHasPhoneNumberLogin());
 
-        await waitFor(() => expect(result.current.isLoaded).toBe(true));
+        await waitFor(() => expect(result.current.isPhoneNumberLoaded).toBe(true));
         expect(result.current.hasPhoneNumberLogin).toBe(true);
     });
 
@@ -43,7 +43,7 @@ describe('useHasPhoneNumberLogin', () => {
 
         const {result} = renderHook(() => useHasPhoneNumberLogin());
 
-        await waitFor(() => expect(result.current.isLoaded).toBe(true));
+        await waitFor(() => expect(result.current.isPhoneNumberLoaded).toBe(true));
         expect(result.current.hasPhoneNumberLogin).toBe(true);
     });
 });

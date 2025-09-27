@@ -25,7 +25,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     const {hasLoggedIntoMobileApp, isLastMobileAppLoginLoaded} = useHasLoggedIntoMobileApp();
-    const {hasPhoneNumberLogin, isLoaded: isPhoneNumberLoaded} = useHasPhoneNumberLogin();
+    const {hasPhoneNumberLogin, isPhoneNumberLoaded} = useHasPhoneNumberLogin();
 
     const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}`;
     const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_CONTACT_METHODS.route)}`;
