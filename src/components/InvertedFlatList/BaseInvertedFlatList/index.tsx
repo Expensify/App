@@ -1,10 +1,10 @@
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {CellRendererProps, FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
+import type {ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
+import type {BaseInvertedFlatListProps} from './types';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
@@ -18,15 +18,6 @@ function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: n
     }
     return String(index);
 }
-
-type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex' | 'CellRendererComponent'> & {
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-    data: T[];
-    renderItem: ListRenderItem<T>;
-    initialScrollKey?: string | null;
-    CellRendererComponent?: React.ComponentType<CellRendererProps<T>> | null;
-    ref?: ForwardedRef<RNFlatList>;
-};
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
