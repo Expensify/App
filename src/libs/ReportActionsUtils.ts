@@ -2992,10 +2992,6 @@ function getRoomChangeLogMessage(reportAction: ReportAction) {
     return `${actionText} ${targetAccountIDs.length} ${userText}`;
 }
 
-function getReportActions(report: Report) {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-}
-
 /**
  * @private
  */
@@ -3250,7 +3246,6 @@ export {
     getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
-    getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
