@@ -412,6 +412,7 @@ function MoneyReportHeader({
                         shouldCalculateTotals: true,
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
+                        isOffline,
                     });
                 }
             }
@@ -427,6 +428,7 @@ function MoneyReportHeader({
             existingB2BInvoiceReport,
             currentSearchQueryJSON,
             currentSearchKey,
+            isOffline,
         ],
     );
 
@@ -708,6 +710,7 @@ function MoneyReportHeader({
                             shouldCalculateTotals: true,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
+                            isOffline,
                         });
                     }
                 }}
