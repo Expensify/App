@@ -4238,6 +4238,13 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(report?.policyID);
+
+    // Check if someone took control and should be the next approver
+    const bypassApprover = getBypassApproverIfTakeControl(report);
+    if (bypassApprover) {
+        return getAccountIDsByLogins([bypassApprover]).at(0);
+    }
+
     const approvalChain = getApprovalChain(policy, report);
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -11387,12 +11394,6 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         return approvalChain;
     }
 
-    // Check if someone took control and it's still valid
-    const bypassApprover = getBypassApproverIfTakeControl(expenseReport);
-    if (bypassApprover && bypassApprover !== submitterEmail) {
-        return [bypassApprover];
-    }
-
     // Get category/tag approver list
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
 
@@ -12196,6 +12197,7 @@ export {
     hasReportViolations,
     isPayAtEndExpenseReport,
     getApprovalChain,
+    getBypassApproverIfTakeControl,
     isIndividualInvoiceRoom,
     hasOutstandingChildRequest,
     isAuditor,
