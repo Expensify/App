@@ -1,5 +1,6 @@
 import {FP, FPAttributeFormat} from 'group-ib-fp';
-import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import {getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
 import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
