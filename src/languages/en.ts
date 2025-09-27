@@ -1026,12 +1026,8 @@ const translations = {
     receipt: {
         upload: 'Upload receipt',
         uploadMultiple: 'Upload receipts',
-        desktopSubtitleSingle: `or drag and drop them here`,
+        desktopSubtitleSingle: `or drag and drop it here`,
         desktopSubtitleMultiple: `or drag and drop them here`,
-        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
-        dragReceiptsBeforeEmail: 'Drag receipts onto this page, forward receipts to ',
-        dragReceiptAfterEmail: ' or choose a file to upload below.',
-        dragReceiptsAfterEmail: ' or choose files to upload below.',
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         chooseReceipts: 'Choose receipts to upload or forward receipts to ',
         alternativeMethodsTitle: 'Other ways to add receipts:',
