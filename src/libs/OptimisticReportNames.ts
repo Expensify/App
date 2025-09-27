@@ -204,7 +204,7 @@ function getReportFromUpdates(reportID: string, updates: OnyxUpdate[]): Report |
         }
 
         const reportUpdate = update.value as OnyxEntry<Report> | undefined;
-        if (!reportUpdate || isValidReport(reportUpdate) || !isValidReportType(reportUpdate.type)) {
+        if (!reportUpdate || !isValidReport(reportUpdate) || !isValidReportType(reportUpdate.type)) {
             return false;
         }
 
