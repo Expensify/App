@@ -1,6 +1,8 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {clearPolicyTagErrors, createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
@@ -13,6 +15,7 @@ import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
+
 describe('actions/Policy', () => {
     beforeAll(() => {
         Onyx.init({
@@ -36,7 +39,8 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    setPolicyRequiresTag(fakePolicy.id, true);
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+                    setPolicyRequiresTag(policyData.current, true);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -83,7 +87,8 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    setPolicyRequiresTag(fakePolicy.id, false);
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+                    setPolicyRequiresTag(policyData.current, false);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -131,7 +136,8 @@ describe('actions/Policy', () => {
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     mockFetch?.fail?.();
-                    setPolicyRequiresTag(fakePolicy.id, false);
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+                    setPolicyRequiresTag(policyData.current, false);
                     return waitForBatchedUpdates();
                 })
 
@@ -164,7 +170,8 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
-            setPolicyRequiresTag(fakePolicy.id, true);
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            setPolicyRequiresTag(policyData.current, true);
             await waitForBatchedUpdates();
 
             let updatePolicyTags: PolicyTagLists | undefined;
@@ -194,13 +201,14 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
                     renamePolicyTagList(
-                        fakePolicy.id,
+                        policyData.current,
                         {
                             oldName: oldTagListName,
                             newName: newTagListName,
                         },
-                        fakePolicyTags,
                         Object.values(fakePolicyTags).at(0)?.orderWeight ?? 0,
                     );
                     return waitForBatchedUpdates();
@@ -262,13 +270,14 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
                     renamePolicyTagList(
-                        fakePolicy.id,
+                        policyData.current,
                         {
                             oldName: oldTagListName,
                             newName: newTagListName,
                         },
-                        fakePolicyTags,
                         Object.values(fakePolicyTags).at(0)?.orderWeight ?? 0,
                     );
                     return waitForBatchedUpdates();
@@ -421,7 +430,8 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+                    setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -494,7 +504,8 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+                    setWorkspaceTagEnabled(policyData.current, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -540,8 +551,9 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
                     renamePolicyTag(
-                        fakePolicy.id,
+                        policyData.current,
                         {
                             oldName: oldTagName ?? '',
                             newName: newTagName,
@@ -610,8 +622,9 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
+                    const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
                     renamePolicyTag(
-                        fakePolicy.id,
+                        policyData.current,
                         {
                             oldName: oldTagName,
                             newName: newTagName,
@@ -657,13 +670,15 @@ describe('actions/Policy', () => {
 
             mockFetch?.pause?.();
 
-            const emptyPolicyTags = {};
             const tagsToDelete = ['tag1', 'tag2'];
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, existingPolicyTags);
+            await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             expect(() => {
-                deletePolicyTags(fakePolicy.id, tagsToDelete, emptyPolicyTags);
+                deletePolicyTags(policyData.current, tagsToDelete);
             }).not.toThrow();
 
             await mockFetch?.resume?.();
@@ -696,10 +711,14 @@ describe('actions/Policy', () => {
 
             mockFetch?.pause?.();
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, existingPolicyTags);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, existingPolicyTags);
 
+            await waitForBatchedUpdates();
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             expect(() => {
-                deletePolicyTags(fakePolicy.id, tagsToDelete, existingPolicyTags);
+                deletePolicyTags(policyData.current, tagsToDelete);
             }).not.toThrow();
 
             await mockFetch?.resume?.();
@@ -730,7 +749,9 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
-            deletePolicyTags(fakePolicy.id, tagsToDelete, fakePolicyTags);
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            deletePolicyTags(policyData.current, tagsToDelete);
+
             await waitForBatchedUpdates();
 
             // Verify optimistic data
@@ -770,9 +791,12 @@ describe('actions/Policy', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
             mockFetch?.fail?.();
-            deletePolicyTags(fakePolicy.id, tagsToDelete, fakePolicyTags);
+            deletePolicyTags(policyData.current, tagsToDelete);
             await waitForBatchedUpdates();
 
             await mockFetch?.resume?.();
@@ -797,15 +821,12 @@ describe('actions/Policy', () => {
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
-            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
 
-            await waitFor(() => {
-                expect(result.current[0]).toBeDefined();
-            });
-
-            deletePolicyTags(fakePolicy.id, tagsToDelete, result.current[0]);
+            deletePolicyTags(policyData.current, tagsToDelete);
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -924,10 +945,6 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
 
             const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`));
-
-            await waitFor(() => {
-                expect(result.current[0]).toBeDefined();
-            });
 
             clearPolicyTagErrors({policyID: fakePolicy.id, tagName, tagListIndex: 0, policyTags: result.current[0]});
             await waitForBatchedUpdates();
