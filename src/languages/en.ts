@@ -70,7 +70,6 @@ import type {
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
-    CustomUnitRateParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -167,6 +166,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -490,9 +490,8 @@ const translations = {
         decline: 'Decline',
         reject: 'Reject',
         transferBalance: 'Transfer balance',
-        cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',
-        message: 'Message ',
+        message: 'Message',
         leaveThread: 'Leave thread',
         you: 'You',
         me: 'me',
@@ -657,6 +656,9 @@ const translations = {
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
+        link: 'Link',
+        pinned: 'Pinned',
+        read: 'Read',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -843,8 +845,24 @@ const translations = {
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'comment';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'expense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'report';
+            }
+            return `Delete ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'comment';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'expense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'report';
+            }
+            return `Are you sure you want to delete this ${type}?`;
+        },
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
@@ -1393,7 +1411,7 @@ const translations = {
             reasonPageDescription: "Explain why you're rejecting this expense.",
             rejectReason: 'Rejection reason',
             markAsResolved: 'Mark as resolved',
-            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
+            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issues and mark as resolved to enable submission.',
             reportActions: {
                 rejectedExpense: 'rejected this expense',
                 markedAsResolved: 'marked the rejection reason as resolved',
@@ -1739,7 +1757,7 @@ const translations = {
             'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
         domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
         areYouSure: 'Are you sure you want to lock your Expensify account?',
-        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
+        onceLocked: 'Once locked, your account will be restricted pending an unlock request and a security review',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Failed to lock account',
@@ -3079,11 +3097,13 @@ const translations = {
         selectIncorporationCountry: 'Select incorporation country',
         selectIncorporationState: 'Select incorporation state',
         selectAverageReimbursement: 'Select average reimbursement amount',
+        selectBusinessType: 'Select business type',
         findIncorporationType: 'Find incorporation type',
         findBusinessCategory: 'Find business category',
         findAnnualPaymentVolume: 'Find annual payment volume',
         findIncorporationState: 'Find incorporation state',
         findAverageReimbursement: 'Find average reimbursement amount',
+        findBusinessType: 'Find business type',
         error: {
             registrationNumber: 'Please provide a valid registration number',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3173,21 +3193,6 @@ const translations = {
         codiceFiscaleDescription:
             'Please upload a video of a site visit or a recorded call with the signing officer. The officer must provide: full name, date of birth, company name, registered number, fiscal code number, registered address, nature of business and purpose of account.',
     },
-    validationStep: {
-        headerTitle: 'Validate bank account',
-        buttonText: 'Finish setup',
-        maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
-        description: `Within 1-2 business days, we'll send three (3) small transactions to your bank account from a name like "Expensify, Inc. Validation".`,
-        descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51.',
-        reviewingInfo: "Thanks! We're reviewing your information, and will be in touch shortly. Please check your chat with Concierge ",
-        forNextStep: ' for next steps to finish setting up your bank account.',
-        letsChatCTA: "Yes, let's chat",
-        letsChatText: 'Almost there! We need your help verifying a few last bits of information over chat. Ready?',
-        letsChatTitle: "Let's chat!",
-        enable2FATitle: 'Prevent fraud, enable two-factor authentication (2FA)',
-        enable2FAText: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
-        secureYourAccount: 'Secure your account',
-    },
     completeVerificationStep: {
         completeVerification: 'Complete verification',
         confirmAgreements: 'Please confirm the agreements below.',
@@ -3198,18 +3203,13 @@ const translations = {
         termsAndConditions: 'terms and conditions',
     },
     connectBankAccountStep: {
-        finishButtonText: 'Finish setup',
         validateYourBankAccount: 'Validate your bank account',
         validateButtonText: 'Validate',
         validationInputLabel: 'Transaction',
         maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
         description: `Within 1-2 business days, we'll send three (3) small transactions to your bank account from a name like "Expensify, Inc. Validation".`,
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51.',
-        reviewingInfo: "Thanks! We're reviewing your information and will be in touch shortly. Please check your chat with Concierge ",
-        forNextSteps: ' for next steps to finish setting up your bank account.',
-        letsChatCTA: "Yes, let's chat",
         letsChatText: 'Almost there! We need your help verifying a few last bits of information over chat. Ready?',
-        letsChatTitle: "Let's chat!",
         enable2FATitle: 'Prevent fraud, enable two-factor authentication (2FA)',
         enable2FAText: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
         secureYourAccount: 'Secure your account',
@@ -3578,7 +3578,8 @@ const translations = {
         receiptPartners: {
             connect: 'Connect now',
             uber: {
-                subtitle: 'Automate travel and meal delivery expenses across your organization.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.',
                 sendInvites: 'Send invites',
                 sendInvitesDescription: "These workspace members don't have an Uber for Business account yet. Unselect any members you do not wish to invite at this time.",
                 confirmInvite: 'Confirm invite',
@@ -3598,8 +3599,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspended',
                 },
                 invitationFailure: 'Failed to invite members to Uber for Business',
-                autoRemove: 'Invite new workspace members to Uber for Business',
-                autoInvite: 'Deactivate removed workspace members from Uber for Business',
+                autoInvite: 'Invite new workspace members to Uber for Business',
+                autoRemove: 'Deactivate removed workspace members from Uber for Business',
                 bannerTitle: 'Expensify + Uber for Business',
                 bannerDescription: 'Connect Uber for Business to automate travel and meal delivery expenses across your organization.',
                 emptyContent: {
@@ -3624,9 +3625,6 @@ const translations = {
             emptyList: {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
-            },
-            errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists`,
             },
             importPerDiemRates: 'Import per diem rates',
             editPerDiemRate: 'Edit per diem rate',
@@ -4861,7 +4859,7 @@ const translations = {
             approverDescription: 'Approver',
             importTags: 'Import tags',
             importTagsSupportingText: 'Code your expenses with one type of tag or many.',
-            configureMultiLevelTags: 'Configure your list of tags for multi-level tagging. ',
+            configureMultiLevelTags: 'Configure your list of tags for multi-level tagging.',
             importMultiLevelTagsSupportingText: `Here's a preview of your tags. If everything looks good, click below to import them.`,
             importMultiLevelTags: {
                 firstRowTitle: 'The first row is the title for each tag list',
@@ -4880,6 +4878,13 @@ const translations = {
                 prompt4: ' by exporting your tags.',
                 prompt5: ' Learn more',
                 prompt6: ' about tag levels.',
+            },
+            overrideMultiTagWarning: {
+                title: 'Import tags',
+                prompt1: 'Are you sure?',
+                prompt2: ' The existing tags will be overridden, but you can',
+                prompt3: ' download a backup',
+                prompt4: ' first.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
@@ -4947,6 +4952,7 @@ const translations = {
             delayedSubmission: 'delayed submission',
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
+            error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
         emptyWorkspace: {
             title: 'You have no workspaces',
@@ -5523,11 +5529,6 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
             },
-            reports: {
-                title: 'Reports',
-                description: 'Create organized expense reports to track your business spending, submit for approvals, and streamline your reimbursement process.',
-                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
-            },
             multiLevelTags: {
                 title: 'Multi-level tags',
                 description:
@@ -5688,7 +5689,7 @@ const translations = {
                 autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `Please enter an amount less than ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
-                autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid. ',
+                autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
                 unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
                     `Go to [more features](${moreFeaturesLink}) and enable workflows, then add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
@@ -6127,9 +6128,6 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             currency: 'Currency',
-            link: 'Link',
-            pinned: 'Pinned',
-            unread: 'Unread',
             completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
@@ -6168,6 +6166,7 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
             },
+            is: 'Is',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
@@ -6655,9 +6654,7 @@ const translations = {
                 return "Can't auto-match receipt due to broken bank connection";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin
-                    ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix`
-                    : "Can't auto-match receipt due to broken bank connection which you need to fix";
+                return isAdmin ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix` : "Can't auto-match receipt due to broken bank connection";
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Ask ${member} to mark as a cash or wait 7 days and try again` : 'Awaiting merge with card transaction.';
@@ -7138,12 +7135,7 @@ const translations = {
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>Get started <strong>here!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rename your saved searches</strong> here!</tooltip>',
-        globalCreateTooltip: '<tooltip><strong>Create expenses</strong>, start chatting,\nand more. Try it out!</tooltip>',
-        bottomNavInboxTooltip: '<tooltip>Check what <strong>needs your attention</strong>\nand <strong>chat about expenses.</strong></tooltip>',
-        workspaceChatTooltip: '<tooltip>Chat with <strong>approvers</strong></tooltip>',
-        GBRRBRChat: '<tooltip>You’ll see 🟢 on <strong>actions to take</strong>,\nand 🔴 on <strong>items to review.</strong></tooltip>',
         accountSwitcher: '<tooltip>Access your <strong>Copilot accounts</strong> here</tooltip>',
-        expenseReportsFilter: "<tooltip>Welcome! Find all of your\n<strong>company's reports</strong> here.</tooltip>",
         scanTestTooltip: {
             main: '<tooltip><strong>Scan our test receipt</strong> to see how it works!</tooltip>',
             manager: '<tooltip>Choose our <strong>test manager</strong> to try it out!</tooltip>',
