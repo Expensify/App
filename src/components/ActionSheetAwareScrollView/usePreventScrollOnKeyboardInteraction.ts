@@ -10,23 +10,25 @@ function usePreventScrollOnKeyboardInteraction({
     scrollViewRef: AnimatedRef<Reanimated.ScrollView>;
     onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
 }) {
+    // Receive the latest scroll position whenever the content is scrolled
     const scroll = useSharedValue(0);
-
-    useKeyboardHandler({
-        onInteractive: () => {
-            scrollTo(scrollViewRef, 0, scroll.get(), false);
-        },
-    });
-
     const onScrollInternal = useAnimatedScrollHandler({
         onScroll: (e) => {
             scroll.set(e.contentOffset.y);
         },
     });
 
+    // Scroll to the latest scroll position whenever the keyboard is interacted with,
+    // to prevent additional scrolling when the keyboard is interactively dismissed.
+    useKeyboardHandler({
+        onInteractive: () => {
+            scrollTo(scrollViewRef, 0, scroll.get(), false);
+        },
+    });
+
     const onScroll = useComposedEventHandler([onScrollInternal, onScrollProp ?? null]);
 
-    return {scrollViewRef, onScroll};
+    return {onScroll};
 }
 
 export default usePreventScrollOnKeyboardInteraction;

@@ -8,11 +8,11 @@ import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewPr
 import type {ActionSheetAwareScrollViewProps} from './types';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>((props, ref) => {
+const ActionSheetAwareScrollView = forwardRef<AnimatedScrollView, ActionSheetAwareScrollViewProps>(({onScroll: onScrollProp, ...props}, ref) => {
     const fallbackRef = useAnimatedRef<Reanimated.ScrollView>();
     const combinedRef = ref ?? fallbackRef;
 
-    const {onScroll} = usePreventScrollOnKeyboardInteraction({scrollViewRef: combinedRef as AnimatedRef<Reanimated.ScrollView>, onScroll: props.onScroll});
+    const {onScroll} = usePreventScrollOnKeyboardInteraction({scrollViewRef: combinedRef as AnimatedRef<Reanimated.ScrollView>, onScroll: onScrollProp});
 
     return (
         <Animated.ScrollView
