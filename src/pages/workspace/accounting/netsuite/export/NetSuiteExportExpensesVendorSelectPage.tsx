@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {TeleScope} from '@components/Icon/Illustrations';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -72,7 +72,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteExportExpensesVendorSelectPage.displayName}
             sections={netsuiteVendorOptions.length ? [{data: netsuiteVendorOptions}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={goBack}

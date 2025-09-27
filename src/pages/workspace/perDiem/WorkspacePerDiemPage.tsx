@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -13,9 +14,9 @@ import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -28,7 +29,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -117,7 +117,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
@@ -445,7 +444,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
                 {hasVisibleSubRates && !isLoading && (
