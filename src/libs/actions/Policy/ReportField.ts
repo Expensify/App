@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -23,15 +23,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -94,6 +85,7 @@ type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 
     listValues: string[];
     disabledListValues: boolean[];
     policyID: string;
+    policyExpenseReports: Array<OnyxEntry<Report>> | undefined;
 };
 
 function openPolicyReportFieldsPage(policyID: string) {
@@ -178,7 +170,7 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyID}: CreateReportFieldParams) {
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyID, policyExpenseReports}: CreateReportFieldParams) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
@@ -197,8 +189,6 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         isTax: false,
     };
 
-    const policyExpenseReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE) as Report[];
-
     const optimisticData = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -210,8 +200,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...policyExpenseReports.map((report) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        ...(policyExpenseReports ?? []).map((report) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
@@ -234,8 +224,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...policyExpenseReports.map((report) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+        ...(policyExpenseReports ?? []).map((report) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {

@@ -43,7 +43,10 @@ function WorkspaceCreateReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
-
+    const [policyExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: (value) => Object.values(value ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE),
+    });
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
     const submitForm = useCallback(
@@ -55,10 +58,11 @@ function WorkspaceCreateReportFieldsPage({
                 initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
                 listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
                 disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
+                policyExpenseReports,
             });
             Navigation.goBack();
         },
-        [availableListValuesLength, formDraft, policyID],
+        [availableListValuesLength, formDraft, policyExpenseReports, policyID],
     );
 
     const validateForm = useCallback(
