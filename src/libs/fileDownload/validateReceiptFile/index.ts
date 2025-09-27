@@ -9,11 +9,8 @@ function validateReceiptFile(
     receipt: Receipt,
     onSuccess: (receipt: Receipt) => void,
     onFailure: () => void,
-): Promise<void> {
-    // Note: item parameter is not used in web version as checkIfScanFileCanBeRead handles file reading
-    const result = checkIfScanFileCanBeRead(receipt?.filename, receipt?.source, receipt?.type, onSuccess, onFailure);
-
-    return result ? result.then(() => {}) : Promise.resolve();
+): Promise<void | File> | undefined {
+    return checkIfScanFileCanBeRead(receipt?.filename, receipt?.source, receipt?.type, onSuccess, onFailure);
 }
 
 export default validateReceiptFile;
