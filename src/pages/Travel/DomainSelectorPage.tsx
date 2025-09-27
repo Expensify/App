@@ -34,6 +34,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
     const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
@@ -53,6 +54,15 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
 
     const provisionTravelForDomain = () => {
         const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+        // Always validate OTP first before proceeding to address details or terms acceptance
+        if (!isUserValidated) {
+            // Determine where to redirect after OTP validation
+            const nextStep = isEmptyObject(policy?.address) 
+                ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute())
+                : ROUTES.TRAVEL_TCS.getRoute(domain);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, nextStep));
+            return;
+        }
         if (isEmptyObject(policy?.address)) {
             // Spotnana requires an address anytime an entity is created for a policy
             Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
