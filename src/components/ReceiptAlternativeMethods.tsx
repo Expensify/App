@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
-import useHasPhoneNumber from '@hooks/useHasPhoneNumber';
+import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +12,7 @@ import {addLeadingForwardSlash} from '@src/libs/Url';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
 import {ChatBubble, Download, Mail} from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -25,7 +26,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     const {hasLoggedIntoMobileApp, isLastMobileAppLoginLoaded} = useHasLoggedIntoMobileApp();
-    const {hasPhoneNumber, isLoaded: isPhoneNumberLoaded} = useHasPhoneNumber();
+    const {hasPhoneNumberLogin, isLoaded: isPhoneNumberLoaded} = useHasPhoneNumberLogin();
 
     const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}`;
     const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_CONTACT_METHODS.route)}`;
@@ -35,10 +36,6 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
         return null;
     }
 
-    const shouldShowDownloadApp = !hasLoggedIntoMobileApp;
-    const shouldShowAddPhoneNumber = !hasPhoneNumber;
-    const shouldShowTextReceipts = hasPhoneNumber;
-
     return (
         <View
             style={[styles.mt4, styles.ph4]}
@@ -46,7 +43,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
         >
             <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('receipt.alternativeMethodsTitle')}</Text>
 
-            {shouldShowDownloadApp && (
+            {!hasLoggedIntoMobileApp && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <View style={[styles.mr3]}>
                         <Icon
@@ -56,15 +53,9 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                             fill={theme.textSupporting}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting, styles.flex1]}>
-                        <TextLink
-                            href={downloadAppHref}
-                            style={[styles.textLabelSupporting, styles.textBlue]}
-                        >
-                            {translate('receipt.alternativeMethodsDownloadApp')}
-                        </TextLink>
-                        {translate('receipt.alternativeMethodsDownloadAppSuffix')}
-                    </Text>
+                    <View style={[styles.flex1]}>
+                        <RenderHTML html={translate('receipt.alternativeMethodsDownloadApp', {downloadUrl: downloadAppHref})} />
+                    </View>
                 </View>
             )}
 
@@ -78,19 +69,11 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                     />
                 </View>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.textLabelSupporting]}>
-                        {translate('receipt.alternativeMethodsForwardReceipts')}{' '}
-                        <TextLink
-                            href={receiptsMailto}
-                            style={[styles.textLabelSupporting, styles.textBlue]}
-                        >
-                            {CONST.EMAIL.RECEIPTS}
-                        </TextLink>
-                    </Text>
+                    <RenderHTML html={translate('receipt.alternativeMethodsForwardReceipts', {email: CONST.EMAIL.RECEIPTS})} />
                 </View>
             </View>
 
-            {shouldShowAddPhoneNumber && (
+            {!hasPhoneNumberLogin && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb0]}>
                     <View style={[styles.mr3]}>
                         <Icon
@@ -100,19 +83,13 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                             fill={theme.textSupporting}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting, styles.flex1]}>
-                        <TextLink
-                            href={contactMethodsHref}
-                            style={[styles.textLabelSupporting, styles.textBlue]}
-                        >
-                            {translate('receipt.alternativeMethodsAddPhoneNumberLink')}
-                        </TextLink>
-                        {translate('receipt.alternativeMethodsAddPhoneNumberSuffix', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})}
-                    </Text>
+                    <View style={[styles.flex1]}>
+                        <RenderHTML html={translate('receipt.alternativeMethodsAddPhoneNumber', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER, contactMethodsUrl: contactMethodsHref})} />
+                    </View>
                 </View>
             )}
 
-            {shouldShowTextReceipts && (
+            {hasPhoneNumberLogin && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb0]}>
                     <View style={[styles.mr3]}>
                         <Icon
@@ -122,7 +99,9 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                             fill={theme.textSupporting}
                         />
                     </View>
-                    <Text style={[styles.textLabelSupporting, styles.flex1]}>{translate('receipt.alternativeMethodsTextReceipts', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})}</Text>
+                    <View style={[styles.flex1]}>
+                        <RenderHTML html={translate('receipt.alternativeMethodsTextReceipts', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})} />
+                    </View>
                 </View>
             )}
         </View>

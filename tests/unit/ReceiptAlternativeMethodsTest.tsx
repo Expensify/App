@@ -2,11 +2,11 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
-import useHasPhoneNumber from '@hooks/useHasPhoneNumber';
+import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useHasLoggedIntoMobileApp');
-jest.mock('@hooks/useHasPhoneNumber');
+jest.mock('@hooks/useHasPhoneNumberLogin');
 
 jest.mock('@hooks/useEnvironment', () => jest.fn(() => ({environmentURL: 'https://new.expensify.com'})));
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({textSupporting: '#123456'})));
@@ -52,7 +52,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 const mockUseHasLoggedIntoMobileApp = useHasLoggedIntoMobileApp as jest.MockedFunction<typeof useHasLoggedIntoMobileApp>;
-const mockUseHasPhoneNumber = useHasPhoneNumber as jest.MockedFunction<typeof useHasPhoneNumber>;
+const mockUseHasPhoneNumberLogin = useHasPhoneNumberLogin as jest.MockedFunction<typeof useHasPhoneNumberLogin>;
 
 describe('ReceiptAlternativeMethods', () => {
     beforeEach(() => {
@@ -61,7 +61,7 @@ describe('ReceiptAlternativeMethods', () => {
 
     it('renders all options when user has neither app nor phone number', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumber.mockReturnValue({hasPhoneNumber: false, isLoaded: true});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isLoaded: true});
 
         render(<ReceiptAlternativeMethods />);
 
@@ -74,7 +74,7 @@ describe('ReceiptAlternativeMethods', () => {
 
     it('shows add number option when user has app but no phone number', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumber.mockReturnValue({hasPhoneNumber: false, isLoaded: true});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isLoaded: true});
 
         render(<ReceiptAlternativeMethods />);
 
@@ -85,7 +85,7 @@ describe('ReceiptAlternativeMethods', () => {
 
     it('shows SMS instructions when user has phone but no app login', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumber.mockReturnValue({hasPhoneNumber: true, isLoaded: true});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true, isLoaded: true});
 
         render(<ReceiptAlternativeMethods />);
 
@@ -96,7 +96,7 @@ describe('ReceiptAlternativeMethods', () => {
 
     it('shows minimal options when user has both app and phone number', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: true, isLastMobileAppLoginLoaded: true});
-        mockUseHasPhoneNumber.mockReturnValue({hasPhoneNumber: true, isLoaded: true});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: true, isLoaded: true});
 
         render(<ReceiptAlternativeMethods />);
 
@@ -107,7 +107,7 @@ describe('ReceiptAlternativeMethods', () => {
 
     it('does not render until hooks have loaded', () => {
         mockUseHasLoggedIntoMobileApp.mockReturnValue({hasLoggedIntoMobileApp: false, isLastMobileAppLoginLoaded: false});
-        mockUseHasPhoneNumber.mockReturnValue({hasPhoneNumber: false, isLoaded: false});
+        mockUseHasPhoneNumberLogin.mockReturnValue({hasPhoneNumberLogin: false, isLoaded: false});
 
         const {toJSON} = render(<ReceiptAlternativeMethods />);
 

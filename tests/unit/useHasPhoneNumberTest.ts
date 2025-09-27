@@ -1,11 +1,11 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useHasPhoneNumber from '@hooks/useHasPhoneNumber';
+import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-describe('useHasPhoneNumber', () => {
+describe('useHasPhoneNumberLogin', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -18,10 +18,10 @@ describe('useHasPhoneNumber', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: emailLogin});
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useHasPhoneNumber());
+        const {result} = renderHook(() => useHasPhoneNumberLogin());
 
         await waitFor(() => expect(result.current.isLoaded).toBe(true));
-        expect(result.current.hasPhoneNumber).toBe(false);
+        expect(result.current.hasPhoneNumberLogin).toBe(false);
     });
 
     it('should return true when primary email uses the SMS domain', async () => {
@@ -29,10 +29,10 @@ describe('useHasPhoneNumber', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: `+12345678901${CONST.SMS.DOMAIN}`});
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useHasPhoneNumber());
+        const {result} = renderHook(() => useHasPhoneNumberLogin());
 
         await waitFor(() => expect(result.current.isLoaded).toBe(true));
-        expect(result.current.hasPhoneNumber).toBe(true);
+        expect(result.current.hasPhoneNumberLogin).toBe(true);
     });
 
     it('should return true when login list contains an E164 phone number', async () => {
@@ -41,9 +41,9 @@ describe('useHasPhoneNumber', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@company.com'});
         await waitForBatchedUpdates();
 
-        const {result} = renderHook(() => useHasPhoneNumber());
+        const {result} = renderHook(() => useHasPhoneNumberLogin());
 
         await waitFor(() => expect(result.current.isLoaded).toBe(true));
-        expect(result.current.hasPhoneNumber).toBe(true);
+        expect(result.current.hasPhoneNumberLogin).toBe(true);
     });
 });
