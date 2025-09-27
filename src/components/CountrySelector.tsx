@@ -5,9 +5,11 @@ import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
@@ -34,7 +36,8 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     const {translate} = useLocalize();
     const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
 
-    const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
+    const countryCodeToUse = getCountryCode(countryCode);
+    const title = countryCodeToUse ? translate(`allCountries.${countryCodeToUse}` as TranslationPaths) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
 
     const didOpenCountrySelector = useRef(false);
