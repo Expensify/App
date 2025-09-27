@@ -16,7 +16,7 @@ type SendButtonProps = {
     isDisabled: boolean;
 
     /** Handle clicking on send button */
-    handleSendMessage: () => void;
+    handleSendMessage: (isJsThread?: boolean) => void;
 };
 
 function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
