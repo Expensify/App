@@ -277,7 +277,9 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         return true;
     }
 
-    const isPaymentProcessing = !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const isPaymentProcessing =
+        (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) ||
+        (report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED);
 
     const payActions = reportTransactions.reduce((acc, transaction) => {
         const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
@@ -292,7 +294,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         const paymentDatetime = new Date(action.created);
         const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() < cutoffTimeUTC.getTime();
+        return nowUTC.getTime() > cutoffTimeUTC.getTime();
     });
 
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
