@@ -172,7 +172,7 @@ function isSubmitAction(
 
     const hasReportBeenRetracted = hasReportBeenReopenedUtils(report, reportActions) || hasReportBeenRetractedUtils(report, reportActions);
     if (hasReportBeenRetracted && isReportSubmitter) {
-        return false;
+        return primaryAction !== CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
     }
 
     if (isAdmin || isManager) {
