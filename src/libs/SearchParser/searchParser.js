@@ -400,6 +400,7 @@ function peg$parse(input, options) {
     };
   var peg$f2 = function(key, op, value) {
       updateDefaultValues(key, value);
+      addPositionInfo({ type: 'root', key, position: location().start.offset });
     };
   var peg$f3 = function(value) {
       //handle no-breaking space
@@ -409,11 +410,15 @@ function peg$parse(input, options) {
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word);
+      const filterNode = buildFilter("eq", "keyword", word);
+      addPositionInfo({ type: 'filter', key: 'keyword', position: location().start.offset, node: filterNode });
+      return filterNode;
     };
   var peg$f4 = function(field, op, values) {
       expectingNestedQuote = false; nameOperator = false;
-      return buildFilter(op, field, values);
+      const filterNode = buildFilter(op, field, values);
+      addPositionInfo({ type: 'filter', key: field, position: location().start.offset, node: filterNode });
+      return filterNode;
     };
   var peg$f5 = function(k) {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
@@ -3047,11 +3052,15 @@ function peg$parse(input, options) {
     sortBy: "date",
     sortOrder: "desc",
   };
+  
+  // Track position information for preserving original query order
+  const positionInfo = [];
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      positionInfo,
     };
   }
 
@@ -3061,6 +3070,10 @@ function peg$parse(input, options) {
       return;
     }
     defaultValues[field] = value;
+  }
+  
+  function addPositionInfo(entry) {
+    positionInfo.push(entry);
   }
 
  

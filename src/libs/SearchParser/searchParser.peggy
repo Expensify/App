@@ -34,11 +34,15 @@
     sortBy: "date",
     sortOrder: "desc",
   };
+  
+  // Track position information for preserving original query order
+  const positionInfo = [];
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      positionInfo,
     };
   }
 
@@ -48,6 +52,10 @@
       return;
     }
     defaultValues[field] = value;
+  }
+  
+  function addPositionInfo(entry) {
+    positionInfo.push(entry);
   }
 }
 
@@ -91,6 +99,7 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
       updateDefaultValues(key, value);
+      addPositionInfo({ type: 'root', key, position: location().start.offset });
     }
 
 freeTextFilter
@@ -102,13 +111,17 @@ freeTextFilter
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word);
+      const filterNode = buildFilter("eq", "keyword", word);
+      addPositionInfo({ type: 'filter', key: 'keyword', position: location().start.offset, node: filterNode });
+      return filterNode;
     }
 
 standardFilter
   = _ field:filterKey _ op:filterOperator _  values:identifier {
       expectingNestedQuote = false; nameOperator = false;
-      return buildFilter(op, field, values);
+      const filterNode = buildFilter(op, field, values);
+      addPositionInfo({ type: 'filter', key: field, position: location().start.offset, node: filterNode });
+      return filterNode;
     }
 
 key "key"

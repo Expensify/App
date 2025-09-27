@@ -12,6 +12,13 @@ const tests = [
             sortBy: 'date',
             sortOrder: 'desc',
             filters: null,
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+            ],
         },
     },
     {
@@ -50,6 +57,48 @@ const tests = [
                     right: '1234',
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'taxRate',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'taxRate',
+                        right: 'rate1',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'expenseType',
+                    position: 15,
+                    node: {
+                        operator: 'eq',
+                        left: 'expenseType',
+                        right: 'card',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'cardID',
+                    position: 33,
+                    node: {
+                        operator: 'eq',
+                        left: 'cardID',
+                        right: 'Big Bank',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'reportID',
+                    position: 49,
+                    node: {
+                        operator: 'eq',
+                        left: 'reportID',
+                        right: '1234',
+                    },
+                },
+            ],
         },
     },
     {
@@ -88,6 +137,48 @@ const tests = [
                     right: '1234',
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'taxRate',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'taxRate',
+                        right: 'rate1',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'expenseType',
+                    position: 14,
+                    node: {
+                        operator: 'eq',
+                        left: 'expenseType',
+                        right: 'card',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'cardID',
+                    position: 31,
+                    node: {
+                        operator: 'eq',
+                        left: 'cardID',
+                        right: 'Big Bank',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'reportID',
+                    position: 49,
+                    node: {
+                        operator: 'eq',
+                        left: 'reportID',
+                        right: '1234',
+                    },
+                },
+            ],
         },
     },
     {
@@ -134,6 +225,58 @@ const tests = [
                     right: ['travel', 'hotel', 'meal & entertainment'],
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'amount',
+                    position: 0,
+                    node: {
+                        operator: 'gt',
+                        left: 'amount',
+                        right: '200',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'expenseType',
+                    position: 11,
+                    node: {
+                        operator: 'eq',
+                        left: 'expenseType',
+                        right: ['cash', 'card'],
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'description',
+                    position: 34,
+                    node: {
+                        operator: 'eq',
+                        left: 'description',
+                        right: 'Las Vegas party',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'date',
+                    position: 64,
+                    node: {
+                        operator: 'eq',
+                        left: 'date',
+                        right: '2024-06-01',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'category',
+                    position: 80,
+                    node: {
+                        operator: 'eq',
+                        left: 'category',
+                        right: ['travel', 'hotel', 'meal & entertainment'],
+                    },
+                },
+            ],
         },
     },
     {
@@ -148,6 +291,23 @@ const tests = [
                 left: 'category',
                 right: 'a b',
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'category',
+                    position: 13,
+                    node: {
+                        operator: 'eq',
+                        left: 'category',
+                        right: 'a b',
+                    },
+                },
+            ],
         },
     },
     {
@@ -162,6 +322,18 @@ const tests = [
                 left: 'keyword',
                 right: [','],
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: ',',
+                    },
+                },
+            ],
         },
     },
     {
@@ -176,6 +348,18 @@ const tests = [
                 left: 'keyword',
                 right: ['currency:,'],
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'currency:,',
+                    },
+                },
+            ],
         },
     },
     {
@@ -190,6 +374,18 @@ const tests = [
                 left: 'tag',
                 right: 'travel',
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'tag',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'tag',
+                        right: 'travel',
+                    },
+                },
+            ],
         },
     },
     {
@@ -204,6 +400,18 @@ const tests = [
                 left: 'keyword',
                 right: ['category:'],
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'category:',
+                    },
+                },
+            ],
         },
     },
     {
@@ -234,6 +442,38 @@ const tests = [
                     right: 'marriott',
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'in',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'in',
+                        right: '123333',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'currency',
+                    position: 10,
+                    node: {
+                        operator: 'eq',
+                        left: 'currency',
+                        right: 'USD',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'merchant',
+                    position: 23,
+                    node: {
+                        operator: 'eq',
+                        left: 'merchant',
+                        right: 'marriott',
+                    },
+                },
+            ],
         },
     },
     {
@@ -264,6 +504,38 @@ const tests = [
                     right: "McDonald's",
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'date',
+                    position: 0,
+                    node: {
+                        operator: 'gt',
+                        left: 'date',
+                        right: '2024-01-01',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'date',
+                    position: 16,
+                    node: {
+                        operator: 'lt',
+                        left: 'date',
+                        right: '2024-06-01',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'merchant',
+                    position: 32,
+                    node: {
+                        operator: 'eq',
+                        left: 'merchant',
+                        right: "McDonald's",
+                    },
+                },
+            ],
         },
     },
     {
@@ -294,6 +566,38 @@ const tests = [
                     right: '2024-01-01',
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'from',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'from',
+                        right: 'usera@user.com',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'to',
+                    position: 20,
+                    node: {
+                        operator: 'eq',
+                        left: 'to',
+                        right: 'userb@user.com',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'date',
+                    position: 38,
+                    node: {
+                        operator: 'gt',
+                        left: 'date',
+                        right: '2024-01-01',
+                    },
+                },
+            ],
         },
     },
     {
@@ -364,6 +668,88 @@ const tests = [
                     right: '2023-01-01',
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'amount',
+                    position: 0,
+                    node: {
+                        operator: 'gt',
+                        left: 'amount',
+                        right: '100',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'amount',
+                    position: 11,
+                    node: {
+                        operator: 'lt',
+                        left: 'amount',
+                        right: '200',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'from',
+                    position: 22,
+                    node: {
+                        operator: 'eq',
+                        left: 'from',
+                        right: 'usera@user.com',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'taxRate',
+                    position: 42,
+                    node: {
+                        operator: 'eq',
+                        left: 'taxRate',
+                        right: '1234',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'cardID',
+                    position: 56,
+                    node: {
+                        operator: 'eq',
+                        left: 'cardID',
+                        right: '1234',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'reportID',
+                    position: 66,
+                    node: {
+                        operator: 'eq',
+                        left: 'reportID',
+                        right: '12345',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'tag',
+                    position: 82,
+                    node: {
+                        operator: 'eq',
+                        left: 'tag',
+                        right: 'ecx',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'date',
+                    position: 90,
+                    node: {
+                        operator: 'gt',
+                        left: 'date',
+                        right: '2023-01-01',
+                    },
+                },
+            ],
         },
     },
     {
@@ -386,6 +772,38 @@ const tests = [
                     right: ['las', 'vegas'],
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'amount',
+                    position: 0,
+                    node: {
+                        operator: 'gt',
+                        left: 'amount',
+                        right: '200',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 11,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'las',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 15,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'vegas',
+                    },
+                },
+            ],
         },
     },
     {
@@ -396,6 +814,13 @@ const tests = [
             sortBy: 'date',
             sortOrder: 'desc',
             filters: null,
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'status',
+                    position: 0,
+                },
+            ],
         },
     },
     {
@@ -426,6 +851,48 @@ const tests = [
                     right: ['las', 'vegas'],
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'amount',
+                    position: 0,
+                    node: {
+                        operator: 'gt',
+                        left: 'amount',
+                        right: '200',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 11,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'las',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 15,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'vegas',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'category',
+                    position: 21,
+                    node: {
+                        operator: 'eq',
+                        left: 'category',
+                        right: 'Hotel : Marriott',
+                    },
+                },
+            ],
         },
     },
     {
@@ -480,6 +947,78 @@ const tests = [
                     right: ['las', 'vegas'],
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'amount',
+                    position: 0,
+                    node: {
+                        operator: 'gt',
+                        left: 'amount',
+                        right: '200',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 11,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'las',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 15,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'vegas',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'category',
+                    position: 21,
+                    node: {
+                        operator: 'eq',
+                        left: 'category',
+                        right: 'Hotel : Marriott',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'date',
+                    position: 49,
+                    node: {
+                        operator: 'eq',
+                        left: 'date',
+                        right: ['2024-01-01', '2024-02-01'],
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'merchant',
+                    position: 76,
+                    node: {
+                        operator: 'eq',
+                        left: 'merchant',
+                        right: 'Expensify, Inc.',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'tag',
+                    position: 103,
+                    node: {
+                        operator: 'eq',
+                        left: 'tag',
+                        right: ['hotel', 'travel', 'meals & entertainment'],
+                    },
+                },
+            ],
         },
     },
     {
@@ -494,6 +1033,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
                 right: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'withdrawalType',
+                    position: 13,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                        right: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
+                    },
+                },
+            ],
         },
     },
     {
@@ -508,6 +1064,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
                 right: '1234567890',
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'withdrawalID',
+                    position: 13,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                        right: '1234567890',
+                    },
+                },
+            ],
         },
     },
     {
@@ -522,6 +1095,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
                 right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'withdrawn',
+                    position: 13,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                        right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    },
+                },
+            ],
         },
     },
     {
@@ -536,6 +1126,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
                 right: CONST.SEARCH.IS_VALUES.READ,
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'is',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                        right: CONST.SEARCH.IS_VALUES.READ,
+                    },
+                },
+            ],
         },
     },
     {
@@ -550,6 +1157,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
                 right: CONST.SEARCH.IS_VALUES.UNREAD,
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'is',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                        right: CONST.SEARCH.IS_VALUES.UNREAD,
+                    },
+                },
+            ],
         },
     },
     {
@@ -564,6 +1188,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
                 right: CONST.SEARCH.IS_VALUES.PINNED,
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'is',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                        right: CONST.SEARCH.IS_VALUES.PINNED,
+                    },
+                },
+            ],
         },
     },
     {
@@ -578,6 +1219,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
                 right: [CONST.SEARCH.IS_VALUES.PINNED, CONST.SEARCH.IS_VALUES.READ, CONST.SEARCH.IS_VALUES.UNREAD],
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'is',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                        right: [CONST.SEARCH.IS_VALUES.PINNED, CONST.SEARCH.IS_VALUES.READ, CONST.SEARCH.IS_VALUES.UNREAD],
+                    },
+                },
+            ],
         },
     },
     {
@@ -592,6 +1250,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
                 right: CONST.SEARCH.HAS_VALUES.ATTACHMENT,
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'has',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                        right: CONST.SEARCH.HAS_VALUES.ATTACHMENT,
+                    },
+                },
+            ],
         },
     },
     {
@@ -606,6 +1281,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
                 right: CONST.SEARCH.HAS_VALUES.LINK,
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'has',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                        right: CONST.SEARCH.HAS_VALUES.LINK,
+                    },
+                },
+            ],
         },
     },
     {
@@ -620,6 +1312,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
                 right: [CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.ATTACHMENT],
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'has',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                        right: [CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.ATTACHMENT],
+                    },
+                },
+            ],
         },
     },
     {
@@ -634,6 +1343,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
                 right: 'READ', // Case is preserved as-is
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'is',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                        right: 'READ',
+                    },
+                },
+            ],
         },
     },
     {
@@ -648,6 +1374,23 @@ const tests = [
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
                 right: 'PINNED', // Case is preserved as-is
             },
+            positionInfo: [
+                {
+                    type: 'root',
+                    key: 'type',
+                    position: 0,
+                },
+                {
+                    type: 'filter',
+                    key: 'is',
+                    position: 10,
+                    node: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                        right: 'PINNED',
+                    },
+                },
+            ],
         },
     },
 ];
@@ -669,6 +1412,28 @@ const keywordTests = [
                 left: 'keyword',
                 right: [' ', '  '],
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '" "',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 4,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '"  "',
+                    },
+                },
+            ],
         },
     },
     {
@@ -683,6 +1448,28 @@ const keywordTests = [
                 left: 'keyword',
                 right: ['https://expensify.com', 'https://new.expensify.com'],
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '"https://expensify.com"',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 24,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '"https://new.expensify.com"',
+                    },
+                },
+            ],
         },
     },
     {
@@ -697,6 +1484,38 @@ const keywordTests = [
                 left: 'keyword',
                 right: ['"https://expensify.com"', 'to', '"https://new.expensify.com"'],
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '""https://expensify.com""',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 26,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'to',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 29,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '""https://new.expensify.com""',
+                    },
+                },
+            ],
         },
     },
     {
@@ -711,6 +1530,38 @@ const keywordTests = [
                 left: 'keyword',
                 right: ['""https://expensify.com', 'to', 'https://new.expensify.com""'],
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '"""https://expensify.com"',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 26,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: 'to',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 29,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '"https://new.expensify.com"""',
+                    },
+                },
+            ],
         },
     },
     {
@@ -741,6 +1592,48 @@ const keywordTests = [
                     right: ['https://expensify.com', 'https://new.expensify.com'],
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'date',
+                    position: 0,
+                    node: {
+                        operator: 'gt',
+                        left: 'date',
+                        right: '2024-01-01',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'from',
+                    position: 16,
+                    node: {
+                        operator: 'eq',
+                        left: 'from',
+                        right: 'usera@user.com',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 36,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '"https://expensify.com"',
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'keyword',
+                    position: 60,
+                    node: {
+                        operator: 'eq',
+                        left: 'keyword',
+                        right: '"https://new.expensify.com"',
+                    },
+                },
+            ],
         },
     },
     {
@@ -763,6 +1656,28 @@ const keywordTests = [
                     right: '""Unruly"" “““Glad””” """Dog""',
                 },
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'from',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'from',
+                        right: ['“Rag” Dog', 'Bag ”Dog“', 'email@gmail.com', '1605423'],
+                    },
+                },
+                {
+                    type: 'filter',
+                    key: 'to',
+                    position: 53,
+                    node: {
+                        operator: 'eq',
+                        left: 'to',
+                        right: '""Unruly"" “““Glad””” """Dog""',
+                    },
+                },
+            ],
         },
     },
     {
@@ -777,6 +1692,18 @@ const keywordTests = [
                 left: 'expenseType',
                 right: 'perDiem',
             },
+            positionInfo: [
+                {
+                    type: 'filter',
+                    key: 'expenseType',
+                    position: 0,
+                    node: {
+                        operator: 'eq',
+                        left: 'expenseType',
+                        right: 'perDiem',
+                    },
+                },
+            ],
         },
     },
 ];
