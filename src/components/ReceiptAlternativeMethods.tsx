@@ -14,7 +14,6 @@ import Icon from './Icon';
 import {ChatBubble, Download, Mail} from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type ReceiptAlternativeMethodsProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -30,7 +29,6 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
 
     const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}`;
     const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_CONTACT_METHODS.route)}`;
-    const receiptsMailto = `mailto:${CONST.EMAIL.RECEIPTS}`;
 
     if (!isLastMobileAppLoginLoaded || !isPhoneNumberLoaded) {
         return null;
