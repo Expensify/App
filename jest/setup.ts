@@ -161,6 +161,8 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
+jest.mock('@src/hooks/useKeyboardDismissibleFlatListValues/index.ts');
+
 // Provide a default global fetch mock for tests that do not explicitly set it up
 // This avoids ReferenceError: fetch is not defined in CI when coverage is enabled
 const globalWithOptionalFetch: typeof globalThis & {fetch?: unknown} = globalThis as typeof globalThis & {fetch?: unknown};
