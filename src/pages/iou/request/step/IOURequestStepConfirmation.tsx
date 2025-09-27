@@ -426,8 +426,7 @@ function IOURequestStepConfirmation({
 
         Promise.all(
             transactions.map((item) => {
-                const itemReceiptPath = item.receipt?.source;
-                const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
+                const isLocalFile = isLocalFileFileUtils(item.receipt?.source);
 
                 if (!isLocalFile) {
                     if (item.receipt) {
@@ -436,9 +435,9 @@ function IOURequestStepConfirmation({
                     return;
                 }
 
-                const onSuccess = (receipt: Receipt) => {
+                const onSuccess = (receipt: Receipt | File) => {
                     let processedReceipt: Receipt;
-
+                    
                     if (item?.receipt?.isTestReceipt) {
                         processedReceipt = {
                             ...receipt,
@@ -457,7 +456,7 @@ function IOURequestStepConfirmation({
                             state: receipt && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY,
                         };
                     }
-
+                    
                     newReceiptFiles = {...newReceiptFiles, [item.transactionID]: processedReceipt};
                 };
 
@@ -468,7 +467,7 @@ function IOURequestStepConfirmation({
                     }
                 };
 
-                return validateReceiptFile(item, onSuccess, onFailure);
+                return item.receipt && validateReceiptFile(item.receipt, onSuccess, onFailure);
             }),
         ).then(() => {
             if (isScanFilesCanBeRead) {
