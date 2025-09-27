@@ -267,7 +267,8 @@ function MoneyRequestView({
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) || isExpenseUnreported;
+    const areCategoriesEnabledAndHasCategory = categoryForDisplay || hasEnabledOptions(policyCategories ?? {});
+    const shouldShowCategory = (isPolicyExpenseChat && areCategoriesEnabledAndHasCategory) || (isExpenseUnreported && (!activePolicy || areCategoriesEnabledAndHasCategory));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = shouldShowPolicySpecificFields && (transactionTag || hasEnabledTags(policyTagLists));
@@ -275,7 +276,7 @@ function MoneyRequestView({
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
-        isPolicyExpenseChat && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
+        shouldShowPolicySpecificFields && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
@@ -827,6 +828,20 @@ function MoneyRequestView({
                                 if (!canEditReport) {
                                     return;
                                 }
+
+                                if (!policy) {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                            iouType,
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            transactionID: transaction?.transactionID,
+                                            reportID: report.reportID,
+                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                        }),
+                                    );
+                                    return;
+                                }
+
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
