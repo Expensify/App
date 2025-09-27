@@ -361,10 +361,13 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                     report = getReportByTransactionID(getTransactionIDFromKey(update.key), context);
                 }
 
-                // When we create a new expense, a new report can also be created in the same batch of updates.
-                // Since report formulas (e.g., {report:startdate}, {report:total}) rely on transaction data, we must locate the new report in that batch to compute names correctly.
-                if (!report && transactionUpdate.reportID) {
-                    report = getReportFromUpdates(transactionUpdate.reportID, updates);
+                // Send the latest report data to `compute()` for transaction updates, just like for report updates.
+                // Without this, if a batch includes both report and transaction updates,
+                // the report name could be computed with stale data and overwrite the correct one.
+                const reportID = report?.reportID ?? transactionUpdate.reportID;
+                const reportUpdate = reportID ? getReportFromUpdates(reportID, updates) : undefined;
+                if (reportUpdate) {
+                    report = {...(report ?? {}), ...reportUpdate};
                 }
 
                 if (report) {
