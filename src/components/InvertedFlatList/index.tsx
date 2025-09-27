@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
-import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
+import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';

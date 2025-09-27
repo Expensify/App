@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import type {ViewStyle} from 'react-native';
 import {useAnimatedStyle} from 'react-native-reanimated';
-import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
+import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';

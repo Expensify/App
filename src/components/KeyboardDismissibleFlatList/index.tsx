@@ -1,15 +1,15 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
 import type {FlatList} from 'react-native';
-import type {CustomAnimatedFlatListProps} from '@components/CustomAnimatedFlatList';
-import CustomAnimatedFlatList from '@components/CustomAnimatedFlatList';
-import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
+import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
+import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
+import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatListValues';
 
-function KeyboardDismissibleFlatList<T>(props: CustomAnimatedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function KeyboardDismissibleFlatList<T>(props: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
     const {onScroll} = useKeyboardDismissibleFlatListValues();
 
     return (
-        <CustomAnimatedFlatList
+        <AnimatedFlatListWithCellRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}

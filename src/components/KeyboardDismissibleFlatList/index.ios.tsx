@@ -2,11 +2,11 @@ import type {ForwardedRef} from 'react';
 import {forwardRef, useEffect} from 'react';
 import type {FlatList} from 'react-native';
 import {useAnimatedProps} from 'react-native-reanimated';
-import type {CustomAnimatedFlatListProps} from '@components/CustomAnimatedFlatList';
-import CustomAnimatedFlatList from '@components/CustomAnimatedFlatList';
-import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
+import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
+import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
+import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatListValues';
 
-function KeyboardDismissibleFlatList<T>(props: CustomAnimatedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function KeyboardDismissibleFlatList<T>(props: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
     const {keyboardHeight, keyboardOffset, onScroll, setListBehavior} = useKeyboardDismissibleFlatListValues();
 
     const invertedListAnimatedProps = useAnimatedProps(() => {
@@ -38,7 +38,7 @@ function KeyboardDismissibleFlatList<T>(props: CustomAnimatedFlatListProps<T>, r
     }, [props.inverted, setListBehavior]);
 
     return (
-        <CustomAnimatedFlatList
+        <AnimatedFlatListWithCellRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}

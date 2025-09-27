@@ -51,13 +51,13 @@ type AnimatedFlatListComplement<T> = {
 } & FlatList<T>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CustomAnimatedFlatListProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent'> & {
+type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent'> & {
     CellRendererComponent?: CellRendererComponentProps<Item>;
 };
 
 // We need explicit any here, because this is the exact same type that is used in React Native types.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function FlatListForwardRefRender<Item = any>(props: CustomAnimatedFlatListProps<Item>, ref: React.ForwardedRef<FlatList>) {
+function FlatListForwardRefRender<Item = any>(props: AnimatedFlatListWithCellRendererProps<Item>, ref: React.ForwardedRef<FlatList>) {
     const {itemLayoutAnimation, skipEnteringExitingAnimations, ...restProps} = props;
 
     // Set default scrollEventThrottle, because user expects
@@ -103,18 +103,18 @@ function FlatListForwardRefRender<Item = any>(props: CustomAnimatedFlatListProps
     );
 }
 
-const CustomAnimatedFlatList = forwardRef(FlatListForwardRefRender) as <
+const AnimatedFlatListWithCellRenderer = forwardRef(FlatListForwardRefRender) as <
     // We need explicit any here, because this is the exact same type that is used in React Native types.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ItemT = any,
 >(
-    props: CustomAnimatedFlatListProps<ItemT> & {
+    props: AnimatedFlatListWithCellRendererProps<ItemT> & {
         ref?: React.ForwardedRef<FlatList>;
     },
 ) => React.ReactElement;
 
 type ReanimatedFlatList<T> = typeof AnimatedFlatList & AnimatedFlatListComplement<T>;
 
-export type {ReanimatedFlatList, CustomAnimatedFlatListProps};
+export type {ReanimatedFlatList, AnimatedFlatListWithCellRendererProps};
 
-export default CustomAnimatedFlatList;
+export default AnimatedFlatListWithCellRenderer;
