@@ -98,6 +98,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                 runOnJS(triggerScrollEvent)();
                 const {contentOffset, layoutMeasurement, contentSize} = event;
                 if (windowHeight > contentSize.height) {
+                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                     return;
                 }
                 const currentOffset = contentOffset.y;
