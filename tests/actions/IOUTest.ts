@@ -7,6 +7,7 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useAncestors from '@hooks/useAncestors';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
@@ -3406,7 +3407,9 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID);
+                    const {result} = renderHook(() => useAncestors(iouReport));
+
+                    putOnHold(transaction1.transactionID, 'comment', result.current, iouReport.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5016,8 +5019,10 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
+                    const {result} = renderHook(() => useAncestors(iouReport));
+
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    putOnHold(transaction.transactionID, comment, result.current, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5077,8 +5082,10 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
+                    const {result} = renderHook(() => useAncestors(iouReport));
+
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, comment, undefined);
+                    putOnHold(transaction.transactionID, comment, result.current, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5133,7 +5140,8 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    const {result} = renderHook(() => useAncestors(iouReport));
+                    putOnHold(transaction.transactionID, comment, result.current, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -5199,7 +5207,8 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID);
+                    const {result} = renderHook(() => useAncestors(iouReport));
+                    putOnHold(transaction.transactionID, comment, result.current, transactionThread.reportID);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
