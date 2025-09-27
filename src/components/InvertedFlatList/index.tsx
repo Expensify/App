@@ -4,7 +4,7 @@ import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
 import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
+import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList/types';
 import CellRendererComponent from './CellRendererComponent';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse

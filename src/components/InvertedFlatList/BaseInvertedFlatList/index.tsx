@@ -135,7 +135,4 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
 export default BaseInvertedFlatList;
-
 export {AUTOSCROLL_TO_TOP_THRESHOLD};
-
-export type {BaseInvertedFlatListProps};
