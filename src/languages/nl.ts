@@ -320,6 +320,9 @@ type StateValue = {
 };
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
+type ReceiptAlternativeMethodsPhoneNumberParams = {
+    phoneNumber: string;
+};
 /* eslint-disable max-len */
 const translations = {
     common: {
@@ -654,8 +657,6 @@ const translations = {
         reschedule: 'Opnieuw plannen',
         general: 'Algemeen',
         workspacesTabTitle: 'Werkruimtes',
-        getTheApp: 'Download de app',
-        scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
         headsUp: 'Let op!',
         submitTo: 'Sturen naar',
         forwardTo: 'Doorsturen naar',
@@ -1029,12 +1030,17 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
+            `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Forward receipts to <a href="mailto:${email}">${email}</a></muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download the app</a> to scan from your phone</muted-text-label>`,
+        alternativeMethodsTitle: 'Other ways to add receipts:',
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
+            `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
+        desktopSubtitleMultiple: 'or drag and drop them here',
+        desktopSubtitleSingle: 'or drag and drop it here',
         upload: 'Bonnetje uploaden',
         uploadMultiple: 'Bonnetjes uploaden',
-        dragReceiptBeforeEmail: 'Sleep een bon naar deze pagina, stuur een bon door naar',
-        dragReceiptsBeforeEmail: 'Sleep bonnen naar deze pagina, stuur bonnen door naar',
-        dragReceiptAfterEmail: 'of kies hieronder een bestand om te uploaden.',
-        dragReceiptsAfterEmail: 'of kies hieronder bestanden om te uploaden.',
         chooseReceipt: 'Kies een bon om te uploaden of stuur een bon door naar',
         chooseReceipts: 'Kies bonnen om te uploaden of stuur bonnen door naar',
         takePhoto: 'Maak een foto',

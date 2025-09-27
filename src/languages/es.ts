@@ -302,6 +302,10 @@ import type {
 } from './params';
 import type {TranslationDeepObject} from './types';
 
+type ReceiptAlternativeMethodsPhoneNumberParams = {
+    phoneNumber: string;
+};
+
 /* eslint-disable max-len */
 const translations = {
     common: {
@@ -636,8 +640,6 @@ const translations = {
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
-        getTheApp: 'Descarga la app',
-        scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
         headsUp: '¡Atención!',
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
@@ -1015,12 +1017,18 @@ const translations = {
         }),
     },
     receipt: {
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
+            `<muted-text-label>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</muted-text-label>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Reenvía recibos a <a href="mailto:${email}">${email}</a></muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
+            `<muted-text-label><a href="${downloadUrl}">Descarga la aplicación</a> para escanear desde tu teléfono</muted-text-label>`,
+        alternativeMethodsTitle: 'Other ways to add receipts:',
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
+            `<muted-text-label><a href="${contactMethodsUrl}">Añade tu número</a> para enviar recibos por SMS a ${phoneNumber}</muted-text-label>`,
+        desktopSubtitleMultiple: 'o arrástrelos y suéltelos aquí',
+        desktopSubtitleSingle: 'o arrastra y suéltalo aquí',
         upload: 'Subir recibo',
         uploadMultiple: 'Subir recibos',
-        dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
-        dragReceiptsBeforeEmail: 'Arrastra recibos a esta página, reenvíalos a ',
-        dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
-        dragReceiptsAfterEmail: ' o elije archivos para subir a continuación.',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
         takePhoto: 'Haz una foto',
