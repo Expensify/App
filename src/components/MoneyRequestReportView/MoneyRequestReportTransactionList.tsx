@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -21,6 +21,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -265,6 +266,49 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
 
+    const {windowWidth} = useWindowDimensions();
+    const [wrappedToTwoRows, setWrappedToTwoRows] = React.useState(false);
+
+    // Refs to the two containers we care about
+    const leftContainerRef = useRef<View>(null);
+    const rightContainerRef = useRef<View>(null);
+
+    const measureTop = (ref: React.RefObject<View | null>): Promise<number | null> =>
+        new Promise((resolve) => {
+            if (!ref.current) {
+                resolve(null);
+                return;
+            }
+            // x, y, width, height
+            ref.current.measureInWindow((_, y /* w, h */) => resolve(y));
+        });
+
+    const computeWrap = useCallback(() => {
+        if (!shouldShowAddExpenseButton) {
+            setWrappedToTwoRows(false);
+            return;
+        }
+
+        // Wait one frame so layout is settled, then measure both
+        requestAnimationFrame(() => {
+            Promise.all([measureTop(leftContainerRef), measureTop(rightContainerRef)])
+                .then(([leftY, rightY]) => {
+                    if (leftY == null || rightY == null) {
+                        return;
+                    }
+                    setWrappedToTwoRows(Math.round(leftY) !== Math.round(rightY));
+                })
+                .catch(() => {});
+        });
+    }, [shouldShowAddExpenseButton]);
+    console.log('wrappedToTwoRows', wrappedToTwoRows);
+
+    React.useEffect(() => {
+        // After a width change, wait a frame for layout to settle, then recompute
+        const id = requestAnimationFrame(() => computeWrap());
+        return () => cancelAnimationFrame(id);
+    }, [windowWidth, computeWrap]);
+
     if (isEmptyTransactions) {
         return (
             <>
@@ -356,27 +400,32 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                 ]}
             >
                 {shouldShowAddExpenseButton && (
-                    <OfflineWithFeedback
-                        pendingAction={report?.pendingFields?.preview}
-                        style={[styles.flexGrow10]}
+                    <View
+                        ref={leftContainerRef}
+                        style={[styles.flexGrow100]}
                     >
-                        <ButtonWithDropdownMenu
-                            onPress={() => {}}
-                            shouldAlwaysShowDropdownMenu
-                            customText={translate('iou.addExpense')}
-                            options={addExpenseDropdownOptions}
-                            isSplitButton={false}
-                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            success={false}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
-                            style={[styles.mwFitContent]}
-                        />
-                    </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
+                            <ButtonWithDropdownMenu
+                                onPress={() => {}}
+                                shouldAlwaysShowDropdownMenu
+                                customText={translate('iou.addExpense')}
+                                options={addExpenseDropdownOptions}
+                                isSplitButton={false}
+                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                                success={false}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                                style={[styles.mwFitContent]}
+                            />
+                        </OfflineWithFeedback>
+                    </View>
                 )}
-                <View style={[styles.flexGrow1]}>
+                <View
+                    style={[styles.flexGrow1]}
+                    ref={rightContainerRef}
+                >
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
@@ -385,7 +434,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                             ].map(({text, value}) => (
                                 <View
                                     key={text}
-                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, styles.justifyContentBetween, styles.w100]}
+                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, wrappedToTwoRows && [styles.justifyContentBetween, styles.w100]]}
                                 >
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mr3]}
