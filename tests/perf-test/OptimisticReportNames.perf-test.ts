@@ -93,7 +93,8 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {total: -20000},
             };
 
-            await measureFunction(() => computeReportNameIfNeeded(report, update, mockContext));
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            await measureFunction(() => computeReportNameIfNeeded(report?.reportID ?? '', mockContext, update, {}));
         });
     });
 

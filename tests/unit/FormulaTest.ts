@@ -2,6 +2,7 @@
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
 import {compute, extract, parse} from '@libs/Formula';
+import type {UpdateContext} from '@libs/OptimisticReportNamesConnectionManager';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -99,7 +100,7 @@ describe('CustomFormula', () => {
     });
 
     describe('compute()', () => {
-        const mockContext: FormulaContext = {
+        const mockFormulaContext: FormulaContext = {
             report: {
                 reportID: '123',
                 reportName: '',
@@ -112,6 +113,8 @@ describe('CustomFormula', () => {
             policy: {
                 name: 'Test Policy',
             } as Policy,
+            updateContext: {allTransactions: {}} as UpdateContext,
+            workingUpdates: {},
         };
 
         beforeEach(() => {
@@ -171,46 +174,46 @@ describe('CustomFormula', () => {
         });
 
         test('should compute basic report formula', () => {
-            const result = compute('{report:type} {report:total}', mockContext);
+            const result = compute('{report:type} {report:total}', mockFormulaContext);
             expect(result).toBe('Expense Report $100.00'); // No space between parts
         });
 
         test('should compute startdate formula using transactions', () => {
-            const result = compute('{report:startdate}', mockContext);
+            const result = compute('{report:startdate}', mockFormulaContext);
             expect(result).toBe('2025-01-08'); // Should use oldest transaction date (2025-01-08)
         });
 
         test('should compute created formula using report actions', () => {
-            const result = compute('{report:created}', mockContext);
+            const result = compute('{report:created}', mockFormulaContext);
             expect(result).toBe('2025-01-10'); // Should use oldest report action date (2025-01-10)
         });
 
         test('should compute startdate with custom format', () => {
-            const result = compute('{report:startdate:MM/dd/yyyy}', mockContext);
+            const result = compute('{report:startdate:MM/dd/yyyy}', mockFormulaContext);
             expect(result).toBe('01/08/2025'); // Should use oldest transaction date with yyyy-MM-dd format
         });
 
         test('should compute created with custom format', () => {
-            const result = compute('{report:created:MMMM dd, yyyy}', mockContext);
+            const result = compute('{report:created:MMMM dd, yyyy}', mockFormulaContext);
             expect(result).toBe('January 10, 2025'); // Should use oldest report action date with MMMM dd, yyyy format
         });
 
         test('should compute startdate with short month format', () => {
-            const result = compute('{report:startdate:dd MMM yyyy}', mockContext);
+            const result = compute('{report:startdate:dd MMM yyyy}', mockFormulaContext);
             expect(result).toBe('08 Jan 2025'); // Should use oldest transaction date with dd MMM yyyy format
         });
 
         test('should compute policy name', () => {
-            const result = compute('{report:policyname}', mockContext);
+            const result = compute('{report:policyname}', mockFormulaContext);
             expect(result).toBe('Test Policy');
         });
 
         test('should handle empty formula', () => {
-            expect(compute('', mockContext)).toBe('');
+            expect(compute('', mockFormulaContext)).toBe('');
         });
 
         test('should handle unknown formula parts', () => {
-            const result = compute('{report:unknown}', mockContext);
+            const result = compute('{report:unknown}', mockFormulaContext);
             expect(result).toBe('{report:unknown}');
         });
 
@@ -218,18 +221,20 @@ describe('CustomFormula', () => {
             const contextWithMissingData: FormulaContext = {
                 report: {} as unknown as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
             const result = compute('{report:total} {report:policyname}', contextWithMissingData);
             expect(result).toBe('{report:total} {report:policyname}'); // Empty data is replaced with definition
         });
 
         test('should preserve free text', () => {
-            const result = compute('Expense Report - {report:total}', mockContext);
+            const result = compute('Expense Report - {report:total}', mockFormulaContext);
             expect(result).toBe('Expense Report - $100.00');
         });
 
         test('should preserve exact spacing around formula parts', () => {
-            const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockContext);
+            const result = compute('Report with type after 4 spaces   {report:type}-and no space after computed part', mockFormulaContext);
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
         });
     });
@@ -244,6 +249,8 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 report: {total: undefined} as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
             const result = compute('{report:total}', context);
             expect(result).toBe('{report:total}');
@@ -254,6 +261,8 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 report: {reportID: '123'} as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
 
             const result = compute('{report:created}', context);
@@ -265,6 +274,8 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 report: {reportID: '123'} as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
             const today = new Date();
             const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -276,6 +287,8 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 report: {reportID: 'test-report-123'} as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
 
             compute('{report:startdate}', context);
@@ -286,6 +299,8 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 report: {reportID: 'test-report-456'} as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
 
             compute('{report:created}', context);
@@ -318,6 +333,8 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 report: {reportID: 'test-report-123'} as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
 
             const result = compute('{report:startdate}', context);
@@ -351,6 +368,8 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 report: {reportID: 'test-report-123'} as Report,
                 policy: null as unknown as Policy,
+                updateContext: {allTransactions: {}} as UpdateContext,
+                workingUpdates: {},
             };
 
             const result = compute('{report:startdate}', context);
