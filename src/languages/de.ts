@@ -3272,6 +3272,9 @@ const translations = {
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen einer unterschriftsberechtigten Person wie einem Geschäftsführer oder einer Führungskraft.`,
+        error: {
+            emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
+        },
     },
     agreementsStep: {
         agreements: 'Vereinbarungen',

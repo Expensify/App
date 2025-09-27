@@ -3270,6 +3270,9 @@ const translations = {
         thisStep: 'このステップは完了しました',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
+        error: {
+            emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
+        },
     },
     agreementsStep: {
         agreements: '契約書',

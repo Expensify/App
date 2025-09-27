@@ -3283,6 +3283,9 @@ const translations = {
         thisStep: 'Questo passaggio è stato completato',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `sta collegando un conto bancario aziendale in ${currency} terminante con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni di un firmatario, come un direttore o un dirigente.`,
+        error: {
+            emailsMustBeDifferent: 'Le email devono essere diverse',
+        },
     },
     agreementsStep: {
         agreements: 'Accordi',

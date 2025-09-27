@@ -3263,6 +3263,9 @@ const translations = {
         thisStep: 'This step has been completed',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director or senior officer.`,
+        error: {
+            emailsMustBeDifferent: 'Emails must be different',
+        },
     },
     agreementsStep: {
         agreements: 'Agreements',
