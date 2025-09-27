@@ -3,8 +3,12 @@ import React, {useMemo, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+type ListBehavior = ValueOf<typeof CONST.LIST_BEHAVIOR>;
 
 type KeyboardDismissibleFlatListContextValues = {
     keyboardHeight: SharedValue<number>;
@@ -13,7 +17,7 @@ type KeyboardDismissibleFlatListContextValues = {
     layoutMeasurementHeight: SharedValue<number>;
     onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
     scrollY: SharedValue<number>;
-    setListBehavior: React.Dispatch<React.SetStateAction<'regular' | 'inverted'>>;
+    setListBehavior: React.Dispatch<React.SetStateAction<ListBehavior>>;
 };
 
 const createDummySharedValue = (): SharedValue<number> =>
@@ -38,7 +42,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const isModalVisible = useMemo(() => modal?.isPopover, [modal?.isPopover]);
 
-    const [listBehavior, setListBehavior] = useState<'regular' | 'inverted'>('inverted');
+    const [listBehavior, setListBehavior] = useState<ListBehavior>(CONST.LIST_BEHAVIOR.INVERTED);
 
     const height = useSharedValue(0);
     const offset = useSharedValue(0);
@@ -75,7 +79,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
                 return;
             }
 
-            if (listBehavior === 'regular') {
+            if (listBehavior === CONST.LIST_BEHAVIOR.REGULAR) {
                 const isAtTop = scrollY.get() <= 0;
 
                 if (!willKeyboardOpen && isAtTop) {
@@ -101,7 +105,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
 
             height.set(e.height);
 
-            if (listBehavior === 'regular') {
+            if (listBehavior === CONST.LIST_BEHAVIOR.REGULAR) {
                 return offset.set(scrollY.get() - e.height);
             }
 
