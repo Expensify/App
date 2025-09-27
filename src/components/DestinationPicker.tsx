@@ -10,9 +10,9 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem, SelectionListHandle} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
+import type {ListItem, SelectionListHandle} from './SelectionListWithSections/types';
 
 type DestinationPickerProps = {
     policyID: string;

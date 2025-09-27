@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
@@ -193,6 +195,71 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    describe('useDefaultFundID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return domainID for given policyID when workspaceID is not set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 0,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`, {
+                [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`]: {
+                    currentBalance: 0,
+                    domainName: 'expensify-policy8fe6324c4897.exfy',
+                    earnedCashback: 0,
+                    isLoading: false,
+                    isMonthlySettlementAllowed: false,
+                    limit: 0,
+                    marqetaBusinessToken: 18441278,
+                    ownerEmail: 'user@gmail.com',
+                    paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
+                    paymentBankAccountID: 3288123,
+                    paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
+                    preferredPolicy: '2',
+                    remainingLimit: 0,
+                },
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(18441278);
+        });
+
+        it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 0,
+            };
+            const lastSelectedExpensifyCardFeed = 11111;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
+                paymentBankAccountID: 1234,
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(lastSelectedExpensifyCardFeed);
+        });
+
+        it('should return workspaceAccountID for given policyID', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 123234,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(123234);
+        });
+    });
+
     describe('getActivePolicies', () => {
         it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
             const policies = createCollection<Policy>(

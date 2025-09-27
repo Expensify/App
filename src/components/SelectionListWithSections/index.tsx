@@ -1,14 +1,13 @@
 import React, {useEffect, useState} from 'react';
+import {Keyboard} from 'react-native';
 import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import BaseSelectionList from './BaseSelectionList';
-import type {ListItem} from './ListItem/types';
-import type {SelectionListProps} from './types';
+import BaseSelectionList from './BaseSelectionListWithSections';
+import type {ListItem, SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListProps<TItem>) {
+function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
-    const [shouldDebounceScrolling, setShouldDebounceScrolling] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
     const touchEnd = () => setIsScreenTouched(false);
@@ -17,6 +16,7 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
         if (!canUseTouchScreen()) {
             return;
         }
+
         // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
         // we want to dismiss the keyboard only when the list is scrolled by the user and not when it's scrolled programmatically.
         document.addEventListener('touchstart', touchStart);
@@ -28,10 +28,13 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
         };
     }, []);
 
-    const handleKeyboardScrollDebounce = (event: KeyboardEvent) => {
+    const [shouldDebounceScrolling, setShouldDebounceScrolling] = useState(false);
+
+    const checkShouldDebounceScrolling = (event: KeyboardEvent) => {
         if (!event) {
             return;
         }
+
         // Moving through items using the keyboard triggers scrolling by the browser, so we debounce programmatic scrolling to prevent jittering.
         if (
             event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey ||
@@ -43,20 +46,30 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
     };
 
     useEffect(() => {
-        document.addEventListener('keydown', handleKeyboardScrollDebounce, {passive: true});
-        document.addEventListener('keyup', handleKeyboardScrollDebounce, {passive: true});
+        document.addEventListener('keydown', checkShouldDebounceScrolling, {passive: true});
+        document.addEventListener('keyup', checkShouldDebounceScrolling, {passive: true});
 
         return () => {
-            document.removeEventListener('keydown', handleKeyboardScrollDebounce);
-            document.removeEventListener('keyup', handleKeyboardScrollDebounce);
+            document.removeEventListener('keydown', checkShouldDebounceScrolling);
+            document.removeEventListener('keyup', checkShouldDebounceScrolling);
         };
     }, []);
+
+    // In SearchPageBottomTab we use useAnimatedScrollHandler from reanimated(for performance reasons) and it returns object instead of function. In that case we cannot change it to a function call, that's why we have to choose between onScroll and defaultOnScroll.
+    const defaultOnScroll = () => {
+        // Only dismiss the keyboard whenever the user scrolls the screen or `shouldHideKeyboardOnScroll` is true
+        if (!isScreenTouched || !shouldHideKeyboardOnScroll) {
+            return;
+        }
+        Keyboard.dismiss();
+    };
 
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
+            onScroll={onScroll ?? defaultOnScroll}
             // Ignore the focus if it's caused by a touch event on mobile chrome.
             // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
@@ -65,6 +78,6 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
     );
 }
 
-SelectionList.displayName = 'SelectionList';
+SelectionListWithSections.displayName = 'SelectionListWithSections';
 
-export default SelectionList;
+export default SelectionListWithSections;

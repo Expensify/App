@@ -9,6 +9,7 @@ coverage:
       default:
         informational: true
         target: auto
+        threshold: 1%
 
 codecov:
   notify:
@@ -17,8 +18,9 @@ codecov:
 
 comment:
   require_changes: "coverage_drop OR uncovered_patch"
-  layout: "condensed_header, condensed_files, condensed_footer"
+  layout: "condensed_header, diff, condensed_footer"
   behavior: default
+  hide_project_coverage: true
 
 flags:
   unit:

@@ -1,97 +1,83 @@
-import React, {useContext, useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import KYCWall from '@components/KYCWall';
-import type {PaymentMethodType} from '@components/KYCWall/types';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import PopoverMenu from '@components/PopoverMenu';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {BankAccountMenuItem} from '@components/Search/types';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleBulkPayItemSelected} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
-import {getActiveAdminWorkspaces} from '@libs/PolicyUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
-type SearchSelectedNarrowProps = {
-    options: Array<DropdownOption<SearchHeaderOptionValue>>;
-    itemsLength: number;
-    currentSelectedPolicyID?: string | undefined;
-    currentSelectedReportID?: string | undefined;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
-    latestBankItems?: BankAccountMenuItem[] | undefined;
-};
+type SearchSelectedNarrowProps = {options: Array<DropdownOption<SearchHeaderOptionValue>>; itemsLength: number};
 
-function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, currentSelectedReportID, confirmPayment, latestBankItems}: SearchSelectedNarrowProps) {
+function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps) {
     const styles = useThemeStyles();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {translate} = useLocalize();
-    const currentPolicy = usePolicy(currentSelectedPolicyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+
     // Stores an option to execute after modal closes when using deferred execution
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
-    const {accountID} = useCurrentUserPersonalDetails();
-    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const buttonRef = useRef<View>(null);
+
+    const openMenu = () => setIsModalVisible(true);
+    const closeMenu = () => setIsModalVisible(false);
+
+    const handleOnModalHide = () => {
+        if (!selectedOptionRef.current) {
+            return;
+        }
+
+        selectedOptionRef.current.onSelected?.();
+        selectedOptionRef.current = null;
+    };
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
             selectedOptionRef.current = option;
+            closeMenu();
             return;
         }
         option?.onSelected?.();
     };
 
+    const handleOnCloseMenu = () => {
+        selectedOptionRef.current = null;
+        closeMenu();
+    };
+
     return (
-        <KYCWall
-            chatReportID={currentSelectedReportID}
-            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            addBankAccountRoute={isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined}
-            onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
-        >
-            {(triggerKYCFlow, buttonRef) => (
-                <View style={[styles.pb3]}>
-                    <ButtonWithDropdownMenu
-                        buttonRef={buttonRef}
-                        options={options}
-                        customText={translate('workspace.common.selected', {count: itemsLength})}
-                        shouldAlwaysShowDropdownMenu
-                        isDisabled={options.length === 0}
-                        onPress={() => null}
-                        onOptionSelected={(item) => handleOnMenuItemPress(item)}
-                        onSubItemSelected={(subItem) =>
-                            handleBulkPayItemSelected(
-                                subItem,
-                                triggerKYCFlow,
-                                isAccountLocked,
-                                showLockedAccountModal,
-                                currentPolicy,
-                                latestBankItems,
-                                activeAdminPolicies,
-                                isUserValidated,
-                                confirmPayment,
-                            )
-                        }
-                        success
-                        isSplitButton={false}
-                        style={[styles.w100, styles.ph5]}
-                        anchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                        shouldUseModalPaddingStyle
-                    />
-                </View>
-            )}
-        </KYCWall>
+        <View style={[styles.pb3]}>
+            <Button
+                onPress={openMenu}
+                ref={buttonRef}
+                style={[styles.w100, styles.ph5]}
+                text={translate('workspace.common.selected', {count: itemsLength})}
+                isContentCentered
+                iconRight={Expensicons.DownArrow}
+                isDisabled={options.length === 0}
+                shouldShowRightIcon={options.length !== 0}
+                success
+            />
+            <PopoverMenu
+                isVisible={isModalVisible}
+                onClose={handleOnCloseMenu}
+                onModalHide={handleOnModalHide}
+                onItemSelected={(selectedItem) => {
+                    handleOnMenuItemPress(selectedItem as DropdownOption<SearchHeaderOptionValue>);
+                }}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorRef={buttonRef}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+                fromSidebarMediumScreen={false}
+                shouldUseModalPaddingStyle
+                menuItems={options}
+            />
+        </View>
     );
 }
 
