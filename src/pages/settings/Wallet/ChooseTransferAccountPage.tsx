@@ -8,7 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -99,7 +99,7 @@ function ChooseTransferAccountPage() {
 
             <SelectionList
                 sections={[{data}]}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={(value) => {
                     const accountType = value?.bankAccount?.accountType;
                     const accountData = value?.bankAccount?.accountData;

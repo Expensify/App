@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,7 +70,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>

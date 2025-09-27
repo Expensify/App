@@ -20,9 +20,9 @@ type PlaidProps = SubStepProps & {
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
 function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -69,9 +69,8 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
-            style={[styles.flexGrow1]}
+            style={[styles.mh5, styles.flexGrow1]}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
-            submitButtonStyles={[styles.mh5]}
             shouldHideFixErrorsAlert
         >
             <InputWrapper

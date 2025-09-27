@@ -934,13 +934,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
         login: string;
         currentRole: string;
-        showValidateActionModal?: string;
-        newRole?: ValueOf<typeof CONST.DELEGATE_ROLE>;
+    };
+    [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE]: {
+        login: string;
+        currentRole: string;
+        newRole: string;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
         login: string;
         role: string;
-        showValidateActionModal?: string;
+    };
+    [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM_MAGIC_CODE]: {
+        login: string;
+        role: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */

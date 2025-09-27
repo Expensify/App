@@ -772,69 +772,90 @@ function peg$parse(input, options) {
       if (s1 === peg$FAILED) {
         s1 = peg$parsegroupCurrency();
         if (s1 === peg$FAILED) {
-          s1 = peg$parsetag();
+          s1 = peg$parsetotal();
           if (s1 === peg$FAILED) {
-            s1 = peg$parsecategory();
+            s1 = peg$parsetag();
             if (s1 === peg$FAILED) {
-              s1 = peg$parseto();
+              s1 = peg$parsecategory();
               if (s1 === peg$FAILED) {
-                s1 = peg$parsetaxRate();
+                s1 = peg$parseto();
                 if (s1 === peg$FAILED) {
-                  s1 = peg$parsefrom();
+                  s1 = peg$parsetaxRate();
                   if (s1 === peg$FAILED) {
-                    s1 = peg$parseattendee();
+                    s1 = peg$parsefrom();
                     if (s1 === peg$FAILED) {
-                      s1 = peg$parsepayer();
+                      s1 = peg$parseattendee();
                       if (s1 === peg$FAILED) {
-                        s1 = peg$parseexporter();
+                        s1 = peg$parsepayer();
                         if (s1 === peg$FAILED) {
-                          s1 = peg$parsecreatedBy();
+                          s1 = peg$parseexporter();
                           if (s1 === peg$FAILED) {
-                            s1 = peg$parseassignee();
+                            s1 = peg$parsecreatedBy();
                             if (s1 === peg$FAILED) {
-                              s1 = peg$parseexpenseType();
+                              s1 = peg$parseassignee();
                               if (s1 === peg$FAILED) {
-                                s1 = peg$parsewithdrawalType();
+                                s1 = peg$parseexpenseType();
                                 if (s1 === peg$FAILED) {
-                                  s1 = peg$parsetype();
+                                  s1 = peg$parsewithdrawalType();
                                   if (s1 === peg$FAILED) {
-                                    s1 = peg$parsestatus();
+                                    s1 = peg$parsetype();
                                     if (s1 === peg$FAILED) {
-                                      s1 = peg$parsecardID();
+                                      s1 = peg$parsestatus();
                                       if (s1 === peg$FAILED) {
-                                        s1 = peg$parsefeed();
+                                        s1 = peg$parsecardID();
                                         if (s1 === peg$FAILED) {
-                                          s1 = peg$parsegroupBy();
+                                          s1 = peg$parsefeed();
                                           if (s1 === peg$FAILED) {
-                                            s1 = peg$parsereimbursable();
+                                            s1 = peg$parsegroupBy();
                                             if (s1 === peg$FAILED) {
-                                              s1 = peg$parsebillable();
+                                              s1 = peg$parsereimbursable();
                                               if (s1 === peg$FAILED) {
-                                                s1 = peg$parsepolicyID();
+                                                s1 = peg$parsebillable();
                                                 if (s1 === peg$FAILED) {
-                                                  s1 = peg$parseaction();
+                                                  s1 = peg$parsepolicyID();
                                                   if (s1 === peg$FAILED) {
-                                                    s1 = peg$parsedate();
+                                                    s1 = peg$parseaction();
                                                     if (s1 === peg$FAILED) {
-                                                      s1 = peg$parsesubmitted();
+                                                      s1 = peg$parsedate();
                                                       if (s1 === peg$FAILED) {
-                                                        s1 = peg$parseapproved();
+                                                        s1 = peg$parsesubmitted();
                                                         if (s1 === peg$FAILED) {
-                                                          s1 = peg$parsepaid();
+                                                          s1 = peg$parseapproved();
                                                           if (s1 === peg$FAILED) {
-                                                            s1 = peg$parseexported();
+                                                            s1 = peg$parsepaid();
                                                             if (s1 === peg$FAILED) {
-                                                              s1 = peg$parsewithdrawn();
+                                                              s1 = peg$parseexported();
                                                               if (s1 === peg$FAILED) {
-                                                                s1 = peg$parseposted();
+                                                                s1 = peg$parsewithdrawn();
                                                                 if (s1 === peg$FAILED) {
-                                                                  s1 = peg$parsehas();
+                                                                  s1 = peg$parseposted();
                                                                   if (s1 === peg$FAILED) {
-                                                                    s1 = peg$parseis();
+                                                                    s1 = peg$parsehas();
                                                                     if (s1 === peg$FAILED) {
-                                                                      s1 = peg$parsepurchaseCurrency();
+                                                                      s1 = peg$parseis();
                                                                       if (s1 === peg$FAILED) {
-                                                                        s1 = peg$parsepurchaseAmount();
+                                                                        s1 = peg$parsepurchaseCurrency();
+                                                                        if (s1 === peg$FAILED) {
+                                                                          s1 = peg$parsepurchaseAmount();
+                                                                          if (s1 === peg$FAILED) {
+                                                                            s1 = peg$parseamount();
+                                                                            if (s1 === peg$FAILED) {
+                                                                              s1 = peg$parsemerchant();
+                                                                              if (s1 === peg$FAILED) {
+                                                                                s1 = peg$parsedescription();
+                                                                                if (s1 === peg$FAILED) {
+                                                                                  s1 = peg$parsereportID();
+                                                                                  if (s1 === peg$FAILED) {
+                                                                                    s1 = peg$parsewithdrawalID();
+                                                                                    if (s1 === peg$FAILED) {
+                                                                                      s1 = peg$parsetitle();
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
                                                                       }
                                                                     }
                                                                   }

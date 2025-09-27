@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -27,12 +27,25 @@ function IntroSchoolPrincipalPage() {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM, {canBeMissing: true});
     const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
+
+    const hasSubmittedRef = useRef(false);
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (hasSubmittedRef.current && formState && !formState.isLoading && !formState.errors) {
+            const publicRoomReportID = isProduction ? CONST.TEACHERS_UNITE.PROD_PUBLIC_ROOM_ID : CONST.TEACHERS_UNITE.TEST_PUBLIC_ROOM_ID;
+            Navigation.dismissModalWithReport({reportID: publicRoomReportID});
+            hasSubmittedRef.current = false;
+        }
+    }, [formState, isProduction]);
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+        hasSubmittedRef.current = true;
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
         TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID, localCurrencyCode, login ?? '', accountID);
     };

@@ -5,20 +5,20 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function AmexCustomFeed() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
     const [hasError, setHasError] = useState(false);
 
@@ -27,7 +27,7 @@ function AmexCustomFeed() {
             setHasError(true);
             return;
         }
-        setAddNewCompanyCardStepAndData({
+        CompanyCards.setAddNewCompanyCardStepAndData({
             step: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.CORPORATE ? CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS : CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
             data: {
                 feedType: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
@@ -41,7 +41,7 @@ function AmexCustomFeed() {
     }, [addNewCard?.data.selectedAmexCustomFeed]);
 
     const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
@@ -87,7 +87,7 @@ function AmexCustomFeed() {
             </Text>
 
             <SelectionList
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={({value}) => {
                     setTypeSelected(value);
                     setHasError(false);

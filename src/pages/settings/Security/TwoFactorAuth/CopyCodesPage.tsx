@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -12,7 +13,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
@@ -28,7 +28,6 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
@@ -81,7 +80,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator color={theme.spinner} />
+                                    <ActivityIndicator />
                                 </View>
                             ) : (
                                 <>

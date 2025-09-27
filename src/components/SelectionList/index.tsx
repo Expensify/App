@@ -78,6 +78,8 @@ function SelectionList<TItem extends ListItem>({onScroll, shouldHideKeyboardOnSc
     );
 }
 
+// This component will be changed to SelectionListWithSections in the future.
+// related issue: https://github.com/Expensify/App/issues/65212
 SelectionList.displayName = 'SelectionList';
 
 export default SelectionList;

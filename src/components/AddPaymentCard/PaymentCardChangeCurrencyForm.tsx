@@ -6,7 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -145,7 +145,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 showScrollIndicator
                 shouldStopPropagation
                 shouldUseDynamicMaxToRenderPerBatch
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
             />
         </View>
     );
