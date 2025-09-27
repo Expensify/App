@@ -1036,11 +1036,13 @@ const translations = {
         }),
     },
     receipt: {
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
+            `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Forward receipts to <a href="mailto:${email}">${email}</a></muted-text-label>`,
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download the app</a> to scan from your phone</muted-text-label>`,
         alternativeMethodsTitle: 'Other ways to add receipts:',
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) => `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
+            `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
         desktopSubtitleMultiple: 'or drag and drop them here',
         desktopSubtitleSingle: 'or drag and drop them here',
         upload: 'Télécharger le reçu',

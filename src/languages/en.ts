@@ -1039,8 +1039,10 @@ const translations = {
         alternativeMethodsTitle: 'Other ways to add receipts:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download the app</a> to scan from your phone</muted-text-label>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Forward receipts to <a href="mailto:${email}">${email}</a></muted-text-label>`,
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) => `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
+            `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
+            `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         deniedCameraAccess: "Camera access still hasn't been granted, please follow ",
