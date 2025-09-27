@@ -29,7 +29,7 @@ function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
      * Emits when the scrolling is in progress. Also,
      * invokes the onScroll callback function from props.
      */
-    const onScroll = () => {
+    const emitOnScroll = () => {
         if (updateInProgress.current) {
             return;
         }
@@ -41,7 +41,7 @@ function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     /**
      * Emits when the scrolling has ended.
      */
-    const onScrollEnd = () => {
+    const emitOnScrollEnd = () => {
         DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
         updateInProgress.current = false;
     };
@@ -61,7 +61,7 @@ function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
      *
      */
     const handleScroll = () => {
-        onScroll();
+        emitOnScroll();
 
         const timestamp = Date.now();
 
@@ -76,7 +76,7 @@ function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
                 }
                 // Scroll has ended
                 lastScrollEvent.current = null;
-                onScrollEnd();
+                emitOnScrollEnd();
             }, 250);
         }
 
@@ -95,6 +95,7 @@ function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
+            onScroll={handleScroll}
             CellRendererComponent={CellRendererComponent}
         />
     );
