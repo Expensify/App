@@ -9,9 +9,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import type {BaseInvertedFlatListProps} from '@components/InvertedFlatList/BaseInvertedFlatList/types';
 import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -46,6 +48,8 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {
+    canShowReportRecipientLocalTime,
+    canUserPerformWriteAction,
     chatIncludesChronosWithID,
     getOriginalReportID,
     getReportLastVisibleActionCreated,
@@ -54,6 +58,7 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
+    isMoneyRequestReport,
     isTaskReport,
     isUnread,
 } from '@libs/ReportUtils';
@@ -157,6 +162,7 @@ function ReportActionsList({
     composerHeight,
     isComposerFullSize,
 }: ReportActionsListProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -190,8 +196,13 @@ function ReportActionsList({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
+
+    const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction), [parentReportAction]);
+    const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
+    const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
+    const topReportAction = sortedVisibleReportActions.at(-1);
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount);
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -204,19 +215,6 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
-
-    const onEndReached = useCallback(() => {
-        loadOlderChats(false);
-    }, [loadOlderChats]);
-
-    const onStartReached = useCallback(() => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
-            return;
-        }
-
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
-    }, [loadNewerChats]);
 
     const scrollingVerticalOffsetRef = useScrollingVerticalOffsetRef({keyboardHeight, scrollY});
 
@@ -364,6 +362,13 @@ function ReportActionsList({
         isInverted: true,
     });
 
+    const resetOnScrollToEndAfterLayout: BaseInvertedFlatListProps<OnyxTypes.ReportAction>['additionalOnScrollHandler'] = useCallback(() => {
+        if (!shouldScrollToEndAfterLayout) {
+            return;
+        }
+        setShouldScrollToEndAfterLayout(false);
+    }, [shouldScrollToEndAfterLayout]);
+
     useEffect(() => {
         if (
             scrollingVerticalOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
@@ -410,17 +415,10 @@ function ReportActionsList({
             return;
         }
 
-        const shouldScrollToEnd =
-            (isExpenseReport(report) || isTransactionThread(parentReportAction)) && isSearchTopmostFullScreenRoute() && hasNewestReportAction && !unreadMarkerReportActionID;
-
-        if (shouldScrollToEnd) {
-            setShouldScrollToEndAfterLayout(true);
-        }
-
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
 
-            if (!shouldScrollToEnd) {
+            if (!shouldScrollToEndAfterLayout) {
                 reportScrollManager.scrollToBottom();
             }
         });
@@ -726,6 +724,8 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
+    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const onLayoutInner = useCallback(
@@ -736,8 +736,9 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(false);
             }
             if (shouldScrollToEndAfterLayout) {
-                reportScrollManager.scrollToEnd();
-                setShouldScrollToEndAfterLayout(false);
+                InteractionManager.runAfterInteractions(() => {
+                    reportScrollManager.scrollToEnd();
+                });
             }
         },
         [isScrollToBottomEnabled, onLayout, reportScrollManager, shouldScrollToEndAfterLayout],
@@ -775,6 +776,26 @@ function ReportActionsList({
 
     const paddingBottom = StyleUtils.getReportPaddingBottom({composerHeight, isKeyboardActive, safePaddingBottom: unmodifiedPaddings.bottom ?? 0, isComposerFullSize});
 
+    const renderTopReportAction = () => (
+        <>
+            {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
+            <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+        </>
+    );
+
+    const onStartReached = useCallback(() => {
+        if (!isSearchTopmostFullScreenRoute()) {
+            loadNewerChats(false);
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+    }, [loadNewerChats]);
+
+    const onEndReached = useCallback(() => {
+        loadOlderChats(false);
+    }, [loadOlderChats]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -786,6 +807,7 @@ function ReportActionsList({
                 style={[styles.flex1, {paddingBottom}]}
                 fsClass={reportActionsListFSClass}
             >
+                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportAction() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
@@ -798,7 +820,11 @@ function ReportActionsList({
                     onStartReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
                     onEndReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1,
+                        shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
+                    ]}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     ListHeaderComponent={listHeaderComponent}
@@ -806,6 +832,7 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onViewableItemsChanged={onViewableItemsChanged}
+                    additionalOnScrollHandler={resetOnScrollToEndAfterLayout}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
