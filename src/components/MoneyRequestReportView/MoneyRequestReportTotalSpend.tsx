@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,9 +20,12 @@ type MoneyRequestReportTotalSpendProps = {
 
     /** Whether the report has any pending actions */
     hasPendingAction: boolean;
+
+    /** Style for the text container */
+    textContainerStyle?: StyleProp<ViewStyle>;
 };
 
-function MoneyRequestReportTotalSpend({isEmptyTransactions, totalDisplaySpend, report, hasPendingAction}: MoneyRequestReportTotalSpendProps) {
+function MoneyRequestReportTotalSpend({isEmptyTransactions, totalDisplaySpend, report, hasPendingAction, textContainerStyle}: MoneyRequestReportTotalSpendProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -29,7 +33,7 @@ function MoneyRequestReportTotalSpend({isEmptyTransactions, totalDisplaySpend, r
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.justifyContentEnd]}>
             {!isEmptyTransactions && (
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100]]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, textContainerStyle]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
                     <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold, hasPendingAction && styles.opacitySemiTransparent]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}

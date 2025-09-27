@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -21,7 +21,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -266,48 +265,17 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
 
-    const {windowWidth} = useWindowDimensions();
-    const [wrappedToTwoRows, setWrappedToTwoRows] = React.useState(false);
+    const [leftW, setLeftW] = useState(0);
+    const [rightW, setRightW] = useState(0);
+    const [parentW, setParentW] = useState(0);
 
-    // Refs to the two containers we care about
-    const leftContainerRef = useRef<View>(null);
-    const rightContainerRef = useRef<View>(null);
-
-    const measureTop = (ref: React.RefObject<View | null>): Promise<number | null> =>
-        new Promise((resolve) => {
-            if (!ref.current) {
-                resolve(null);
-                return;
-            }
-            // x, y, width, height
-            ref.current.measureInWindow((_, y /* w, h */) => resolve(y));
-        });
-
-    const computeWrap = useCallback(() => {
+    const wrappedToTwoRows = useMemo(() => {
         if (!shouldShowAddExpenseButton) {
-            setWrappedToTwoRows(false);
-            return;
+            return false;
         }
-
-        // Wait one frame so layout is settled, then measure both
-        requestAnimationFrame(() => {
-            Promise.all([measureTop(leftContainerRef), measureTop(rightContainerRef)])
-                .then(([leftY, rightY]) => {
-                    if (leftY == null || rightY == null) {
-                        return;
-                    }
-                    setWrappedToTwoRows(Math.round(leftY) !== Math.round(rightY));
-                })
-                .catch(() => {});
-        });
-    }, [shouldShowAddExpenseButton]);
-    console.log('wrappedToTwoRows', wrappedToTwoRows);
-
-    React.useEffect(() => {
-        // After a width change, wait a frame for layout to settle, then recompute
-        const id = requestAnimationFrame(() => computeWrap());
-        return () => cancelAnimationFrame(id);
-    }, [windowWidth, computeWrap]);
+        const GAP = styles.gap6.gap;
+        return leftW + rightW + GAP > parentW;
+    }, [leftW, rightW, parentW, shouldShowAddExpenseButton, styles.gap6]);
 
     if (isEmptyTransactions) {
         return (
@@ -387,6 +355,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                 })}
             </View>
             <View
+                onLayout={(e) => setParentW(e.nativeEvent.layout.width)}
                 style={[
                     styles.dFlex,
                     styles.flexRow,
@@ -401,7 +370,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
             >
                 {shouldShowAddExpenseButton && (
                     <View
-                        ref={leftContainerRef}
+                        onLayout={(e) => setLeftW(e.nativeEvent.layout.width)}
                         style={[styles.flexGrow100]}
                     >
                         <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
@@ -424,7 +393,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                 )}
                 <View
                     style={[styles.flexGrow1]}
-                    ref={rightContainerRef}
+                    onLayout={(e) => setRightW(e.nativeEvent.layout.width)}
                 >
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
@@ -458,6 +427,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
                         totalDisplaySpend={totalDisplaySpend}
                         report={report}
                         hasPendingAction={hasPendingAction}
+                        textContainerStyle={wrappedToTwoRows && [styles.justifyContentBetween, styles.w100]}
                     />
                 </View>
             </View>
