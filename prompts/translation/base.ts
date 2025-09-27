@@ -40,5 +40,7 @@ export default function (targetLang: TranslationTargetLocale): string {
         ${Object.values(LOCALE_TO_LANGUAGE_STRING)
             .map((str) => `- ${str}`)
             .join('\n')}
+
+        In the phrase "Expensify Card", treat Expensify as a proper noun, but not Card.
     `);
 }

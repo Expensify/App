@@ -144,7 +144,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
         {
             icon: Illustrations.HandCard,
-            titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
+            titleTranslationKey: 'common.expensifyCard',
             subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
             isActive: policy?.areExpensifyCardsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areExpensifyCardsEnabled,
