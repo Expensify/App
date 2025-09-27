@@ -19,6 +19,6 @@ export default function useReportFooterStyles({composerHeight, headerHeight, isC
     const paddingTop = useMemo(() => unmodifiedPaddings?.top ?? 0, [unmodifiedPaddings.top]);
 
     return useAnimatedStyle(() =>
-        StyleUtils.getReportFooterIOSStyles({keyboardHeight, paddingBottom, paddingTop, isKeyboardActive, windowHeight, composerHeight, headerHeight, isComposerFullSize}),
+        StyleUtils.getReportFooterIosStyles({keyboardHeight, paddingBottom, paddingTop, isKeyboardActive, windowHeight, composerHeight, headerHeight, isComposerFullSize}),
     );
 }
