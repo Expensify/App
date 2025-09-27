@@ -44,7 +44,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
             }),
             'deleted-action': HTMLElementModel.fromCustomModel({
-                tagName: 'alert-text',
+                tagName: 'deleted-action',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
