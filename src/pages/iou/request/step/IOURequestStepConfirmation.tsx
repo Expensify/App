@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -26,10 +27,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
@@ -43,7 +45,8 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {generateReportID, getReportOrDraftReport, isArchivedReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -55,10 +58,6 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
-import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
-import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
@@ -95,6 +94,10 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
@@ -150,7 +153,7 @@ function IOURequestStepConfirmation({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -189,7 +192,24 @@ function IOURequestStepConfirmation({
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
 
-    const receiptFilename = transaction?.filename;
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    ids.add(key);
+                }
+            }
+            return ids;
+        },
+    });
+
+    const receiptFilename = getReceiptFilenameFromTransaction(transaction);
     const receiptPath = transaction?.receipt?.source;
     const isEditingReceipt = hasReceipt(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
@@ -448,22 +468,7 @@ function IOURequestStepConfirmation({
                     }
                 };
 
-                // Native optimization: Use checkFileExists instead of readFileAsync for memory efficiency
-                return checkFileExists(item.receipt?.source).then((exists) => {
-                    if (!exists || !item.receipt) {
-                        onFailure();
-                        return;
-                    }
-
-                    const receipt = {
-                        ...item.receipt,
-                        uri: item.receipt.source, // Add uri property for isFileUploadable compatibility
-                        filename: item.filename,
-                        name: item.receipt.name ?? item.filename,
-                    };
-
-                    onSuccess(receipt);
-                });
+                return validateReceiptFile(item, onSuccess, onFailure);
             }),
         ).then(() => {
             if (isScanFilesCanBeRead) {
@@ -499,6 +504,8 @@ function IOURequestStepConfirmation({
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
+                const isLinkedTrackedExpenseReportArchived =
+                    !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
 
                 if (isTestDriveReceipt) {
                     completeTestDriveTask();
@@ -544,6 +551,7 @@ function IOURequestStepConfirmation({
                         isTestDrive: item.receipt?.isTestDriveReceipt,
                         originalTransactionID: item.comment?.originalTransactionID,
                         source: item.comment?.source,
+                        isLinkedTrackedExpenseReportArchived,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
@@ -566,6 +574,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             backToReport,
             shouldGenerateTransactionThreadReport,
+            archivedReportsIdSet,
         ],
     );
 
@@ -621,6 +630,9 @@ function IOURequestStepConfirmation({
                 return;
             }
             transactions.forEach((item, index) => {
+                const isLinkedTrackedExpenseReportArchived =
+                    !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
+
                 trackExpenseIOUActions({
                     report,
                     isDraftPolicy,
@@ -656,6 +668,7 @@ function IOURequestStepConfirmation({
                         linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
                         customUnitRateID,
                         attendees: item.comment?.attendees,
+                        isLinkedTrackedExpenseReportArchived,
                     },
                     accountantParams: {
                         accountant: item.accountant,
@@ -679,6 +692,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             isDraftPolicy,
             isManualDistanceRequest,
+            archivedReportsIdSet,
         ],
     );
 

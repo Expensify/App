@@ -174,6 +174,9 @@ type Receipt = {
     /** Path of the receipt file */
     source?: ReceiptSource;
 
+    /** URI of the receipt file (for upload/display compatibility) */
+    uri?: string;
+
     /** Name of receipt file */
     filename?: string;
 
