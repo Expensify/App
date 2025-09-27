@@ -1906,7 +1906,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             containerStyle: {paddingBottom},
         };
     },
-    getReportFooterIOSStyles: ({
+    getReportFooterIosStyles: ({
         headerHeight,
         isKeyboardActive,
         keyboardHeight,
@@ -1948,7 +1948,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             height: getComposerHeight(),
         };
     },
-    getOfflineIndicatorStyles: (keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
+    getOfflineIndicatorKeyboardHandlingStyles: (keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
         'worklet';
 
         return {

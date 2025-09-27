@@ -4,10 +4,12 @@ import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibl
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 
-export default function useOfflineIndicatorInnerStyles(): ViewStyle {
+function useOfflineIndicatoKeyboardHandlingStyles(): ViewStyle {
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
     const {paddingBottom} = useSafeAreaPaddings(true);
 
-    return useAnimatedStyle(() => StyleUtils.getOfflineIndicatorStyles(keyboardHeight, paddingBottom));
+    return useAnimatedStyle(() => StyleUtils.getOfflineIndicatorKeyboardHandlingStyles(keyboardHeight, paddingBottom));
 }
+
+export default useOfflineIndicatoKeyboardHandlingStyles;

@@ -10,7 +10,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import useOfflineIndicatorInnerStyles from './useOfflineIndicatorInnerStyles';
+import useOfflineIndicatoKeyboardHandlingStyles from './useOfflineIndicatoKeyboardHandlingStyles';
 
 type ScreenWrapperOfflineIndicatorsProps = {
     /** Styles for the offline indicator */
@@ -53,7 +53,6 @@ function ScreenWrapperOfflineIndicators({
     const {isOffline} = useNetwork();
 
     const {insets} = useSafeAreaPaddings(true);
-    const offlineIndicatorInnerStyles = useOfflineIndicatorInnerStyles();
     const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
     const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
 
@@ -64,7 +63,7 @@ function ScreenWrapperOfflineIndicators({
      * By default, the background color of the small screen offline indicator is translucent.
      * If `isOfflineIndicatorTranslucent` is set to true, an opaque background color is applied.
      */
-    const smallScreenOfflineIndicatorBackgroundStyle = useMemo(() => {
+    const smallScreenBackgroundStyle = useMemo(() => {
         const showOfflineIndicatorBackground = !extraContent && (isSoftKeyNavigation || isOffline);
         if (!showOfflineIndicatorBackground) {
             return undefined;
@@ -80,7 +79,7 @@ function ScreenWrapperOfflineIndicators({
      * two overlapping layers of translucent background.
      * If the device does not have soft keys, the bottom safe area padding is applied as `paddingBottom`.
      */
-    const smallScreenOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
+    const smallScreenBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding: false,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
@@ -91,19 +90,9 @@ function ScreenWrapperOfflineIndicators({
      * It always applies the bottom safe area padding as well as the background style, if the device has soft keys.
      * In this case, we want the whole container (including the bottom safe area padding) to have translucent/opaque background.
      */
-    const smallScreenOfflineIndicatorContainerStyle = useMemo(
-        () => [
-            smallScreenOfflineIndicatorBottomSafeAreaStyle,
-            shouldSmallScreenOfflineIndicatorStickToBottom && styles.stickToBottom,
-            !isSoftKeyNavigation && smallScreenOfflineIndicatorBackgroundStyle,
-        ],
-        [
-            smallScreenOfflineIndicatorBottomSafeAreaStyle,
-            shouldSmallScreenOfflineIndicatorStickToBottom,
-            styles.stickToBottom,
-            isSoftKeyNavigation,
-            smallScreenOfflineIndicatorBackgroundStyle,
-        ],
+    const smallScreenContainerStyle = useMemo(
+        () => [smallScreenBottomSafeAreaStyle, shouldSmallScreenOfflineIndicatorStickToBottom && styles.stickToBottom, !isSoftKeyNavigation && smallScreenBackgroundStyle],
+        [smallScreenBottomSafeAreaStyle, shouldSmallScreenOfflineIndicatorStickToBottom, styles.stickToBottom, isSoftKeyNavigation, smallScreenBackgroundStyle],
     );
 
     /**
@@ -111,18 +100,23 @@ function ScreenWrapperOfflineIndicators({
      * If the device has soft keys, we only want to apply the background style to the small screen offline indicator component,
      * rather than the whole container, because otherwise the navigation bar would be extra opaque, since it already has a translucent background.
      */
-    const smallScreenOfflineIndicatorStyle = useMemo(
-        () => [styles.pl5, isSoftKeyNavigation && smallScreenOfflineIndicatorBackgroundStyle, offlineIndicatorStyle],
-        [isSoftKeyNavigation, smallScreenOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
+    const smallScreenStyle = useMemo(
+        () => [styles.pl5, isSoftKeyNavigation && smallScreenBackgroundStyle, offlineIndicatorStyle],
+        [isSoftKeyNavigation, smallScreenBackgroundStyle, offlineIndicatorStyle, styles.pl5],
     );
+
+    /**
+     * This style includes the styles applied to the small screen offline indicator component when the keyboard is interacted with.
+     */
+    const keyboardHandlingStyles = useOfflineIndicatoKeyboardHandlingStyles();
 
     return (
         <>
             {shouldShowSmallScreenOfflineIndicator && (
                 <>
-                    {!isOffline && (
-                        <Animated.View style={[smallScreenOfflineIndicatorContainerStyle, offlineIndicatorInnerStyles]}>
-                            <OfflineIndicator style={smallScreenOfflineIndicatorStyle} />
+                    {isOffline && (
+                        <Animated.View style={[smallScreenContainerStyle, keyboardHandlingStyles]}>
+                            <OfflineIndicator style={smallScreenStyle} />
                             {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                         </Animated.View>
                     )}
