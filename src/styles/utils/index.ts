@@ -1906,7 +1906,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             containerStyle: {paddingBottom},
         };
     },
-    getReportFooterIosStyles: ({
+    getReportFooterIosKeyboardHandlingStyles: ({
         headerHeight,
         isKeyboardActive,
         keyboardHeight,

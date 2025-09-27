@@ -8,7 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type UseReportFooterStylesParams from './types';
 
-export default function useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize}: UseReportFooterStylesParams): ViewStyle {
+function useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize}: UseReportFooterStylesParams): ViewStyle {
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
@@ -19,6 +19,8 @@ export default function useReportFooterStyles({composerHeight, headerHeight, isC
     const paddingTop = useMemo(() => unmodifiedPaddings?.top ?? 0, [unmodifiedPaddings.top]);
 
     return useAnimatedStyle(() =>
-        StyleUtils.getReportFooterIosStyles({keyboardHeight, paddingBottom, paddingTop, isKeyboardActive, windowHeight, composerHeight, headerHeight, isComposerFullSize}),
+        StyleUtils.getReportFooterIosKeyboardHandlingStyles({keyboardHeight, paddingBottom, paddingTop, isKeyboardActive, windowHeight, composerHeight, headerHeight, isComposerFullSize}),
     );
 }
+
+export default useReportFooterStyles;
