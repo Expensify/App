@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
+    // eslint-disable-next-line rulesdir/no-default-id-values
     return {...option, reportID: `${option.reportID ?? -1}`, selected: true, isSelected: true};
 }
 
