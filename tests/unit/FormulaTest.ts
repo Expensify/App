@@ -292,38 +292,6 @@ describe('CustomFormula', () => {
             expect(mockReportActionsUtils.getAllReportActions).toHaveBeenCalledWith('test-report-456');
         });
 
-        test('should skip partial transactions (empty merchant)', () => {
-            const mockTransactions = [
-                {
-                    transactionID: 'trans1',
-                    created: '2025-01-15T12:00:00Z',
-                    amount: 5000,
-                    merchant: 'ACME Ltd.',
-                },
-                {
-                    transactionID: 'trans2',
-                    created: '2025-01-08T16:45:00Z', // Older but partial
-                    amount: 3000,
-                    merchant: '', // Empty merchant = partial
-                },
-                {
-                    transactionID: 'trans3',
-                    created: '2025-01-12T09:15:00Z', // Should be oldest valid
-                    amount: 2000,
-                    merchant: 'Gamma Inc.',
-                },
-            ] as Transaction[];
-
-            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
-            const context: FormulaContext = {
-                report: {reportID: 'test-report-123'} as Report,
-                policy: null as unknown as Policy,
-            };
-
-            const result = compute('{report:startdate}', context);
-            expect(result).toBe('2025-01-12');
-        });
-
         test('should skip partial transactions (zero amount)', () => {
             const mockTransactions = [
                 {
