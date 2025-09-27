@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import type {PropsWithChildren} from 'react';
 import React, {useMemo, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
@@ -144,8 +143,6 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     return <KeyboardDismissibleFlatListContext.Provider value={value}>{children}</KeyboardDismissibleFlatListContext.Provider>;
 }
 
-KeyboardDismissibleFlatListContextProvider.propTypes = {
-    children: PropTypes.node.isRequired,
-};
+KeyboardDismissibleFlatListContextProvider.displayName = 'KeyboardDismissibleFlatListContextProvider';
 
 export {KeyboardDismissibleFlatListContext, KeyboardDismissibleFlatListContextProvider};
