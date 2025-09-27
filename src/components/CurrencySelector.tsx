@@ -1,13 +1,16 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import React, {forwardRef, useEffect, useRef} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceConfirmationNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CurrencySelectorProps = {
@@ -15,10 +18,10 @@ type CurrencySelectorProps = {
     errorText?: string;
 
     /** Callback called when the currency changes. */
-    onInputChange?: (value?: string) => void;
+    onInputChange?: (value?: string, key?: string) => void;
 
     /** Current selected currency  */
-    value?: ValueOf<typeof CONST.CURRENCY>;
+    value?: string;
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -28,11 +31,29 @@ type CurrencySelectorProps = {
     onBlur?: () => void;
 
     /** object to get route details from */
-    currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY;
+    currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY | typeof ROUTES.CURRENCY_SELECTION;
+
+    /** Label for the input */
+    label?: string;
+
+    /** Any additional styles to apply on the outer element */
+    style?: StyleProp<ViewStyle>;
+
+    /** Whether to show currency symbol in the title */
+    shouldShowCurrencySymbol?: boolean;
 };
 
 function CurrencySelector(
-    {errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY}: CurrencySelectorProps,
+    {
+        errorText = '',
+        value: currency,
+        onInputChange = () => {},
+        onBlur,
+        currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
+        label,
+        style,
+        shouldShowCurrencySymbol = false,
+    }: CurrencySelectorProps,
     ref: ForwardedRef<View>,
 ) {
     const styles = useThemeStyles();
@@ -42,6 +63,10 @@ function CurrencySelector(
 
     const didOpenCurrencySelector = useRef(false);
     const isFocused = useIsFocused();
+
+    const route = useRoute<PlatformStackRouteProp<WorkspaceConfirmationNavigatorParamList, typeof SCREENS.CURRENCY.SELECTION>>();
+    const backTo = route.params?.backTo;
+
     useEffect(() => {
         if (!isFocused || !didOpenCurrencySelector.current) {
             return;
@@ -59,16 +84,21 @@ function CurrencySelector(
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon
-            title={currency}
+            title={shouldShowCurrencySymbol && currency ? `${currency} - ${getCurrencySymbol(currency)}` : currency}
             ref={ref}
             descriptionTextStyle={currencyTitleDescStyle}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            description={translate('common.currency')}
+            description={label ?? translate('common.currency')}
             errorText={errorText}
             onPress={() => {
                 didOpenCurrencySelector.current = true;
-                Navigation.navigate(currencySelectorRoute);
+                if (currencySelectorRoute === ROUTES.CURRENCY_SELECTION) {
+                    Navigation.goBack(currencySelectorRoute.getRoute(backTo));
+                } else {
+                    Navigation.navigate(currencySelectorRoute as typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY);
+                }
             }}
+            style={style}
         />
     );
 }
