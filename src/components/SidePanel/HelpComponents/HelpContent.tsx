@@ -1,5 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderGap from '@components/HeaderGap';
 import ScrollView from '@components/ScrollView';
@@ -18,6 +19,7 @@ import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import HelpHeader from './HelpHeader';
 
 type HelpContentProps = {
@@ -44,14 +46,25 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
-    const [parentIOUReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
-        canBeMissing: true,
-        selector: (actions) =>
-            Object.values(actions ?? {})
+
+    const getParentIOUReportActionSelector = useCallback(
+        (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
+            return Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
                 .filter(isMoneyRequestAction)
-                .at(0),
-    });
+                .at(0);
+        },
+        [report?.parentReportActionID],
+    );
+
+    const [parentIOUReportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
+        {
+            canBeMissing: true,
+            selector: getParentIOUReportActionSelector,
+        },
+        [getParentIOUReportActionSelector],
+    );
 
     const transactionID = useMemo(() => {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);

@@ -4,9 +4,9 @@ import React, {useState} from 'react';
 import type {ComponentType} from 'react';
 import {measureRenders} from 'reassure';
 import type {KeyboardStateContextValue} from '@components/KeyboardStateProvider/type';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import variables from '@styles/variables';
 
 type SelectionListWrapperProps = {

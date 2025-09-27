@@ -2,11 +2,9 @@ import React from 'react';
 import {InteractionManager} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionList/types';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -40,7 +38,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {removeTransaction} = useSearchContext();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -48,7 +45,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -162,11 +158,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
-    const createReport = () => {
-        const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
-        handleRegularReportSelection({value: createdReportID});
-    };
-
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
@@ -178,7 +169,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isEditing={isEditing}
             isUnreported={isUnreported}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
-            createReport={createReport}
         />
     );
 }
