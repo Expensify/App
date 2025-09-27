@@ -4,9 +4,9 @@
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
 import React, {forwardRef, useRef} from 'react';
-import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
+import type {FlatListProps, NativeScrollEvent, NativeSyntheticEvent, CellRendererProps as RNCellRendererProps} from 'react-native';
 import {FlatList} from 'react-native';
-import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
+import type {AnimatedProps, ILayoutAnimationBuilder, ScrollHandlerProcessed} from 'react-native-reanimated';
 import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
 // eslint-disable-next-line deprecation/deprecation
@@ -51,8 +51,10 @@ type AnimatedFlatListComplement<T> = {
 } & FlatList<T>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent'> & {
+type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll'> & {
     CellRendererComponent?: CellRendererComponentProps<Item>;
+    onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
+    additionalOnScrollHandler?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
 // We need explicit any here, because this is the exact same type that is used in React Native types.

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
-import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
@@ -21,8 +21,17 @@ function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: n
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
-function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
+function BaseInvertedFlatList<T>({
+    ref,
+    shouldEnableAutoScrollToTopThreshold,
+    initialScrollKey,
+    data,
+    onStartReached,
+    additionalOnScrollHandler,
+    renderItem,
+    keyExtractor = defaultKeyExtractor,
+    ...restProps
+}: BaseInvertedFlatListProps<T>) {
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
@@ -118,16 +127,17 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
     });
 
     return (
-        <KeyboardDismissibleFlatList
+        <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...restProps}
             ref={listRef}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
             data={displayedData}
-            onStartReached={handleStartReached}
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
+            onStartReached={handleStartReached}
+            additionalOnScrollHandler={additionalOnScrollHandler}
         />
     );
 }

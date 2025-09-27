@@ -48,7 +48,7 @@ export default function useReportUnreadMessageScrollTracking({
     });
     const wasManuallySetRef = useRef(false);
 
-    const setVisibility = useCallback((visible: boolean) => {
+    const updateFloatingMessageCounterVisibility = useCallback((visible: boolean) => {
         wasManuallySetRef.current = true;
         setIsFloatingMessageCounterVisible(visible);
 
@@ -145,7 +145,7 @@ export default function useReportUnreadMessageScrollTracking({
 
     return {
         isFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible: setVisibility,
+        setIsFloatingMessageCounterVisible: updateFloatingMessageCounterVisibility,
         onViewableItemsChanged,
     };
 }

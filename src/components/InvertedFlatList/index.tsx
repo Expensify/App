@@ -1,7 +1,5 @@
 import React, {useEffect, useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
-import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList/types';
@@ -9,11 +7,10 @@ import CellRendererComponent from './CellRendererComponent';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
+function InvertedFlatList<T>({ref, onScroll, ...props}: BaseInvertedFlatListProps<T>) {
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
-    const {scrollY} = useKeyboardDismissibleFlatListValues();
 
     useEffect(
         () => () => {
@@ -60,7 +57,7 @@ function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
      * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
      *
      */
-    const handleScroll = () => {
+    const emitScrollEvents: BaseInvertedFlatListProps<T>['additionalOnScrollHandler'] = () => {
         emitOnScroll();
 
         const timestamp = Date.now();
@@ -83,19 +80,13 @@ function InvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
         lastScrollEvent.current = timestamp;
     };
 
-    useAnimatedReaction(
-        () => scrollY.get(),
-        () => {
-            runOnJS(handleScroll)();
-        },
-    );
-
     return (
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            onScroll={handleScroll}
+            onScroll={onScroll}
+            additionalOnScrollHandler={emitScrollEvents}
             CellRendererComponent={CellRendererComponent}
         />
     );

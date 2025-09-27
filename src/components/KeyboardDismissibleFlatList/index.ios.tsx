@@ -1,13 +1,21 @@
 import type {ForwardedRef} from 'react';
 import {forwardRef, useEffect} from 'react';
 import type {FlatList} from 'react-native';
-import {useAnimatedProps} from 'react-native-reanimated';
+import {useAnimatedProps, useAnimatedScrollHandler, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
 import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatListValues';
 
-function KeyboardDismissibleFlatList<T>(props: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
-    const {keyboardHeight, keyboardOffset, onScroll, setListBehavior} = useKeyboardDismissibleFlatListValues();
+function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, additionalOnScrollHandler, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
+    const {keyboardHeight, keyboardOffset, onScroll: onScrollHandleKeyboard, setListBehavior} = useKeyboardDismissibleFlatListValues();
+
+    const additionalOnScroll = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            additionalOnScrollHandler?.(event);
+        },
+    });
+
+    const onScroll = useComposedEventHandler([onScrollHandleKeyboard, additionalOnScroll, onScrollProp ?? null]);
 
     const invertedListAnimatedProps = useAnimatedProps(() => {
         return {
@@ -34,15 +42,15 @@ function KeyboardDismissibleFlatList<T>(props: AnimatedFlatListWithCellRendererP
     });
 
     useEffect(() => {
-        setListBehavior(props.inverted ? 'inverted' : 'regular');
-    }, [props.inverted, setListBehavior]);
+        setListBehavior(restProps.inverted ? 'inverted' : 'regular');
+    }, [restProps.inverted, setListBehavior]);
 
     return (
         <AnimatedFlatListWithCellRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...restProps}
             ref={ref}
-            animatedProps={props.inverted ? invertedListAnimatedProps : regularListAnimatedProps}
+            animatedProps={restProps.inverted ? invertedListAnimatedProps : regularListAnimatedProps}
             automaticallyAdjustContentInsets={false}
             contentInsetAdjustmentBehavior="never"
             onScroll={onScroll}
