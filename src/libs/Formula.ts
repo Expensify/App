@@ -299,6 +299,9 @@ function applyFunctions(value: string, functions: string[]): string {
             case 'domain':
                 result = getDomainName(result);
                 break;
+            case 'leftpad':
+                result = leftPadString(result, args);
+                break;
             default:
                 // Unknown function, leave value as is
                 break;
@@ -349,6 +352,20 @@ function getSubstring(value: string, args: string[]): string {
     }
 
     return value.substring(start);
+}
+
+/**
+ * Left-pad a string to a given length with a specified character
+ */
+function leftPadString(value: string, args: string[]): string {
+    const char = args.at(0) ?? ' ';
+    const length = args.at(1) ? parseInt(args.at(1) ?? '', 10) : undefined;
+
+    if (!length || length <= value.length) {
+        return value;
+    }
+
+    return value.padStart(length, char);
 }
 
 /**
