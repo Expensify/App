@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import BaseSelectionList from './BaseSelectionListWithSections';
 import type {ListItem, SelectionListProps} from './types';
 
-function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, textInputIcon, ref, ...props}: SelectionListProps<TItem>) {
+function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
