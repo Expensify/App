@@ -1,21 +1,15 @@
 import type {ForwardedRef} from 'react';
 import {forwardRef, useEffect} from 'react';
 import type {FlatList} from 'react-native';
-import {useAnimatedProps, useAnimatedScrollHandler, useComposedEventHandler} from 'react-native-reanimated';
+import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
 import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatListValues';
 
-function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, regularOnScrollHandler, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
+function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
     const {keyboardHeight, keyboardOffset, onScroll: onScrollHandleKeyboard, setListBehavior} = useKeyboardDismissibleFlatListValues();
 
-    const additionalOnScroll = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            regularOnScrollHandler?.(event);
-        },
-    });
-
-    const onScroll = useComposedEventHandler([onScrollHandleKeyboard, additionalOnScroll, onScrollProp ?? null]);
+    const onScroll = useComposedEventHandler([onScrollHandleKeyboard, onScrollProp ?? null]);
 
     const invertedListAnimatedProps = useAnimatedProps(() => {
         return {
@@ -50,10 +44,10 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, regularOnScroll
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={ref}
+            onScroll={onScroll}
             animatedProps={restProps.inverted ? invertedListAnimatedProps : regularListAnimatedProps}
             automaticallyAdjustContentInsets={false}
             contentInsetAdjustmentBehavior="never"
-            onScroll={onScroll}
         />
     );
 }

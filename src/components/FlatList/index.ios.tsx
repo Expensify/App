@@ -1,20 +1,35 @@
 import React, {useCallback, useState} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import {useComposedEventHandler} from 'react-native-reanimated';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
 import type {CustomFlatListProps} from './types';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
-function CustomFlatList<T>({ref, maintainVisibleContentPosition: maintainVisibleContentPositionProp, enableAnimatedKeyboardDismissal = false, ...restProps}: CustomFlatListProps<T>) {
+function CustomFlatList<T>({
+    ref,
+    maintainVisibleContentPosition: maintainVisibleContentPositionProp,
+    enableAnimatedKeyboardDismissal = false,
+    onMomentumScrollBegin,
+    onMomentumScrollEnd,
+    ...restProps
+}: CustomFlatListProps<T>) {
     const [isScrolling, setIsScrolling] = useState(false);
 
-    const handleScrollBegin = useCallback(() => {
-        setIsScrolling(true);
-    }, []);
+    const handleScrollBegin = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onMomentumScrollBegin?.(event);
+            setIsScrolling(true);
+        },
+        [onMomentumScrollBegin],
+    );
 
-    const handleScrollEnd = useCallback(() => {
-        setIsScrolling(false);
-    }, []);
+    const handleScrollEnd = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onMomentumScrollEnd?.(event);
+            setIsScrolling(false);
+        },
+        [onMomentumScrollEnd],
+    );
 
     const maintainVisibleContentPosition = isScrolling ? undefined : maintainVisibleContentPositionProp;
 

@@ -3,6 +3,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
+import useMomentumScrollEvents from '@hooks/useMomentumScrollEvents';
 import {isMobileSafari} from '@libs/Browser';
 import type {CustomFlatListProps} from './types';
 
@@ -42,7 +43,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, regularOnScrollHandler, ref, ...props}: CustomFlatListProps<TItem>) {
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll: onScrollProp, ref, ...props}: CustomFlatListProps<TItem>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -222,12 +223,14 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         };
     }, []);
 
-    const onScrollInternal = useCallback(
+    const emitScrollEvents = useMomentumScrollEvents();
+    const handleScroll = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onScrollProp?.(event);
             prepareForMaintainVisibleContentPosition();
-            regularOnScrollHandler?.(event);
+            emitScrollEvents();
         },
-        [prepareForMaintainVisibleContentPosition, regularOnScrollHandler],
+        [emitScrollEvents, onScrollProp, prepareForMaintainVisibleContentPosition],
     );
 
     return (
@@ -236,7 +239,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             {...props}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             horizontal={horizontal}
-            onScroll={onScrollInternal}
+            onScroll={handleScroll}
             scrollEventThrottle={1}
             ref={onRef}
             onLayout={(e) => {
