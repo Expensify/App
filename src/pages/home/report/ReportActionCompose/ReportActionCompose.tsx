@@ -579,7 +579,7 @@ function ReportActionCompose({
                             inputPlaceholder={inputPlaceholder}
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
-                            onFilePasted={(files) => validateAttachments({files})}
+                            onPasteFile={(files) => validateAttachments({files})}
                             onCleared={submitForm}
                             disabled={isBlockedFromConcierge}
                             setIsCommentEmpty={setIsCommentEmpty}
