@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -171,7 +172,7 @@ function TransactionItemRow({
 
     const missingFieldError = useMemo(() => {
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -181,14 +182,14 @@ function TransactionItemRow({
                 error = translate('violations.reviewRequired');
             } else if (amountMissing) {
                 error = translate('iou.missingAmount');
-            } else if (merchantMissing) {
+            } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
             } else if (isCustomUnitOutOfPolicy) {
                 error = translate('violations.customUnitOutOfPolicy');
             }
             return error;
         }
-    }, [transactionItem, translate]);
+    }, [report, transactionItem, translate]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({
