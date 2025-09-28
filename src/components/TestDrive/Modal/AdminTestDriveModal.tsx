@@ -24,16 +24,17 @@ function AdminTestDriveModal() {
 
     const skipTestDrive = () => {
         Log.hmmm('[AdminTestDriveModal] Skip test drive function called');
-        InteractionManager.runAfterInteractions(() => {
-            Log.hmmm('[AdminTestDriveModal] Running after interactions');
-            if (!onboardingReport || !isAdminRoom(onboardingReport)) {
+        Navigation.dismissModal();
+
+        Log.hmmm('[AdminTestDriveModal] Running after interactions');
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (!isAdminRoom(onboardingReport)) {
                 Log.hmmm('[AdminTestDriveModal] Not an admin room');
-                Navigation.dismissModal();
                 return;
             }
 
-            Log.hmmm('[AdminTestDriveModal] Navigating to report', {reportID: onboardingReport.reportID});
-            Navigation.dismissModalWithReport({reportID: onboardingReport.reportID});
+            Log.hmmm('[AdminTestDriveModal] Navigating to report', {reportID: onboardingReport?.reportID});
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingReport?.reportID));
         });
     };
 
