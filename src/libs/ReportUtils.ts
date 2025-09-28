@@ -4631,7 +4631,7 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
     const reportTransactions = transactions ?? getReportTransactions(iouReportID);
 
-    return reportTransactions.some(hasMissingSmartscanFieldsTransactionUtils);
+    return reportTransactions.some((transaction) => hasMissingSmartscanFieldsTransactionUtils(transaction));
 }
 
 /**
