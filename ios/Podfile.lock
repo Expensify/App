@@ -426,7 +426,7 @@ PODS:
   - onfido-react-native-sdk (15.1.0):
     - Onfido (~> 32.6.0)
     - React
-  - Plaid (5.6.0)
+  - Plaid (6.4.0)
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
     - PromisesObjC (= 2.4.0)
@@ -2179,11 +2179,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-plaid-link-sdk (11.11.0):
+  - react-native-plaid-link-sdk (12.5.3):
     - DoubleConversion
     - glog
     - hermes-engine
-    - Plaid (~> 5.6.0)
+    - Plaid (~> 6.4.0)
     - RCT-Folly (= 2024.11.18.00)
     - RCTRequired
     - RCTTypeSafety
@@ -3784,7 +3784,7 @@ SPEC CHECKSUMS:
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: 25d7d29890ca96e7faf79c84e2d3a33cd8fb8631
   onfido-react-native-sdk: 1cdc60cfc65e996d7544e1db1201a52cd0af4047
-  Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
+  Plaid: 252a1910d0ad030f27043925236be14a852c9bb2
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   pusher-websocket-react-native: e40c49a1e4ec96d4157375aebcf44943f0f8f62f
@@ -3838,7 +3838,7 @@ SPEC CHECKSUMS:
   react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
   react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
-  react-native-plaid-link-sdk: e83dc18fa6752fcfb1a9bbe995f78a8a7c659fe1
+  react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
   react-native-safe-area-context: 6cec90ce53951d3b52dc73e873323a4a7662fc0c
   react-native-view-shot: 70a8e604c289cc67324011554c63ee87dca04a06
