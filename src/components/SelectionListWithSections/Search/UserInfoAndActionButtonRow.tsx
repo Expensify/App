@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
