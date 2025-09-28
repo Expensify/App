@@ -414,9 +414,15 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
             return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
         }
 
-        // Check if format is a valid currency code (e.g., USD, EUR)
-        if (format && isValidCurrencyCode(format)) {
-            return convertToDisplayString(absoluteAmount, format);
+        // Check if format is a valid currency code (e.g., USD, EUR, eur)
+        // For invalid codes, falls back to '0.00' to match backend behavior
+        const normalizedFormat = format?.trim().toUpperCase();
+        if (normalizedFormat) {
+            if (isValidCurrencyCode(normalizedFormat)) {
+                return convertToDisplayString(absoluteAmount, normalizedFormat);
+            }
+
+            return '0.00';
         }
 
         if (currency && isValidCurrencyCode(currency)) {
