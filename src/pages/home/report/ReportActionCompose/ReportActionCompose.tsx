@@ -524,7 +524,7 @@ function ReportActionCompose({
                               reportID,
                           });
                 const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-                setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
+                setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true, file.type);
                 setMoneyRequestParticipantsFromReport(newTransactionID, report);
             });
             Navigation.navigate(
