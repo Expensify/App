@@ -8,6 +8,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from '@src/pages/home/report/ReportActionsList';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
@@ -68,7 +69,6 @@ beforeAll(() =>
 );
 
 const mockOnLayout = jest.fn();
-const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
 
@@ -106,7 +106,7 @@ function ReportActionsListWrapper() {
                         sortedVisibleReportActions={reportActions}
                         report={report}
                         onLayout={mockOnLayout}
-                        onScroll={mockOnScroll}
+                        composerHeight={CONST.CHAT_FOOTER_MIN_HEIGHT}
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
