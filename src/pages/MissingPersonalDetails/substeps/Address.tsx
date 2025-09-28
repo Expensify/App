@@ -101,7 +101,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             return;
         }
         if (addressPartKey === INPUT_IDS.COUNTRY) {
-            setCurrentCountry(getCountryCode(addressPart) as Country | '');
+            setCurrentCountry(getCountryCode(addressPart)!);
             setState('');
             setCity('');
             setZipcode('');
