@@ -126,7 +126,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isEmptyReportSelected = isEmpty && isGroupByReports && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactions.length && transactions.length > 0);
+    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
     const [isExpanded, setIsExpanded] = useState(false);

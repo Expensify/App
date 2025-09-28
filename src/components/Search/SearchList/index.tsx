@@ -38,6 +38,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -201,7 +202,8 @@ function SearchList({
     const totalItems = useMemo(() => {
         return data.reduce((acc, item) => {
             if ('transactions' in item && item.transactions?.length) {
-                return acc + item.transactions.length;
+                const transactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
+                return acc + transactions.length;
             }
             return acc + 1;
         }, 0);
