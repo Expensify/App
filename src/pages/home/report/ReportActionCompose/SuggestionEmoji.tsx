@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -10,7 +9,6 @@ import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
 type SuggestionsValue = {
@@ -38,10 +36,17 @@ const defaultSuggestionsValues: SuggestionsValue = {
     shouldShowSuggestionMenu: false,
 };
 
-function SuggestionEmoji(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, resetKeyboardInput, measureParentContainerAndReportCursor, isComposerFocused}: SuggestionEmojiProps,
-    ref: ForwardedRef<SuggestionsRef>,
-) {
+function SuggestionEmoji({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    isAutoSuggestionPickerLarge,
+    resetKeyboardInput,
+    measureParentContainerAndReportCursor,
+    isComposerFocused,
+    ref,
+}: SuggestionEmojiProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, selector: getPreferredSkinToneIndex});
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
@@ -222,4 +227,4 @@ function SuggestionEmoji(
 
 SuggestionEmoji.displayName = 'SuggestionEmoji';
 
-export default forwardRef(SuggestionEmoji);
+export default SuggestionEmoji;

@@ -1186,7 +1186,7 @@ Use hooks whenever possible, avoid using HOCs.
 
 > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
 
-Onyx now provides a `useOnyx` hook that should be used over `withOnyx` HOC.
+Onyx provides a `useOnyx` hook that should be used over the deprecated `withOnyx` HOC.
 
 ```tsx
 // BAD

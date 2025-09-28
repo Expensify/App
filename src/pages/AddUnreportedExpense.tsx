@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -7,8 +7,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -56,39 +56,32 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const session = useSession();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
-    const getUnreportedTransactions = useCallback(
-        (transactions: OnyxCollection<Transaction>) => {
-            if (!transactions) {
-                return [];
+    function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
+        if (!transactions) {
+            return [];
+        }
+        return Object.values(transactions || {}).filter((item) => {
+            const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+            if (!isUnreported) {
+                return false;
             }
-            return Object.values(transactions || {}).filter((item) => {
-                const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
-                if (!isUnreported) {
-                    return false;
-                }
 
-                if (isPerDiemRequest(item)) {
-                    // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
-                    const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
-                    const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
+            if (isPerDiemRequest(item)) {
+                // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
+                const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
+                const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
 
-                    return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
-                }
+                return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
+            }
 
-                return true;
-            });
-        },
-        [policy],
-    );
+            return true;
+        });
+    }
 
-    const [transactions = getEmptyArray<Transaction>()] = useOnyx(
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        {
-            selector: getUnreportedTransactions,
-            canBeMissing: true,
-        },
-        [getUnreportedTransactions],
-    );
+    const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => getUnreportedTransactions(_transactions),
+        canBeMissing: true,
+    });
 
     const fetchMoreUnreportedTransactions = () => {
         if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {

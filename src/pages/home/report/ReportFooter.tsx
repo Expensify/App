@@ -1,3 +1,4 @@
+import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
@@ -23,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
-import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
@@ -100,18 +100,7 @@ function ReportFooter({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
-        selector: (dateString) => {
-            if (!dateString) {
-                return false;
-            }
-            try {
-                return new Date(dateString) >= new Date();
-            } catch (error) {
-                // If the NVP is malformed, we'll assume the user is not blocked from chat. This is not expected, so if it happens we'll log an alert.
-                Log.alert(`[${CONST.ERROR.ENSURE_BUG_BOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
-                return false;
-            }
-        },
+        selector: isBlockedFromChatSelector,
         canBeMissing: true,
     });
 

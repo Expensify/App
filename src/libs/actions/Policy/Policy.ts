@@ -119,7 +119,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
@@ -2983,9 +2983,20 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
         emailList: emails.join(','),
     };
 
-    // Build optimistic employees mapping: mark invited emails as invited
-    const invitedEmployees = emails.reduce<Record<string, {status: string}>>((acc, email) => {
-        acc[email] = {status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED};
+    // Build optimistic employees mapping: mark invited emails as invited with pending action
+    const invitedEmployees = emails.reduce<Record<string, {status: string; pendingAction: PendingAction}>>((acc, email) => {
+        acc[email] = {
+            status: CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+        return acc;
+    }, {});
+
+    // Build map for clearing pending actions on success
+    const successEmployees = emails.reduce<Record<string, {pendingAction: PendingAction}>>((acc, email) => {
+        acc[email] = {
+            pendingAction: null,
+        };
         return acc;
     }, {});
 
@@ -3003,7 +3014,6 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
                 receiptPartners: {
                     uber: {
                         employees: invitedEmployees,
-                        pendingFields: {employees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                     },
                 },
             },
@@ -3016,7 +3026,7 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
             value: {
                 receiptPartners: {
                     uber: {
-                        pendingFields: {employees: null},
+                        employees: successEmployees,
                     },
                 },
             },
@@ -3031,7 +3041,6 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
                     uber: {
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
                         employees: resetEmployeesOnFailure,
-                        pendingFields: {employees: null},
                     },
                 },
             },

@@ -1,6 +1,6 @@
 import React from 'react';
-import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem, TaskListItemProps, TaskListItemType} from '@components/SelectionList/types';
+import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
+import type {ListItem, TaskListItemProps, TaskListItemType} from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
