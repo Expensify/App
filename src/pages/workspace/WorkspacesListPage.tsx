@@ -1,4 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -19,7 +20,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
@@ -29,7 +30,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -104,7 +104,6 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -116,7 +115,8 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
-    const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
+    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -134,7 +134,7 @@ function WorkspacesListPage() {
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [cardFeeds] = useCardFeeds(policyIDToDelete);
+    const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
         canBeMissing: true,
@@ -162,7 +162,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, lastPaymentMethod);
+        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod);
         setIsDeleteModalOpen(false);
     };
 
@@ -192,6 +192,24 @@ function WorkspacesListPage() {
         [session?.accountID],
     );
 
+    const canUserSetWorkspaceAsDefault = useCallback(() => {
+        const userEmail = session?.email;
+        if (!userEmail) {
+            return true;
+        }
+
+        const domainName = Str.extractEmailDomain(userEmail);
+        const primaryDomainSecurityGroupID = myDomainSecurityGroups?.[domainName];
+
+        if (!primaryDomainSecurityGroupID) {
+            return true;
+        }
+
+        const securityGroup = securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`];
+
+        return !securityGroup?.enableRestrictedPrimaryPolicy;
+    }, [session?.email, myDomainSecurityGroups, securityGroups]);
+
     /**
      * Gets the menu item for each workspace
      */
@@ -219,7 +237,7 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (isAdmin && isDuplicatedWorkspaceEnabled) {
+            if (isAdmin) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
@@ -227,7 +245,7 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (!isDefault && !item?.isJoinRequestPending) {
+            if (!isDefault && !item?.isJoinRequestPending && canUserSetWorkspaceAsDefault()) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Star,
                     text: translate('workspace.common.setAsDefault'),
@@ -323,19 +341,19 @@ function WorkspacesListPage() {
             session?.email,
             session?.accountID,
             activePolicyID,
+            duplicateWorkspace?.policyID,
             translate,
             policies,
+            canUserSetWorkspaceAsDefault,
             fundList,
             styles.mb2,
             styles.mh5,
             styles.ph5,
-            duplicateWorkspace?.policyID,
             styles.hoveredComponentBG,
             styles.offlineFeedback.deleted,
             loadingSpinnerIconIndex,
             shouldCalculateBillNewDot,
             isSupportalAction,
-            isDuplicatedWorkspaceEnabled,
             setIsDeletingPaidWorkspace,
             startChangeOwnershipFlow,
             isLessThanMediumScreen,
