@@ -1,9 +1,9 @@
-import {formatDate} from './FormulaDatetime';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
+import {formatDate} from './FormulaDatetime';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction} from './TransactionUtils';
@@ -351,7 +351,6 @@ function getSubstring(value: string, args: string[]): string {
 
     return value.substring(start);
 }
-
 
 /**
  * Format an amount value
