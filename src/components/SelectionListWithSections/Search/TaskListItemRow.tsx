@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
-import type {TaskListItemType} from '@components/SelectionList/types';
+import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';

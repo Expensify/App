@@ -65,17 +65,19 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;
     /** Nature of business */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
-    /**  */
+    /** Business type */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID]: string;
+    /** Purpose of transaction ID */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PURPOSE_OF_TRANSACTION_ID]: string;
     /** Currency */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CURRENCY_NEEDED]: string;
-    /**  */
+    /** Trade volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.TRADE_VOLUME]: string;
     /** Annual volume */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANNUAL_VOLUME]: string;
-    /**  */
+    /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
-    /**  */
+    /** Fund source countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_SOURCE_COUNTRIES]: string;
     /** Is user also an owner */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;

@@ -2,8 +2,8 @@ import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -34,11 +34,11 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const isReportArchived = useReportIsArchived(reportID);
+    const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -49,22 +49,21 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line deprecation/deprecation
-            if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
-                moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID, formatPhoneNumber);
-            } else if (isIOUReport(reportID) && isPolicyMember(policy, session?.email)) {
-                moveIOUReportToPolicy(reportID, policyID);
+            if (isIOUReport(reportID)) {
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy?.id, formatPhoneNumber);
+                if (!invite?.policyExpenseChatReportID) {
+                    moveIOUReportToPolicy(reportID, policy?.id);
+                }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportArchived);
+                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportLastVisibleArchived);
             } else {
-                changeReportPolicy(report, policy, reportNextStep, isReportArchived);
+                changeReportPolicy(report, policy, reportNextStep, isReportLastVisibleArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
+        [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

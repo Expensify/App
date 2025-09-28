@@ -10,15 +10,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
-import {canFlagReportAction, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
+import {canFlagReportAction, getOriginalReportID, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
 import {flagComment as flagCommentUtil} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
@@ -51,6 +53,15 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    let reportID: string | undefined = getReportID(route);
+
+    // Handle threads if needed
+    if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
+        reportID = parentReport?.reportID;
+    }
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     const severities: SeverityItemList = [
         {
@@ -104,15 +115,8 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     ];
 
     const flagComment = (severity: Severity) => {
-        let reportID: string | undefined = getReportID(route);
-
-        // Handle threads if needed
-        if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
-            reportID = parentReport?.reportID;
-        }
-
         if (reportAction && canFlagReportAction(reportAction, reportID)) {
-            flagCommentUtil(reportID, reportAction, severity);
+            flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived);
         }
 
         Navigation.dismissModal();

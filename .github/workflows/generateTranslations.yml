@@ -5,16 +5,47 @@ on:
     types: [opened, synchronize]
     paths: ['src/languages/en.ts']
 
+  workflow_dispatch:
+    inputs:
+      PULL_REQUEST_URL:
+        description: 'The full URL of the E/App pull request'
+        required: true
+        type: string
+
 jobs:
   generateTranslations:
     runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
     steps:
+      - name: Get PR details
+        id: pr-data
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "::notice::🔧 Manual workflow dispatch triggered"
+            PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number,baseRefName,headRefOid)
+            {
+              echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')"
+              echo "BASE_REF=$(echo "$PR_INFO" | jq -r '.baseRefName')"
+              echo "HEAD_SHA=$(echo "$PR_INFO" | jq -r '.headRefOid')"
+            } >> "$GITHUB_OUTPUT"
+            echo "::notice::✅ Processing PR #$(echo "$PR_INFO" | jq -r '.number')"
+          else
+            echo "::notice::🤖 Automatic PR trigger activated"
+            {
+              echo "PR_NUMBER=${{ github.event.pull_request.number }}"
+              echo "BASE_REF=${{ github.event.pull_request.base.ref }}"
+              echo "HEAD_SHA=${{ github.event.pull_request.head.sha }}"
+            } >> "$GITHUB_OUTPUT"
+            echo "::notice::✅ Processing PR #${{ github.event.pull_request.number }}"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       # v4
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ steps.pr-data.outputs.HEAD_SHA }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -22,18 +53,7 @@ jobs:
       - name: Check if English translations were modified
         id: check-en-changes
         run: |
-          if [[ "${{ github.event.action }}" == "opened" ]]; then
-            # For newly opened PRs, check if en.ts was changed in the entire PR
-            echo "🆕 PR was just opened - checking entire PR for en.ts changes"
-            if gh pr diff ${{ github.event.pull_request.number }} --name-only | grep -q "^src/languages/en\.ts$"; then
-              echo "EN_CHANGED=true" >> "$GITHUB_OUTPUT"
-              echo "✅ English translations were modified in this PR - will generate translations"
-            else
-              echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
-              echo "⏭️ English translations were not modified in this PR - skipping translation generation"
-            fi
-          else
-            # For synchronize events, only check the new commits that were just pushed
+          if [[ "${{ github.event.action }}" == "synchronize" ]]; then
             echo "🔄 PR was updated - checking only the new commits for en.ts changes"
             git fetch --no-tags --depth=1 --no-recurse-submodules origin ${{ github.event.before }}
             if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "^src/languages/en\.ts$"; then
@@ -43,17 +63,26 @@ jobs:
               echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
               echo "⏭️ English translations were not modified in the new commits - skipping translation generation"
             fi
+          else
+            echo "🆕|🔧 Newly opened PR or manually dispatched, so checking entire PR for en.ts changes"
+            if gh pr diff ${{ steps.pr-data.outputs.PR_NUMBER }} --name-only | grep -q "^src/languages/en\.ts$"; then
+              echo "EN_CHANGED=true" >> "$GITHUB_OUTPUT"
+              echo "✅ English translations were modified in this PR - will generate translations"
+            else
+              echo "EN_CHANGED=false" >> "$GITHUB_OUTPUT"
+              echo "⏭️ English translations were not modified in this PR - skipping translation generation"
+            fi
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Fetch base ref
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
-        run: git fetch --no-tags --depth=1 --no-recurse-submodules origin +refs/heads/${{ github.event.pull_request.base.ref }}:refs/heads/${{ github.event.pull_request.base.ref }}
+        run: git fetch --no-tags --depth=1 --no-recurse-submodules origin +refs/heads/${{ steps.pr-data.outputs.BASE_REF }}:refs/heads/${{ steps.pr-data.outputs.BASE_REF }}
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true'
-        run: npx ts-node ./scripts/generateTranslations.ts --verbose --compare-ref=${{ github.event.pull_request.base.ref }}
+        run: npx ts-node ./scripts/generateTranslations.ts --verbose --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
@@ -74,7 +103,7 @@ jobs:
         continue-on-error: true
         if: steps.check-en-changes.outputs.EN_CHANGED == 'true' && steps.checkDiff.outputs.HAS_DIFF == 'true'
         run: |
-          EXISTING_COMMENTS="$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')"
+          EXISTING_COMMENTS="$(gh pr view ${{ steps.pr-data.outputs.PR_NUMBER }} --json comments --jq '.comments[] | select(.body | startswith("## 🦜 Polyglot Parrot! 🦜")) | .id')"
           if [[ -z "$EXISTING_COMMENTS" ]]; then
             echo "🦗 No existing Polyglot Parrot comments found"
           else
@@ -140,7 +169,7 @@ jobs:
           else
             # Large diff - upload as gist and link
             echo "📁 Creating gist for large diff..."
-            GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --desc "🦜 Polyglot Parrot translations for PR #${{ github.event.pull_request.number }}" --filename "translations.patch")
+            GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --desc "🦜 Polyglot Parrot translations for PR #${{ steps.pr-data.outputs.PR_NUMBER }}" --filename "translations.patch")
             {
               echo "$PARROT_HEADER"
               echo
@@ -155,7 +184,7 @@ jobs:
           fi
 
           # Post comment using the temp file
-          gh pr comment ${{ github.event.pull_request.number }} --body-file "$TEMP_COMMENT_FILE"
+          gh pr comment ${{ steps.pr-data.outputs.PR_NUMBER }} --body-file "$TEMP_COMMENT_FILE"
         env:
           # Use OS_BOTIFY_TOKEN so that we can create a gist
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
