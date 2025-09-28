@@ -3,8 +3,9 @@ import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -15,7 +16,6 @@ import {getHeaderMessage} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Participant} from '@src/types/onyx/IOU';
 
 function AddDelegatePage() {
     const {translate} = useLocalize();
@@ -85,7 +85,7 @@ function AddDelegatePage() {
         }));
     }, [availableOptions, translate]);
 
-    const onSelectRow = useCallback((option: Participant) => {
+    const onSelectRow = useCallback((option: ListItem) => {
         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option?.login ?? ''));
     }, []);
 

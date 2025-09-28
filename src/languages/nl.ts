@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -852,9 +853,24 @@ const translations = {
         markAsUnread: 'Markeren als ongelezen',
         markAsRead: 'Markeren als gelezen',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'uitgave' : 'opmerking'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Verwijder ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'uitgave' : 'opmerking'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Weet je zeker dat je deze ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'uitgave' : 'opmerking'} wilt verwijderen?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'opmerking';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'uitgave';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Verwijder ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'opmerking';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'uitgave';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Weet je zeker dat je deze ${type} wilt verwijderen?`;
+        },
         onlyVisible: 'Alleen zichtbaar voor',
         replyInThread: 'Reageer in thread',
         joinThread: 'Deelnemen aan discussie',
@@ -1413,7 +1429,7 @@ const translations = {
             reasonPageDescription: 'Leg uit waarom u deze uitgave afwijst.',
             rejectReason: 'Reden van afwijzing',
             markAsResolved: 'Markeren als opgelost',
-            rejectedStatus: 'Deze uitgave is afgewezen. Er wordt gewacht tot jij het/de probleem(en) oplost en het markeert als opgelost om indienen mogelijk te maken.',
+            rejectedStatus: 'Deze uitgave is afgewezen. Wacht op jou om de problemen op te lossen en als opgelost te markeren om indiening mogelijk te maken.',
             reportActions: {
                 rejectedExpense: 'wees deze uitgave af',
                 markedAsResolved: 'markeerde de reden van afwijzing als opgelost',
@@ -1755,7 +1771,7 @@ const translations = {
         compromisedDescription: 'Merk je iets vreemds op aan je account? Meld het en je account wordt meteen vergrendeld, kaarttransacties geblokkeerd en wijzigingen voorkomen.',
         domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Card-activiteiten en beheerdersacties in je domein(en).',
         areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
-        ourTeamWill: 'Ons team onderzoekt het en verwijdert ongeautoriseerde toegang. Om weer toegang te krijgen, moet je met Concierge samenwerken.',
+        onceLocked: 'Zodra vergrendeld, wordt uw account beperkt in afwachting van een ontgrendelingsverzoek en een beveiligingscontrole.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Kan account niet vergrendelen',
@@ -3098,11 +3114,13 @@ const translations = {
         selectIncorporationCountry: 'Selecteer oprichtingsland',
         selectIncorporationState: 'Selecteer oprichtingsstaat',
         selectAverageReimbursement: 'Selecteer het gemiddelde terugbetalingsbedrag',
+        selectBusinessType: 'Selecteer zakelijk type',
         findIncorporationType: 'Vind het type oprichting',
         findBusinessCategory: 'Zakelijke categorie vinden',
         findAnnualPaymentVolume: 'Vind jaarlijks betalingsvolume',
         findIncorporationState: 'Vind oprichtingsstaat',
         findAverageReimbursement: 'Vind het gemiddelde terugbetalingsbedrag',
+        findBusinessType: 'Zakelijk type zoeken',
         error: {
             registrationNumber: 'Gelieve een geldig registratienummer op te geven',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3581,7 +3599,8 @@ const translations = {
         receiptPartners: {
             connect: 'Maak nu verbinding',
             uber: {
-                subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Verbonden met ${organizationName}` : 'Automatiseer reis- en maaltijdbezorgingskosten binnen uw organisatie.',
                 sendInvites: 'Leden uitnodigen',
                 sendInvitesDescription: 'Deze workspace-leden hebben nog geen Uber for Business-account. Deselecteer alle leden die u op dit moment niet wilt uitnodigen.',
                 confirmInvite: 'Uitnodiging bevestigen',
@@ -3601,8 +3620,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Opgeschort',
                 },
                 invitationFailure: 'Kon leden niet uitnodigen voor Uber for Business',
-                autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
-                autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
+                autoInvite: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
+                autoRemove: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
                 bannerTitle: 'Expensify + Uber voor bedrijven',
                 bannerDescription: 'Sluit Uber for Business aan om de kosten voor reizen en maaltijdbezorging binnen uw organisatie te automatiseren.',
                 emptyContent: {
@@ -4891,6 +4910,13 @@ const translations = {
                 prompt5: 'Meer informatie',
                 prompt6: 'over tag-niveaus.',
             },
+            overrideMultiTagWarning: {
+                title: 'Tags importeren',
+                prompt1: 'Weet je het zeker?',
+                prompt2: ' De bestaande tags worden overschreven, maar je kunt',
+                prompt3: ' een back-up downloaden',
+                prompt4: ' eerst.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We hebben *${columnCounts} kolommen* in uw spreadsheet gevonden. Selecteer *Naam* naast de kolom die tag-namen bevat. U kunt ook *Ingeschakeld* selecteren naast de kolom die de tag-status instelt.`,
             cannotDeleteOrDisableAllTags: {
@@ -5532,11 +5558,6 @@ const translations = {
                 title: 'Reis',
                 description: 'Expensify Travel is een nieuw platform voor het boeken en beheren van zakelijke reizen waarmee leden accommodaties, vluchten, vervoer en meer kunnen boeken.',
                 onlyAvailableOnPlan: 'Reizen is beschikbaar op het Collect-plan, beginnend bij',
-            },
-            reports: {
-                title: 'Rapporten',
-                description: 'Maak georganiseerde onkostenrapporten om uw zakelijke uitgaven bij te houden, in te dienen voor goedkeuring en uw vergoedingsproces te stroomlijnen.',
-                onlyAvailableOnPlan: 'Rapporten zijn beschikbaar op het Collect-plan, beginnend bij ',
             },
             multiLevelTags: {
                 title: 'Meerniveautags',
@@ -6669,7 +6690,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kan ontvangst niet automatisch koppelen vanwege een verbroken bankverbinding die ${email} moet herstellen.`
-                    : 'Kan bon niet automatisch koppelen vanwege een verbroken bankverbinding die je moet herstellen.';
+                    : 'Kan bon niet automatisch koppelen vanwege verbroken bankverbinding.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw.` : 'In afwachting van samenvoeging met kaarttransactie.';
