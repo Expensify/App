@@ -1,7 +1,7 @@
 import React from 'react';
 import type {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
 import {View} from 'react-native';
-import type {TextInputOptions} from '@components/SelectionListSingle/types';
+import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
