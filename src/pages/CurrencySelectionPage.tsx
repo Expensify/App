@@ -35,11 +35,7 @@ function CurrencySelectionPage({route}: CurrencySelectionPageProps) {
     const goBack = useCallback(() => {
         // Go back to workspace confirmation page, preserving the original backTo parameter
         const backTo = route?.params?.backTo;
-        if (backTo) {
-            Navigation.goBack(ROUTES.WORKSPACE_CONFIRMATION.getRoute(backTo));
-        } else {
-            Navigation.goBack(ROUTES.WORKSPACE_CONFIRMATION.route);
-        }
+        Navigation.goBack(ROUTES.WORKSPACE_CONFIRMATION.getRoute(backTo));
     }, [route?.params?.backTo]);
 
     const onSelect = useCallback(

@@ -59,7 +59,7 @@ function CurrencySelector(
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const currencyTitleDescStyle = currency ? styles.textNormal : null;
+    const currencyTitleDescStyle = currency && !shouldShowCurrencySymbol ? styles.textNormal : null;
 
     const didOpenCurrencySelector = useRef(false);
     const isFocused = useIsFocused();
@@ -93,12 +93,11 @@ function CurrencySelector(
             onPress={() => {
                 didOpenCurrencySelector.current = true;
                 if (currencySelectorRoute === ROUTES.CURRENCY_SELECTION) {
-                    Navigation.goBack(currencySelectorRoute.getRoute(backTo));
+                    Navigation.navigate(currencySelectorRoute.getRoute(backTo));
                 } else {
                     Navigation.navigate(currencySelectorRoute as typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY);
                 }
             }}
-            style={style}
         />
     );
 }
