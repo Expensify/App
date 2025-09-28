@@ -8996,7 +8996,7 @@ function getMoneyRequestOptions(
     reportParticipants: number[],
     filterDeprecatedTypes = false,
     isReportArchived = false,
-    isRestrictedToPreferredWorkspace = false,
+    isRestrictedToPreferredPolicy = false,
 ): IOUType[] {
     const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
@@ -9078,7 +9078,7 @@ function getMoneyRequestOptions(
     }
 
     // Apply preferred workspace restrictions if enabled
-    if (isRestrictedToPreferredWorkspace) {
+    if (isRestrictedToPreferredPolicy) {
         options = options.filter((option) => {
             // Remove PAY/SEND options for DMs
             if (option === CONST.IOU.TYPE.PAY || option === CONST.IOU.TYPE.SEND) {
@@ -9108,7 +9108,7 @@ function temporary_getMoneyRequestOptions(
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
     isReportArchived = false,
-    isRestrictedToPreferredWorkspace = false,
+    isRestrictedToPreferredPolicy = false,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
     return getMoneyRequestOptions(report, policy, reportParticipants, true, isReportArchived, isRestrictedToPreferredWorkspace) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
@@ -9331,7 +9331,7 @@ function canCreateRequest(
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     isReportArchived = false,
-    isRestrictedToPreferredWorkspace = false,
+    isRestrictedToPreferredPolicy = false,
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
 
@@ -10234,8 +10234,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     reportID: string | undefined,
     actionName: IOUAction,
     reportActionID: string | undefined,
-    isRestrictedToPreferredWorkspace = false,
-    preferredWorkspaceID?: string,
+    isRestrictedToPreferredPolicy = false,
+    preferredPolicyID?: string,
 ): void {
     if (!transactionID || !reportID) {
         return;
@@ -10346,8 +10346,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 
     if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPolicies.length > 0)) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
-        if (isRestrictedToPreferredWorkspace && preferredWorkspaceID) {
-            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredWorkspaceID);
+        if (isRestrictedToPreferredPolicy && preferredPolicyID) {
+            const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredPolicyID);
 
             if (policyExpenseReport) {
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport).then(() => {

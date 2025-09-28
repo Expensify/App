@@ -15,7 +15,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -133,7 +133,7 @@ function AttachmentPickerWithMenuItems({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
-    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
@@ -231,7 +231,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], isReportArchived, isRestrictedToPreferredWorkspace).map(
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], isReportArchived, isRestrictedToPreferredPolicy).map(
             (option) => options[option],
         );
 
@@ -248,7 +248,7 @@ function AttachmentPickerWithMenuItems({
         isManualDistanceTrackingEnabled,
         isReportArchived,
         lastDistanceExpenseType,
-        isRestrictedToPreferredWorkspace,
+        isRestrictedToPreferredPolicy,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

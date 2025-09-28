@@ -95,7 +95,7 @@ const isQuickActionAllowed = (
     quickActionReport: Report | undefined,
     quickActionPolicy: Policy | undefined,
     isReportArchived = false,
-    isRestrictedToPreferredWorkspace = false,
+    isRestrictedToPreferredPolicy = false,
 ) => {
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
@@ -104,7 +104,7 @@ const isQuickActionAllowed = (
         if (isReportHasManagerMCTest) {
             return false;
         }
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredWorkspace);
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredPolicy);
     }
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
         return !!quickActionPolicy?.arePerDiemRatesEnabled;

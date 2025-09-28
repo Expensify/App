@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -284,7 +284,7 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -813,8 +813,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredWorkspace) || isTypeInvoice,
-                shouldShowRightIcon: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredWorkspace) || isTypeInvoice,
+                isInteractive: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice,
+                shouldShowRightIcon: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice,
             }));
             options.push({
                 title: translate('common.to'),
@@ -833,7 +833,7 @@ function MoneyRequestConfirmationList({
         selectedParticipants,
         isCreateExpenseFlow,
         isTestReceipt,
-        isRestrictedToPreferredWorkspace,
+        isRestrictedToPreferredPolicy,
         isTypeInvoice,
     ]);
 

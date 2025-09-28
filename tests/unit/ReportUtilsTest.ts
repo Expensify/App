@@ -2682,7 +2682,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('Preferred workspace restrictions', () => {
+        describe('Preferred policy restrictions', () => {
             // Self DM - TRACK should always be allowed regardless of restrictions
             it('should allow TRACK requests for self DMs', () => {
                 const selfDMReport = {
@@ -2798,7 +2798,7 @@ describe('ReportUtils', () => {
     });
 
     describe('canCreateRequest', () => {
-        describe('Preferred workspace restrictions', () => {
+        describe('Preferred policy restrictions', () => {
             const participantsAccountIDs = Object.keys(participantsPersonalDetails).map(Number);
 
             // Self DM - TRACK should always be allowed regardless of restrictions

@@ -42,7 +42,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -320,8 +320,8 @@ type PureReportActionItemProps = {
         reportID: string | undefined,
         actionName: IOUAction,
         reportActionID: string,
-        isRestrictedToPreferredWorkspace?: boolean,
-        preferredWorkspaceID?: string,
+        isRestrictedToPreferredPolicy?: boolean,
+        preferredPolicyID?: string,
     ) => void;
 
     /** Function to resolve actionable report mention whisper */
@@ -463,7 +463,7 @@ function PureReportActionItem({
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
     const {isBetaEnabled} = usePermissions();
-    const {isRestrictedToPreferredWorkspace, preferredWorkspaceID} = usePreferredWorkspace();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -781,8 +781,8 @@ function PureReportActionItem({
                             reportActionReportID,
                             CONST.IOU.ACTION.SUBMIT,
                             action.reportActionID,
-                            isRestrictedToPreferredWorkspace,
-                            preferredWorkspaceID,
+                            isRestrictedToPreferredPolicy,
+                            preferredPolicyID,
                         );
                     },
                 },
@@ -935,8 +935,8 @@ function PureReportActionItem({
         resolveActionableMentionWhisper,
         isReportArchived,
         isOriginalReportArchived,
-        isRestrictedToPreferredWorkspace,
-        preferredWorkspaceID,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
     ]);
 
     /**

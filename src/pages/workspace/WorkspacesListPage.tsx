@@ -29,7 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -115,7 +115,7 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
-    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -226,7 +226,7 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredWorkspace) {
+            if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Star,
                     text: translate('workspace.common.setAsDefault'),
@@ -339,7 +339,7 @@ function WorkspacesListPage() {
             isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
-            isRestrictedToPreferredWorkspace,
+            isRestrictedToPreferredPolicy,
         ],
     );
 

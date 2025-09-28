@@ -7,7 +7,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
@@ -40,13 +40,13 @@ const ACCESS_VARIANTS = {
         allPolicies: NonNullable<OnyxCollection<Policy>> | null,
         iouType?: IOUType,
         isReportArchived?: boolean,
-        isRestrictedToPreferredWorkspace?: boolean,
+        isRestrictedToPreferredPolicy?: boolean,
     ) =>
         !!iouType &&
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, isRestrictedToPreferredWorkspace)) &&
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, isRestrictedToPreferredPolicy)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
 } as const satisfies Record<
     string,
@@ -57,7 +57,7 @@ const ACCESS_VARIANTS = {
         allPolicies: NonNullable<OnyxCollection<Policy>> | null,
         iouType?: IOUType,
         isArchivedReport?: boolean,
-        isRestrictedToPreferredWorkspace?: boolean,
+        isRestrictedToPreferredPolicy?: boolean,
     ) => boolean
 >;
 
@@ -155,7 +155,7 @@ function AccessOrNotFoundWrapper({
     });
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const {login = ''} = useCurrentUserPersonalDetails();
-    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
@@ -182,7 +182,7 @@ function AccessOrNotFoundWrapper({
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived, isRestrictedToPreferredWorkspace);
+            return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived, isRestrictedToPreferredPolicy);
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType, isReportArchived);
     }, true);

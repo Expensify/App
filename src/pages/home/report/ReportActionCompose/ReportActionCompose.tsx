@@ -27,7 +27,7 @@ import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitl
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -149,7 +149,7 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
-    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
@@ -245,11 +245,11 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredWorkspace).length;
+        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
         const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
         const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
         return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions);
-    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredWorkspace]);
+    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {

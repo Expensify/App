@@ -48,7 +48,7 @@ describe('QuickActionUtils', () => {
             });
         });
 
-        describe('Preferred workspace restrictions', () => {
+        describe('Preferred policy restrictions', () => {
             const requestManualAction = {
                 action: CONST.QUICK_ACTIONS.REQUEST_MANUAL,
                 isFirstQuickAction: false,

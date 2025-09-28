@@ -1,10 +1,10 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-describe('usePreferredWorkspace', () => {
+describe('usePreferredPolicy', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -17,10 +17,10 @@ describe('usePreferredWorkspace', () => {
     });
 
     it('should return default values when no security groups are configured', () => {
-        const {result} = renderHook(() => usePreferredWorkspace());
+        const {result} = renderHook(() => usePreferredPolicy());
 
-        expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-        expect(result.current.preferredWorkspaceID).toBeUndefined();
+        expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+        expect(result.current.preferredPolicyID).toBeUndefined();
     });
 
     it('should return default values when domain has no security groups', async () => {
@@ -28,10 +28,10 @@ describe('usePreferredWorkspace', () => {
             email: 'user@example.com',
         });
 
-        const {result} = renderHook(() => usePreferredWorkspace());
+        const {result} = renderHook(() => usePreferredPolicy());
 
-        expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-        expect(result.current.preferredWorkspaceID).toBeUndefined();
+        expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+        expect(result.current.preferredPolicyID).toBeUndefined();
     });
 
     it('should return restricted workspace when security group has enableRestrictedPrimaryPolicy enabled', async () => {
@@ -52,10 +52,10 @@ describe('usePreferredWorkspace', () => {
             restrictedPrimaryPolicyID: restrictedPolicyID,
         });
 
-        const {result} = renderHook(() => usePreferredWorkspace());
+        const {result} = renderHook(() => usePreferredPolicy());
 
-        expect(result.current.isRestrictedToPreferredWorkspace).toBe(true);
-        expect(result.current.preferredWorkspaceID).toBe(restrictedPolicyID);
+        expect(result.current.isRestrictedToPreferredPolicy).toBe(true);
+        expect(result.current.preferredPolicyID).toBe(restrictedPolicyID);
     });
 
     it('should return false when security group has enableRestrictedPrimaryPolicy disabled', async () => {
@@ -76,10 +76,10 @@ describe('usePreferredWorkspace', () => {
             restrictedPrimaryPolicyID: restrictedPolicyID,
         });
 
-        const {result} = renderHook(() => usePreferredWorkspace());
+        const {result} = renderHook(() => usePreferredPolicy());
 
-        expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-        expect(result.current.preferredWorkspaceID).toBe(restrictedPolicyID);
+        expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+        expect(result.current.preferredPolicyID).toBe(restrictedPolicyID);
     });
 
     it('should return default values when security group is not found', async () => {
@@ -93,10 +93,10 @@ describe('usePreferredWorkspace', () => {
         domainSecurityGroups['example.com'] = securityGroupID;
         await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, domainSecurityGroups);
 
-        const {result} = renderHook(() => usePreferredWorkspace());
+        const {result} = renderHook(() => usePreferredPolicy());
 
-        expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-        expect(result.current.preferredWorkspaceID).toBeUndefined();
+        expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+        expect(result.current.preferredPolicyID).toBeUndefined();
     });
 
     describe('Edge cases', () => {
@@ -118,10 +118,10 @@ describe('usePreferredWorkspace', () => {
                 restrictedPrimaryPolicyID: restrictedPolicyID,
             });
 
-            const {result} = renderHook(() => usePreferredWorkspace());
+            const {result} = renderHook(() => usePreferredPolicy());
 
-            expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-            expect(result.current.preferredWorkspaceID).toBe(restrictedPolicyID);
+            expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+            expect(result.current.preferredPolicyID).toBe(restrictedPolicyID);
         });
 
         it('should handle undefined enableRestrictedPrimaryPolicy', async () => {
@@ -141,10 +141,10 @@ describe('usePreferredWorkspace', () => {
                 restrictedPrimaryPolicyID: restrictedPolicyID,
             });
 
-            const {result} = renderHook(() => usePreferredWorkspace());
+            const {result} = renderHook(() => usePreferredPolicy());
 
-            expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-            expect(result.current.preferredWorkspaceID).toBe(restrictedPolicyID);
+            expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+            expect(result.current.preferredPolicyID).toBe(restrictedPolicyID);
         });
 
         it('should handle missing restrictedPrimaryPolicyID when enableRestrictedPrimaryPolicy is true', async () => {
@@ -163,10 +163,10 @@ describe('usePreferredWorkspace', () => {
                 enableRestrictedPrimaryPolicy: true,
             });
 
-            const {result} = renderHook(() => usePreferredWorkspace());
+            const {result} = renderHook(() => usePreferredPolicy());
 
-            expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-            expect(result.current.preferredWorkspaceID).toBeUndefined();
+            expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+            expect(result.current.preferredPolicyID).toBeUndefined();
         });
 
         it('should handle null restrictedPrimaryPolicyID', async () => {
@@ -186,10 +186,10 @@ describe('usePreferredWorkspace', () => {
                 restrictedPrimaryPolicyID: null,
             });
 
-            const {result} = renderHook(() => usePreferredWorkspace());
+            const {result} = renderHook(() => usePreferredPolicy());
 
-            expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-            expect(result.current.preferredWorkspaceID).toBeUndefined();
+            expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+            expect(result.current.preferredPolicyID).toBeUndefined();
         });
 
         it('should handle empty string restrictedPrimaryPolicyID', async () => {
@@ -209,10 +209,10 @@ describe('usePreferredWorkspace', () => {
                 restrictedPrimaryPolicyID: '',
             });
 
-            const {result} = renderHook(() => usePreferredWorkspace());
+            const {result} = renderHook(() => usePreferredPolicy());
 
-            expect(result.current.isRestrictedToPreferredWorkspace).toBe(false);
-            expect(result.current.preferredWorkspaceID).toBe('');
+            expect(result.current.isRestrictedToPreferredPolicy).toBe(false);
+            expect(result.current.preferredPolicyID).toBe('');
         });
     });
 });
