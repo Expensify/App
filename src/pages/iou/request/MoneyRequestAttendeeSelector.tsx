@@ -82,7 +82,7 @@ function MoneyRequestAttendeeSelector({attendees = [], initialAttendees = [], on
     const [initialSelectedAttendeeLogins, setInitialSelectedAttendeeLogins] = useState<Set<string>>(new Set([]));
 
     useEffect(() => {
-        setInitialSelectedAttendeeLogins(new Set(initialAttendees.map((attendee) => attendee.login ?? attendee.email)?.filter((login) => !!login)));
+        setInitialSelectedAttendeeLogins(new Set(initialAttendees.map((attendee) => attendee.login ?? attendee.email)?.filter(Boolean)));
     }, [initialAttendees]);
 
     useEffect(() => {
