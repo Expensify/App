@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
