@@ -287,6 +287,15 @@ function WorkspacesListRow({
                 </View>
 
                 {!isNarrow && ThreeDotMenuOrPendingIcon}
+                {!isNarrow && (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter]}
+                        />
+                    </View>
+                )}
             </Animated.View>
         </View>
     );

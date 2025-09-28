@@ -42,6 +42,7 @@ function BaseListItem<TItem extends ListItem>({
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
     forwardedFSClass,
+    shouldShowRightIcon = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -152,6 +153,15 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {rightHandSideComponentRender()}
+                    {shouldShowRightIcon && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter]}
+                            />
+                        </View>
+                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

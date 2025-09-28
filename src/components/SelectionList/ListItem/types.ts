@@ -249,6 +249,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+    /** Whether to show the right icon */
+    shouldShowRightIcon?: boolean;
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 

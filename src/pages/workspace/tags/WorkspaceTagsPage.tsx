@@ -334,6 +334,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     leftHeaderText={translate('common.name')}
                     rightHeaderText={translate('common.count')}
                     rightHeaderMinimumWidth={120}
+                    shouldShowRightIcon
                 />
             );
         }
@@ -343,6 +344,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
+                shouldShowRightIcon
             />
         );
     };
@@ -717,6 +719,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
                             showScrollIndicator={false}
                             addBottomSafeAreaPadding
+                            shouldShowRightIcon
                         />
                     )}
                     {!hasVisibleTags && !isLoading && (

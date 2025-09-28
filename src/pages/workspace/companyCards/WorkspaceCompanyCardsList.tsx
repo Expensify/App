@@ -113,7 +113,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                     </Text>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textMicroSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16, styles.mr7]}
                     >
                         {translate('workspace.expensifyCard.lastFour')}
                     </Text>
