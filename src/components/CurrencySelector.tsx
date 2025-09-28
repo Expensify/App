@@ -36,9 +36,6 @@ type CurrencySelectorProps = {
     /** Label for the input */
     label?: string;
 
-    /** Any additional styles to apply on the outer element */
-    style?: StyleProp<ViewStyle>;
-
     /** Whether to show currency symbol in the title */
     shouldShowCurrencySymbol?: boolean;
 };
