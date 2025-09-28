@@ -6487,6 +6487,40 @@ describe('actions/IOU', () => {
 
             expect(transaction).toBeFalsy();
         });
+
+        it('should initialize split expense with correct VND currency amounts', async () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: 1700,
+                currency: 'VND',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            initSplitExpense(transaction);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+
+            expect(draftTransaction).toBeTruthy();
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(draftTransaction?.amount).toBe(1700);
+            expect(draftTransaction?.currency).toBe('VND');
+
+            expect(splitExpenses?.[0].amount).toBe(900);
+            expect(splitExpenses?.[1].amount).toBe(800);
+        });
     });
 
     describe('addSplitExpenseField', () => {
