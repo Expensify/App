@@ -159,7 +159,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         if (policyID) {
             return receiptPartnerIntegrations
                 .map((integration) => {
-                    const integrationData = getReceiptPartnersIntegrationData(integration, translate);
+                    const integrationData = getReceiptPartnersIntegrationData(integration, policy?.receiptPartners, translate);
                     if (!integrationData) {
                         return undefined;
                     }
@@ -217,7 +217,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         styles.sectionMenuItemTopDescription,
         styles.pr2,
         styles.justifyContentCenter,
-        policy?.receiptPartners?.uber,
+        policy?.receiptPartners,
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         isOffline,

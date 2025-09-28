@@ -81,6 +81,7 @@ function AddBankAccount() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 shouldShowBackButton

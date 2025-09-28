@@ -2,20 +2,20 @@ import React, {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -32,6 +32,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type EditInviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT>;
 
@@ -51,6 +52,7 @@ type UberEmployeeStatus = TupleToUnion<typeof UBER_EMPLOYEE_STATUS_VALUES>;
 
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -95,11 +97,11 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         ],
     );
 
-    const uberEmployeesByEmail = useMemo<Record<string, {status?: string}>>(() => {
+    const uberEmployeesByEmail = useMemo<Record<string, {status?: string; pendingAction?: PendingAction}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
             receiptPartners?: {
                 uber?: {
-                    employees?: Record<string, {status?: string}>;
+                    employees?: Record<string, {status?: string; pendingAction?: PendingAction}>;
                 };
             };
         };
@@ -119,6 +121,14 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         const list: Array<MemberForList & ListItem> = [];
         const employees = policy?.employeeList ?? {};
 
+        const buttonStyles = [
+            styles.button,
+            StyleUtils.getButtonStyleWithIcon(styles, true, false, false, false, true, false),
+            styles.ml3,
+            {minWidth: variables.uberEmployeeInviteButtonWidth},
+        ];
+        const buttonTextStyles = [styles.buttonText, styles.buttonSmallText];
+
         Object.entries(employees).forEach(([email, policyEmployee]) => {
             // Skip deleted policy employees
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
@@ -128,27 +138,23 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             const status = deriveStatus(email);
 
             let rightElement;
-
-            // Show resend button for CREATED and INVITED
-            if (status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED) {
+            const isResend = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED;
+            const isInvite = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
+            if (isResend || isInvite) {
+                const text = isResend ? translate('workspace.receiptPartners.uber.status.resend') : translate('workspace.receiptPartners.uber.status.invite');
+                const textChecked = translate('workspace.receiptPartners.uber.status.resend');
                 rightElement = (
-                    <Button
-                        small
-                        text={translate('workspace.receiptPartners.uber.status.resend')}
+                    <PressableWithDelayToggle
+                        text={text}
+                        textChecked={textChecked}
+                        tooltipText=""
+                        tooltipTextChecked=""
                         onPress={() => inviteOrResend(email)}
-                        style={[styles.ml3]}
-                    />
-                );
-            }
-            // Show invite button for DELETED and NONE
-            else if (status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE) {
-                rightElement = (
-                    <Button
-                        small
-                        text={translate('workspace.receiptPartners.uber.status.invite')}
-                        onPress={() => inviteOrResend(email)}
-                        success
-                        style={[styles.ml3]}
+                        styles={[...buttonStyles, isInvite ? styles.buttonSuccess : undefined]}
+                        textStyles={[...buttonTextStyles, isInvite ? styles.buttonSuccessText : undefined]}
+                        iconChecked={Expensicons.Checkmark}
+                        inline={false}
+                        accessible={false}
                     />
                 );
             } else {
@@ -179,14 +185,13 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 keyForList: email,
                 reportID: '',
                 isDisabled: true,
+                pendingAction: uberEmployeesByEmail[email]?.pendingAction,
             });
 
-            const rightElementWithOfflineFeedback = <OfflineWithFeedback pendingAction={policy?.receiptPartners?.uber?.pendingFields?.employees}>{rightElement}</OfflineWithFeedback>;
-
-            list.push({...option, rightElement: rightElementWithOfflineFeedback} as MemberForList & ListItem);
+            list.push({...option, rightElement} as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3, inviteOrResend, policy?.receiptPartners?.uber?.pendingFields?.employees]);
+    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {

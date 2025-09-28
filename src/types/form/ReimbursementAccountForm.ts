@@ -123,6 +123,7 @@ const INPUT_IDS = {
             COUNTRY_CODE: 'countryCode',
             TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
             BUSINESS_CATEGORY: 'natureOfBusiness',
+            BUSINESS_TYPE_ID: 'businessTypeId',
             APPLICANT_TYPE_ID: 'applicantTypeId',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
             PREFERRED_METHOD: 'preferredMethod',
@@ -343,6 +344,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Business category */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
+
+    /** Business type ID */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID]: string;
 
     /** Applicant type ID */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;

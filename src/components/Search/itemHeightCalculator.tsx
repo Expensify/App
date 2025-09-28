@@ -1,4 +1,4 @@
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {isReportActionListItemType, isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import {hasMissingSmartscanFields, isAmountMissing, isMerchantMissing} from '@libs/TransactionUtils';
 import variables from '@styles/variables';

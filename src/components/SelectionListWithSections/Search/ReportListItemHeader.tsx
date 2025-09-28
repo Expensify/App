@@ -4,7 +4,7 @@ import type {ColorValue} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
