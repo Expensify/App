@@ -35,7 +35,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import getModalState from '@libs/getModalState';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -95,6 +94,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The ID of the transaction thread report if there is a single transaction */
+    transactionThreadReportID?: string;
+
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
 
@@ -131,6 +133,7 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
     reportTransactions,
+    transactionThreadReportID,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -146,12 +149,12 @@ function ReportActionCompose({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     /**
      * Updates the Highlight state of the composer
      */
     const [isFocused, setIsFocused] = useState(() => {
-        const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
@@ -222,6 +225,8 @@ function ReportActionCompose({
         canEvict: false,
         canBeMissing: true,
     });
+
+    const personalDetail = useCurrentUserPersonalDetails();
 
     const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
@@ -324,11 +329,18 @@ function ReportActionCompose({
                 if (Array.isArray(attachmentFileRef.current)) {
                     // Handle multiple files
                     attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(reportID, file, newCommentTrimmed, true);
+                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
                     });
                 } else {
                     // Handle single file
-                    addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                    addAttachmentReportActions(
+                        transactionThreadReportID ?? reportID,
+                        reportID,
+                        attachmentFileRef.current,
+                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        newCommentTrimmed,
+                        true,
+                    );
                 }
                 attachmentFileRef.current = null;
             } else {
@@ -337,7 +349,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID],
+        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

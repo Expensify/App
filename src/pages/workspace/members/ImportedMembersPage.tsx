@@ -173,6 +173,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         <ScreenWrapper
             testID={ImportedMembersPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.people.importMembers')}
