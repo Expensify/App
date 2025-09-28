@@ -8,7 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
+import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -18,7 +18,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
-} from '@components/SelectionList/types';
+} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';

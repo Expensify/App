@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
+import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {
     ReportActionListItemType,
     SearchListItem,
@@ -14,7 +14,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionReportGroupListItemType,
-} from '@components/SelectionList/types';
+} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';

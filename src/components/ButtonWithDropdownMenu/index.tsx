@@ -177,7 +177,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         iconRight={Expensicons.DownArrow}
-                        shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
+                        shouldShowRightIcon={!isSplitButton && !isLoading}
                         isSplitButton={isSplitButton}
                         testID={testID}
                         textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
