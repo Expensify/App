@@ -54,14 +54,17 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             return {
                 sections: [
                     {
-                        data: orderedItems
-                            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-                            .map((item) => ({
-                                text: item.name,
-                                keyForList: item.name,
-                                isSelected: selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()),
-                                value: item.value,
-                            })),
+                        data: orderedItems.reduce<Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]}>>((acc, item) => {
+                            if (item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())) {
+                                acc.push({
+                                    text: item.name,
+                                    keyForList: item.name,
+                                    isSelected: selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()),
+                                    value: item.value,
+                                });
+                            }
+                            return acc;
+                        }, []),
                         shouldShow: orderedItems.length > 0,
                     },
                 ],

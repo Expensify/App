@@ -147,34 +147,43 @@ function MoneyRequestAttendeeSelector({attendees = [], initialAttendees = [], on
         const selectedAttendeeLoginsSet = new Set(attendees.map((attendee) => attendee.login ?? attendee.email));
         newSections.push({
             title: undefined,
-            data: allContacts
-                .filter((attendee) => attendee.login && initialSelectedAttendeeLogins.has(attendee.login))
-                .map((attendee) => ({
-                    ...attendee,
-                    isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
-                })),
+            data: allContacts.reduce<Array<(typeof allContacts)[0] & {isSelected: boolean}>>((acc, attendee) => {
+                if (attendee.login && initialSelectedAttendeeLogins.has(attendee.login)) {
+                    acc.push({
+                        ...attendee,
+                        isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
+                    });
+                }
+                return acc;
+            }, []),
             shouldShow: true,
         });
 
         newSections.push({
             title: translate('common.recents'),
-            data: fiveRecents
-                .filter((attendee) => !attendee?.login || !initialSelectedAttendeeLogins.has(attendee?.login))
-                .map((attendee) => ({
-                    ...attendee,
-                    isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
-                })),
+            data: fiveRecents.reduce<Array<(typeof fiveRecents)[0] & {isSelected: boolean}>>((acc, attendee) => {
+                if (!attendee?.login || !initialSelectedAttendeeLogins.has(attendee?.login)) {
+                    acc.push({
+                        ...attendee,
+                        isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
+                    });
+                }
+                return acc;
+            }, []),
             shouldShow: fiveRecents.length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
-            data: contactsWithRestOfRecents
-                .filter((attendee) => !attendee?.login || !initialSelectedAttendeeLogins.has(attendee?.login))
-                .map((attendee) => ({
-                    ...attendee,
-                    isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
-                })),
+            data: contactsWithRestOfRecents.reduce<Array<(typeof contactsWithRestOfRecents)[0] & {isSelected: boolean}>>((acc, attendee) => {
+                if (!attendee?.login || !initialSelectedAttendeeLogins.has(attendee?.login)) {
+                    acc.push({
+                        ...attendee,
+                        isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
+                    });
+                }
+                return acc;
+            }, []),
             shouldShow: contactsWithRestOfRecents.length > 0,
         });
 
@@ -189,11 +198,15 @@ function MoneyRequestAttendeeSelector({attendees = [], initialAttendees = [], on
                         const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                         return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                     })
-                    .filter((attendee) => !attendee?.login || !initialSelectedAttendeeLogins.has(attendee?.login))
-                    .map((attendee) => ({
-                        ...attendee,
-                        isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
-                    })),
+                    .reduce<Array<ReturnType<typeof getParticipantsOption | typeof getPolicyExpenseReportOption> & {isSelected: boolean}>>((acc, attendee) => {
+                        if (!attendee?.login || !initialSelectedAttendeeLogins.has(attendee?.login)) {
+                            acc.push({
+                                ...attendee,
+                                isSelected: attendee.login ? selectedAttendeeLoginsSet.has(attendee.login) : false,
+                            });
+                        }
+                        return acc;
+                    }, []),
                 shouldShow: true,
             });
         }

@@ -158,9 +158,12 @@ function RoomInvitePage({
             return member;
         });
 
-        const newAddedMembers = filterSelectedOptions
-            .filter((selectedOption) => !memberList.some((member) => member.login === selectedOption.login))
-            .map((member) => formatMemberForList(member));
+        const newAddedMembers = filterSelectedOptions.reduce<Array<ReturnType<typeof formatMemberForList>>>((acc, selectedOption) => {
+            if (!memberList.some((member) => member.login === selectedOption.login)) {
+                acc.push(formatMemberForList(selectedOption));
+            }
+            return acc;
+        }, []);
 
         return [
             {
