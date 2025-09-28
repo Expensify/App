@@ -195,9 +195,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             memberList.push(...personalDetailsFormatted);
         }
 
-        Object.values(usersToInvite).forEach((userToInvite) => {
+        for (const userToInvite of Object.values(usersToInvite)) {
             memberList.push(formatMemberForList(userToInvite));
-        });
+        }
 
         const selectedAccountLoginsSet = new Set(filterSelectedOptions.map((option) => option.login));
         memberList = memberList.map((member) => {
@@ -210,13 +210,13 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return member;
         });
 
-        const first: MemberForList[] = [];
-        const last: MemberForList[] = [];
+        const initialMembers: MemberForList[] = [];
+        const remainingMembers: MemberForList[] = [];
         memberList.forEach((member) => {
             if (member.accountID && initialSelectedAccountIDs.has(member.accountID)) {
-                first.push(member);
+                initialMembers.push(member);
             } else {
-                last.push(member);
+                remainingMembers.push(member);
             }
         });
 
@@ -225,7 +225,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         return [
             {
                 title: undefined,
-                data: [...newAddedMembers, ...first, ...last],
+                data: [...newAddedMembers, ...initialMembers, ...remainingMembers],
                 shouldShow: true,
             },
         ];

@@ -81,7 +81,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
                     return personalDetailLogins?.[accountID];
                 })
-                .filter((login) => !!login) ?? [],
+                .filter(Boolean) ?? [],
         );
     }, [approvalWorkflow?.members, personalDetailLogins, policy?.employeeList]);
 
@@ -157,19 +157,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             localeCompare,
         );
 
-        const first: SelectionListMember[] = [];
-        const last: SelectionListMember[] = [];
+        const initialMembers: SelectionListMember[] = [];
+        const remainingMembers: SelectionListMember[] = [];
         filteredMembers.forEach((member) => {
             if (initialSelectedAccountLogins.has(member.login)) {
-                first.push(member);
+                initialMembers.push(member);
             } else {
-                last.push(member);
+                remainingMembers.push(member);
             }
         });
         return [
             {
                 title: undefined,
-                data: [...first, ...last],
+                data: [...initialMembers, ...remainingMembers],
                 shouldShow: true,
             },
         ];

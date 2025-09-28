@@ -150,12 +150,18 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
         const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
-        const first = currentApprover ? [data.find((approver) => approver.login === currentApprover?.email)].filter((approver) => !!approver) : [];
-        const last = data.filter((approver) => approver.login !== currentApprover?.email);
+        const orderedApprovers = data.reduce<typeof data>((acc, approver) => {
+            if (approver.login === currentApprover?.email) {
+                acc.unshift(approver);
+            } else {
+                acc.push(approver);
+            }
+            return acc;
+        }, []);
         return [
             {
                 title: undefined,
-                data: [...first, ...last],
+                data: orderedApprovers,
                 shouldShow: true,
             },
         ];

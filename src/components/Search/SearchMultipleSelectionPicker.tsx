@@ -33,20 +33,20 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const orderedItems = useMemo(() => {
-        const first: SearchMultipleSelectionPickerItem[] = [];
+        const initialItems: SearchMultipleSelectionPickerItem[] = [];
 
-        const last: SearchMultipleSelectionPickerItem[] = [];
+        const remainingItems: SearchMultipleSelectionPickerItem[] = [];
 
         const initiallySelectedValuesSet = new Set(initiallySelectedItems?.map((item) => item.value) ?? []);
         const sortedItems = items.sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare));
         for (const option of sortedItems) {
             if (option.value && initiallySelectedValuesSet.has(option.value)) {
-                first.push(option);
+                initialItems.push(option);
             } else {
-                last.push(option);
+                remainingItems.push(option);
             }
         }
-        return [...first, ...last];
+        return [...initialItems, ...remainingItems];
     }, [initiallySelectedItems, items, localeCompare]);
 
     const {sections, noResultsFound} = useMemo(() => {

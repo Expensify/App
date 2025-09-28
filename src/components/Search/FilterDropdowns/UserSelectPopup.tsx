@@ -105,33 +105,33 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [optionsList, cleanSearchTerm, countryCode]);
 
     const listData = useMemo(() => {
-        const first: SearchOptionData[] = [];
-        const last: SearchOptionData[] = [];
-        filteredOptions.personalDetails.forEach((participant) => {
+        const initialOptions: SearchOptionData[] = [];
+        const remainingOptions: SearchOptionData[] = [];
+        for (const participant of filteredOptions.personalDetails) {
             const data = {
                 ...participant,
                 isSelected: selectedAccountIDs.has(participant.accountID),
             };
             if (initialSelectedAccountIDs.has(participant.accountID)) {
-                first.push(data);
+                initialOptions.push(data);
             } else {
-                last.push(data);
+                remainingOptions.push(data);
             }
-        });
+        }
 
-        filteredOptions.recentReports.forEach((report) => {
+        for (const report of filteredOptions.recentReports) {
             const data = {
                 ...report,
                 isSelected: selectedAccountIDs.has(report.accountID),
             };
             if (initialSelectedAccountIDs.has(report.accountID)) {
-                first.push(data);
+                initialOptions.push(data);
             } else {
-                last.push(data);
+                remainingOptions.push(data);
             }
-        });
+        }
 
-        return [...first, ...last];
+        return [...initialOptions, ...remainingOptions];
     }, [filteredOptions, selectedAccountIDs, initialSelectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
