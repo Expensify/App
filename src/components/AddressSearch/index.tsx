@@ -1,9 +1,9 @@
-import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import type {ForwardedRef} from 'react';
 import {Keyboard, LogBox, View} from 'react-native';
-import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
+import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';

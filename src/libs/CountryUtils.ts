@@ -5,9 +5,9 @@ import type {Country} from '@src/CONST';
  * Converts country name to country code if needed.
  * Handles the case where old data has "United States" instead of "US".
  */
-function getCountryCode(countryValue: string | undefined): Country | undefined | '' {
+function getCountryCode(countryValue: string | undefined): Country | '' {
     if (!countryValue) {
-        return countryValue as Country | undefined | '';
+        return '';
     }
 
     for (const [code, name] of Object.entries(CONST.ALL_COUNTRIES)) {
