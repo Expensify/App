@@ -10,7 +10,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import useOfflineIndicatoKeyboardHandlingStyles from './useOfflineIndicatoKeyboardHandlingStyles';
+import useOfflineIndicatorKeyboardHandlingStyles from './useOfflineIndicatorKeyboardHandlingStyles';
 
 type ScreenWrapperOfflineIndicatorsProps = {
     /** Styles for the offline indicator */
@@ -108,7 +108,7 @@ function ScreenWrapperOfflineIndicators({
     /**
      * This style includes the styles applied to the small screen offline indicator component when the keyboard is interacted with.
      */
-    const keyboardHandlingStyles = useOfflineIndicatoKeyboardHandlingStyles();
+    const keyboardHandlingStyles = useOfflineIndicatorKeyboardHandlingStyles();
 
     return (
         <>
