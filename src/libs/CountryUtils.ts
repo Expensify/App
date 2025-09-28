@@ -1,4 +1,5 @@
-import CONST, {Country} from '@src/CONST';
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 
 /**
  * Converts country name to country code if needed.
