@@ -311,6 +311,7 @@ import type {
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
+    ReceiptAlternativeMethodsPhoneNumberParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -320,9 +321,7 @@ type StateValue = {
 };
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
-type ReceiptAlternativeMethodsPhoneNumberParams = {
-    phoneNumber: string;
-};
+
 /* eslint-disable max-len */
 const translations = {
     common: {
@@ -1030,19 +1029,19 @@ const translations = {
         }),
     },
     receipt: {
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Forward receipts to <a href="mailto:${email}">${email}</a></muted-text-label>`,
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download the app</a> to scan from your phone</muted-text-label>`,
-        alternativeMethodsTitle: 'Other ways to add receipts:',
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
-        desktopSubtitleMultiple: 'or drag and drop them here',
-        desktopSubtitleSingle: 'or drag and drop it here',
         upload: 'Bonnetje uploaden',
         uploadMultiple: 'Bonnetjes uploaden',
+        desktopSubtitleSingle: 'of sleep het hierheen',
+        desktopSubtitleMultiple: 'of sleep ze hierheen',
         chooseReceipt: 'Kies een bon om te uploaden of stuur een bon door naar',
         chooseReceipts: 'Kies bonnen om te uploaden of stuur bonnen door naar',
+        alternativeMethodsTitle: 'Andere manieren om bonnetjes toe te voegen:',
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download de app</a> om te scannen vanaf je telefoon</muted-text-label>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Stuur bonnetjes door naar <a href="mailto:${email}">${email}</a></muted-text-label>`,
+        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
+            `<muted-text-label><a href="${contactMethodsUrl}">Voeg je nummer toe</a> om bonnetjes te versturen naar ${phoneNumber}</muted-text-label>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
+            `<muted-text-label>Stuur bonnetjes naar ${phoneNumber} (alleen Amerikaanse nummers)</muted-text-label>`,
         takePhoto: 'Maak een foto',
         cameraAccess: "Cameratoegang is vereist om foto's van bonnetjes te maken.",
         deniedCameraAccess: 'Camera-toegang is nog steeds niet verleend, volg alstublieft',

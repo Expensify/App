@@ -926,6 +926,10 @@ type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
 };
 
+type ReceiptAlternativeMethodsPhoneNumberParams = {
+    phoneNumber: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1233,4 +1237,5 @@ export type {
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
+    ReceiptAlternativeMethodsPhoneNumberParams,
 };
