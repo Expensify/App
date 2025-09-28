@@ -1,9 +1,9 @@
-import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {Keyboard, LogBox, View} from 'react-native';
+import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import {Keyboard, LogBox, View} from 'react-native';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
+import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
@@ -17,7 +17,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setUserLocation} from '@libs/actions/UserLocation';
 import {getCommandURL} from '@libs/ApiUtils';
-import {getCountryCode} from '@libs/CountryUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
@@ -167,8 +166,7 @@ function AddressSearch(
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
         const {country: countryFallbackLongName = '', state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
-        // Convert country fallback to country code
-        const countryFallback = getCountryCode(countryFallbackLongName);
+        const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const country = countryPrimary || countryFallback || '';

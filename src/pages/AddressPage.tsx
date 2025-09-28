@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 import type {FormOnyxValues} from '@src/components/Form/types';
@@ -102,7 +103,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         onSubmit={updateAddress}
                         submitButtonText={translate('common.save')}
                         city={city}
-                        country={currentCountry}
+                        country={getCountryCode(currentCountry)}
                         onAddressChanged={handleAddressChange}
                         state={state}
                         street1={street1}

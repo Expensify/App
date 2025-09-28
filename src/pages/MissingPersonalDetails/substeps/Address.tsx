@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCountryCode} from '@libs/CountryUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
@@ -100,7 +101,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             return;
         }
         if (addressPartKey === INPUT_IDS.COUNTRY) {
-            setCurrentCountry(addressPart as Country | '');
+            setCurrentCountry(getCountryCode(addressPart) as Country | '');
             setState('');
             setCity('');
             setZipcode('');

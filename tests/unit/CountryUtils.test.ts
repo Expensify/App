@@ -16,11 +16,6 @@ describe('CountryUtils', () => {
             expect(getCountryCode('Egypt')).toBe('EG');
         });
 
-        it('should return empty string for null or undefined values', () => {
-            expect(getCountryCode(undefined)).toBe('');
-            expect(getCountryCode('')).toBe('');
-        });
-
         it('should return original value for invalid country names or codes', () => {
             expect(getCountryCode('Invalid Country')).toBe('Invalid Country');
             expect(getCountryCode('XX')).toBe('XX');
@@ -38,11 +33,11 @@ describe('CountryUtils', () => {
             expect(getCountryCode('United States')).toBe('US');
         });
 
-        it('should handle the specific case mentioned in the issue', () => {
+        it('should convert common country names to codes', () => {
             expect(getCountryCode('United States')).toBe('US');
         });
 
-        it('should work with all countries in CONST.ALL_COUNTRIES', () => {
+        it('should handle multiple country formats correctly', () => {
             const testCases = [
                 {name: 'Afghanistan', code: 'AF'},
                 {name: 'Australia', code: 'AU'},

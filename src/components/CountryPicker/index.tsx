@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
-import {getCountryCode} from '@libs/CountryUtils';
 import type {Option} from '@libs/searchOptions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -31,14 +30,11 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
         hidePickerModal();
     };
 
-    const countryCodeToUse = getCountryCode(value);
-    const title = countryCodeToUse ? translate(`allCountries.${countryCodeToUse}` as TranslationPaths) : undefined;
-
     return (
         <>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={title}
+                title={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
                 description={translate('common.country')}
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

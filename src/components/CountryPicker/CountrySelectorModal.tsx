@@ -7,9 +7,8 @@ import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCountryCode} from '@libs/CountryUtils';
-import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -38,20 +37,20 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const countries = useMemo(() => {
-        const currentCountryCode = getCountryCode(currentCountry);
-
-        return Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
-            const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-            return {
-                value: countryISO,
-                keyForList: countryISO,
-                text: countryName,
-                isSelected: currentCountryCode === countryISO,
-                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-            };
-        });
-    }, [translate, currentCountry]);
+    const countries = useMemo(
+        () =>
+            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => {
+                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+                return {
+                    value: countryISO,
+                    keyForList: countryISO,
+                    text: countryName,
+                    isSelected: currentCountry === countryISO,
+                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                };
+            }),
+        [translate, currentCountry],
+    );
 
     const searchResults = searchOptions(debouncedSearchValue, countries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';

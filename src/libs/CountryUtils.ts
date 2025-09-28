@@ -1,21 +1,21 @@
-import CONST from '@src/CONST';
+import CONST, {Country} from '@src/CONST';
 
 /**
  * Converts country name to country code if needed.
  * Handles the case where old data has "United States" instead of "US".
  */
-function getCountryCode(countryValue: string | undefined): string {
+function getCountryCode(countryValue: string | undefined): Country | undefined | '' {
     if (!countryValue) {
-        return '';
+        return countryValue as Country | undefined | '';
     }
 
     for (const [code, name] of Object.entries(CONST.ALL_COUNTRIES)) {
         if (name === countryValue) {
-            return code;
+            return code as Country;
         }
     }
 
-    return countryValue;
+    return countryValue as Country;
 }
 
 /* eslint-disable import/prefer-default-export */
