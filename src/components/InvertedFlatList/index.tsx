@@ -57,7 +57,7 @@ function InvertedFlatList<T>({ref, onScroll, ...props}: BaseInvertedFlatListProp
      * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
      *
      */
-    const emitScrollEvents: BaseInvertedFlatListProps<T>['additionalOnScrollHandler'] = () => {
+    const emitScrollEvents: BaseInvertedFlatListProps<T>['regularOnScrollHandler'] = () => {
         emitOnScroll();
 
         const timestamp = Date.now();
@@ -86,7 +86,7 @@ function InvertedFlatList<T>({ref, onScroll, ...props}: BaseInvertedFlatListProp
             {...props}
             ref={ref}
             onScroll={onScroll}
-            additionalOnScrollHandler={emitScrollEvents}
+            regularOnScrollHandler={emitScrollEvents}
             CellRendererComponent={CellRendererComponent}
         />
     );

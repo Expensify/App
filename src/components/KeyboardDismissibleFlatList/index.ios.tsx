@@ -6,12 +6,12 @@ import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFl
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
 import useKeyboardDismissibleFlatListValues from './useKeyboardDismissibleFlatListValues';
 
-function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, additionalOnScrollHandler, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
+function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, regularOnScrollHandler, ...restProps}: AnimatedFlatListWithCellRendererProps<T>, ref: ForwardedRef<FlatList>) {
     const {keyboardHeight, keyboardOffset, onScroll: onScrollHandleKeyboard, setListBehavior} = useKeyboardDismissibleFlatListValues();
 
     const additionalOnScroll = useAnimatedScrollHandler({
         onScroll: (event) => {
-            additionalOnScrollHandler?.(event);
+            regularOnScrollHandler?.(event);
         },
     });
 

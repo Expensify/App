@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import type {CellRendererProps, FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {CellRendererProps, FlatList, FlatListProps} from 'react-native';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 
 type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent' | 'onScroll'> & {
@@ -19,7 +19,12 @@ type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent' | '
      */
     ref?: ForwardedRef<FlatList>;
 
-    additionalOnScrollHandler?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    /**
+     * Regular React Native FlatList onScroll handler. This callback is called either
+     * from an animated scroll handler or from the regular React Native FlatList
+     * onScroll handler, depending on the enableAnimatedKeyboardDismissal prop.
+     */
+    regularOnScrollHandler?: FlatListProps<T>['onScroll'];
 } & (
         | {
               enableAnimatedKeyboardDismissal: true;

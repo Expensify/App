@@ -54,7 +54,7 @@ type AnimatedFlatListComplement<T> = {
 type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll'> & {
     CellRendererComponent?: CellRendererComponentProps<Item>;
     onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
-    additionalOnScrollHandler?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    regularOnScrollHandler?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
 // We need explicit any here, because this is the exact same type that is used in React Native types.

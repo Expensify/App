@@ -27,7 +27,7 @@ function BaseInvertedFlatList<T>({
     initialScrollKey,
     data,
     onStartReached,
-    additionalOnScrollHandler,
+    regularOnScrollHandler: regularOnScrollHandler,
     renderItem,
     keyExtractor = defaultKeyExtractor,
     ...restProps
@@ -137,7 +137,7 @@ function BaseInvertedFlatList<T>({
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
             onStartReached={handleStartReached}
-            additionalOnScrollHandler={additionalOnScrollHandler}
+            regularOnScrollHandler={regularOnScrollHandler}
         />
     );
 }
