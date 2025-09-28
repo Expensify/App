@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -311,7 +312,6 @@ import type {
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -1036,7 +1036,8 @@ const translations = {
         chooseReceipt: 'Kies een bon om te uploaden of stuur een bon door naar',
         chooseReceipts: 'Kies bonnen om te uploaden of stuur bonnen door naar',
         alternativeMethodsTitle: 'Andere manieren om bonnetjes toe te voegen:',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download de app</a> om te scannen vanaf je telefoon</muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
+            `<muted-text-label><a href="${downloadUrl}">Download de app</a> om te scannen vanaf je telefoon</muted-text-label>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Stuur bonnetjes door naar <a href="mailto:${email}">${email}</a></muted-text-label>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
             `<muted-text-label><a href="${contactMethodsUrl}">Voeg je nummer toe</a> om bonnetjes te versturen naar ${phoneNumber}</muted-text-label>`,

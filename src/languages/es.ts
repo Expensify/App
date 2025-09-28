@@ -164,6 +164,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -299,7 +300,6 @@ import type {
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 

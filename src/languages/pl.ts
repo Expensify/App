@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -311,7 +312,6 @@ import type {
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -1034,7 +1034,8 @@ const translations = {
         chooseReceipt: 'Wybierz paragon do przesłania lub prześlij paragon do',
         chooseReceipts: 'Wybierz paragony do przesłania lub prześlij paragony do',
         alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Pobierz aplikację</a> aby skanować z telefonu</muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
+            `<muted-text-label><a href="${downloadUrl}">Pobierz aplikację</a> aby skanować z telefonu</muted-text-label>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Prześlij paragony do <a href="mailto:${email}">${email}</a></muted-text-label>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
             `<muted-text-label><a href="${contactMethodsUrl}">Dodaj swój numer</a> aby wysyłać paragony SMS do ${phoneNumber}</muted-text-label>`,

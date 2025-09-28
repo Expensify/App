@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -311,7 +312,6 @@ import type {
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -1038,7 +1038,8 @@ const translations = {
         chooseReceipt: 'アップロードするレシートを選択するか、レシートを転送してください',
         chooseReceipts: 'アップロードするレシートを選択するか、レシートを転送してください',
         alternativeMethodsTitle: 'レシートを追加する他の方法：',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">アプリをダウンロード</a>してスマートフォンからスキャン</muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
+            `<muted-text-label><a href="${downloadUrl}">アプリをダウンロード</a>してスマートフォンからスキャン</muted-text-label>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>レシートを<a href="mailto:${email}">${email}</a>に転送</muted-text-label>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
             `<muted-text-label><a href="${contactMethodsUrl}">電話番号を追加</a>してレシートを${phoneNumber}にSMSで送信</muted-text-label>`,

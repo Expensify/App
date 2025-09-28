@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -311,7 +312,6 @@ import type {
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -1036,7 +1036,8 @@ const translations = {
         chooseReceipt: 'Scegli una ricevuta da caricare o inoltra una ricevuta a',
         chooseReceipts: 'Scegli ricevute da caricare o inoltra ricevute a',
         alternativeMethodsTitle: 'Altri modi per aggiungere ricevute:',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Scarica l'app</a> per scansionare dal tuo telefono</muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
+            `<muted-text-label><a href="${downloadUrl}">Scarica l'app</a> per scansionare dal tuo telefono</muted-text-label>`,
         alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Inoltra ricevute a <a href="mailto:${email}">${email}</a></muted-text-label>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
             `<muted-text-label><a href="${contactMethodsUrl}">Aggiungi il tuo numero</a> per inviare ricevute via SMS a ${phoneNumber}</muted-text-label>`,
