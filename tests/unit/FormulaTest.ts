@@ -118,7 +118,7 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
-            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY', 'MGA', 'KWD'].includes(code));
+            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY'].includes(code));
 
             const mockReportActions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -250,40 +250,38 @@ describe('CustomFormula', () => {
             });
 
             test('should handle total with currency override format', () => {
-                // Original is USD but format as EUR
                 currencyContext.report.currency = 'USD';
                 const result = compute('{report:total:EUR}', currencyContext);
                 // Should format as EUR instead of USD
-                expect(result).toMatch('€100.00');
+                expect(result).toBe('€100.00');
             });
 
             test('should handle lowercase currency override format', () => {
                 currencyContext.report.currency = 'USD';
-                // Test case-insensitive currency format override
-                const result = compute('{report:total:eur}', currencyContext);
-                // Should format as EUR despite lowercase
+                const result = compute('{report:total:eur }', currencyContext);
+                // Should format as EUR despite lowercase and whitespace is trimmed
                 expect(result).toBe('€100.00');
             });
 
             test('should handle undefined currency gracefully', () => {
                 currencyContext.report.currency = undefined;
                 const result = compute('{report:total}', currencyContext);
-                // Should handle missing currency without crashing
-                expect(result).toMatch('100.00');
+                // Should handle missing currency and format without currency symbol
+                expect(result).toBe('100.00');
             });
 
             test('should handle invalid currency code gracefully', () => {
                 currencyContext.report.currency = 'UNKNOWN';
                 const result = compute('{report:total}', currencyContext);
-                // Should fallback gracefully when currency code is not recognized
-                expect(result).toMatch('{report:total}');
+                // Should fallback to formula definition when currency code is not recognized
+                expect(result).toBe('{report:total}');
             });
 
-            test('should fallback to original currency when format currency is invalid', () => {
+            test('should return zero amount when format currency is invalid', () => {
                 currencyContext.report.currency = 'EUR';
                 const result = compute('{report:total:UNKNOWN}', currencyContext);
-                // Should fallback to EUR when UNKNOWN currency format is used
-                expect(result).toMatch('€100.00');
+                // Should return 0.00 when invalid currency format is used (matches backend behavior)
+                expect(result).toBe('0.00');
             });
         });
     });
