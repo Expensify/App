@@ -21,8 +21,10 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -1030,6 +1032,140 @@ describe('PolicyUtils', () => {
             };
             const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getPolicyBrickRoadIndicatorStatus', () => {
+        const baseAdminPolicy: OnyxEntry<Policy> = {
+            id: 'ABC123',
+            name: 'Test Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        const baseUserPolicy: OnyxEntry<Policy> = {
+            id: 'DEF456',
+            name: 'User Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        it('does return an ERROR RBR when a sync error exists for an admin', () => {
+            const policyWithConnectionFailures = {
+                ...baseAdminPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('does not return an ERROR RBR when a sync error exists for a user', () => {
+            const policyWithConnectionFailures = {
+                ...baseUserPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
+            const policyWithoutConnections = {
+                ...baseAdminPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseAdminPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result2).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync error exists for a user', () => {
+            const policyWithoutConnections = {
+                ...baseUserPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseUserPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result2).toBeUndefined();
         });
     });
 });
