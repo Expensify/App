@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
+import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList/types';
 import CellRendererComponent from './CellRendererComponent';
 
 function BaseInvertedFlatListWithRef<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {

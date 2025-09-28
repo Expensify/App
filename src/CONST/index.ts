@@ -7261,6 +7261,11 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
     },
+
+    LIST_BEHAVIOR: {
+        REGULAR: 'regular',
+        INVERTED: 'inverted',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

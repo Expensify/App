@@ -1,10 +1,10 @@
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
+import type {ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
+import type {BaseInvertedFlatListProps} from './types';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
@@ -19,18 +19,19 @@ function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: n
     return String(index);
 }
 
-type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-    data: T[];
-    renderItem: ListRenderItem<T>;
-    initialScrollKey?: string | null;
-    ref?: ForwardedRef<RNFlatList>;
-};
-
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
-function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
+function BaseInvertedFlatList<T>({
+    ref,
+    shouldEnableAutoScrollToTopThreshold,
+    initialScrollKey,
+    data,
+    onStartReached,
+    additionalOnScrollHandler,
+    renderItem,
+    keyExtractor = defaultKeyExtractor,
+    ...restProps
+}: BaseInvertedFlatListProps<T>) {
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
@@ -126,16 +127,17 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
     });
 
     return (
-        <FlatList
+        <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...restProps}
             ref={listRef}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
             data={displayedData}
-            onStartReached={handleStartReached}
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
+            onStartReached={handleStartReached}
+            additionalOnScrollHandler={additionalOnScrollHandler}
         />
     );
 }
@@ -143,7 +145,4 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
 export default BaseInvertedFlatList;
-
 export {AUTOSCROLL_TO_TOP_THRESHOLD};
-
-export type {BaseInvertedFlatListProps};
