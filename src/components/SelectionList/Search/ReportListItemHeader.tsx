@@ -86,6 +86,7 @@ function HeaderFirstRow<TItem extends ListItem>({
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
 
@@ -127,7 +128,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                 </View>
             </View>
             <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
-                {' '}
                 <TotalCell
                     total={total}
                     currency={currency}

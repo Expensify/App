@@ -152,7 +152,6 @@ function ActionCell({
             text={text}
             onPress={goToItem}
             small
-            xsmall={extraSmall}
             style={[styles.w100]}
             isLoading={isLoading}
             success
