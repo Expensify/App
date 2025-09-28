@@ -51,7 +51,6 @@ function CurrencySelector(
         onBlur,
         currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
         label,
-        style,
         shouldShowCurrencySymbol = false,
     }: CurrencySelectorProps,
     ref: ForwardedRef<View>,
