@@ -244,7 +244,7 @@ PODS:
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
   - FullStory (1.64.1)
-  - fullstory_react-native (1.7.7):
+  - fullstory_react-native (1.7.6):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -3759,7 +3759,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: 0f6fc42479da96ddfa89fe16fd4d3e3e3c6f6515
-  fullstory_react-native: 6602f6c21b30187b71c3c4a1f709bddf3045e716
+  fullstory_react-native: eea992f5f335d6b73cb5c3cc06942660388ef92f
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
