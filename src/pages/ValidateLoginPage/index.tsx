@@ -13,6 +13,7 @@ function ValidateLoginPage({
     },
 }: ValidateLoginPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
     useEffect(() => {
         // Wait till navigation becomes available
@@ -26,7 +27,7 @@ function ValidateLoginPage({
                 }
                 Navigation.goBack();
             } else {
-                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
+                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, '', exitTo);
             }
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
