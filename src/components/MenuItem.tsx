@@ -518,7 +518,6 @@ function MenuItem({
     copyValue = title,
     copyable = false,
     hasSubMenuItems = false,
-
     ref,
 }: MenuItemProps) {
     const theme = useTheme();

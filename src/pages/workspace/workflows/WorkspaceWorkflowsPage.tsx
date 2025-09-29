@@ -49,8 +49,8 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {pressedOnLockedBankAccount} from '@userActions/BankAccounts';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -189,8 +189,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
         const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-        const isAccountInSetupState = state === CONST.BANK_ACCOUNT.STATE.SETUP;
-        const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+        const isAccountInSetupState = accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP;
+        const isBusinessBankAccountLocked = accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
@@ -319,7 +319,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         showLockedAccountModal();
                                         return;
                                     }
-                                    if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
+                                    if (accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
                                         pressedOnLockedBankAccount(bankAccountID);
                                         navigateToConciergeChat();
                                     }
@@ -340,7 +340,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 iconWidth={shouldShowBankAccount ? (bankIcon.iconWidth ?? bankIcon.iconSize) : 20}
                                 iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
                                 disabled={isOffline || !isPolicyAdmin}
-                                badgeText={getBadgeText(state)}
+                                badgeText={getBadgeText(accountData.state)}
                                 badgeIcon={(isAccountInSetupState ?? (isBusinessBankAccountLocked && isPolicyAdmin)) ? Expensicons.DotIndicator : undefined}
                                 badgeSuccess={isAccountInSetupState ? true : undefined}
                                 badgeError={isBusinessBankAccountLocked && isPolicyAdmin ? true : undefined}
