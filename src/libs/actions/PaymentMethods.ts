@@ -9,7 +9,6 @@ import type {
     AddPaymentCardParams,
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
-    OpenPaymentsPageParams,
     PaymentCardParams,
     SetInvoicingTransferBankAccountParams,
     TransferWalletBalanceParams,
