@@ -2,7 +2,7 @@ import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
 import type {Transaction} from '@src/types/onyx';
 
 type BaseSearchListProps = Pick<

@@ -402,7 +402,7 @@ function PaymentMethodList({
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress]);
+    }, [isUserValidated, onAddBankAccountPress, policyID]);
 
     const renderListFooterComponent = useCallback(
         () => (
