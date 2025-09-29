@@ -406,7 +406,7 @@ class TranslationGenerator {
      * Extract context annotation value from a string (comment or text).
      * Returns the context value if found, undefined otherwise.
      */
-    private extractContextFromString(text: string): string | undefined {
+    private extractContextAnnotationFromString(text: string): string | undefined {
         const match = text.match(TranslationGenerator.CONTEXT_REGEX);
         return match?.[1].trim();
     }
@@ -420,7 +420,7 @@ class TranslationGenerator {
         if (!line) {
             return false;
         }
-        return this.extractContextFromString(line) !== undefined;
+        return this.extractContextAnnotationFromString(line) !== undefined;
     }
 
     /**
@@ -428,7 +428,7 @@ class TranslationGenerator {
      */
     private getContextForNode(node: ts.Node): string | undefined {
         // First, check for an inline context comment
-        const inlineContext = this.extractContextFromString(node.getFullText());
+        const inlineContext = this.extractContextAnnotationFromString(node.getFullText());
         if (inlineContext) {
             return inlineContext;
         }
@@ -444,7 +444,7 @@ class TranslationGenerator {
         const commentRanges = ts.getLeadingCommentRanges(this.sourceFile.getFullText(), nearestPropertyAssignmentAncestor.getFullStart()) ?? [];
         for (const range of commentRanges.reverse()) {
             const commentText = this.sourceFile.getFullText().slice(range.pos, range.end);
-            const context = this.extractContextFromString(commentText);
+            const context = this.extractContextAnnotationFromString(commentText);
             if (context) {
                 return context;
             }
