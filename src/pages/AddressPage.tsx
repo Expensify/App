@@ -37,7 +37,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState(getCountryCode(address?.country ?? defaultCountry));
+    const [currentCountry, setCurrentCountry] = useState(() => getCountryCode(address?.country ?? defaultCountry));
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
