@@ -15,6 +15,7 @@ import type {ExtraLoadingContext, GlobalStateSnapshot, NavigationStateInfo, Netw
 let currentSession: OnyxEntry<Session>;
 let currentNetwork: OnyxEntry<Network>;
 
+// We have opted for connectWithoutView here as this is strictly non-UI and only for logging.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -22,6 +23,7 @@ Onyx.connectWithoutView({
     },
 });
 
+// We have opted for connectWithoutView here as this is strictly non-UI and only for logging.
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {

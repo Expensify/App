@@ -1,4 +1,3 @@
-// AppState implementation for global state snapshot logging
 import {getAll as getAllPersistedRequests, getOngoingRequest} from '@libs/actions/PersistedRequests';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {getAll as getMainQueueRequests} from '@libs/Network/MainQueue';
