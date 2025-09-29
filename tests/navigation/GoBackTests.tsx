@@ -448,6 +448,8 @@ describe('Go back on the narrow layout', () => {
     });
 });
 describe('Go back on the wide layout', () => {
+    let isReadySpy: jest.SpyInstance;
+
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(false);
         mockedUseResponsiveLayout.mockReturnValue({
@@ -456,6 +458,12 @@ describe('Go back on the wide layout', () => {
             isSmallScreenWidth: false,
             isLargeScreenWidth: true,
         });
+
+        isReadySpy = jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
+    });
+
+    afterEach(() => {
+        isReadySpy.mockRestore();
     });
 
     it('should preserved backTo params between central screen and side bar screen', () => {
