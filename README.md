@@ -82,7 +82,9 @@ To take advantage of remote builds, setup your GitHub Personal Access Token (PAT
 * To install project dependencies run: `npm install`
 * To start metro server run: `npm run start`
 **Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
-* To run application on a **Development Simulator**: `npm run ios` or `npm run android`
+* To run application on a **Development Simulator**:
+    - For iOS `npm run ios-standalone` or `npm run ios` (hybrid app)
+    - For Android `npm run android-standalone` or `npm run android` (hybrid app) 
 
 After completing these steps, you should be able to start both mobile platform apps using the remote build.
 
@@ -91,14 +93,18 @@ After completing these steps, you should be able to start both mobile platform a
     - `npm run i-standalone` for the standalone app
     - `npm install` for the hybrid app
 
-* Try running `npm run ios` or `npm run android` again
+* Try running:
+    - For iOS `npm run ios-standalone` or `npm run ios` (hybrid app)
+    - For Android `npm run android-standalone` or `npm run android` (hybrid app) 
 
 * If you’re still encountering errors, you can try running:
     - `git clean -fdx ios/` when running iOS
     - `git clean -fdx android/` when running Android
     - `git clean -fdx ./Mobile-Expensify` when running hybrid app
 
-* Then try running `npm run ios` or `npm run android` again
+* Then try running again: 
+    - For iOS `npm run ios-standalone` or `npm run ios` (hybrid app)
+    - For Android `npm run android-standalone` or `npm run android` (hybrid app) 
 
 * If the issue persists, verify that both workflows in the GitHub repository have completed successfully:
     - [iOS builds](https://github.com/Expensify/App/actions/workflows/remote-build-ios.yml)
