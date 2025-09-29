@@ -1,97 +1,81 @@
 import React, {useEffect, useMemo} from 'react';
+import type {SectionListData} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
+import type {Section} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useSearchSelector from '@hooks/useSearchSelector';
 import {searchInServer} from '@libs/actions/Report';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getShareLogOptions} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListProps} from './types';
 
+type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
+
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const betas = useBetas();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const {options, areOptionsInitialized} = useOptionsList();
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {
-                recentReports: [],
-                personalDetails: [],
-                userToInvite: null,
-                currentUserOption: null,
-                headerMessage: '',
-            };
-        }
-        const shareLogOptions = getShareLogOptions(options, betas ?? []);
-
-        const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
-
-        return {
-            ...shareLogOptions,
-            headerMessage: header,
-        };
-    }, [areOptionsInitialized, options, betas]);
-
-    const searchOptions = useMemo(() => {
-        if (debouncedSearchValue.trim() === '') {
-            return defaultOptions;
-        }
-
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, countryCode, {
-            preferChatRoomsOverThreads: true,
-            sortByReportTypeInSearch: true,
-        });
-
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue.trim(),
-        );
-
-        return {...filteredOptions, headerMessage};
-    }, [debouncedSearchValue, defaultOptions, countryCode]);
-
+    const {searchTerm, setSearchTerm, searchOptions, areOptionsInitialized} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        getValidOptionsConfig: {
+            includeMultipleParticipantReports: true,
+            forcePolicyNamePreview: true,
+            includeOwnedWorkspaceChats: true,
+            includeSelfDM: true,
+            includeThreads: true,
+            includeReadOnly: false,
+        },
+        includeUserToInvite: false,
+    });
     const sections = useMemo(() => {
-        const sectionsList = [];
+        if (!areOptionsInitialized) {
+            return CONST.EMPTY_ARRAY;
+        }
+        const sectionsList: Sections = [];
 
         sectionsList.push({
             title: translate('common.recents'),
             data: searchOptions.recentReports,
-            shouldShow: searchOptions.recentReports?.length > 0,
+            shouldShow: searchOptions.recentReports.length > 0,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: searchOptions.personalDetails,
-            shouldShow: searchOptions.personalDetails?.length > 0,
+            shouldShow: searchOptions.personalDetails.length > 0,
         });
 
         if (searchOptions.userToInvite) {
             sectionsList.push({
+                title: undefined,
                 data: [searchOptions.userToInvite],
                 shouldShow: true,
             });
         }
 
         return sectionsList;
-    }, [searchOptions?.personalDetails, searchOptions?.recentReports, searchOptions?.userToInvite, translate]);
+    }, [areOptionsInitialized, translate, searchOptions.recentReports, searchOptions.personalDetails, searchOptions.userToInvite]);
 
+    const headerMessage = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return '';
+        }
+
+        return getHeaderMessage((searchOptions.recentReports?.length || 0) + (searchOptions.personalDetails?.length || 0) !== 0, !!searchOptions.userToInvite, searchTerm.trim());
+    }, [areOptionsInitialized, searchOptions.personalDetails?.length, searchOptions.recentReports?.length, searchOptions.userToInvite, searchTerm]);
     const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
             return;
@@ -102,8 +86,8 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     };
 
     useEffect(() => {
-        searchInServer(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+        searchInServer(searchTerm);
+    }, [searchTerm]);
 
     return (
         <ScreenWrapper
@@ -118,12 +102,12 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                     />
                     <SelectionList
                         ListItem={UserListItem}
-                        sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
+                        sections={sections}
                         onSelectRow={attachLogToReport}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        textInputValue={searchValue}
-                        headerMessage={searchOptions.headerMessage}
+                        onChangeText={setSearchTerm}
+                        textInputValue={searchTerm}
+                        headerMessage={headerMessage}
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                         showLoadingPlaceholder={!didScreenTransitionEnd}
