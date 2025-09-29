@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import SelectionList from '@components/SelectionListSingle';
-import MultiSelectListItem from '@components/SelectionListSingle/ListItem/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionListSingle/ListItem/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
