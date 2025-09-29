@@ -17,6 +17,7 @@ export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
 export type {default as CloseSidePanelParams} from './CloseSidePanelParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
+export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
@@ -26,6 +27,7 @@ export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuite
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
+export type {default as UpdateSageIntacctAccountingMethodParams} from './UpdateSageIntacctAccountingMethodParams';
 export type {default as RemovePolicyReceiptPartnersConnectionParams} from './RemovePolicyReceiptPartnersConnectionParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
@@ -80,6 +82,7 @@ export type {default as SignInWithSupportAuthTokenParams} from './SignInWithSupp
 export type {default as UnlinkLoginParams} from './UnlinkLoginParams';
 export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTimezoneParams';
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
+export type {default as DuplicateWorkspaceParams} from './DuplicateWorkspaceParams';
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateChatNameParams} from './UpdateChatNameParams';
@@ -414,6 +417,8 @@ export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuide
 export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as RejectMoneyRequestParams} from './RejectMoneyRequestParams';
+export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
 export type {default as LockAccountParams} from './LockAccountParams';
 export type {default as SetVacationDelegateParams} from './SetVacationDelegateParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
@@ -422,6 +427,8 @@ export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreported
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
 export type {default as ExportSearchWithTemplateParams} from './ExportSearchWithTemplateParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
+export type {default as AddReportApproverParams} from './AddReportApproverParams';
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
+export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';

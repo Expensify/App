@@ -1,18 +1,18 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
-import lodashFindLast from 'lodash/findLast';
 import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -21,7 +21,6 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
-import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -150,7 +149,7 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 }
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    if (isInviteOrRemovedAction(reportAction)) {
+    if (isInviteOrRemovedAction(reportAction) || isActionableMentionWhisper(reportAction)) {
         return false;
     }
 
@@ -776,7 +775,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
  */
-function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
+function isActionableMentionWhisper(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
 }
 
@@ -867,12 +866,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !isMarkAsClosedAction(reportAction)) {
-        return false;
-    }
-
-    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
-    // elsewhere in the IOU reportAction
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
         return false;
     }
 
@@ -1064,7 +1057,14 @@ function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
  * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    return actions.filter(isVisiblePreviewOrMoneyRequest);
+    // The free trial message can be duplicated due to this change https://github.com/Expensify/App/pull/68630 without the backend change
+    // So we need to filter out the duplicate free trial message
+    const freeTrialMessages = actions.filter((action) => {
+        const html = getReportActionHtml(action);
+        return Parser.htmlToMarkdown(html) === CONST.FREE_TRIAL_MARKDOWN;
+    });
+    const isDuplicateFreeTrialMessage = freeTrialMessages.length > 1;
+    return actions.filter(isVisiblePreviewOrMoneyRequest).filter((action) => !isDuplicateFreeTrialMessage || action.reportActionID !== freeTrialMessages.at(0)?.reportActionID);
 }
 
 /**
@@ -1093,27 +1093,6 @@ function getSortedReportActionsForDisplay(
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
-}
-
-/**
- * In some cases, there can be multiple closed report actions in a chat report.
- * This method returns the last closed report action so we can always show the correct archived report reason.
- * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
- *
- */
-function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    // If closed report action is not present, return early
-    if (
-        !Object.values(reportActions ?? {}).some((action) => {
-            return action?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
-        })
-    ) {
-        return undefined;
-    }
-
-    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
-    const sortedReportActions = getSortedReportActions(filteredReportActions);
-    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
 /**
@@ -1266,26 +1245,35 @@ function isTagModificationAction(actionName: string): boolean {
  * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
  */
 function getSendMoneyFlowAction(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>): ReportAction<'IOU'> | undefined {
-    if (!chatReport) {
+    if (!chatReport || !actions) {
         return undefined;
     }
 
-    const iouActions = Object.values(actions ?? {}).filter(isMoneyRequestAction);
+    let iouAction = null;
+    for (const reportAction of Object.values(actions)) {
+        if (isMoneyRequestAction(reportAction)) {
+            if (iouAction !== null) {
+                // We more than one IOU action
+                return undefined;
+            }
+            iouAction = reportAction;
+        }
+    }
 
     // sendMoneyFlow has only one IOU action...
-    if (iouActions.length !== 1) {
+    if (iouAction === null) {
         return undefined;
     }
 
     // ...which is 'pay'...
-    const isFirstActionPay = getOriginalMessage(iouActions.at(0))?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+    const isFirstActionPay = getOriginalMessage(iouAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 
     const {type, chatType, parentReportID, parentReportActionID} = chatReport;
 
     // ...and can only be triggered on DM chats
     const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
 
-    return isFirstActionPay && isDM ? iouActions.at(0) : undefined;
+    return isFirstActionPay && isDM ? iouAction : undefined;
 }
 
 /** Whether action has no linked report by design */
@@ -1324,7 +1312,7 @@ const isIOUActionMatchingTransactionList = (
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportAction(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Pick<Report, 'type'>>,
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
@@ -1346,7 +1334,7 @@ function getOneTransactionThreadReportAction(
         return sendMoneyFlow;
     }
 
-    const iouRequestActions = [];
+    let iouRequestAction = null;
     for (const action of reportActionsArray) {
         // If the original message is a 'pay' IOU without IOUDetails, it shouldn't be added to the transaction count.
         // However, it is excluded from the matching function in order to display it properly, so we need to compare the type here.
@@ -1367,25 +1355,28 @@ function getOneTransactionThreadReportAction(
             // - the action is pending deletion and the user is offline
             (!!originalMessage?.IOUTransactionID || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
         ) {
-            iouRequestActions.push(action);
+            if (iouRequestAction !== null) {
+                // We found a second action so this is for sure not a one-transaction report
+                return;
+            }
+            iouRequestAction = action;
         }
     }
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
-    if (!iouRequestActions.length || iouRequestActions.length > 1) {
+    if (iouRequestAction === null) {
         return;
     }
 
-    const singleAction = iouRequestActions.at(0);
-    const originalMessage = getOriginalMessage(singleAction);
+    const originalMessage = getOriginalMessage(iouRequestAction);
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
-    if (((originalMessage?.deleted ?? '') !== '' || isDeletedAction(singleAction)) && isMoneyRequestAction(singleAction)) {
+    if (((originalMessage?.deleted ?? '') !== '' || isDeletedAction(iouRequestAction)) && isMoneyRequestAction(iouRequestAction)) {
         return;
     }
 
-    return singleAction;
+    return iouRequestAction;
 }
 
 /**
@@ -2139,11 +2130,13 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
+
     if (reimbursableUrls.length === 1) {
         const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        const reimbursableUrl = reimbursableUrls.at(0) ?? '';
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
-            url: reimbursableUrls.at(0) ?? '',
+            url: reimbursableUrl.startsWith('https://') ? reimbursableUrl : '',
         });
     }
     if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
@@ -2157,7 +2150,8 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = nonReimbursableUrls.at(0) ?? '';
+            const nonReimbursableUrl = nonReimbursableUrls.at(0) ?? '';
+            url = nonReimbursableUrl.startsWith('https://') ? nonReimbursableUrl : '';
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
@@ -2876,7 +2870,7 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
 }
 
-function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>(reportAction: OnyxEntry<ReportAction>) {
+function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
     // If mentionedAccountIDs exists and has values, use the first one
@@ -2930,6 +2924,13 @@ function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.AC
     const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : (userDetail?.login ?? getOriginalMessage(reportAction)?.email);
     return translateLocal('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
 }
+function isCardActive(card?: Card): boolean {
+    if (!card) {
+        return false;
+    }
+    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
+    return !closedStates.has(card.state);
+}
 
 function getCardIssuedMessage({
     reportAction,
@@ -2953,8 +2954,10 @@ function getCardIssuedMessage({
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
+
+    const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink =
-        shouldRenderHTML && !!expensifyCard ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
+        shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
@@ -2996,13 +2999,19 @@ function getReportActions(report: Report) {
 /**
  * @private
  */
-function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
+function wasActionCreatedWhileOffline(
+    action: ReportAction,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+): boolean {
     // The user has never gone offline or never come back online
     if (!lastOfflineAt || !lastOnlineAt) {
         return false;
     }
 
-    const actionCreatedAt = DateUtils.getLocalDateFromDatetime(locale, action.created);
+    const actionCreatedAt = getLocalDateFromDatetime(action.created);
 
     // The action was created before the user went offline.
     if (actionCreatedAt <= lastOfflineAt) {
@@ -3021,9 +3030,15 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
 /**
  * Whether a message is NOT from the active user, and it was received while the user was offline.
  */
-function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale = CONST.LOCALES.DEFAULT) {
+function wasMessageReceivedWhileOffline(
+    action: ReportAction,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
+) {
     const wasByCurrentUser = wasActionTakenByCurrentUser(action);
-    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
+    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime);
 
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
@@ -3089,7 +3104,6 @@ export {
     getIOUActionForReportID,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
-    getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
@@ -3252,6 +3266,7 @@ export {
     getChangedApproverActionMessage,
     getDelegateAccountIDFromReportAction,
     isPendingHide,
+    filterOutDeprecatedReportActions,
 };
 
 export type {LastVisibleMessage};

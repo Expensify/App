@@ -5,12 +5,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 import EReceipt from './EReceipt';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 
 type EReceiptWithSizeCalculationProps = {
+    /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
 
+    /** The transaction data in search */
     transactionItem?: TransactionListItemType | Transaction;
+
+    /** Whether the eReceipt should preserve aspect ratio */
+    shouldUseAspectRatio?: boolean;
 };
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
@@ -33,7 +38,8 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
                 style={[
                     styles.w100,
                     styles.h100,
-                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left', aspectRatio: eReceiptAspectRatio},
+                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left'},
+                    props.shouldUseAspectRatio && {aspectRatio: eReceiptAspectRatio},
                 ]}
             >
                 <EReceipt

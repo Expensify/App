@@ -164,9 +164,14 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param transactionTags - currently selected tags for a report
  * @param tag - a newly selected tag, that should be added to the transactionTags
  * @param tagIndex - the index of a tag list
+ * @param hasMultipleTagLists - whether the policy has multiple levels tag
  * @returns
  */
-function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean): string {
+    if (!hasMultipleTagLists) {
+        return tag;
+    }
+
     const tagArray = getTagArrayFromName(transactionTags);
     tagArray[tagIndex] = tag;
 

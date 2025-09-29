@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
@@ -139,6 +139,8 @@ const mockReportItemWithHold = {
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
         {
             report: {
@@ -195,6 +197,8 @@ const mockReportItemWithHold = {
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
+            convertedAmount: 1200,
+            convertedCurrency: 'USD',
         },
     ],
     isSelected: false,

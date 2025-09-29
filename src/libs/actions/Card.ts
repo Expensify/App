@@ -194,7 +194,19 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    }).then((response) => {
+        if (!response) {
+            return;
+        }
+        if (response.pin) {
+            Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, response.pin);
+        }
+    });
 }
 
 /**
@@ -202,6 +214,13 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  */
 function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
+}
+
+/**
+ * Clears the PIN for an activated card
+ */
+function clearActivatedCardPin() {
+    Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, '');
 }
 
 function clearReportVirtualCardFraudForm() {
@@ -391,7 +410,15 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
-function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
+function updateExpensifyCardLimit(
+    workspaceAccountID: number,
+    cardID: number,
+    newLimit: number,
+    newAvailableSpend: number,
+    oldLimit?: number,
+    oldAvailableSpend?: number,
+    isVirtualCard?: boolean,
+) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
@@ -459,6 +486,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
         authToken,
         cardID,
         limit: newLimit,
+        isVirtualCard: isVirtualCard ?? false,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
@@ -968,6 +996,7 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
+    clearActivatedCardPin,
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,

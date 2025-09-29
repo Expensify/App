@@ -1,6 +1,7 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -28,7 +29,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
@@ -41,7 +41,7 @@ import {
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
     hasAccountingConnections,
-    hasUnsupportedIntegration,
+    hasSupportedOnlyOnOldDotIntegration,
     isControlPolicy,
     settingsPendingAction,
     shouldShowSyncError,
@@ -73,7 +73,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
@@ -104,7 +103,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
-    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasUnsupportedIntegration(policy, accountingIntegrations);
+    const hasUnsupportedNDIntegration = !isEmptyObject(policy?.connections) && hasSupportedOnlyOnOldDotIntegration(policy);
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -378,10 +377,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldShowRedDotIndicator: true,
                 description: connectionMessage,
                 rightComponent: isSyncInProgress ? (
-                    <ActivityIndicator
-                        style={[styles.popoverMenuIcon]}
-                        color={theme.spinner}
-                    />
+                    <ActivityIndicator style={[styles.popoverMenuIcon]} />
                 ) : (
                     <ThreeDotsMenu
                         shouldSelfPosition
@@ -399,27 +395,26 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [
         policy,
         isSyncInProgress,
-        connectedIntegration,
-        synchronizationError,
-        shouldShowSynchronizationError,
         policyID,
+        connectedIntegration,
         translate,
+        isBetaEnabled,
+        connectionSyncProgress?.stageInProgress,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
         styles.justifyContentCenter,
-        connectionSyncProgress?.stageInProgress,
-        datetimeToRelative,
-        theme.spinner,
+        shouldShowCardReconciliationOption,
+        shouldShowSynchronizationError,
+        synchronizationError,
         overflowMenu,
         integrationSpecificMenuItems,
         accountingIntegrations,
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        isBetaEnabled,
-        shouldShowCardReconciliationOption,
+        datetimeToRelative,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -512,7 +507,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     onBackButtonPress={Navigation.popToSidebar}
                 />
                 <ScrollView

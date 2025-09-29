@@ -53,7 +53,7 @@ type NumberWithSymbolFormProps = {
     shouldWrapInputInContainer?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef?: ForwardedRef<BaseTextInputRef>;
+    ref?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -108,7 +108,7 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
-    forwardedRef,
+    ref,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
@@ -194,9 +194,9 @@ function NumberWithSymbolForm({
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
                     willSelectionBeUpdatedManually.current = false;
                 }
-                onInputChange?.(strippedNumber);
                 return strippedNumber;
             });
+            onInputChange?.(strippedNumber);
         },
         [decimals, maxLength, onInputChange],
     );
@@ -318,12 +318,12 @@ function NumberWithSymbolForm({
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
-                ref={(ref: BaseTextInputRef | null) => {
-                    if (typeof forwardedRef === 'function') {
-                        forwardedRef(ref);
-                    } else if (forwardedRef && 'current' in forwardedRef) {
-                        // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
-                        forwardedRef.current = ref;
+                ref={(newRef: BaseTextInputRef | null) => {
+                    if (typeof ref === 'function') {
+                        ref(newRef);
+                    } else if (ref && 'current' in ref) {
+                        // eslint-disable-next-line no-param-reassign
+                        ref.current = newRef;
                     }
                 }}
                 prefixCharacter={symbol}
@@ -348,14 +348,14 @@ function NumberWithSymbolForm({
             onChangeAmount={setNewNumber}
             onSymbolButtonPress={onSymbolButtonPress}
             placeholder={numberFormat(0)}
-            ref={(ref: BaseTextInputRef | null) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            ref={(newRef: BaseTextInputRef | null) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
-                textInput.current = ref;
+                textInput.current = newRef;
             }}
             symbol={symbol}
             hideSymbol={hideSymbol}
@@ -400,6 +400,7 @@ function NumberWithSymbolForm({
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            onFocus={props.onFocus}
         />
     );
 

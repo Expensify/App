@@ -861,7 +861,7 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ViewStyle {
     if (isSmallScreenWidth) {
         return {
             position: 'absolute',
@@ -1245,11 +1245,11 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
  * the first last item to have spacing to create the effect of having more items in the list.
  */
 function getOptionMargin(itemIndex: number, itemsLen: number) {
-    if (itemIndex === itemsLen && itemsLen > 5) {
+    if (itemIndex === itemsLen && itemsLen >= 5) {
         return {marginBottom: 16};
     }
 
-    if (itemIndex === 0 && itemsLen > 5) {
+    if (itemIndex === 0 && itemsLen >= 5) {
         return {marginTop: 16};
     }
 

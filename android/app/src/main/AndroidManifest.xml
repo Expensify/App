@@ -63,6 +63,7 @@
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/workspaces"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
@@ -86,6 +87,7 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/workspaces"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/bank-account"/>

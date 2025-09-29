@@ -9,9 +9,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {Section} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -58,6 +58,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [currentApprovalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
     const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -142,7 +144,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         }
 
         const filteredApprovers =
-            debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
+            debouncedSearchTerm !== ''
+                ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
+                : approvers;
 
         const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
         return [
@@ -154,18 +158,19 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         ];
     }, [
         isApprovalWorkflowLoading,
-        approversFromWorkflow,
-        isDefault,
-        approverIndex,
-        debouncedSearchTerm,
-        defaultApprover,
-        personalDetails,
         employeeList,
-        selectedApproverEmail,
-        membersEmail,
+        debouncedSearchTerm,
+        countryCode,
+        localeCompare,
         policy?.preventSelfApproval,
         policy?.owner,
-        localeCompare,
+        membersEmail,
+        approversFromWorkflow,
+        selectedApproverEmail,
+        isDefault,
+        approverIndex,
+        defaultApprover,
+        personalDetails,
     ]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !!approvalWorkflow && !sections.at(0)?.data.length && !isApprovalWorkflowLoading;
@@ -188,17 +193,18 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
             const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
-            setApprovalWorkflowApprover(
-                {
+            setApprovalWorkflowApprover({
+                approver: {
                     email: selectedApproverEmail,
                     avatar,
                     displayName,
                 },
                 approverIndex,
-                route.params.policyID,
-            );
+                currentApprovalWorkflow,
+                policyID: route.params.policyID,
+            });
         } else {
-            clearApprovalWorkflowApprover(approverIndex);
+            clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
         }
 
         if (isInitialCreationFlow) {
@@ -206,7 +212,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         } else {
             goBack();
         }
-    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack]);
+    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack, currentApprovalWorkflow]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
