@@ -142,6 +142,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1712,13 +1713,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Accounts samenvoegen',
         accountDetails: {
-            accountToMergeInto: 'Voer het account in waarmee u wilt samenvoegen',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Voer de account in die je wilt samenvoegen in <strong>${login}</strong>.`,
             notReversibleConsent: 'Ik begrijp dat dit niet omkeerbaar is.',
         },
         accountValidate: {
             confirmMerge: 'Weet je zeker dat je accounts wilt samenvoegen?',
-            lossOfUnsubmittedData: `Het samenvoegen van uw accounts is onomkeerbaar en zal resulteren in het verlies van alle niet-ingediende uitgaven voor`,
-            enterMagicCode: `Om door te gaan, voer de magische code in die is verzonden naar`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Het samenvoegen van je accounts is onomkeerbaar en zal resulteren in het verlies van alle niet-ingediende uitgaven voor <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Voer de magische code in die naar <strong>${login}</strong> is verzonden om verder te gaan.`,
             errors: {
                 incorrectMagicCode: 'Onjuiste of ongeldige magische code. Probeer het opnieuw of vraag een nieuwe code aan.',
                 fallback: 'Er is iets misgegaan. Probeer het later opnieuw.',
@@ -2622,13 +2624,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Onze e-mailprovider heeft tijdelijk e-mails naar ${login} opgeschort vanwege bezorgproblemen. Volg deze stappen om uw login te deblokkeren:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Bevestig dat ${login} correct gespeld is en een echt, bezorgbaar e-mailadres is.`,
-        emailAliases: 'E-mailaliassen zoals "expenses@domain.com" moeten toegang hebben tot hun eigen e-mailinbox om een geldige Expensify-login te zijn.',
-        ensureYourEmailClient: 'Zorg ervoor dat uw e-mailclient e-mails van expensify.com toestaat.',
-        youCanFindDirections: 'U kunt instructies vinden over hoe u deze stap kunt voltooien.',
-        helpConfigure: 'maar je hebt misschien de hulp van je IT-afdeling nodig om je e-mailinstellingen te configureren.',
-        onceTheAbove: 'Zodra de bovenstaande stappen zijn voltooid, neem dan contact op met',
-        toUnblock: 'om uw login te deblokkeren.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Bevestig dat ${login} correct gespeld is en een echt, bezorgbaar e-mailadres is.</strong> E-mailaliassen zoals "expenses@domain.com" moeten toegang hebben tot hun eigen e-mailinbox om een geldige Expensify-login te zijn.`,
+        ensureYourEmailClient: `<strong>Zorg ervoor dat uw e-mailclient e-mails van expensify.com toestaat.</strong> Je kunt hier <a href="${CONST.SET_NOTIFICATION_LINK}"></a> vinden hoe je deze stap uitvoert, maar het kan zijn dat je IT-afdeling je moet helpen bij het configureren van je e-mailinstellingen.`,
+        onceTheAbove: `Als de bovenstaande stappen zijn voltooid, neem dan contact op met <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> om uw aanmelding te deblokkeren.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>

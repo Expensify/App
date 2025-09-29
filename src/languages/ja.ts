@@ -142,6 +142,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1711,13 +1712,13 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'アカウントを統合する',
         accountDetails: {
-            accountToMergeInto: 'マージしたいアカウントを入力してください',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `マージしたいアカウントを<strong>${login}</strong>に入力する。`,
             notReversibleConsent: 'これは元に戻せないことを理解しています。',
         },
         accountValidate: {
             confirmMerge: 'アカウントをマージしてもよろしいですか？',
-            lossOfUnsubmittedData: `アカウントの統合は元に戻せず、未提出の経費が失われる結果になります。`,
-            enterMagicCode: `続行するには、に送信されたマジックコードを入力してください。`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `アカウントの統合は不可逆的であり、<strong>${login}</strong>の未提出の経費は失われます。`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `続行するには、<strong>${login}</strong>に送られたマジックコードを入力してください。`,
             errors: {
                 incorrectMagicCode: '無効または不正なマジックコードです。もう一度お試しいただくか、新しいコードをリクエストしてください。',
                 fallback: '問題が発生しました。後でもう一度お試しください。',
@@ -2615,13 +2616,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `私たちのメールプロバイダーは、配信の問題により${login}へのメールを一時的に停止しました。ログインを解除するには、次の手順に従ってください。`,
-        confirmThat: ({login}: ConfirmThatParams) => `${login}が正しく綴られており、実際に配信可能なメールアドレスであることを確認してください。`,
-        emailAliases: '「expenses@domain.com」のようなメールエイリアスは、有効なExpensifyログインとするために、自分のメール受信箱にアクセスできる必要があります。',
-        ensureYourEmailClient: 'メールクライアントがexpensify.comからのメールを許可していることを確認してください。',
-        youCanFindDirections: 'このステップを完了する方法についての指示を見つけることができます。',
-        helpConfigure: 'ただし、メール設定の構成にはIT部門の支援が必要な場合があります。',
-        onceTheAbove: '上記の手順が完了したら、に連絡してください。',
-        toUnblock: 'ログインを解除するために。',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>${login}が正しく綴られており、実際に配信可能なメールアドレスであることを確認してください。</strong>「expenses@domain.com」のようなメールエイリアスは、有効なExpensifyログインとするために、自分のメール受信箱にアクセスできる必要があります。`,
+        ensureYourEmailClient: `<strong>メールクライアントがexpensify.comからのメールを許可していることを確認してください。</strong>このステップを完了する方法は<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>を参照してください。`,
+        onceTheAbove: `上記の手順が完了したら、<a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a>までご連絡いただき、ログインブロックを解除してください。`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `${login}にSMSメッセージを送信できなかったため、一時的に停止しました。番号を確認してください。`,

@@ -129,6 +129,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1691,13 +1692,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Fusionar cuentas',
         accountDetails: {
-            accountToMergeInto: `Introduce la cuenta en la que deseas fusionar `,
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Introduce la cuenta en la que deseas fusionar <strong>${login}</strong>.`,
             notReversibleConsent: 'Entiendo que esto no es reversible',
         },
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
-            lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
-            enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Para continuar, por favor introduce el código mágico enviado a <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
                 fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
@@ -2577,14 +2579,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
-        emailAliases:
-            'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a tu propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
-        ensureYourEmailClient: 'Asegúrese de que tu cliente de correo electrónico permita correos electrónicos de expensify.com. ',
-        youCanFindDirections: 'Puedes encontrar instrucciones sobre cómo completar este paso ',
-        helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
-        onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
-        toUnblock: ' para desbloquear el inicio de sesión.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos.</strong> Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a tu propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.`,
+        ensureYourEmailClient: `<strong>Asegúrese de que tu cliente de correo electrónico permita correos electrónicos de expensify.com.</strong> Puedes encontrar instrucciones sobre cómo completar este paso <a href="${CONST.SET_NOTIFICATION_LINK}">here</a>, pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.`,
+        onceTheAbove: `Una vez completados los pasos anteriores, ponte en contacto con <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> para desbloquear el inicio de sesión.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>

@@ -142,6 +142,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1692,13 +1693,13 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: '合并账户',
         accountDetails: {
-            accountToMergeInto: '输入您想要合并的账户',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `输入要合并到 <strong>${login}</strong> 中的账户。`,
             notReversibleConsent: '我明白这是不可逆的。',
         },
         accountValidate: {
             confirmMerge: '您确定要合并账户吗？',
-            lossOfUnsubmittedData: `合并您的账户是不可逆的，并且将导致任何未提交费用的丢失`,
-            enterMagicCode: `要继续，请输入发送到的验证码`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `合并账户是不可逆转的，将导致 <strong>${login}</strong> 失去任何未提交的支出。`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `要继续，请输入发送到 <strong>${login}</strong> 的神奇代码。`,
             errors: {
                 incorrectMagicCode: '魔法代码不正确或无效。请重试或请求新代码。',
                 fallback: '出现问题。请稍后再试。',
@@ -2587,13 +2588,10 @@ const translations = {
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) => `由于发送问题，我们的电子邮件提供商已暂时暂停向${login}发送电子邮件。要解除对您登录的阻止，请按照以下步骤操作：`,
-        confirmThat: ({login}: ConfirmThatParams) => `确认${login}的拼写正确，并且是一个真实可投递的电子邮件地址。`,
-        emailAliases: '像“expenses@domain.com”这样的电子邮件别名必须能够访问其自己的电子邮件收件箱，才能成为有效的Expensify登录。',
-        ensureYourEmailClient: '确保您的电子邮件客户端允许接收来自expensify.com的电子邮件。',
-        youCanFindDirections: '您可以找到有关如何完成此步骤的说明',
-        helpConfigure: '但您可能需要 IT 部门的帮助来配置您的电子邮件设置。',
-        onceTheAbove: '完成上述步骤后，请联系',
-        toUnblock: '以解除您的登录阻止。',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>确认${login}的拼写正确，并且是一个真实可投递的电子邮件地址。</strong>像“expenses@domain.com”这样的电子邮件别名必须能够访问其自己的电子邮件收件箱，才能成为有效的Expensify登录。`,
+        ensureYourEmailClient: `<strong>确保您的电子邮件客户端允许接收来自expensify.com的电子邮件。</strong>您可以在<a href="${CONST.SET_NOTIFICATION_LINK}">此处</a>找到如何完成此步骤的说明，但您可能需要 IT 部门帮助配置电子邮件设置。`,
+        onceTheAbove: `完成上述步骤后，请联系 <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> 解除对您登录的限制。`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `我们无法向${login}发送短信，因此已暂时暂停。请尝试验证您的号码：`,
