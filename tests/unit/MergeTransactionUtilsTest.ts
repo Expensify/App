@@ -7,7 +7,7 @@ import {
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -395,7 +395,7 @@ describe('MergeTransactionUtils', () => {
                 },
                 reimbursable: true,
                 billable: false,
-                receipt: {receiptID: 1234, source: 'original.jpg'},
+                receipt: {receiptID: 1234, source: 'original.jpg', filename: 'original.jpg'},
             };
 
             const mergeTransaction = {
@@ -407,7 +407,7 @@ describe('MergeTransactionUtils', () => {
                 description: 'Merged description',
                 reimbursable: false,
                 billable: true,
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
             };
@@ -431,7 +431,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false,
                 billable: true,
                 filename: 'merged.jpg',
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
@@ -439,13 +439,13 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
-    describe('selectTargetAndSourceTransactionIDsForMerge', () => {
+    describe('selectTargetAndSourceTransactionsForMerge', () => {
         it('should handle undefined transactions gracefully', () => {
-            const result = selectTargetAndSourceTransactionIDsForMerge(undefined, undefined);
+            const result = selectTargetAndSourceTransactionsForMerge(undefined, undefined);
 
             expect(result).toEqual({
-                targetTransactionID: undefined,
-                sourceTransactionID: undefined,
+                targetTransaction: undefined,
+                sourceTransaction: undefined,
             });
         });
 
@@ -461,11 +461,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: true,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction, cardTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction, cardTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -481,11 +481,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cardTransaction, cashTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cardTransaction, cashTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -501,11 +501,11 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction1, cashTransaction2);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction1, cashTransaction2);
 
             expect(result).toEqual({
-                targetTransactionID: 'cash1',
-                sourceTransactionID: 'cash2',
+                targetTransaction: cashTransaction1,
+                sourceTransaction: cashTransaction2,
             });
         });
     });
