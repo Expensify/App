@@ -299,10 +299,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            console.log('reportAction', reportAction);
-            console.log('reportID', reportID);
             const originalReportID = getOriginalReportID(reportID, reportAction);
-            console.log('originalReportID', originalReportID);
 
             if (closePopover) {
                 hideContextMenu(false, () => {
