@@ -4,7 +4,7 @@ import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 type SimplifiedKeyboardEvent = {
-    height: number;
+    height?: number;
 };
 
 let isVisible = false;

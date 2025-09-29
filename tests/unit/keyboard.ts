@@ -50,11 +50,11 @@ jest.mock('@src/CONST', () => ({
 }));
 
 // Helper to trigger keyboard events
-const triggerKeyboardEvent = (event: string, data: any = {}) => {
+const triggerKeyboardEvent = (event: string, data: SimplifiedKeyboardEvent = {}) => {
     (mockKeyboardListeners[event] || []).forEach((handler) => handler(data));
 };
 
-const triggerKeyboardControllerEvent = (event: string, data: any = {}) => {
+const triggerKeyboardControllerEvent = (event: string, data: SimplifiedKeyboardEvent= {}) => {
     (mockKeyboardControllerListeners[event] || []).forEach((handler) => handler(data));
 };
 
