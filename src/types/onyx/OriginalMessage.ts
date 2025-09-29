@@ -185,7 +185,7 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
 
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
-    /** The login the admin (used in admin-submit) */
+    /** The login of the admin (used in admin-submit) */
     admin?: string;
 
     /** The account id of the admin (used in admin-submit) */
