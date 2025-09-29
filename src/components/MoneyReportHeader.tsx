@@ -6,7 +6,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
+import useGetChatIOUReportIDFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -203,8 +203,8 @@ function MoneyReportHeader({
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const chatIouReportID = useGetChatIouReportIDFromReportAction(requestParentReportAction);
-    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
+    const chatIOUReportID = useGetChatIOUReportIDFromReportAction(requestParentReportAction);
+    const isChatIOUReportArchived = useReportIsArchived(chatIOUReportID);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 

@@ -3,11 +3,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
-function useGetChatIouReportIDFromReportAction(reportAction: OnyxTypes.ReportAction | null | undefined): string | undefined {
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+function useGetChatIOUReportIDFromReportAction(reportAction: OnyxTypes.ReportAction | null | undefined): string | undefined {
     const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     return iouReport?.chatReportID;
 }
 
-export default useGetChatIouReportIDFromReportAction;
+export default useGetChatIOUReportIDFromReportAction;

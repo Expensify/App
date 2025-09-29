@@ -10,7 +10,7 @@ import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionShee
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
+import useGetChatIOUReportIDFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
@@ -299,8 +299,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
 
-    const chatIouReportID = useGetChatIouReportIDFromReportAction(reportActionRef.current);
-    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
+    const chatIOUReportID = useGetChatIOUReportIDFromReportAction(reportActionRef.current);
+    const isChatIOUReportArchived = useReportIsArchived(chatIOUReportID);
 
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);

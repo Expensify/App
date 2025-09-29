@@ -23,7 +23,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
+import useGetChatIOUReportIDFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -254,8 +254,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
-    const chatIouReportID = useGetChatIouReportIDFromReportAction(requestParentReportAction);
-    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
+    const chatIOUReportID = useGetChatIOUReportIDFromReportAction(requestParentReportAction);
+    const isChatIOUReportArchived = useReportIsArchived(chatIOUReportID);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
