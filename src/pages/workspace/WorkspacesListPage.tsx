@@ -117,6 +117,7 @@ function WorkspacesListPage() {
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
     const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
     const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -162,7 +163,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod);
+        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod, allTransactionViolations);
         setIsDeleteModalOpen(false);
     };
 

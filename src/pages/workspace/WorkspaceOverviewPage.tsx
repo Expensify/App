@@ -151,6 +151,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
 
     const fetchPolicyData = useCallback(() => {
@@ -198,10 +199,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod);
+        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod, allTransactionViolations);
         setIsDeleteModalOpen(false);
         goBackFromInvalidPolicy();
-    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod]);
+    }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod, allTransactionViolations]);
 
     useEffect(() => {
         if (isLoadingBill) {
