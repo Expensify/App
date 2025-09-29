@@ -1382,8 +1382,8 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldReportActionBeVisible', () => {
-        it('should return false for MOVEDTRANSACTION if the report destination is unavailable', () => {
-            // Given a MOVEDTRANSACTION action but the report destination is not available
+        it('should return false for moved transaction if the report destination is unavailable', () => {
+            // Given a moved transaction action but the report destination is not available
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 reportActionID: '1',
@@ -1398,8 +1398,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it('should return true for MOVEDTRANSACTION if the report destination is available', async () => {
-            // Given a MOVEDTRANSACTION action but the report destination is available
+        it('should return true for moved transaction if the report destination is available', async () => {
+            // Given a moved transaction action but the report destination is available
             const report: Report = createRandomReport(2);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
