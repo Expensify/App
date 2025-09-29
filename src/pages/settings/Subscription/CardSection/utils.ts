@@ -6,7 +6,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import type {StripeCustomerID} from '@src/types/onyx';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type Locale from '@src/types/onyx/Locale';
@@ -161,7 +161,7 @@ function getBillingStatus({translate, stripeCustomerId, accountData, purchase, l
  * @returns - The next billing date in 'yyyy-MM-dd' format.
  */
 function getNextBillingDate(locale: Locale | undefined): string {
-    const formatter = new Intl.DateTimeFormat(locale, {month: 'long', day: 'numeric', year: 'numeric'});
+    const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_FORMAT]);
     const today = new Date();
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));

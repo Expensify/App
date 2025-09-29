@@ -36,7 +36,7 @@ import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
@@ -193,9 +193,9 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
  */
 function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
     const preferredLocale = locale ?? CONST.LOCALES.DEFAULT;
-    const timeFormatter = new Intl.DateTimeFormat(preferredLocale, {timeStyle: 'short'});
-    const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric'});
-    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', year: 'numeric'});
+    const timeFormatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+    const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_ABBR_FORMAT]);
+    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]);
     const date = getLocalDateFromDatetime(preferredLocale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(preferredLocale, 'common.todayAt');
@@ -280,7 +280,7 @@ function formatToLongDateWithWeekday(datetime: string | Date, locale: Locale = C
  * @returns Sunday
  */
 function formatToDayOfWeek(datetime: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
-    const dateFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long'});
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.WEEKDAY_TIME_FORMAT]);
     return dateFormatter.format(datetime);
 }
 
@@ -290,7 +290,7 @@ function formatToDayOfWeek(datetime: Date, locale: Locale = CONST.LOCALES.DEFAUL
  * @returns 2:30 PM
  */
 function formatToLocalTime(datetime: string | Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
     return timeFormatter.format(new Date(datetime));
 }
 
@@ -326,7 +326,7 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(locale: Locale = CONST.LOCALES.DEFAULT): string[] {
-    const dateFormatter = new Intl.DateTimeFormat(locale, {month: 'long'});
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_FORMAT]);
     const fullYear = new Date().getFullYear();
     const monthsArray = eachMonthOfInterval({
         start: new Date(fullYear, 0, 1), // January 1st of the current year
@@ -340,7 +340,7 @@ function getMonthNames(locale: Locale = CONST.LOCALES.DEFAULT): string[] {
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(locale: Locale = CONST.LOCALES.DEFAULT): string[] {
-    const weekdayFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long'});
+    const weekdayFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.WEEKDAY_TIME_FORMAT]);
     const weekStartsOn = getWeekStartsOn(locale);
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
@@ -723,14 +723,13 @@ function formatWithUTCTimeZone(datetime: string, dateFormat?: string, locale?: L
 
     if (isValid(date)) {
         if (locale) {
-            const formatOptions: Record<string, Intl.DateTimeFormatOptions> = {
-                [CONST.DATE.LOCAL_TIME_FORMAT]: {timeZone, timeStyle: 'short'},
-                [CONST.DATE.MONTH_FORMAT]: {timeZone, month: 'long'},
-                [CONST.DATE.WEEKDAY_TIME_FORMAT]: {timeZone, weekday: 'long'},
-                [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {timeZone, month: 'short', day: 'numeric', year: 'numeric'},
-                [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {timeZone, month: 'long', day: 'numeric', year: 'numeric'},
-                [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {timeZone, month: 'long', day: 'numeric', year: 'numeric', weekday: 'long'},
-            };
+            const formatOptions = Object.entries(DATE_TIME_FORMAT_OPTIONS).reduce(
+                (acc, [key, value]) => {
+                    acc[key] = {...value, timeZone};
+                    return acc;
+                },
+                {} as typeof DATE_TIME_FORMAT_OPTIONS,
+            );
 
             if (dateFormatString in formatOptions) {
                 const options = formatOptions[dateFormatString];
@@ -738,7 +737,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat?: string, locale?: L
                 return formatter.format(date);
             }
         }
-        return tzFormat(toZonedTime(date, 'UTC'), dateFormatString);
+        return tzFormat(toZonedTime(date, timeZone), dateFormatString);
     }
 
     return '';
@@ -788,8 +787,8 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
 function getFormattedDateRange(date1: Date, date2: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
-    const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric'});
-    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', year: 'numeric'});
+    const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_ABBR_FORMAT]);
+    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]);
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
         return monthDayAbbrFormatter.format(date1);
@@ -840,7 +839,7 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date, locale: Loca
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
     const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
     const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
@@ -856,7 +855,7 @@ function getFormattedTransportDate(date: Date, locale: Locale = CONST.LOCALES.DE
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedTransportDateAndHour(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): {date: string; hour: string} {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
     const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
     const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
@@ -878,7 +877,7 @@ function getFormattedTransportDateAndHour(date: Date, locale: Locale = CONST.LOC
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedCancellationDate(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
+    const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
     const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
     const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
@@ -960,7 +959,7 @@ const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean =
  * Converts a date to a string in the format MMMM d, yyyy
  */
 const formatToReadableString = (date: string, locale: Locale = CONST.LOCALES.DEFAULT): string => {
-    const dateFormatter = new Intl.DateTimeFormat(locale, {month: 'long', day: 'numeric', year: 'numeric'});
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_FORMAT]);
     const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
     return dateFormatter.format(parsedDate);
 };
