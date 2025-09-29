@@ -199,7 +199,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod, allTransactionViolations);
+        deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, allTransactionViolations, lastPaymentMethod);
         setIsDeleteModalOpen(false);
         goBackFromInvalidPolicy();
     }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod, allTransactionViolations]);

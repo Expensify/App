@@ -373,8 +373,8 @@ function deleteWorkspace(
     policyName: string,
     lastAccessedWorkspacePolicyID: string | undefined,
     policyCardFeeds: CardFeeds | undefined,
+    allTransactionViolations: OnyxCollection<TransactionViolations> | undefined,
     lastUsedPaymentMethods?: LastPaymentMethod,
-    allTransactionViolations?: OnyxCollection<TransactionViolations>,
 ) {
     if (!allPolicies) {
         return;
