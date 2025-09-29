@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {CellRendererProps, FocusEvent} from 'react-native';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 
 function FocusAwareCellRendererComponent<TItem extends ListItem>({onFocusCapture, ...rest}: CellRendererProps<TItem>) {
     return (

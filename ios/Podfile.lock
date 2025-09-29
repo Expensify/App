@@ -2705,8 +2705,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-plaid-link-sdk (12.5.2):
-    - boost
+  - react-native-plaid-link-sdk (12.5.3):
     - DoubleConversion
     - fast_float
     - fmt
@@ -4669,7 +4668,7 @@ SPEC CHECKSUMS:
   react-native-pager-view: fbe4d1f3b4686eca244a2bce9dc15f873fd959e4
   react-native-pdf: 182fa857ba09bf5e4010f0fbbeda8e84825850b8
   react-native-performance: f034c3cb6981ee7ca6cd5f5e9a2fda5c91469d32
-  react-native-plaid-link-sdk: 8c82206dbfc052e1e3a045944b2f2577acbc8f15
+  react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
   react-native-release-profiler: 855b08b38ac0630c7482a0dc87b9385d929b8d0a
   react-native-safe-area-context: 0f0e3b00124df1e2e76f9883ca64a426fd08bc0f
   react-native-view-shot: 211aabbc0a76150531e66d32ffbee0ae0f149144

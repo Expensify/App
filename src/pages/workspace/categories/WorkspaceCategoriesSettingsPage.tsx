@@ -4,8 +4,8 @@ import CategorySelectorModal from '@components/CategorySelector/CategorySelector
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
