@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import RenderHTML from '@components/RenderHTML';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useCardFeeds from '@hooks/useCardFeeds';
