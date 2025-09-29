@@ -1434,7 +1434,7 @@ const translations = {
             reasonPageDescription: 'Expliquez pourquoi vous rejetez cette dépense.',
             rejectReason: 'Raison du rejet',
             markAsResolved: 'Marquer comme résolu',
-            rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
+            rejectedStatus: 'Cette dépense a été rejetée. En attente de votre part pour corriger les problèmes et marquer comme résolu pour permettre la soumission.',
             reportActions: {
                 rejectedExpense: 'a rejeté cette dépense',
                 markedAsResolved: 'a marqué la raison du rejet comme résolue',
@@ -6220,7 +6220,7 @@ const translations = {
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
-            emptyStateSubtitle: 'Vous pouvez ajouter des dépenses à ce rapport en utilisant le bouton ci-dessus.',
+            emptyStateSubtitle: "Vous pouvez ajouter des dépenses à ce rapport\n en utilisant le bouton ci-dessous ou l'option « Ajouter une dépense » dans le menu Plus ci-dessus.",
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
@@ -6702,7 +6702,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que ${email} doit corriger.`
-                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que vous devez réparer.";
+                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
