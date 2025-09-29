@@ -3609,14 +3609,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
-                invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
+                invitationFailure: 'Der Teilnehmer konnte nicht zu Uber for Business eingeladen werden.',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
                 bannerTitle: 'Expensify + Uber ren pekin angang',
                 bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
                 emptyContent: {
-                    title: 'Keine Mitglieder zur Anzeige',
-                    subtitle: 'Wir haben überall gesucht und nichts gefunden.',
+                    title: 'Keine ausstehenden Einladungen',
+                    subtitle: 'Hurra! Wir haben hoch und niedrig gesucht und keine ausstehenden Einladungen gefunden.',
                 },
             },
         },
@@ -6212,7 +6212,8 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche oben verwenden.',
+            emptyStateSubtitle:
+                'Sie können diesem Bericht Ausgaben hinzufügen,\n indem Sie auf die Schaltfläche unten klicken oder die Option „Ausgabe hinzufügen“ im Menü „Mehr“ oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
