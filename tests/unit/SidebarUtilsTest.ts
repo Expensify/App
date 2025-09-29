@@ -1533,7 +1533,7 @@ describe('SidebarUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const lastAction: ReportAction<'SUBMITTEDCLOSED'> = {
+                const lastAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED> = {
                     ...createRandomReportAction(0),
                     person: [
                         {
@@ -1571,7 +1571,7 @@ describe('SidebarUtils', () => {
                     },
                     previousMessage: undefined,
                     automatic: false,
-                    actionName: 'SUBMITTEDCLOSED',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
                     shouldShow: true,
                     reportActionID: '6582129439308627259',
                     adminAccountID: 1,

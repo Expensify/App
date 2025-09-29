@@ -7120,7 +7120,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportActionActorAccountID', () => {
-        it('should return report owner account id if action is "REPORTPREVIEW" and report is a policy expense chat', () => {
+        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
             const reportAction: ReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -7140,7 +7140,7 @@ describe('ReportUtils', () => {
             expect(actorAccountID).toEqual(10);
         });
 
-        it('should return report manager account id if action is "REPORTPREVIEW" and report is not a policy expense chat', () => {
+        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
             const reportAction: ReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -7159,7 +7159,7 @@ describe('ReportUtils', () => {
             expect(actorAccountID).toEqual(20);
         });
 
-        it('should return admin account id if action is "SUBMITTED" taken by an admin on behalf the submitter', () => {
+        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
             const reportAction: ReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -7181,7 +7181,7 @@ describe('ReportUtils', () => {
             expect(actorAccountID).toEqual(30);
         });
 
-        it('should return report owner account id if action is "SUBMITTED" taken by the submitter himself', () => {
+        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
             const reportAction: ReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -7202,7 +7202,7 @@ describe('ReportUtils', () => {
             expect(actorAccountID).toEqual(10);
         });
 
-        it('should return admin account id if action is "SUBMITTEDCLOSED" taken by an admin on behalf the submitter', () => {
+        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
             const reportAction: ReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
@@ -7224,7 +7224,7 @@ describe('ReportUtils', () => {
             expect(actorAccountID).toEqual(30);
         });
 
-        it('should return report owner account id if action is "SUBMITTEDCLOSED" taken by the submitter himself', () => {
+        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
             const reportAction: ReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
@@ -7245,7 +7245,7 @@ describe('ReportUtils', () => {
             expect(actorAccountID).toEqual(10);
         });
 
-        it('should return original actor account id if action is "ADDCOMMENT"', () => {
+        it('should return original actor account id if action is ADDCOMMENT', () => {
             const reportAction: ReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
