@@ -5232,7 +5232,12 @@ function moveIOUReportToPolicy(
     const useTemporaryOptimisticExpenseChatReportID = !expenseChatReportId;
     const optimisticExpenseChatReportID = expenseChatReportId ?? generateReportID();
 
-    const {optimisticData, successData, failureData, movedExpenseReportAction, movedReportAction} = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticExpenseChatReportID);
+    const {optimisticData, successData, failureData, movedExpenseReportAction, movedReportAction} = convertIOUReportToExpenseReport(
+        iouReport,
+        policy,
+        policyID,
+        optimisticExpenseChatReportID,
+    );
 
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
@@ -5352,7 +5357,13 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     successData.push(...newPersonalDetailsOnyxData.finallyData, ...policyExpenseChats.onyxSuccessData, ...announceRoomMembers.successData);
     failureData.push(...policyExpenseChats.onyxFailureData, ...announceRoomMembers.failureData);
 
-    const {optimisticData: convertedOptimisticData, successData: convertedSuccessData, failureData: convertedFailureData, movedExpenseReportAction, movedReportAction} = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID);
+    const {
+        optimisticData: convertedOptimisticData,
+        successData: convertedSuccessData,
+        failureData: convertedFailureData,
+        movedExpenseReportAction,
+        movedReportAction,
+    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID);
 
     optimisticData.push(...convertedOptimisticData, ...newPersonalDetailsOnyxData.optimisticData, ...policyExpenseChats.onyxOptimisticData, ...announceRoomMembers.optimisticData);
     successData.push(...convertedSuccessData, ...newPersonalDetailsOnyxData.finallyData, ...policyExpenseChats.onyxSuccessData, ...announceRoomMembers.successData);
@@ -5371,12 +5382,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     return {policyExpenseChatReportID: optimisticPolicyExpenseChatReportID};
 }
 
-function convertIOUReportToExpenseReport(
-    iouReport: Report,
-    policy: Policy,
-    policyID: string,
-    optimisticPolicyExpenseChatReportID: string,
-) {
+function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, policyID: string, optimisticPolicyExpenseChatReportID: string) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
