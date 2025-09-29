@@ -1,6 +1,6 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -13,11 +13,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {parseFSAttributes} from '@libs/Fullstory';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {dismissTrackTrainingModal} from '@userActions/User';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
@@ -336,32 +337,48 @@ function FeatureTrainingModal({
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
 
     const closeModal = useCallback(() => {
+        Log.hmmm(`[FeatureTrainingModal] closeModal called - willShowAgain: ${willShowAgain}, shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
+
         if (!willShowAgain) {
-            dismissTrackTrainingModal();
+            Log.hmmm('[FeatureTrainingModal] Dismissing track training modal');
+            setNameValuePair(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING, true, false);
         }
+
+        Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
+
         InteractionManager.runAfterInteractions(() => {
+            Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
+
             if (shouldGoBack) {
+                Log.hmmm('[FeatureTrainingModal] Navigating back');
                 Navigation.goBack();
             }
-            onClose?.();
+
+            if (onClose) {
+                Log.hmmm('[FeatureTrainingModal] Calling onClose callback');
+                onClose();
+            } else {
+                Log.hmmm('[FeatureTrainingModal] No onClose callback provided');
+            }
         });
     }, [onClose, shouldGoBack, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
+        Log.hmmm(`[FeatureTrainingModal] Button pressed - shouldCloseOnConfirm: ${shouldCloseOnConfirm}, hasOnConfirm: ${!!onConfirm}, willShowAgain: ${willShowAgain}`);
+
         if (shouldCloseOnConfirm) {
+            Log.hmmm('[FeatureTrainingModal] Calling closeModal');
             closeModal();
         }
-        onConfirm?.(willShowAgain);
-    }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
-    /**
-     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
-     * to ensure necessary properties are available for further processing.
-     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
-     * updated attribute values.
-     */
-    useLayoutEffect(parseFSAttributes, []);
+        if (onConfirm) {
+            Log.hmmm('[FeatureTrainingModal] Calling onConfirm callback');
+            onConfirm(willShowAgain);
+        } else {
+            Log.hmmm('[FeatureTrainingModal] No onConfirm callback provided');
+        }
+    }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
     // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
     useEffect(() => {
@@ -404,7 +421,6 @@ function FeatureTrainingModal({
                 }
                 onHelp();
             }}
-            shouldUseReanimatedModal
             shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
         >
             <Wrapper
@@ -415,8 +431,9 @@ function FeatureTrainingModal({
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
                 onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
                 onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
-                fsClass={CONST.FULL_STORY.UNMASK}
-                testID={CONST.FULL_STORY.UNMASK}
+                // Wrapper is either a View or ScrollView, which is also a View.
+                // eslint-disable-next-line react/forbid-component-props
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
                     {renderIllustration()}

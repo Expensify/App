@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -7,18 +8,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionList';
-import SplitListItem from '@components/SelectionList/SplitListItem';
-import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {addSplitExpenseField, clearSplitTransactionDraftErrors, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,6 +40,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -63,14 +66,28 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isCardTransaction(transaction);
 
     useEffect(() => {
+        const errorString = getLatestErrorMessage(draftTransaction ?? {});
+
+        if (errorString) {
+            setErrorMessage(errorString);
+        }
+    }, [draftTransaction, draftTransaction?.errors]);
+
+    useEffect(() => {
         setErrorMessage('');
     }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
 
     const onAddSplitExpense = useCallback(() => {
+        if (draftTransaction?.errors) {
+            clearSplitTransactionDraftErrors(transactionID);
+        }
         addSplitExpenseField(transaction, draftTransaction);
-    }, [draftTransaction, transaction]);
+    }, [draftTransaction, transaction, transactionID]);
 
     const onSaveSplitExpense = useCallback(() => {
+        if (draftTransaction?.errors) {
+            clearSplitTransactionDraftErrors(transactionID);
+        }
         if (sumOfSplitExpenses > Math.abs(transactionDetailsAmount)) {
             const difference = sumOfSplitExpenses - Math.abs(transactionDetailsAmount);
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
@@ -88,7 +105,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
+    }, [draftTransaction, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isCard, currentSearchHash, transactionID, translate, transactionDetails?.currency]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
@@ -159,7 +176,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <>
+            <View
+                ref={footerRef}
+                style={styles.pt3}
+            >
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -177,9 +197,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
-            </>
+            </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, styles.pt3, footerRef]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
@@ -194,7 +214,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             shouldDismissKeyboardBeforeClose={false}
         >
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
-                <View style={[styles.flex1]}>
+                <View
+                    ref={viewRef}
+                    style={styles.flex1}
+                    onLayout={() => {
+                        scrollToFocusedInput();
+                    }}
+                >
                     <HeaderWithBackButton
                         title={translate('iou.split')}
                         subtitle={translate('iou.splitExpenseSubtitle', {
@@ -204,12 +230,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
+                        /* Keeps input fields visible above keyboard on mobile */
+                        renderScrollComponent={(props) => (
+                            <KeyboardAwareScrollView
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...props}
+                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
+                            />
+                        )}
                         onSelectRow={(item) => {
                             Keyboard.dismiss();
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
                             });
                         }}
+                        ref={listRef}
                         headerContent={headerContent}
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
@@ -220,6 +255,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
                         shouldPreventDefaultFocusOnSelectRow
+                        removeClippedSubviews={false}
                     />
                 </View>
             </FullPageNotFoundView>

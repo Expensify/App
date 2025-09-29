@@ -19,8 +19,6 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.ts"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"
     "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.ts"
-    "$ACTIONS_DIR/postTestCoverageComment/postTestCoverageComment.ts"
-    "$ACTIONS_DIR/waitforJestTests/waitForJestTests.ts"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.ts"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.ts"
     "$ACTIONS_DIR/authorChecklist/authorChecklist.ts"
@@ -31,6 +29,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/proposalPoliceComment/proposalPoliceComment.ts"
     "$ACTIONS_DIR/checkAndroidStatus/checkAndroidStatus.ts"
     "$ACTIONS_DIR/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"
+    "$ACTIONS_DIR/checkSVGCompression/checkSVGCompression.ts"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

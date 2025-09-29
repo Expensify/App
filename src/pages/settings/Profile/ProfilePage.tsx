@@ -57,7 +57,7 @@ function ProfilePage() {
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList);
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
@@ -186,14 +186,26 @@ function ProfilePage() {
                                             isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
                                             source={avatarURL}
                                             avatarID={accountID}
-                                            onImageSelected={updateAvatar}
-                                            onImageRemoved={deleteAvatar}
+                                            onImageSelected={(file) => {
+                                                updateAvatar(file, {
+                                                    avatar: currentUserPersonalDetails?.avatar,
+                                                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                                                    accountID: currentUserPersonalDetails?.accountID,
+                                                });
+                                            }}
+                                            onImageRemoved={() => {
+                                                deleteAvatar({
+                                                    avatar: currentUserPersonalDetails?.avatar,
+                                                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
+                                                    accountID: currentUserPersonalDetails?.accountID,
+                                                });
+                                            }}
                                             size={CONST.AVATAR_SIZE.X_LARGE}
                                             avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                             errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
                                             errorRowStyles={styles.mt6}
-                                            onErrorClose={clearAvatarErrors}
+                                            onErrorClose={() => clearAvatarErrors(currentUserPersonalDetails?.accountID)}
                                             onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
                                             previewSource={getFullSizeAvatar(avatarURL, accountID)}
                                             originalFileName={currentUserPersonalDetails.originalFileName}

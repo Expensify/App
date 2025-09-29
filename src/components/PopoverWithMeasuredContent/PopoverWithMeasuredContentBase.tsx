@@ -1,4 +1,4 @@
-import {deepEqual} from 'fast-equals';
+import {circularDeepEqual, deepEqual} from 'fast-equals';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
@@ -6,12 +6,14 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import Popover from '@components/Popover';
 import usePrevious from '@hooks/usePrevious';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {PopoverWithMeasuredContentProps} from './types';
+import type PopoverWithMeasuredContentProps from './types';
 
 /**
  * This is a convenient wrapper around the regular Popover component that allows us to use a more sophisticated
@@ -22,8 +24,8 @@ import type {PopoverWithMeasuredContentProps} from './types';
 
 function PopoverWithMeasuredContentBase({
     popoverDimensions = {
-        height: 0,
-        width: 0,
+        width: CONST.POPOVER_DROPDOWN_WIDTH,
+        height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
     },
     anchorPosition,
     isVisible,
@@ -34,7 +36,6 @@ function PopoverWithMeasuredContentBase({
     children,
     withoutOverlay = false,
     fullscreen = true,
-    shouldCloseOnOutsideClick = false,
     shouldSetModalVisibility = true,
     statusBarTranslucent = true,
     navigationBarTranslucent = true,
@@ -59,8 +60,11 @@ function PopoverWithMeasuredContentBase({
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
     const prevIsVisible = usePrevious(isVisible);
     const prevAnchorPosition = usePrevious(anchorPosition);
-    const prevWindowDimensions = usePrevious({windowWidth, windowHeight});
+    const {shouldHideSidePanel} = useSidePanel();
+    const availableWidth = windowWidth - (shouldHideSidePanel ? 0 : variables.sideBarWidth);
+    const prevWindowDimensions = usePrevious({availableWidth, windowHeight});
 
+    const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
     useEffect(() => {
@@ -73,8 +77,7 @@ function PopoverWithMeasuredContentBase({
     if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
         const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
-        const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {windowWidth, windowHeight});
-        const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
+        const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {availableWidth, windowHeight});
 
         // Only reset if:
         // 1. We don't have static dimensions, OR
@@ -90,8 +93,12 @@ function PopoverWithMeasuredContentBase({
      */
     const measurePopover = ({nativeEvent}: LayoutChangeEvent) => {
         const {width, height} = nativeEvent.layout;
-        setPopoverWidth(width);
-        setPopoverHeight(height);
+        if (width !== 0 && !hasStaticDimensions) {
+            setPopoverWidth(width);
+        }
+        if (height !== 0 && !hasStaticDimensions) {
+            setPopoverHeight(height);
+        }
         setIsContentMeasured(true);
 
         // it handles the case when `measurePopover` is called with values like: 192, 192.00003051757812, 192
@@ -144,7 +151,7 @@ function PopoverWithMeasuredContentBase({
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
     const positionCalculations = useMemo(() => {
-        const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
+        const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, availableWidth);
         const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
             adjustedAnchorPosition.top,
             popoverHeight,
@@ -153,7 +160,7 @@ function PopoverWithMeasuredContentBase({
             shouldSwitchPositionIfOverflow,
         );
         return {horizontalShift, verticalShift};
-    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, popoverWidth, popoverHeight, windowWidth, windowHeight, anchorDimensions.height, shouldSwitchPositionIfOverflow]);
+    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, popoverWidth, popoverHeight, availableWidth, windowHeight, anchorDimensions.height, shouldSwitchPositionIfOverflow]);
 
     const shiftedAnchorPosition: PopoverAnchorPosition = useMemo(() => {
         const result: PopoverAnchorPosition = {
@@ -185,7 +192,6 @@ function PopoverWithMeasuredContentBase({
             isVisible={isVisible}
             withoutOverlay={withoutOverlay}
             fullscreen={fullscreen}
-            shouldCloseOnOutsideClick={shouldCloseOnOutsideClick}
             shouldSetModalVisibility={shouldSetModalVisibility}
             statusBarTranslucent={statusBarTranslucent}
             navigationBarTranslucent={navigationBarTranslucent}
@@ -197,7 +203,7 @@ function PopoverWithMeasuredContentBase({
             {...props}
             anchorPosition={shiftedAnchorPosition}
         >
-            <View onLayout={measurePopover}>{children}</View>
+            <View onLayout={measurePopover}>{(isVisible || prevIsVisible) && children}</View>
         </Popover>
     ) : (
         /*
@@ -210,10 +216,15 @@ function PopoverWithMeasuredContentBase({
             style={styles.invisiblePopover}
             onLayout={measurePopover}
         >
-            {(isVisible || prevIsVisible) && children}
+            {children}
         </View>
     );
 }
 PopoverWithMeasuredContentBase.displayName = 'PopoverWithMeasuredContentBase';
 
-export default PopoverWithMeasuredContentBase;
+export default React.memo(PopoverWithMeasuredContentBase, (prevProps, nextProps) => {
+    if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
+        return true;
+    }
+    return circularDeepEqual(prevProps, nextProps);
+});

@@ -4,7 +4,6 @@ description: Learn how to cancel flights, hotels, car rentals, or rail bookings 
 keywords: [cancel trip, cancel booking, travel cancellation, refunds, travel credits, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 You can cancel flights, hotels, cars, or rail bookings directly from your trip view in Expensify and review refund or credit eligibility depending on the provider’s policy.
 
@@ -73,4 +72,3 @@ Some bookings must be canceled through or directly with the travel provider. If 
 ## Will I receive a refund or a credit?
 If the booking is refundable, you’ll receive a refund to your original payment method. If it’s non-refundable, you may receive a travel credit, depending on the provider’s terms.
 
-</div>

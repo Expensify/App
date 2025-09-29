@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -31,9 +31,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
+import CONST, {FEATURE_IDS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,78 +64,78 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {isOffline} = useNetwork();
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
-    const didOpenOldDotLink = useRef(false);
+    const [width, setWidth] = useState(0);
 
     const features: Feature[] = useMemo(() => {
         return [
             {
-                id: 'categories',
+                id: FEATURE_IDS.CATEGORIES,
                 title: translate('workspace.moreFeatures.categories.title'),
                 icon: Illustrations.FolderOpen,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
-                id: 'accounting',
+                id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: Illustrations.Accounting,
-                enabledByDefault: true,
+                enabledByDefault: !!userReportedIntegration,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
-                id: 'company-cards',
+                id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
                 icon: Illustrations.CompanyCard,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
-                id: 'workflows',
+                id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 icon: Illustrations.Workflows,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
-                id: 'invoices',
+                id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
                 icon: Illustrations.InvoiceBlue,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
-                id: 'rules',
+                id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
                 icon: Illustrations.Rules,
                 apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
-                id: 'distance-rates',
+                id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
                 icon: Illustrations.Car,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
-                id: 'expensify-card',
+                id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
                 icon: Illustrations.HandCard,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
-                id: 'tags',
+                id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
                 icon: Illustrations.Tag,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
-                id: 'per-diem',
+                id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
                 icon: Illustrations.PerDiem,
                 apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
                 requiresUpdate: true,
             },
         ];
-    }, [translate]);
+    }, [translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 
@@ -149,17 +149,17 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading || didOpenOldDotLink.current) {
+        if (!!isLoading || !prevIsLoading) {
             return;
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            closeReactNativeApp({shouldSetNVP: true});
             setRootStatusBarEnabled(false);
             return;
         }
+        // Wait for CompleteGuidedSetup and CreateWorkspace to complete before redirecting to OldDot to prevent showing this onboarding modal again.
         waitForIdle().then(() => {
-            didOpenOldDotLink.current = true;
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
@@ -185,7 +185,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   policyName: '',
                   policyID: generatePolicyID(),
                   engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                  currency: '',
+                  currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
                   file: undefined,
                   shouldAddOnboardingTasks: false,
                   companySize: onboardingCompanySize,
@@ -212,14 +212,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             userReportedIntegration: newUserReportedIntegration,
             firstName: currentUserPersonalDetails?.firstName,
             lastName: currentUserPersonalDetails?.lastName,
+            selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
+            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            if (CONFIG.IS_HYBRID_APP || didOpenOldDotLink.current) {
-                return;
-            }
-            didOpenOldDotLink.current = true;
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            // Do not call openOldDotLink here because it will cause a navigation loop. See https://github.com/Expensify/App/issues/61363
             return;
         }
 
@@ -254,6 +252,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         selectedFeatures,
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
+        currentUserPersonalDetails?.localCurrencyCode,
     ]);
 
     // Create items for enabled features
@@ -291,6 +290,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
     }, []);
 
+    const gap = styles.gap3.gap;
+
     const renderItem = useCallback(
         (item: Feature) => {
             const isSelected = selectedFeatures.includes(item.id);
@@ -303,7 +304,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth && styles.flexBasis100, isSelected && styles.activeComponentBG]}
+                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <Icon
@@ -323,7 +324,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 </PressableWithoutFeedback>
             );
         },
-        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect],
+        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect, width, gap],
     );
 
     const renderSection = useCallback(
@@ -356,7 +357,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
             </View>
 
-            <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>{sections.map(renderSection)}</ScrollView>
+            <ScrollView
+                onLayout={(e) => {
+                    setWidth(e.nativeEvent.layout.width);
+                }}
+                style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+            >
+                {sections.map(renderSection)}
+            </ScrollView>
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 <Button

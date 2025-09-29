@@ -1,16 +1,16 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PhoneNumber from '@libs/PhoneNumber';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPolicy} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {buildOptimisticChatReport, buildOptimisticCreatedReportAction} from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
 
 type CreationData = {
     reportID: string;
@@ -21,27 +21,11 @@ type ReportCreationData = Record<string, CreationData>;
 
 type ExpenseReportActionData = Record<string, OptimisticCreatedReportAction>;
 
-let sessionEmail = '';
-let sessionAccountID = 0;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        sessionEmail = value?.email ?? '';
-        sessionAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => (allPersonalDetails = value),
-});
-
 /**
  * @param publicRoomReportID - This is the global reportID for the public room, we'll ignore the optimistic one
  */
 function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string) {
-    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport({
+    const optimisticPublicRoom = buildOptimisticChatReport({
         participantList: [],
         reportName: CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME,
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -80,12 +64,20 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
 /**
  * Optimistically creates a policyExpenseChat for the school principal and passes data to AddSchoolPrincipal
  */
-function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: string, policyID: string) {
+function addSchoolPrincipal(
+    firstName: string,
+    partnerUserID: string,
+    lastName: string,
+    policyID: string,
+    localCurrencyCode: string | undefined,
+    sessionEmail: string,
+    sessionAccountID: number,
+) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
-    const loggedInEmail = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
+    const loggedInEmail = addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData: ReportCreationData = {};
 
-    const expenseChatData = ReportUtils.buildOptimisticChatReport({
+    const expenseChatData = buildOptimisticChatReport({
         participantList: [sessionAccountID],
         reportName: '',
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -95,7 +87,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
         oldPolicyName: policyName,
     });
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail);
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(sessionEmail);
     const expenseReportActionData: ExpenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };
@@ -106,6 +98,14 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     };
 
     const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -118,7 +118,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 owner: sessionEmail,
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
-                outputCurrency: getPolicy(policyID)?.outputCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                outputCurrency: getPolicy(policyID)?.outputCurrency ?? localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.USER,
@@ -146,6 +146,13 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     ];
 
     const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -182,6 +189,14 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
+            value: {
+                isLoading: false,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 [sessionEmail]: null,
@@ -208,7 +223,6 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     };
 
     API.write(WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport({reportID: expenseChatReportID});
 }
 
 export default {referTeachersUniteVolunteer, addSchoolPrincipal};

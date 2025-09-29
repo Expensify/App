@@ -39,7 +39,6 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
                             icon={Expensicons.EmptyStateRoutePending}
                             title={translate('distance.mapPending.title')}
                             subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                            shouldShowLink={false}
                             iconColor={theme.border}
                         />
                     ) : (

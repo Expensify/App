@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -18,6 +19,7 @@ import {
     Folder,
     Gear,
     InvoiceGeneric,
+    Receipt,
     Sync,
     Tag,
     Users,
@@ -35,6 +37,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -110,7 +113,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
     const cardsDomainIDs = Object.values(getCompanyFeeds(cardFeeds))
         .map((data) => data.domainID)
@@ -122,6 +125,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isUberForBusinessEnabled = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS);
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -145,8 +150,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
         }),
-        [policy],
+        [policy, isUberForBusinessEnabled],
     ) as PolicyFeatureStates;
 
     const fetchPolicyData = useCallback(() => {
@@ -185,8 +191,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         protectedMenuItems.push({
             translationKey: 'common.reports',
             icon: Document,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-            screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORTS.getRoute(policyID)))),
+            screenName: SCREENS.WORKSPACE.REPORTS,
         });
 
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
@@ -197,6 +203,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 brickRoadIndicator: hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+            });
+        }
+
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'workspace.common.receiptPartners',
+                icon: Receipt,
+                action: singleExecution(
+                    waitForNavigate(() => {
+                        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+                    }),
+                ),
+                screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             });
         }
 

@@ -118,6 +118,29 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
+    it('should not include SUBMIT option for the user who is not submitter/admin/manager', async () => {
+        const report: Report = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            managerID: 0,
+        };
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            role: CONST.POLICY.ROLE.AUDITOR,
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
     it('should not include SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -1092,8 +1115,39 @@ describe('getSecondaryExportReportActions', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT];
+        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV];
         expect(getSecondaryExportReportActions(report, policy)).toEqual(result);
+    });
+
+    it('should include export templates when provided', () => {
+        const report = {} as unknown as Report;
+        const policy = {} as unknown as Policy;
+        const exportTemplates = [
+            {
+                name: 'All Data - expense level',
+                templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+                description: '',
+                policyID: undefined,
+            },
+            {
+                name: 'All Data - report level',
+                templateName: CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+                description: '',
+                policyID: undefined,
+            },
+            {
+                name: 'Custom Template',
+                templateName: 'custom_template',
+                type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP,
+                description: 'Custom description',
+                policyID: 'POLICY_123',
+            },
+        ];
+
+        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, 'All Data - expense level', 'All Data - report level', 'Custom Template'];
+        expect(getSecondaryExportReportActions(report, policy, exportTemplates)).toEqual(result);
     });
 
     it('does not include EXPORT option for invoice reports', async () => {
@@ -1129,6 +1183,35 @@ describe('getSecondaryExportReportActions', () => {
 
         const result = getSecondaryExportReportActions(report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
+    });
+
+    it('includes EXPORT option and templates together', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
+        } as unknown as Policy;
+        const exportTemplates = [
+            {
+                name: 'All Data - expense level',
+                templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+                description: '',
+                policyID: undefined,
+            },
+        ];
+
+        const result = getSecondaryExportReportActions(report, policy, exportTemplates);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)).toBe(true);
+        expect(result.includes('All Data - expense level')).toBe(true);
     });
 
     it('includes EXPORT option for expense report with payments disabled', () => {
@@ -1425,7 +1508,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
-    it('does not include the SPLIT option if the current user belongs to the workspace', async () => {
+    it('does not include the SPLIT option if the current user does not belong to the workspace', async () => {
         const report = {
             reportID: REPORT_ID,
             policyID: POLICY_ID,

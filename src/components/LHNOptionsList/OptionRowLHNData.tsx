@@ -1,9 +1,14 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
+import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -32,13 +37,24 @@ function OptionRowLHNData({
     transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
+    isReportArchived = false,
+    lastAction,
+    lastActionReport,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
-
     const optionItemRef = useRef<OptionData | undefined>(undefined);
+
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
+    // Check the report errors equality to avoid re-rendering when there are no changes
+    const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
+    const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
+
+    const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
+
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
@@ -51,7 +67,13 @@ function OptionRowLHNData({
             parentReportAction,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
+            card,
+            lastAction,
             localeCompare,
+            isReportArchived,
+            lastActionReport,
+            movedFromReport,
+            movedToReport,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -70,6 +92,7 @@ function OptionRowLHNData({
         fullReport,
         reportAttributes?.brickRoadStatus,
         reportAttributes?.reportName,
+        areReportErrorsEqual,
         oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
@@ -83,8 +106,11 @@ function OptionRowLHNData({
         receiptTransactions,
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
-        reportAttributes,
+        card,
         localeCompare,
+        isReportArchived,
+        movedFromReport,
+        movedToReport,
     ]);
 
     return (

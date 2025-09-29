@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -21,12 +21,18 @@ type BaseTwoFactorAuthFormProps = {
     // Set this to false in order to disable 2FA when a valid code is entered.
     validateInsteadOfDisable?: boolean;
 
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
     shouldAutoFocusOnMobile?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTwoFactorAuthFormRef>;
 };
 
 const isMobile = !canFocusInputOnScreenFocus();
 
-function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -117,6 +123,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, shouldAu
             name="twoFactorAuthCode"
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
+            onFocus={onFocus}
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}
@@ -125,4 +132,4 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, shouldAu
     );
 }
 
-export default forwardRef(BaseTwoFactorAuthForm);
+export default BaseTwoFactorAuthForm;

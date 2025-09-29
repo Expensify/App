@@ -4,7 +4,7 @@ import Modal from '@components/Modal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import PopoverWithMeasuredContentBase from './PopoverWithMeasuredContentBase';
-import type {PopoverWithMeasuredContentProps} from './types';
+import type PopoverWithMeasuredContentProps from './types';
 
 /**
  * Logic for PopoverWithMeasuredContent is in PopoverWithMeasuredContentBase.
@@ -36,5 +36,3 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     }
     return circularDeepEqual(prevProps, nextProps);
 });
-
-export type {PopoverWithMeasuredContentProps};

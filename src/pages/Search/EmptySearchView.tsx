@@ -1,9 +1,8 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
-import {InteractionManager, Linking, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import {Linking, View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -15,6 +14,8 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
+import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import type {SearchGroupBy} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -28,26 +29,39 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
-import {completeTestDriveTask} from '@libs/actions/Task';
+import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
+import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Policy, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
-    hash: number;
-    groupBy?: ValueOf<typeof CONST.SEARCH.GROUP_BY>;
+    similarSearchHash: number;
+    groupBy?: SearchGroupBy | undefined;
     type: SearchDataTypes;
     hasResults: boolean;
+};
+
+type EmptySearchViewContentProps = EmptySearchViewProps & {
+    currentUserPersonalDetails: PersonalDetails;
+    typeMenuSections: SearchTypeMenuSection[];
+    allPolicies: OnyxCollection<Policy>;
+    isUserPaidPolicyMember: boolean;
+    activePolicyID: string | undefined;
+    activePolicy: OnyxEntry<Policy>;
+    groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
+    introSelected: OnyxEntry<IntroSelected>;
+    hasSeenTour: boolean;
 };
 
 type EmptySearchViewItem = {
@@ -74,27 +88,93 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {typeMenuSections} = useSearchTypeMenuSections();
+
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+        canBeMissing: true,
+    });
+
+    const isUserPaidPolicyMemberSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
+        },
+        [currentUserPersonalDetails.login],
+    );
+
+    const [isUserPaidPolicyMember = false] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY,
+        {
+            canBeMissing: true,
+            selector: isUserPaidPolicyMemberSelector,
+        },
+        [isUserPaidPolicyMemberSelector],
+    );
+
+    return (
+        <SearchScopeProvider>
+            <EmptySearchViewContent
+                similarSearchHash={similarSearchHash}
+                type={type}
+                groupBy={groupBy}
+                hasResults={hasResults}
+                currentUserPersonalDetails={currentUserPersonalDetails}
+                typeMenuSections={typeMenuSections}
+                allPolicies={allPolicies}
+                isUserPaidPolicyMember={isUserPaidPolicyMember}
+                activePolicyID={activePolicyID}
+                activePolicy={activePolicy}
+                groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
+                introSelected={introSelected}
+                hasSeenTour={hasSeenTour}
+            />
+        </SearchScopeProvider>
+    );
+}
+
+const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
+    Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
+
+function EmptySearchViewContent({
+    similarSearchHash,
+    type,
+    groupBy,
+    hasResults,
+    currentUserPersonalDetails,
+    typeMenuSections,
+    allPolicies,
+    isUserPaidPolicyMember,
+    activePolicyID,
+    activePolicy,
+    groupPoliciesWithChatEnabled,
+    introSelected,
+    hasSeenTour,
+}: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
-    const {typeMenuSections} = useSearchTypeMenuSections();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
+        selector: hasTransactionsSelector,
     });
-
-    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
+        return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
     }, [allPolicies]);
 
     const typeMenuItems = useMemo(() => {
@@ -158,12 +238,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         );
     }, [styles, translate]);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-        canBeMissing: true,
-    });
-
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
         () => ({
@@ -178,7 +252,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         // Begin by going through all of our To-do searches, and returning their empty state
         // if it exists
         for (const menuItem of typeMenuItems) {
-            if (menuItem.hash === hash && menuItem.emptyState) {
+            if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
                 return {
                     headerMedia: menuItem.emptyState.headerMedia,
                     title: translate(menuItem.emptyState.title),
@@ -194,20 +268,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
             }
         }
 
-        const startTestDrive = () => {
-            InteractionManager.runAfterInteractions(() => {
-                if (
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
-                    (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
-                ) {
-                    completeTestDriveTask();
-                    Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                } else {
-                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                }
-            });
+        const startTestDriveAction = () => {
+            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
@@ -229,7 +291,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                         ? [
                               {
                                   buttonText: translate('emptySearchView.takeATestDrive'),
-                                  buttonAction: startTestDrive,
+                                  buttonAction: startTestDriveAction,
                               },
                           ]
                         : []),
@@ -286,7 +348,14 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (!hasResults || Object.values(transactions ?? {}).length === 0) {
+                if (hasResults) {
+                    return {
+                        ...defaultViewItemHeader,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                }
+                if (!hasResults || !hasTransactions) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
@@ -296,7 +365,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: startTestDrive,
+                                          buttonAction: startTestDriveAction,
                                       },
                                   ]
                                 : []),
@@ -327,7 +396,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: startTestDrive,
+                                          buttonAction: startTestDriveAction,
                                       },
                                   ]
                                 : []),
@@ -360,7 +429,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         groupBy,
         type,
         typeMenuItems,
-        hash,
+        similarSearchHash,
         translate,
         StyleUtils,
         theme.todoBG,
@@ -369,8 +438,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
-        introSelected?.choice,
-        introSelected?.inviteType,
+        introSelected,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
@@ -380,7 +448,9 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         currentUserPersonalDetails,
         tripViewChildren,
         shouldRedirectToExpensifyClassic,
-        transactions,
+        hasTransactions,
+        tryNewDot?.hasBeenAddedToNudgeMigration,
+        isUserPaidPolicyMember,
     ]);
 
     return (

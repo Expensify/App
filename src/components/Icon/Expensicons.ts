@@ -2,6 +2,7 @@ import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
+import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
@@ -138,6 +139,7 @@ import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
+import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
@@ -153,6 +155,7 @@ import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-m
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
+import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
@@ -169,7 +172,6 @@ import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
-import OldDotWireframe from '@assets/images/olddot-wireframe.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Paycheck from '@assets/images/paycheck.svg';
@@ -219,6 +221,7 @@ import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
+import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
@@ -362,6 +365,7 @@ export {
     MagnifyingGlass,
     Mail,
     MakeAdmin,
+    Map,
     Menu,
     Meter,
     Megaphone,
@@ -379,7 +383,6 @@ export {
     NotificationsAvatar,
     Offline,
     OfflineCloud,
-    OldDotWireframe,
     Paperclip,
     Pause,
     Paycheck,
@@ -417,6 +420,7 @@ export {
     ThreeDots,
     Transfer,
     Trashcan,
+    Uber,
     Unlock,
     UpArrow,
     Upload,
@@ -478,6 +482,7 @@ export {
     EmptySquare,
     CheckSquare,
     Minus,
+    ThumbsDown,
     UserLock,
     EmptyStateSpyPigeon,
     MicrosoftDynamicsExport,
@@ -488,4 +493,5 @@ export {
     SageIntacctExport,
     SapExport,
     XeroExport,
+    ArrowCircleClockwise,
 };

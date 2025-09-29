@@ -22,18 +22,20 @@ import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 
+type OptionDataWithOptionalReportID = Omit<OptionData, 'reportID'> & {reportID?: string};
+
 type OptionRowProps = {
     /** Style for hovered state */
     hoverStyle?: StyleProp<ViewStyle>;
 
     /** Option to allow the user to choose from can be type 'report' or 'user' */
-    option: OptionData;
+    option: OptionDataWithOptionalReportID;
 
     /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused?: boolean;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (option: OptionData, refElement: View | HTMLDivElement | null) => void | Promise<void>;
+    onSelectRow?: (option: OptionDataWithOptionalReportID, refElement: View | HTMLDivElement | null) => void | Promise<void>;
 
     /** Whether we should show the selected state */
     showSelectedState?: boolean;
@@ -45,7 +47,7 @@ type OptionRowProps = {
     selectedStateButtonText?: string;
 
     /** Callback to fire when the multiple selector (checkbox or button) is clicked */
-    onSelectedStatePressed?: (option: OptionData) => void;
+    onSelectedStatePressed?: (option: OptionDataWithOptionalReportID) => void;
 
     /** Whether we highlight selected option */
     highlightSelected?: boolean;
@@ -148,11 +150,18 @@ function OptionRow({
     const firstIcon = option?.icons?.at(0);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip, localeCompare);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        (option.participantsList ?? (option.accountID ? [option as OptionData] : [])).slice(0, 10),
+        shouldUseShortFormInTooltip,
+        localeCompare,
+    );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
     }
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportID = (option.iouReportID ?? option.reportID) || undefined;
 
     return (
         <Hoverable>
@@ -209,10 +218,11 @@ function OptionRow({
                                 {!!option.icons?.length && !!firstIcon && (
                                     <ReportActionAvatars
                                         subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                        reportID={option.iouReportID ?? option.reportID}
+                                        reportID={reportID}
+                                        accountIDs={!reportID && option.accountID ? [option.accountID] : []}
                                         size={CONST.AVATAR_SIZE.DEFAULT}
                                         secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                        shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
+                                        shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option as OptionData)}
                                     />
                                 )}
                                 <View style={contentContainerStyles}>

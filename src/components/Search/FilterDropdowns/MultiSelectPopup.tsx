@@ -1,13 +1,14 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type MultiSelectItem<T> = {
     text: string;
@@ -36,6 +37,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const [selectedItems, setSelectedItems] = useState(value);
 
     const listData: ListItem[] = useMemo(() => {
@@ -76,7 +78,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(items.length)]}>
+            <View style={[styles.getSelectionListPopoverHeight(items.length, windowHeight, false)]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
                     sections={[{data: listData}]}

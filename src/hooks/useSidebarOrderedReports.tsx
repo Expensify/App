@@ -1,19 +1,23 @@
+import reportsSelector from '@selectors/Attributes';
+import {createPoliciesSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
+
+const componentsUsingHook = new Map<string, {renderDuration: number}>();
 
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
@@ -24,6 +28,7 @@ type SidebarOrderedReportsContextProviderProps = {
 
 type SidebarOrderedReportsContextValue = {
     orderedReports: OnyxTypes.Report[];
+    orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
 };
@@ -32,6 +37,7 @@ type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherTh
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
+    orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
 });
@@ -43,6 +49,8 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSi
         avatarURL: policy.avatarURL,
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
+
+const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
 
 function SidebarOrderedReportsContextProvider({
     children,
@@ -59,13 +67,13 @@ function SidebarOrderedReportsContextProvider({
     const {localeCompare} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -77,6 +85,11 @@ function SidebarOrderedReportsContextProvider({
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
+
+    const perfRef = useRef<{hookDuration: number}>({
+        hookDuration: 0,
+    });
+    const hookStartTime = useRef<number>(performance.now());
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -137,9 +150,7 @@ function SidebarOrderedReportsContextProvider({
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
         const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(currentReportsToDisplay).length > 0;
-
         let reportsToDisplay = {};
-
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN(
                 currentReportsToDisplay,
@@ -165,23 +176,27 @@ function SidebarOrderedReportsContextProvider({
                 reportAttributes,
             );
         }
+
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes]);
+
+    const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
 
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportsToDisplayInLHN, localeCompare],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
+
     // Get the actual reports based on the ordered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
@@ -216,6 +231,7 @@ function SidebarOrderedReportsContextProvider({
             const updatedReports = getOrderedReports(updatedReportIDs);
             return {
                 orderedReports: updatedReports,
+                orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
             };
@@ -223,6 +239,7 @@ function SidebarOrderedReportsContextProvider({
 
         return {
             orderedReports,
+            orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
         };
@@ -255,21 +272,26 @@ function SidebarOrderedReportsContextProvider({
     const firstRender = useRef(true);
 
     useEffect(() => {
+        const hookExecutionDuration = performance.now() - hookStartTime.current;
+        perfRef.current.hookDuration = hookExecutionDuration;
+    }, [contextValue]);
+
+    useEffect(() => {
         // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
         // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
 
         // Case 1: orderedReports goes from empty to non-empty
         if (contextValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps);
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps, perfRef);
         }
         // Case 2: orderedReports goes from non-empty to empty
         if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps);
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps, perfRef);
         }
 
         // Case 3: orderedReports are empty from the beginning
         if (firstRender.current && contextValue.orderedReports.length === 0) {
-            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps);
+            logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps, perfRef);
         }
 
         firstRender.current = false;
@@ -278,8 +300,43 @@ function SidebarOrderedReportsContextProvider({
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
 
-function useSidebarOrderedReports() {
+function useSidebarOrderedReports(componentName?: string) {
+    useSidebarOrderedReportsPerformance(componentName);
     return useContext(SidebarOrderedReportsContext);
+}
+
+function useSidebarOrderedReportsPerformance(componentName?: string) {
+    const renderStartTime = useRef<number>(0);
+
+    useEffect(() => {
+        if (!componentName) {
+            return;
+        }
+
+        componentsUsingHook.set(componentName, {renderDuration: 0});
+
+        return () => {
+            componentsUsingHook.delete(componentName);
+        };
+    }, [componentName]);
+
+    useEffect(() => {
+        if (!componentName) {
+            return;
+        }
+
+        renderStartTime.current = performance.now();
+
+        return () => {
+            const renderDuration = performance.now() - renderStartTime.current;
+            const currentData = componentsUsingHook.get(componentName);
+            if (currentData) {
+                componentsUsingHook.set(componentName, {
+                    renderDuration,
+                });
+            }
+        };
+    }, [componentName]);
 }
 
 export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
@@ -291,16 +348,29 @@ function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T)
     return depsKeys.filter((depKey) => !deepEqual(deps[depKey], prevDeps[depKey]));
 }
 
-function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T) {
+function logChangedDeps<T extends Record<string, unknown>>(msg: string, deps: T, prevDeps: T, perfRef: React.RefObject<{hookDuration: number}>) {
     const startTime = performance.now();
     const changedDeps = getChangedKeys(deps, prevDeps);
     const parsedDeps = parseDepsForLogging(deps);
-    const processingDuration = performance.now() - startTime;
-    Log.info(msg, false, {
+    const loggingDuration = performance.now() - startTime;
+    const hookExecutionDuration = perfRef.current.hookDuration;
+
+    const logData: Record<string, unknown> = {
         deps: parsedDeps,
         changedDeps,
-        processingDuration,
-    });
+        performance: {
+            hookDuration: `${hookExecutionDuration.toFixed(2)}ms`,
+            loggingDuration: `${loggingDuration.toFixed(2)}ms`,
+            componentsUsingHook: Array.from(componentsUsingHook.entries()).map(([name, data]) => ({
+                component: name,
+                renderDuration: `${data.renderDuration.toFixed(2)}ms`,
+            })),
+        },
+
+        timestamp: new Date().toISOString(),
+    };
+
+    Log.info(msg, false, logData);
 }
 
 /**

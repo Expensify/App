@@ -1,19 +1,16 @@
-import React, {forwardRef} from 'react';
-import type {ForwardedRef} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 import BaseSelectionList from './BaseSelectionList';
-import type {ListItem, SelectionListHandle, SelectionListProps} from './types';
+import type {ListItem} from './ListItem/types';
+import type {SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ...props}: SelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListProps<TItem>) {
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             onScrollBeginDrag={() => {
-                if (!shouldHideKeyboardOnScroll) {
-                    return;
-                }
                 Keyboard.dismiss();
             }}
         />
@@ -22,4 +19,4 @@ function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = tru
 
 SelectionList.displayName = 'SelectionList';
 
-export default forwardRef(SelectionList);
+export default SelectionList;

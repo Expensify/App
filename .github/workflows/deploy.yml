@@ -231,7 +231,7 @@ jobs:
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
       - name: Upload Android build to Applause
-        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: |
           APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
           curl -F "file=@Expensify.apk" \
@@ -341,7 +341,7 @@ jobs:
     needs: prep
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
@@ -466,7 +466,7 @@ jobs:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Upload iOS build to Applause
-        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: |
           APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
           curl -F "file=@${{ env.ipaPath }}" \
@@ -818,6 +818,7 @@ jobs:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createRelease]
+    secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}

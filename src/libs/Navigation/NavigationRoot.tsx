@@ -1,5 +1,5 @@
-import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import Firebase from '@libs/Firebase';
-import {FSPage} from '@libs/Fullstory';
+import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
@@ -81,7 +81,7 @@ function parseAndLogRoute(state: NavigationState) {
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
     if (focusedRouteName) {
-        new FSPage(focusedRouteName, {path: currentPath}).start();
+        new FS.Page(focusedRouteName, {path: currentPath}).start();
     }
 }
 
@@ -173,10 +173,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             ...defaultNavigationTheme,
             colors: {
                 ...defaultNavigationTheme.colors,
-                background: theme.appBG,
+                /**
+                 * We want to have a stack with variable size of screens in RHP (wide layout).
+                 * The stack is the size of the biggest screen in RHP. Screens that should be smaller will reduce its size with margin.
+                 * The stack has to be this size because it has a container with overflow: hidden.
+                 * On wide layout, background: 'transparent' is used to make the bottom of the card stack transparent.
+                 * On narrow layout, we use theme.appBG to match the standard app background.
+                 */
+                background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
             },
         };
-    }, [theme.appBG, themePreference]);
+    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
 
     useEffect(() => {
         if (firstRenderRef.current) {

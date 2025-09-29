@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -85,6 +85,12 @@ type ReportActionItemParentActionProps = {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
+    isTryNewDotNVPDismissed: boolean | undefined;
+
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -106,6 +112,8 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
+    isTryNewDotNVPDismissed = false,
+    isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -113,19 +121,26 @@ function ReportActionItemParentAction({
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (allPairs) => {
-            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
 
-            return Object.fromEntries(
-                Object.entries(allPairs ?? {}).filter(([key]) => {
-                    const id = key.split('_').at(1);
-                    return id && ancestorIDsToSelect.has(id);
-                }),
-            );
+    const ancestorReportNameValuePairsSelector = useCallback((allPairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
+        const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
+
+        return Object.fromEntries(
+            Object.entries(allPairs ?? {}).filter(([key]) => {
+                const id = key.split('_').at(1);
+                return id && ancestorIDsToSelect.has(id);
+            }),
+        );
+    }, []);
+
+    const [ancestorReportNameValuePairs] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        {
+            canBeMissing: true,
+            selector: ancestorReportNameValuePairsSelector,
         },
-    });
+        [ancestorReportNameValuePairsSelector],
+    );
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -167,7 +182,7 @@ function ReportActionItemParentAction({
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {allAncestors.map((ancestor) => {
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
-                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
+                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
                 const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
                 const reportNameValuePair =
                     ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
@@ -221,6 +236,7 @@ function ReportActionItemParentAction({
                             emojiReactions={actionEmojiReactions}
                             linkedTransactionRouteError={linkedTransactionRouteError}
                             userBillingFundID={userBillingFundID}
+                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                         />
                     </OfflineWithFeedback>
                 );
