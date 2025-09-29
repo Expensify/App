@@ -756,7 +756,9 @@
         "مثال",
         "moveElemsAttrsToGroup",
         "removeHiddenElems",
-        "moveGroupAttrsToElems"
+        "moveGroupAttrsToElems",
+        "Humpty",
+        "Dumpty"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
