@@ -407,7 +407,7 @@ const translations = {
         download: 'Herunterladen',
         downloading: 'Herunterladen',
         uploading: 'Hochladen',
-        pin: 'Pin',
+        pin: 'Anheften',
         unPin: 'Lösen',
         back: 'Zurück',
         saveAndContinue: 'Speichern & fortfahren',
