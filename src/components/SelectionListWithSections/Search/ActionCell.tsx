@@ -115,7 +115,7 @@ function ActionCell({
                 text={text}
                 onPress={goToItem}
                 small
-                xsmall={extraSmall}
+                extraSmall={extraSmall}
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
                 link={isChildListItem}
@@ -155,7 +155,7 @@ function ActionCell({
             text={text}
             onPress={goToItem}
             small
-            xsmall={extraSmall}
+            extraSmall={extraSmall}
             style={[styles.w100]}
             isLoading={isLoading}
             success

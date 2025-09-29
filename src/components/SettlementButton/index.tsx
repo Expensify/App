@@ -59,7 +59,7 @@ function SettlementButton({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    xsmall = false,
+    extraSmall = false,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
@@ -529,7 +529,7 @@ function SettlementButton({
                     defaultSelectedIndex={defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0}
                     onPress={(event, iouPaymentType) => handlePaymentSelection(event, iouPaymentType, triggerKYCFlow)}
                     success={!hasOnlyHeldExpenses}
-                    xsmall={xsmall}
+                    extraSmall={extraSmall}
                     secondLineText={secondaryText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}

@@ -80,7 +80,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
     /** Render button in extra-small size */
-    xsmall?: boolean;
+    extraSmall?: boolean;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
