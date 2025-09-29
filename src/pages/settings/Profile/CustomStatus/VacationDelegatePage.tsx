@@ -49,6 +49,7 @@ function VacationDelegatePage() {
         excludeLogins,
         includeRecentReports: true,
         shouldInitialize: true,
+        maxResultsPerPage: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         getValidOptionsConfig: {
             excludeLogins,
         },

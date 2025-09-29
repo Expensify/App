@@ -176,6 +176,7 @@ function MoneyRequestParticipantsSelector({
             includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeRecentReports: true,
+            maxResultsPerPage: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             getValidOptionsConfig,
             shouldInitialize: didScreenTransitionEnd,
             enablePhoneContacts: isNative,
