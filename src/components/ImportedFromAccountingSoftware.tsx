@@ -75,9 +75,9 @@ function ImportedFromAccountingSoftware({
                 }
             />
             <Text style={[styles.textNormal, styles.colorMuted]}>. </Text>
-            {isDisplayingTags && (
+            {isDisplayingTags && !!customTagName && (
                 <View style={[styles.renderHTML]}>
-                    <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName: customTagName ?? ''})} />
+                    <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName})} />
                 </View>
             )}
         </View>
