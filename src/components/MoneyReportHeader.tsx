@@ -824,15 +824,6 @@ function MoneyReportHeader({
                 }}
             />
         ),
-        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('iou.addExpense')}
-                options={addExpenseDropdownOptions}
-                isSplitButton={false}
-            />
-        ),
     };
 
     const beginPDFExport = (reportID: string) => {
