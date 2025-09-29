@@ -279,7 +279,7 @@ function MoneyRequestView({
     const shouldShowReimbursable =
         shouldShowPolicySpecificFields && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
-    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
+    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy, isExpenseUnreported), [iouType, policy, isExpenseUnreported]);
 
     const shouldShowTax = isTaxTrackingEnabled(shouldShowPolicySpecificFields, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
