@@ -1152,20 +1152,6 @@ function getReportAction(reportID: string | undefined, reportActionID: string | 
 }
 
 /**
- * @returns The report preview action or `null` if one couldn't be found
- */
-function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
-    if (!chatReportID || !iouReportID) {
-        return;
-    }
-
-    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
-        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
-            reportAction && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
-    );
-}
-
-/**
  * Get the iouReportID for a given report action.
  */
 function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAction>): string | undefined {
@@ -3123,7 +3109,6 @@ export {
     getReportActionMessage,
     getReportActionMessageText,
     getReportActionText,
-    getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getTextFromHtml,
