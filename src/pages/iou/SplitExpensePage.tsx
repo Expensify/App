@@ -11,7 +11,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
-import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
+import useGetChatIOUReportIDFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -80,8 +80,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
-    const chatIouReportID = useGetChatIouReportIDFromReportAction(iouActions.at(0));
-    const isChatReportArchived = useReportIsArchived(chatIouReportID);
+    const chatReportID = useGetChatIOUReportIDFromReportAction(iouActions.at(0));
+    const isChatReportArchived = useReportIsArchived(chatReportID);
+    const [chatIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -122,8 +123,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        saveSplitTransactions(draftTransaction, currentSearchHash, isChatReportArchived);
-    }, [draftTransaction, sumOfSplitExpenses, transactionDetailsAmount, isPerDiem, isChatReportArchived, isCard, currentSearchHash, transactionID, translate, transactionDetails?.currency]);
+        saveSplitTransactions(draftTransaction, currentSearchHash, chatIOUReport, isChatReportArchived);
+    }, [
+        draftTransaction,
+        sumOfSplitExpenses,
+        transactionDetailsAmount,
+        isPerDiem,
+        chatIOUReport,
+        isChatReportArchived,
+        isCard,
+        currentSearchHash,
+        transactionID,
+        translate,
+        transactionDetails?.currency,
+    ]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {

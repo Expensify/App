@@ -7,7 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
+import useGetChatIOUReportIDFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -92,8 +92,9 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
     });
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const chatIouReportID = useGetChatIouReportIDFromReportAction(parentReportAction);
-    const isChatParentReportArchived = useReportIsArchived(chatIouReportID);
+    const chatIOUReportID = useGetChatIOUReportIDFromReportAction(parentReportAction);
+    const isChatParentReportArchived = useReportIsArchived(chatIOUReportID);
+    const [chatIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatIOUReportID}`, {canBeMissing: true});
     const isTrackExpense = isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
@@ -188,7 +189,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, true, isChatParentReportArchived);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, chatIOUReport, report.reportID, true, isChatParentReportArchived);
                 return;
             }
         }

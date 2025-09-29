@@ -77,9 +77,7 @@ function getContextualSearchQuery(item: SearchQueryItem) {
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            if (item.searchQuery) {
-                additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery)}`;
-            }
+            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
             break;
     }
     return baseQuery + additionalQuery;

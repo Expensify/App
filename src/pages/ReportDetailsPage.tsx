@@ -23,7 +23,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
+import useGetChatIOUReportIDFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -254,8 +254,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
-    const chatIouReportID = useGetChatIouReportIDFromReportAction(requestParentReportAction);
-    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
+    const chatIOUReportID = useGetChatIOUReportIDFromReportAction(requestParentReportAction);
+    const [chatIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatIOUReportID}`, {canBeMissing: true});
+    const isChatIOUReportArchived = useReportIsArchived(chatIOUReportID);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
@@ -781,7 +782,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         if (isTrackExpense) {
             deleteTrackExpense(
-                moneyRequestReport?.reportID,
+                moneyRequestReport,
                 iouTransactionID,
                 requestParentReportAction,
                 duplicateTransactions,
@@ -793,6 +794,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             deleteMoneyRequest(
                 iouTransactionID,
                 requestParentReportAction,
+                chatIOUReport,
                 duplicateTransactions,
                 duplicateTransactionViolations,
                 isSingleTransactionView,
@@ -813,6 +815,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         requestParentReportAction,
         isReportArchived,
         isChatIOUReportArchived,
+        chatIOUReport,
         isMoneyRequestReportArchived,
     ]);
 
@@ -845,14 +848,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-                    moneyRequestReport?.reportID,
+                    moneyRequestReport,
                     iouTransactionID,
                     requestParentReportAction,
                     isSingleTransactionView,
                     isMoneyRequestReportArchived,
                 );
             } else {
-                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView, isChatIOUReportArchived);
+                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, chatIOUReport, isSingleTransactionView, isChatIOUReportArchived);
             }
         }
 
@@ -862,7 +865,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, isChatIOUReportArchived, isMoneyRequestReportArchived]);
+    }, [
+        iouTransactionID,
+        requestParentReportAction,
+        isSingleTransactionView,
+        isTransactionDeleted,
+        moneyRequestReport,
+        isChatIOUReportArchived,
+        isMoneyRequestReportArchived,
+        chatIOUReport,
+    ]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
