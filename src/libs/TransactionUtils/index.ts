@@ -216,22 +216,16 @@ function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolea
     return isCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 }
 
-function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEnabled?: boolean): IOURequestType {
-    if (isManualDistanceEnabled) {
-        if (isManualDistanceRequest(transaction)) {
-            return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-        }
-        if (isMapDistanceRequest(transaction)) {
-            return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-        }
+function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
+    if (isManualDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
-    if (isDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    if (isMapDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     }
     if (isScanRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.SCAN;
     }
-
     if (isPerDiemRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.PER_DIEM;
     }
