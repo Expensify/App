@@ -356,6 +356,12 @@ function getSubstring(value: string, args: string[]): string {
 
 /**
  * Left-pad a string to a given length with a specified character
+ *
+ * Examples:
+ * - {report:total|leftpad:0:5} → "00123"
+ * - {user:name|leftpad:*:8} → "***hello"
+ * - {report:id|leftpad: :10} → "  test" (pads with spaces)
+ * - No padding applied if string is already longer than target length
  */
 function leftPadString(value: string, args: string[]): string {
     const char = args.at(0) ?? ' ';
