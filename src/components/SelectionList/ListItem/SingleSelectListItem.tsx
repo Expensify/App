@@ -40,8 +40,8 @@ function SingleSelectListItem<TItem extends ListItem>({
 
     return (
         <RadioListItem
-            keyForList={item.keyForList}
             item={item}
+            keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
