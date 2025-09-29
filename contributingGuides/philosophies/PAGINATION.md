@@ -88,12 +88,12 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
     If a strategy for gap detection is required, here's a high-level summary of how it can be handled:
 
     1. Keep track of the pages loaded in a dedicated Onyx key for pagination (e.g., `report_123_actions_pages`). This is a _sorted_ list of ranges.
-    2. Post-process network responses using the [Pagination middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts) to keep track of the start and end point of the page loaded in a request, and [merge it with existing pages if it overlaps](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L104).
+    2. Post-process network responses using the [Pagination middleware](/src/libs/Middleware/Pagination.ts) to keep track of the start and end point of the page loaded in a request, and [merge it with existing pages if it overlaps](/src/libs/PaginationUtils.ts#L104).
     3. When rendering the list, use that pages key for the sorting order, and insert "gap markers" between the edges of the pages that have been loaded.
-    4. When rendering the list, [render only a single continuous chunk](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/PaginationUtils.ts#L166) containing the current "anchor point" (the reportAction linked to, for example), up until reaching the end of the list in either direction or a gap marker.
+    4. When rendering the list, [render only a single continuous chunk](/src/libs/PaginationUtils.ts#L166) containing the current "anchor point" (the reportAction linked to, for example), up until reaching the end of the list in either direction or a gap marker.
     5. Then, when scrolling, the gap marker will be reached and network requests can fill the gap.
 
-    More details can be found in [the Pagination middleware](https://github.com/Expensify/App/blob/1a06fa4add10b53a1a9266927d3b08a4ca35d3c4/src/libs/Middleware/Pagination.ts). Efforts were made to generalize this code, but so far it has only been used for reportActions.
+    More details can be found in [the Pagination middleware](/src/libs/Middleware/Pagination.ts). Efforts were made to generalize this code, but so far it has only been used for reportActions.
 
 ## Don't evict data
-The systems we've build and/or described do not have any data eviction mechanisms, and that's an intentional choice. Reject any solutions that evict data from disk, unless reading or writing from disk is clearly proven to be a bottleneck. That way, we can preserve our [Offline Philosophy](https://github.com/Expensify/App/blob/main/contributingGuides/philosophies/OFFLINE.md) and provide a first-class offline UX without compromising performance.
+The systems we've build and/or described do not have any data eviction mechanisms, and that's an intentional choice. Reject any solutions that evict data from disk, unless reading or writing from disk is clearly proven to be a bottleneck. That way, we can preserve our [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md) and provide a first-class offline UX without compromising performance.
