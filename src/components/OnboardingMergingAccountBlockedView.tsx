@@ -24,12 +24,11 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
     const {translate} = useLocalize();
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
 
-    // Use the specific error message if available, otherwise fallback to generic message
     const getErrorSubtitle = () => {
         if (onboardingErrorMessage) {
             return onboardingErrorMessage;
         }
-        // Fallback to generic error message with the provided workEmail prop
+        // Fallback to generic error message
         return translate('onboarding.mergeBlockScreen.subtitle', {workEmail});
     };
 
