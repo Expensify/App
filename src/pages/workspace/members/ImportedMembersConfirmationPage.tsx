@@ -134,6 +134,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             shouldUseCachedViewportHeight
             testID={ImportedMembersConfirmationPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.inviteMessage.confirmDetails')}
