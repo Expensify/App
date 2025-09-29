@@ -97,3 +97,11 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
 
 ## Don't evict data
 The systems we've build and/or described do not have any data eviction mechanisms, and that's an intentional choice. Reject any solutions that evict data from disk, unless reading or writing from disk is clearly proven to be a bottleneck. That way, we can preserve our [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md) and provide a first-class offline UX without compromising performance.
+
+## Rules
+
+- The cursor for each item in the list MUST be unique.
+- The cursor MUST be serializable so it can be sent in a network request (no functions).
+- The cursor SHOULD includes only the minimal fields required to define the location of an item in the list.
+- There MUST be a fast way query to get arbitrary page of data in the database.
+- If gap detection is needed, the existing Pagination Middleware SHOULD be used to detect and fill gaps.
