@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -86,20 +87,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         canBeMissing: true,
     });
 
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (violations) => {
-            if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
-                return undefined;
-            }
-            return Object.fromEntries(
-                Object.entries(violations ?? {}).filter(([key]) => {
-                    const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
-                    return eligibleTransactionIDs?.has(id);
-                }),
-            );
-        },
-        canBeMissing: true,
-    });
+    const transactionViolations = useTransactionViolation(eligibleTransactionIDs);
 
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage;
