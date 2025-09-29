@@ -5264,6 +5264,22 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
     });
 
     describe('canDeleteTransaction', () => {
@@ -5296,6 +5312,22 @@ describe('ReportUtils', () => {
             // When it's checked if the transactions can be deleted
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
