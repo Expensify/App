@@ -53,6 +53,7 @@ export default {
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
+    fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
     fontSizeNormal: getValueUsingPixelRatio(15, 21),
     fontSizeMedium: getValueUsingPixelRatio(16, 22),

@@ -146,18 +146,18 @@ function HeaderFirstRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3, styles.gap1]}>
+            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3, styles.gap1, styles.pr3]}>
                 <TotalCell
                     total={total}
                     currency={currency}
                     textStyle={styles.fontWeightNormal}
                 />
-                {!shouldShowAction && !!onDownArrowClick && (
+                {!isLargeScreenWidth && !!onDownArrowClick && (
                     <View>
                         <PressableWithFeedback
                             onPress={onDownArrowClick}
                             disabled={!!isDisabled}
-                            style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                            style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
                         >
@@ -185,25 +185,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                         amount={reportItem.total}
                         extraSmall={!isLargeScreenWidth}
                     />
-                </View>
-            )}
-            {shouldShowAction && !!onDownArrowClick && (
-                <View style={[styles.flexShrink0, styles.pl3]}>
-                    <PressableWithFeedback
-                        onPress={onDownArrowClick}
-                        disabled={!!isDisabled}
-                        style={[styles.justifyContentCenter, styles.alignItemsEnd]}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
-                    >
-                        {({hovered}) => (
-                            <Icon
-                                src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                                fill={hovered ? theme.textSupporting : theme.icon}
-                                small
-                            />
-                        )}
-                    </PressableWithFeedback>
                 </View>
             )}
         </View>
@@ -258,7 +239,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 item={reportItem}
                 handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
-                containerStyles={[styles.pr0]}
+                containerStyles={[styles.pr3, styles.pt1half]}
             />
             <HeaderFirstRow
                 report={reportItem}

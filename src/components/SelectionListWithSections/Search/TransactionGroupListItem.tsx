@@ -354,6 +354,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         header={getHeader}
                         onPress={onExpandIconPress}
                         expandButtonStyle={[styles.pv4Half]}
+                        shouldShowToggleButton={isLargeScreenWidth && isGroupByReports}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>

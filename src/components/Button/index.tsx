@@ -45,7 +45,7 @@ type ButtonProps = Partial<ChildrenProps> & {
     iconWrapperStyles?: StyleProp<ViewStyle>;
 
     /** Extra-small sized button */
-    xsmall?: boolean;
+    extraSmall?: boolean;
 
     /** Small sized button */
     small?: boolean;
@@ -236,10 +236,10 @@ function Button({
     iconWrapperStyles = [],
     text = '',
 
-    xsmall = false,
+    extraSmall = false,
     small = false,
     large = false,
-    medium = !xsmall && !small && !large,
+    medium = !extraSmall && !small && !large,
 
     isLoading = false,
     isDisabled = false,
@@ -302,7 +302,7 @@ function Button({
                     isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
-                    xsmall && styles.buttonXSmallText,
+                    extraSmall && styles.buttonExtraSmallText,
                     small && styles.buttonSmallText,
                     medium && styles.buttonMediumText,
                     large && styles.buttonLargeText,
@@ -357,7 +357,7 @@ function Button({
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    xsmall={xsmall}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -373,7 +373,7 @@ function Button({
                                 <Icon
                                     src={iconRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    xsmall={xsmall}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -383,7 +383,7 @@ function Button({
                                 <Icon
                                     src={iconRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    xsmall={xsmall}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -402,7 +402,7 @@ function Button({
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, xsmall, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+            StyleUtils.getButtonStyleWithIcon(styles, extraSmall, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
@@ -426,7 +426,7 @@ function Button({
             shouldRemoveRightBorderRadius,
             shouldShowRightIcon,
             small,
-            xsmall,
+            extraSmall,
             styles,
             success,
             text,

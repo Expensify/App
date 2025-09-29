@@ -548,7 +548,7 @@ function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle,
 }
 
 function getIconWidthAndHeightStyle(
-    xsmall: boolean,
+    extraSmall: boolean,
     small: boolean,
     medium: boolean,
     large: boolean,
@@ -557,7 +557,7 @@ function getIconWidthAndHeightStyle(
     isButtonIcon: boolean,
 ): Pick<ImageSVGProps, 'width' | 'height'> {
     switch (true) {
-        case xsmall:
+        case extraSmall:
             return {width: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall, height: isButtonIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall};
         case small:
             return {width: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall, height: isButtonIcon ? variables.iconSizeExtraSmall : variables.iconSizeSmall};
@@ -573,7 +573,7 @@ function getIconWidthAndHeightStyle(
 
 function getButtonStyleWithIcon(
     styles: ThemeStyles,
-    xsmall: boolean,
+    extraSmall: boolean,
     small: boolean,
     medium: boolean,
     large: boolean,
@@ -583,10 +583,9 @@ function getButtonStyleWithIcon(
 ): ViewStyle | undefined {
     const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
     switch (true) {
-        case xsmall: {
+        case extraSmall: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
-            // @ts-expect-error buttonXSmall added in styles/index.ts
-            return useDefaultButtonStyles ? styles.buttonXSmall : {...(styles as unknown as Record<string, ViewStyle>).buttonXSmall, ...(hasText ? verticalStyle : styles.ph0)};
+            return useDefaultButtonStyles ? styles.buttonExtraSmall : {...(styles as unknown as Record<string, ViewStyle>).buttonExtraSmall, ...(hasText ? verticalStyle : styles.ph0)};
         }
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;

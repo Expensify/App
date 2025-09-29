@@ -711,7 +711,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonDefaultBG,
         },
 
-        buttonXSmall: {
+        buttonExtraSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeXSmall,
             minWidth: variables.componentSizeXSmall,
@@ -741,7 +741,7 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
-        buttonXSmallText: {
+        buttonExtraSmallText: {
             fontSize: variables.fontSizeSmall,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             textAlign: 'center',
