@@ -404,8 +404,8 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 /**
  * Determine if we should show the attendee selector for a given expense on a give policy.
  */
-function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>, isExpenseUnreported?: boolean): boolean {
-    if (isExpenseUnreported) {
+function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>, isUnreportedExpense?: boolean): boolean {
+    if (isUnreportedExpense) {
         return !!policy?.isAttendeeTrackingEnabled;
     }
     if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
