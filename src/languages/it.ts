@@ -407,7 +407,7 @@ const translations = {
         download: 'Scarica',
         downloading: 'Scaricamento',
         uploading: 'Caricamento in corso',
-        pin: 'Pin',
+        pin: '[it][ctx: as a verb, not a noun] Pin',
         unPin: 'Rimuovi dal pin',
         back: 'Indietro',
         saveAndContinue: 'Salva e continua',
