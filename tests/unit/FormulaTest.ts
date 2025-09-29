@@ -326,45 +326,6 @@ describe('CustomFormula', () => {
                 expect(result).toBe(''); // Invalid length, returns empty
             });
         });
-
-        describe('leftpad modifier', () => {
-            test('should left pad with specified character and length', () => {
-                const result = compute('{report:currency|leftpad:0:8}', mockContext);
-                expect(result).toBe('00000USD'); // "USD" padded with zeros to 8 characters
-            });
-
-            test('should left pad with spaces when no character specified', () => {
-                const result = compute('{report:type|leftpad: :15}', mockContext);
-                expect(result).toBe(' Expense Report'); // Padded with spaces to 15 characters
-            });
-
-            test('should not pad if target length is less than or equal to string length', () => {
-                const result = compute('{report:policyname|leftpad:0:5}', mockContext);
-                expect(result).toBe('Engineering Department Rules'); // String is longer than 5, so no padding
-            });
-
-            test('should handle invalid length parameter', () => {
-                const result = compute('{report:currency|leftpad:0:abc}', mockContext);
-                expect(result).toBe('USD'); // Invalid length, returns original string
-            });
-        });
-
-        describe('function chaining', () => {
-            test('should chain multiple functions correctly', () => {
-                const result = compute('{report:policyname|frontpart|leftpad:-:12}', mockContext);
-                expect(result).toBe('-Engineering'); // "Engineering" padded with dashes to 12 characters
-            });
-
-            test('should chain substr and leftpad', () => {
-                const result = compute('{report:policyname|substr:0:6|leftpad:*:10}', mockContext);
-                expect(result).toBe('****Engine'); // First 6 chars padded with asterisks to 10 characters
-            });
-
-            test('should handle complex chaining with frontpart and substr', () => {
-                const result = compute('{report:policyname|frontpart|substr:0:3|leftpad:x:8}', mockContext);
-                expect(result).toBe('xxxxxEng'); // "Engineering" -> "Eng" -> padded to 8 with 'x'
-            });
-        });
     });
 
     describe('Edge Cases', () => {
