@@ -705,8 +705,10 @@ const ROUTES = {
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) => {
-            const optionalRoutePart = backToReport !== undefined ? `/${backToReport}` : '';
-            return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}${optionalRoutePart}` as const;
+            if (backToReport) {
+                return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}` as const;
+            }
+            return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const;
         },
     },
     MONEY_REQUEST_CREATE_VERIFY_ACCOUNT: {
@@ -730,8 +732,11 @@ const ROUTES = {
         route: ':action/:iouType/confirmation/:transactionID/:reportID/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean, backTo?: string) => {
             let optionalRoutePart = '';
-            if (backToReport !== undefined || participantsAutoAssigned !== undefined) {
-                optionalRoutePart = `/${backToReport ?? ''}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}`;
+            if (backToReport !== undefined) {
+                optionalRoutePart += `/${backToReport}`;
+            }
+            if (participantsAutoAssigned !== undefined) {
+                optionalRoutePart += '?participantsAutoAssigned=true';
             }
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${optionalRoutePart}` as const, backTo);
