@@ -9,11 +9,8 @@ type Selector<T> = (state: NavigationState) => T;
  *
  * @param selector Selector function to get a value from the state.
  */
-function useRootNavigationState<T>(selector: Selector<T>): T | null {
-    const [result, setResult] = useState<T | null>(() => {
-        if (!navigationRef.isReady()) {
-            return null;
-        }
+function useRootNavigationState<T>(selector: Selector<T>): T {
+    const [result, setResult] = useState<T>(() => {
         return selector(navigationRef.getRootState());
     });
 
