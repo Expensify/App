@@ -8,6 +8,6 @@
     This patch fixes displaying error message when image has been downloaded.
     ```
   
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: https://github.com/react-native-cameraroll/react-native-cameraroll/issues/575
 - E/App issue: https://github.com/Expensify/App/issues/36870
 - PR introducing patch: https://github.com/Expensify/App/pull/37316

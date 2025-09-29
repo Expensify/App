@@ -9,5 +9,5 @@
     ```
   
 - Upstream PR/issue: https://github.com/lugg/react-native-config/pull/732
-- E/App issue: 🛑
+- E/App issue: Same as the PR.
 - PR introducing patch: https://github.com/Expensify/App/pull/50059

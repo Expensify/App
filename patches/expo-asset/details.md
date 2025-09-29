@@ -8,6 +8,6 @@
     This is patch makes StoryBook work.
     ```
   
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
+- Upstream PR/issue: 🛑, commented in the App PR https://github.com/Expensify/App/pull/45289#issuecomment-3346150253
+- E/App issue: Same as the PR.
 - PR introducing patch: https://github.com/Expensify/App/pull/45289

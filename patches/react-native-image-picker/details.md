@@ -21,6 +21,6 @@
     This patch fixes dispatch callback after dismissing modal.
     ```
   
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: 🛑, commented in the App PR https://github.com/Expensify/App/pull/55011#issuecomment-3346267863
 - E/App issue: https://github.com/Expensify/App/issues/54970
 - PR introducing patch: https://github.com/Expensify/App/pull/55011

@@ -8,6 +8,6 @@
     This patch makes react-native-web-sound lib build with App.
     ```
   
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: 🛑, commented in the App PR https://github.com/Expensify/App/pull/31055#issuecomment-3346258817
 - E/App issue: https://github.com/Expensify/App/issues/29835
 - PR introducing patch: https://github.com/Expensify/App/pull/31055

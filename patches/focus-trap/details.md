@@ -8,6 +8,6 @@
     This patch prevents initial focus trap while has a focused element.
     ```
   
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: 🛑, commented in the App issue https://github.com/Expensify/App/issues/43662#issuecomment-3346214704
 - E/App issue: https://github.com/Expensify/App/issues/43662
 - PR introducing patch: https://github.com/Expensify/App/pull/44932

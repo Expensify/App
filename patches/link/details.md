@@ -9,6 +9,6 @@
 
     ```
   
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
+- Upstream PR/issue: 🛑, this is related to Expensify/react-native-live-markdown and it seems like a customization, so it makes sense there's no upstream issue.
+- E/App issue: Same as the PR.
 - PR introducing patch: https://github.com/Expensify/App/pull/47794
