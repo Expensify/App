@@ -843,15 +843,29 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
 }
 
 /** Add an attachment with an optional comment to a report */
-function addAttachmentWithComment(reportID: string, notifyReportID: string, attachments: FileObject | FileObject[], text = '', timezone: Timezone = CONST.DEFAULT_TIME_ZONE) {
+function addAttachmentWithComment(
+    reportID: string,
+    notifyReportID: string,
+    attachments: FileObject | FileObject[],
+    text = '',
+    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
+    shouldPlaySound = false,
+) {
     if (!reportID) {
         return;
     }
 
+    const handlePlaySound = () => {
+        if (!shouldPlaySound) {
+            return;
+        }
+        playSound(SOUNDS.DONE);
+    };
+
     // Single attachment
     if (!Array.isArray(attachments)) {
         addActions(reportID, notifyReportID, timezone, text, attachments);
-        playSound(SOUNDS.DONE);
+        handlePlaySound();
         return;
     }
 
@@ -864,7 +878,7 @@ function addAttachmentWithComment(reportID: string, notifyReportID: string, atta
     }
 
     // Play sound once
-    playSound(SOUNDS.DONE);
+    handlePlaySound();
 }
 
 /** Add a single comment to a report */

@@ -1232,11 +1232,12 @@ describe('actions/Report', () => {
         });
 
         const REPORT_ID = '1';
+        const shouldPlaySound = true;
         const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
         const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB, fileC], 'Hello world');
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1265,10 +1266,11 @@ describe('actions/Report', () => {
         });
 
         const REPORT_ID = '1';
+        const shouldPlaySound = true;
         const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB]);
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1276,6 +1278,35 @@ describe('actions/Report', () => {
         expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
         expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
         expect(relevant.some((r) => r.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT)).toBe(false);
+    });
+
+    it('should create attachment only action & not play sound when adding attachment without a comment & shouldPlaySound not passed', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await waitForBatchedUpdates();
+
+        const relevantPromise = new Promise((resolve) => {
+            const conn = Onyx.connect({
+                key: ONYXKEYS.PERSISTED_REQUESTS,
+                callback: (persisted) => {
+                    const relevant = (persisted ?? []).filter((r) => r?.command === WRITE_COMMANDS.ADD_ATTACHMENT);
+                    if (relevant.length >= 1) {
+                        Onyx.disconnect(conn);
+                        resolve(relevant);
+                    }
+                },
+            });
+        });
+
+        const REPORT_ID = '1';
+        const file = new File(['a'], 'a.txt', {type: 'text/plain'});
+
+        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, file);
+        const relevant = (await relevantPromise) as OnyxTypes.Request[];
+
+        expect(playSoundMock).toHaveBeenCalledTimes(0);
+        expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_ATTACHMENT);
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {

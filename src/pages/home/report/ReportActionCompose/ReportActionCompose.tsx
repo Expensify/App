@@ -326,7 +326,7 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone);
+                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
