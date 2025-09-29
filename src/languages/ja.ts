@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -854,8 +855,24 @@ const translations = {
         markAsUnread: '未読としてマーク',
         markAsRead: '既読にする',
         editAction: ({action}: EditActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を編集`,
-        deleteAction: ({action}: DeleteActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `この${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除してもよろしいですか？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `${type}を削除`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `この${type}を削除してもよろしいですか?`;
+        },
         onlyVisible: 'にのみ表示',
         replyInThread: 'スレッドで返信',
         joinThread: 'スレッドに参加する',
@@ -1412,7 +1429,7 @@ const translations = {
             reasonPageDescription: 'この経費を拒否する理由を説明してください。',
             rejectReason: '却下の理由',
             markAsResolved: '解決済みにする',
-            rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
+            rejectedStatus: 'この経費は却下されました。問題を修正して解決済みとしてマークし、提出を可能にするのをお待ちしています。',
             reportActions: {
                 rejectedExpense: 'この経費を却下しました',
                 markedAsResolved: '却下理由を解決済みとしてマークしました',
@@ -3253,6 +3270,9 @@ const translations = {
         thisStep: 'このステップは完了しました',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
+        error: {
+            emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
+        },
     },
     agreementsStep: {
         agreements: '契約書',
@@ -3566,7 +3586,8 @@ const translations = {
         receiptPartners: {
             connect: '今すぐ接続',
             uber: {
-                subtitle: '組織全体で出張費や食事の配達費を自動化します。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `${organizationName}に接続しました` : '組織全体で旅行および食事の配達経費を自動化します。',
                 sendInvites: 'メンバーを招待',
                 sendInvitesDescription: 'これらのワークスペースメンバーはまだUber for Businessアカウントを持っていません。現在招待したくないメンバーの選択を解除してください。',
                 confirmInvite: '招待を確認',
@@ -3585,14 +3606,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '保留中',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '停止中',
                 },
-                invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
-                autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
-                autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
+                invitationFailure: 'メンバーを Uber for Business に招待できません。',
+                autoInvite: 'Uber for Business に新しいワークスペースメンバーを招待する',
+                autoRemove: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
                 bannerTitle: 'Expensify + ビジネス向け Uber',
                 bannerDescription: 'Uber for Business を接続すると、組織全体の出張費や食事の配達費を自動化できます。',
                 emptyContent: {
-                    title: '表示するメンバーがいません',
-                    subtitle: 'あらゆる場所を探しましたが、何も見つかりませんでした。',
+                    title: '未処理の招待はありません',
+                    subtitle: 'やった！あらゆる場所を探しましたが、未処理の招待は見つかりませんでした。',
                 },
             },
         },
@@ -5504,6 +5525,11 @@ const translations = {
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
             },
+            reports: {
+                title: 'レポート',
+                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
+                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
+            },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
                 description:
@@ -6146,7 +6172,7 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
-            emptyStateSubtitle: 'このレポートに経費を追加するには、上のボタンを使用してください。',
+            emptyStateSubtitle: 'このレポートに経費を追加するには、\n 下のボタンを使用するか、上の「その他」メニューから「経費を追加」を選択してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
@@ -6625,9 +6651,7 @@ const translations = {
                 return '銀行接続が切れているため、領収書を自動照合できません。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin
-                    ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。`
-                    : '壊れた銀行接続のため、領収書を自動マッチングできません。修正が必要です。';
+                return isAdmin ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。` : '銀行接続が切れているため、領収書を自動照合できません。';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `${member}に現金としてマークするように依頼するか、7日間待って再試行してください。` : 'カード取引とのマージを待機中。';

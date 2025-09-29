@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
+import getArchiveReason from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -49,7 +50,6 @@ import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolv
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
-    getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
@@ -820,15 +820,6 @@ function MoneyReportHeader({
                 }}
             />
         ),
-        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('iou.addExpense')}
-                options={addExpenseDropdownOptions}
-                isSplitButton={false}
-            />
-        ),
     };
 
     const beginPDFExport = (reportID: string) => {
@@ -1114,9 +1105,16 @@ function MoneyReportHeader({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
+    useEffect(() => {
+        return () => {
+            turnOffMobileSelectionMode();
+        };
+    }, []);
+
     if (isMobileSelectionModeEnabled) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
-        if (transactions.length <= 1) {
+        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
 

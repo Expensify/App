@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -852,8 +853,24 @@ const translations = {
         markAsUnread: '标记为未读',
         markAsRead: '标记为已读',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteAction: ({action}: DeleteActionParams) => `删除 ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `您确定要删除此${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}吗？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `删除 ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `您确定要删除此${type}吗？`;
+        },
         onlyVisible: '仅对...可见',
         replyInThread: '在线程中回复',
         joinThread: '加入线程',
@@ -1396,7 +1413,7 @@ const translations = {
             reasonPageDescription: '解释一下你拒绝这笔费用的原因。',
             rejectReason: '拒绝原因',
             markAsResolved: '标记为已解决',
-            rejectedStatus: '该报销已被拒绝。请先解决问题并标记为已解决，才能重新提交。',
+            rejectedStatus: '此费用被拒绝。等待您解决问题并标记为已解决以启用提交。',
             reportActions: {
                 rejectedExpense: '已拒绝该报销',
                 markedAsResolved: '已将拒绝原因标记为已解决',
@@ -3222,6 +3239,9 @@ const translations = {
         thisStep: '此步骤已完成',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事或高级管理人员的签署人信息。`,
+        error: {
+            emailsMustBeDifferent: '电子邮件地址必须不同',
+        },
     },
     agreementsStep: {
         agreements: '协议',
@@ -3528,7 +3548,7 @@ const translations = {
         receiptPartners: {
             connect: '立即连接',
             uber: {
-                subtitle: '自动化整个组织的差旅和送餐费用。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) => (organizationName ? `已连接到${organizationName}` : '在您的组织内自动化旅行和餐饮费用。'),
                 sendInvites: '邀请成员',
                 sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
                 confirmInvite: '确认邀请',
@@ -3547,14 +3567,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '待处理',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '已暂停',
                 },
-                invitationFailure: '邀请成员加入Uber for Business失败',
-                autoRemove: '邀请新工作区成员加入 Uber for Business',
-                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                invitationFailure: '无法邀请会员加入 Uber for Business。',
+                autoInvite: '邀请新工作区成员加入 Uber for Business',
+                autoRemove: '停用已从 Uber for Business 移除的工作区成员',
                 bannerTitle: 'Expensify + Uber 商务版',
                 bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
                 emptyContent: {
-                    title: '没有可显示的成员',
-                    subtitle: '我们到处寻找，但一无所获。',
+                    title: '没有待处理的邀请',
+                    subtitle: '太好了！我们到处寻找，但没有找到任何待处理的邀请。',
                 },
             },
         },
@@ -5442,6 +5462,11 @@ const translations = {
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
             },
+            reports: {
+                title: '报告',
+                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
+                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+            },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
@@ -6069,7 +6094,7 @@ const translations = {
         groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
-            emptyStateSubtitle: '您可以使用上面的按钮将费用添加到此报告中。',
+            emptyStateSubtitle: '您可以使用下方按钮，或上方“更多”菜单中的“添加费用”选项，将费用添加到此报告中。',
         },
         noCategory: '无类别',
         noTag: '无标签',

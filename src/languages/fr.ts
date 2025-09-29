@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -856,9 +857,24 @@ const translations = {
         markAsUnread: 'Marquer comme non lu',
         markAsRead: 'Marquer comme lu',
         editAction: ({action}: EditActionParams) => `Editer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Supprimer ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Êtes-vous sûr de vouloir supprimer ce ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'dépense' : 'commentaire'} ?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Supprimer ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'commentaire';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'dépense';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Êtes-vous sûr de vouloir supprimer ce ${type} ?`;
+        },
         onlyVisible: 'Visible uniquement pour',
         replyInThread: 'Répondre dans le fil de discussion',
         joinThread: 'Rejoindre le fil de discussion',
@@ -1418,7 +1434,7 @@ const translations = {
             reasonPageDescription: 'Expliquez pourquoi vous rejetez cette dépense.',
             rejectReason: 'Raison du rejet',
             markAsResolved: 'Marquer comme résolu',
-            rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
+            rejectedStatus: 'Cette dépense a été rejetée. En attente de votre part pour corriger les problèmes et marquer comme résolu pour permettre la soumission.',
             reportActions: {
                 rejectedExpense: 'a rejeté cette dépense',
                 markedAsResolved: 'a marqué la raison du rejet comme résolue',
@@ -3259,6 +3275,9 @@ const translations = {
         thisStep: 'Cette étape a été complétée',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `connecte un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer les employés en ${currency}. L'étape suivante nécessite les informations d’un signataire, tel qu’un directeur ou un cadre supérieur.`,
+        error: {
+            emailsMustBeDifferent: 'Les e-mails doivent être différents',
+        },
     },
     agreementsStep: {
         agreements: 'Accords',
@@ -3576,7 +3595,8 @@ const translations = {
         receiptPartners: {
             connect: 'Connectez-vous maintenant',
             uber: {
-                subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Connecté à ${organizationName}` : 'Automatisez les frais de voyage et de livraison de repas dans toute votre organisation.',
                 sendInvites: 'Inviter des membres',
                 sendInvitesDescription:
                     "Ces membres de l'espace de travail n'ont pas encore de compte Uber for Business. Désélectionnez les membres que vous ne souhaitez pas inviter pour le moment.",
@@ -3596,14 +3616,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'En attente',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
                 },
-                invitationFailure: "Échec de l'invitation des membres à Uber for Business",
-                autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
-                autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
+                invitationFailure: "Impossible d'inviter un membre sur Uber for Business.",
+                autoInvite: "Inviter de nouveaux membres de l'espace de travail sur Uber",
+                autoRemove: "Désactiver les membres supprimés de l'espace de travail sur Uber",
                 bannerTitle: 'Expensify + Uber pour les entreprises',
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
                 emptyContent: {
-                    title: 'Aucun membre à afficher',
-                    subtitle: "Nous avons cherché partout et n'avons rien trouvé.",
+                    title: 'Aucune invitation en attente',
+                    subtitle: "Hourra ! Nous avons cherché partout et n'avons trouvé aucune invitation en attente.",
                 },
             },
         },
@@ -5552,6 +5572,12 @@ const translations = {
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
                 onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
             },
+            reports: {
+                title: 'Rapports',
+                description:
+                    'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
+                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
+            },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',
                 description:
@@ -6203,7 +6229,7 @@ const translations = {
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
-            emptyStateSubtitle: 'Vous pouvez ajouter des dépenses à ce rapport en utilisant le bouton ci-dessus.',
+            emptyStateSubtitle: "Vous pouvez ajouter des dépenses à ce rapport\n en utilisant le bouton ci-dessous ou l'option « Ajouter une dépense » dans le menu Plus ci-dessus.",
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
@@ -6685,7 +6711,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que ${email} doit corriger.`
-                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse que vous devez réparer.";
+                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion bancaire défectueuse.";
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Demandez à ${member} de marquer comme espèce ou attendez 7 jours et réessayez` : 'En attente de fusion avec la transaction par carte.';
