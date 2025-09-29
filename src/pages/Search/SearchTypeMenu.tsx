@@ -137,7 +137,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             allFeeds,
             currentUserAccountID,
             allPolicies,
-            currentUserAccountID,
         ],
     );
 

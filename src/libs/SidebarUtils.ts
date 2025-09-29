@@ -222,7 +222,7 @@ function getReportsToDisplayInLHN(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
-    reportDraft: OnyxEntry<string>,
+    draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
@@ -236,6 +236,8 @@ function getReportsToDisplayInLHN(
             return;
         }
 
+        const reportDraftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
+
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
             report,
             reports,
@@ -243,7 +245,7 @@ function getReportsToDisplayInLHN(
             isInFocusMode,
             betas,
             transactionViolations,
-            reportDraft,
+            reportDraftComment,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
         );
@@ -266,7 +268,7 @@ type UpdateReportsToDisplayInLHNProps = {
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
-    reportDraftComment: OnyxEntry<string>;
+    draftComments: OnyxCollection<string>;
 };
 
 function updateReportsToDisplayInLHN({
@@ -279,7 +281,7 @@ function updateReportsToDisplayInLHN({
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
-    reportDraftComment,
+    draftComments,
 }: UpdateReportsToDisplayInLHNProps) {
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
@@ -287,6 +289,10 @@ function updateReportsToDisplayInLHN({
         if (!report) {
             return;
         }
+
+        // Get the specific draft comment for this report instead of using a single draft comment for all reports
+        // This fixes the issue where the current report's draft comment was incorrectly used to filter all reports
+        const reportDraftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
 
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
             report,
