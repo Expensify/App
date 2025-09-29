@@ -122,7 +122,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             // We're guaranteed that the type of params is of SCREENS.REPORT
             return (focusedRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID;
         }
-    });
+        return undefined;
+    }, undefined);
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}) => {

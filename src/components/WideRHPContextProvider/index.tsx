@@ -61,7 +61,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
 
         return false;
-    });
+    }, false);
 
     /**
      * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.

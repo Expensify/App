@@ -8,7 +8,7 @@ import SCREENS from '@src/SCREENS';
  */
 function useIsHomeRouteActive(isNarrowLayout: boolean) {
     const focusedRoute = useNavigationState(findFocusedRoute);
-    const navigationState = useRootNavigationState((x) => x);
+    const navigationState = useRootNavigationState((x) => x, undefined);
 
     if (isNarrowLayout) {
         return focusedRoute?.name === SCREENS.HOME;

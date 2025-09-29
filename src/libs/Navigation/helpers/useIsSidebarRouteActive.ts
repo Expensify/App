@@ -5,7 +5,7 @@ import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {SplitNavigatorName} from '@libs/Navigation/types';
 
 function useIsSidebarRouteActive(splitNavigatorName: SplitNavigatorName, isNarrowLayout: boolean) {
-    const currentSplitNavigatorRoute = useRootNavigationState((rootState) => rootState?.routes.at(-1));
+    const currentSplitNavigatorRoute = useRootNavigationState((rootState) => rootState?.routes.at(-1), undefined);
 
     if (currentSplitNavigatorRoute?.name !== splitNavigatorName) {
         return false;

@@ -52,7 +52,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)), undefined);
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {
