@@ -51,7 +51,10 @@ TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 const workEmail = 'testprivateemail@privateEmail.com';
-const HTMLProviderWrapper = ({children}: {children: React.ReactNode}) => <HTMLEngineProvider>{children}</HTMLEngineProvider>;
+
+function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
+    return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
+}
 
 const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL]) => {
     return render(
