@@ -2301,7 +2301,7 @@ const translations = {
         interestedFeatures: {
             title: 'Quali funzionalità ti interessano?',
             featuresAlreadyEnabled: 'Ecco le nostre funzionalità più popolari:',
-            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive che potrebbero interessarti:',
+            featureYouMayBeInterestedIn: 'Abilita funzionalità aggiuntive:',
         },
         error: {
             requiredFirstName: 'Per favore, inserisci il tuo nome per continuare',

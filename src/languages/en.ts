@@ -2282,7 +2282,7 @@ const translations = {
         interestedFeatures: {
             title: 'What features are you interested in?',
             featuresAlreadyEnabled: 'Here are our most popular features:',
-            featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
+            featureYouMayBeInterestedIn: 'Enable additional features:',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',

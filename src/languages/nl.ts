@@ -2301,7 +2301,7 @@ const translations = {
         interestedFeatures: {
             title: 'In welke functies bent u geïnteresseerd?',
             featuresAlreadyEnabled: 'Hier zijn onze populairste functies:',
-            featureYouMayBeInterestedIn: 'Schakel extra functies in waarin u mogelijk geïnteresseerd bent:',
+            featureYouMayBeInterestedIn: 'Schakel extra functies in:',
         },
         error: {
             requiredFirstName: 'Voer alstublieft uw voornaam in om door te gaan',

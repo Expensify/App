@@ -2314,7 +2314,7 @@ const translations = {
         interestedFeatures: {
             title: 'Für welche Funktionen interessieren Sie sich?',
             featuresAlreadyEnabled: 'Hier sind unsere beliebtesten Funktionen:',
-            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen, die Sie interessieren könnten:',
+            featureYouMayBeInterestedIn: 'Aktivieren Sie zusätzliche Funktionen:',
         },
         error: {
             requiredFirstName: 'Bitte geben Sie Ihren Vornamen ein, um fortzufahren.',
