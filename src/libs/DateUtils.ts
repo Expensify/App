@@ -287,9 +287,9 @@ function formatToDayOfWeek(datetime: Date, locale: Locale = CONST.LOCALES.DEFAUL
 }
 
 /**
- * Format date to a local time
+ * Format date to a local time.
  *
- * @returns 2:30 PM
+ * @returns Localized time string (e.g., "2:30 PM" or "14:30" depending on the locale).
  */
 function formatToLocalTime(datetime: string | Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
     const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
