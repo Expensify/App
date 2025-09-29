@@ -244,7 +244,8 @@ function SettlementButton({
                     text: latestBankItem.at(0)?.text ?? '',
                     icon: latestBankItem.at(0)?.icon,
                     iconStyles: latestBankItem.at(0)?.iconStyles,
-                    iconSize: latestBankItem.at(0)?.iconSize,
+                    iconWidth: latestBankItem.at(0)?.iconSize,
+                    iconHeight: latestBankItem.at(0)?.iconSize,
                     value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                     description: latestBankItem.at(0)?.description,
                 });
