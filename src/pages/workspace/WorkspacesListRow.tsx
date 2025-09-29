@@ -300,6 +300,8 @@ function WorkspacesListRow({
                             src={Expensicons.ArrowRight}
                             fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                             additionalStyles={[styles.alignSelfCenter]}
+                            isButtonIcon
+                            medium
                         />
                     </View>
                 )}

@@ -159,7 +159,9 @@ function BaseListItem<TItem extends ListItem>({
                             <Icon
                                 src={Expensicons.ArrowRight}
                                 additionalStyles={[styles.alignSelfCenter]}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, false))}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered))}
+                                isButtonIcon
+                                medium
                             />
                         </View>
                     )}
