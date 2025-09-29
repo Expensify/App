@@ -46,7 +46,11 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
+    /** The money request report containing the transactions */
     report: OnyxTypes.Report;
+
+    /** The workspace to which the report belongs */
+    policy?: OnyxTypes.Policy;
 
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
@@ -113,6 +117,7 @@ const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableCo
             return transaction[key];
     }
 };
+
 function MoneyRequestReportTransactionList({
     report,
     transactions,
@@ -122,6 +127,7 @@ function MoneyRequestReportTransactionList({
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
     scrollToNewTransaction,
+    policy,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -272,7 +278,10 @@ function MoneyRequestReportTransactionList({
     if (isEmptyTransactions) {
         return (
             <>
-                <SearchMoneyRequestReportEmptyState />
+                <SearchMoneyRequestReportEmptyState
+                    report={report}
+                    policy={policy}
+                />
                 <MoneyRequestReportTotalSpend
                     hasComments={hasComments}
                     isLoadingReportActions={!!isLoadingReportActions}
@@ -369,7 +378,7 @@ function MoneyRequestReportTransactionList({
                                 style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
                             >
                                 {value}
-                            </Text>
+                            </Text>{' '}
                         </View>
                     ))}
                 </View>

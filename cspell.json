@@ -469,6 +469,7 @@
         "passplus",
         "passwordless",
         "Passwordless",
+        "pathspec",
         "payrollcode",
         "pbxproj",
         "pdfreport",
@@ -612,6 +613,8 @@
         "sublicensees",
         "sublocality",
         "subpremise",
+        "subprocessors",
+        "Subprocessors",
         "subrates",
         "substep",
         "substeps",
@@ -645,6 +648,7 @@
         "tnode",
         "tobe",
         "togglefullscreen",
+        "tosorted",
         "TOTP",
         "touchables",
         "Touchless",
@@ -667,6 +671,7 @@
         "unapproves",
         "unassigning",
         "Unassigning",
+        "unassignment",
         "unassigns",
         "uncategorized",
         "Undelete",
@@ -749,6 +754,9 @@
         "inputmethod",
         "copyable",
         "مثال",
+        "moveElemsAttrsToGroup",
+        "removeHiddenElems",
+        "moveGroupAttrsToElems",
         "Humpty",
         "Dumpty"
     ],
@@ -798,7 +806,8 @@
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
-        "modules/group-ib-fp"
+        "modules/group-ib-fp",
+        "web/snippets/gib.js"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
