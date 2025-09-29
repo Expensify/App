@@ -121,10 +121,6 @@ async function run() {
         message += `\n🕸 web 🕸|${webResult}`;
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
 
-        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
-            message += '\n\n@Expensify/applauseleads';
-        }
-
         if (note) {
             message += `\n\n_Note:_ ${note}`;
         }
