@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import BaseValidateCodeForm from './BaseValidateCodeForm';
 import type {ValidateCodeFormHandle, ValidateCodeFormProps} from './BaseValidateCodeForm';
 
