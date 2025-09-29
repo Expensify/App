@@ -121,7 +121,7 @@ function ReportActionItemParentAction({
         {
             canBeMissing: true,
             selector: (allReportNameValuePairs) => {
-                if (!allPairs) {
+                if (!allReportNameValuePairs) {
                     return {};
                 }
                 const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
@@ -129,7 +129,7 @@ function ReportActionItemParentAction({
                     report: {reportID: ancestorReportID},
                 } of ancestors) {
                     ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`] =
-                        allPairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`];
+                        allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`];
                 }
                 return ancestorReportNameValuePairs;
             },
