@@ -4,8 +4,8 @@ import useLocalize from '@hooks/useLocalize';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
-import RadioListItem from './SelectionList/RadioListItem';
-import SelectionList from './SelectionListSingle';
+import SelectionList from './SelectionList';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
 
 type UnitItemType = {
     value: Unit;
