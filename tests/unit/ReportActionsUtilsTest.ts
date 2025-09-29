@@ -1380,4 +1380,40 @@ describe('ReportActionsUtils', () => {
             });
         });
     });
+
+    describe('shouldReportActionBeVisible', () => {
+        it('should return false for MOVEDTRANSACTION if the report destination is unavailable', () => {
+            // Given a MOVEDTRANSACTION action but the report destination is not available
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    toReportID: '2',
+                },
+            };
+
+            // Then the action should not be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MOVEDTRANSACTION if the report destination is available', async () => {
+            // Given a MOVEDTRANSACTION action but the report destination is available
+            const report: Report = createRandomReport(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    toReportID: report.reportID,
+                },
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+    });
 });

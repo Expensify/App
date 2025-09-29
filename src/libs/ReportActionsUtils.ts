@@ -864,6 +864,13 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    if (isMovedTransactionAction(reportAction)) {
+        const movedTransactionOriginalMessage = getOriginalMessage(reportAction);
+        const toReportID = movedTransactionOriginalMessage?.toReportID;
+        const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+        return !!toReport;
+    }
+
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !isMarkAsClosedAction(reportAction)) {
         return false;
