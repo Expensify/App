@@ -74,7 +74,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             sendValidateCode={() => requestValidateCodeAction()}
-            validateCodeActionErrorField="revealExpensifyCardDetails"
+            validateCodeActionErrorField="reportVirtualCard"
             handleSubmitForm={handleValidateCodeEntered}
             validateError={{...cardError, ...codeError}}
             clearError={handleClearError}
