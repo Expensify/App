@@ -211,14 +211,22 @@ function IOURequestStepParticipants({
                 setMoneyRequestParticipants(transaction.transactionID, val);
             });
 
+            const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
+            const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
+
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-                const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
-                const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
                 transactions.forEach((transaction) => {
                     setCustomUnitRateID(transaction.transactionID, rateID);
+                });
+            }
+
+            if (isMovingTransactionFromTrackExpense && isPolicyExpenseChat && policy?.id !== activePolicy?.id) {
+                transactions.forEach((transaction) => {
+                    setMoneyRequestTag(transaction.transactionID, '');
+                    setMoneyRequestCategory(transaction.transactionID, '');
                 });
             }
 
@@ -238,7 +246,7 @@ function IOURequestStepParticipants({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         },
-        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates],
+        [iouType, transactions, activePolicy, allPolicies, isMovingTransactionFromTrackExpense, reportID, trackExpense, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(() => {
@@ -253,8 +261,10 @@ function IOURequestStepParticipants({
 
         const newReportID = selectedReportID.current;
         transactions.forEach((transaction) => {
-            setMoneyRequestTag(transaction.transactionID, '');
-            setMoneyRequestCategory(transaction.transactionID, '');
+            if (!isMovingTransactionFromTrackExpense) {
+                setMoneyRequestTag(transaction.transactionID, '');
+                setMoneyRequestCategory(transaction.transactionID, '');
+            }
             if (participants?.at(0)?.reportID !== newReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: newReportID}, true);
             }
@@ -305,7 +315,7 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, backTo]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
