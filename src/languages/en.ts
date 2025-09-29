@@ -399,6 +399,7 @@ const translations = {
         download: 'Download',
         downloading: 'Downloading',
         uploading: 'Uploading',
+        // @context as a verb, not a noun
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
