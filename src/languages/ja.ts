@@ -1429,7 +1429,7 @@ const translations = {
             reasonPageDescription: 'この経費を拒否する理由を説明してください。',
             rejectReason: '却下の理由',
             markAsResolved: '解決済みにする',
-            rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
+            rejectedStatus: 'この経費は却下されました。問題を修正して解決済みとしてマークし、提出を可能にするのをお待ちしています。',
             reportActions: {
                 rejectedExpense: 'この経費を却下しました',
                 markedAsResolved: '却下理由を解決済みとしてマークしました',
@@ -3270,6 +3270,9 @@ const translations = {
         thisStep: 'このステップは完了しました',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
+        error: {
+            emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
+        },
     },
     agreementsStep: {
         agreements: '契約書',
@@ -3603,14 +3606,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '保留中',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '停止中',
                 },
-                invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
+                invitationFailure: 'メンバーを Uber for Business に招待できません。',
                 autoInvite: 'Uber for Business に新しいワークスペースメンバーを招待する',
                 autoRemove: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
                 bannerTitle: 'Expensify + ビジネス向け Uber',
                 bannerDescription: 'Uber for Business を接続すると、組織全体の出張費や食事の配達費を自動化できます。',
                 emptyContent: {
-                    title: '表示するメンバーがいません',
-                    subtitle: 'あらゆる場所を探しましたが、何も見つかりませんでした。',
+                    title: '未処理の招待はありません',
+                    subtitle: 'やった！あらゆる場所を探しましたが、未処理の招待は見つかりませんでした。',
                 },
             },
         },
@@ -5522,6 +5525,11 @@ const translations = {
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
             },
+            reports: {
+                title: 'レポート',
+                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
+                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
+            },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
                 description:
@@ -6164,7 +6172,7 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
-            emptyStateSubtitle: 'このレポートに経費を追加するには、上のボタンを使用してください。',
+            emptyStateSubtitle: 'このレポートに経費を追加するには、\n 下のボタンを使用するか、上の「その他」メニューから「経費を追加」を選択してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',

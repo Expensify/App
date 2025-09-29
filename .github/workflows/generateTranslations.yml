@@ -160,9 +160,14 @@ jobs:
               echo
               echo "$PARROT_INTRO"
               echo
+              echo '<details>'
+              echo '<summary>View the translation diff</summary>'
+              echo
               echo '```diff'
               cat "$TEMP_PATCH_FILE"
               echo '```'
+              echo
+              echo '</details>'
               echo
               echo "$PARROT_FOOTER"
             } > "$TEMP_COMMENT_FILE"
