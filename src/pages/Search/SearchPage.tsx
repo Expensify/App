@@ -341,6 +341,7 @@ function SearchPage({route}: SearchPageProps) {
                     ) as PaymentData[];
 
                     payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
