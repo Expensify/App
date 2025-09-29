@@ -252,6 +252,18 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-export type {BaseListItemProps, ExtendedTargetedEvent, ListItem, ListItemProps, ListItemFocusEventHandler, RadioListItemProps, ValidListItem, MultiSelectListItemProps};
+export type {
+    BaseListItemProps,
+    ExtendedTargetedEvent,
+    ListItem,
+    ListItemProps,
+    ListItemFocusEventHandler,
+    RadioListItemProps,
+    ValidListItem,
+    SingleSelectListItemProps,
+    MultiSelectListItemProps,
+};
