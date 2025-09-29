@@ -3623,7 +3623,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Setzen Sie Tagespauschalen, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren.',
+            subtitle: `<muted-text>Setzen Sie Tagespauschalen, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Mehr erfahren</a>.</muted-text>`,
             amount: 'Betrag',
             deleteRates: () => ({
                 one: 'Löschrate',
