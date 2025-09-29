@@ -12,7 +12,7 @@ import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndica
 import ImageWithLoading from './ImageWithLoading';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import ThumbnailImage from './ThumbnailImage';
 
 // It is used to avoid updating the image width in a loop.
