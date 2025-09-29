@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import useFlatListHandle from '@hooks/useFlatListHandle';
@@ -31,25 +31,25 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
     onInitiallyLoaded?: () => void;
+    ref?: ForwardedRef<RNFlatList>;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
-function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {
-        shouldEnableAutoScrollToTopThreshold = false,
-        initialScrollKey,
-        data,
-        onStartReached,
-        renderItem,
-        keyExtractor = defaultKeyExtractor,
-        onInitiallyLoaded,
-        onContentSizeChange,
-        onScrollToIndexFailed,
-        initialNumToRender = 10,
-        ...rest
-    } = props;
-
+function BaseInvertedFlatList<T>({
+    shouldEnableAutoScrollToTopThreshold = false,
+    initialScrollKey,
+    data,
+    onStartReached,
+    renderItem,
+    keyExtractor = defaultKeyExtractor,
+    onInitiallyLoaded,
+    onContentSizeChange,
+    onScrollToIndexFailed,
+    initialNumToRender = 10,
+    ref,
+    ...rest
+}: BaseInvertedFlatListProps<T>) {
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
@@ -77,7 +77,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     }, [currentDataIndex, data, initialNumToRender, isInitialData]);
     const initialNegativeScrollIndex = useRef(negativeScrollIndex);
 
-    const listRef = useRefWithFallback<FlatListInnerRefType<T>, RNFlatList>(ref);
+    const listRef = useRefWithFallback<FlatListInnerRefType<T>, typeof ref>(ref);
 
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
     const renderQueue = useMemo(() => new RenderTaskQueue(), []);
@@ -185,7 +185,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
-export default forwardRef(BaseInvertedFlatList);
+export default BaseInvertedFlatList;
 
 export {AUTOSCROLL_TO_TOP_THRESHOLD};
 

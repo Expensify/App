@@ -5,7 +5,7 @@ import type {FlatList as RNFlatList} from 'react-native';
 type FlatListInnerRefType<T> = RNFlatList<T> & HTMLElement;
 
 type UseFlatListHandleProps<T> = {
-    forwardedRef: ForwardedRef<RNFlatList>;
+    forwardedRef: ForwardedRef<RNFlatList> | undefined;
     listRef: React.RefObject<FlatListInnerRefType<T>>;
     setCurrentDataId: (dataId: string | null) => void;
     remainingItemsToDisplay: number;

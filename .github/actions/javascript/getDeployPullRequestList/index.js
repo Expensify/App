@@ -12034,6 +12034,7 @@ const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
+    static internalOctokit;
     /**
      * Initialize internal octokit.
      * NOTE: When using GithubUtils in CI, you don't need to call this manually.
@@ -12517,6 +12518,15 @@ class GithubUtils {
             throw new Error(`Provided path ${path} is invalid`);
         }
         return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    static async getPullRequestChangedSVGFileNames(pullRequestNumber) {
+        const files = this.paginate(this.octokit.pulls.listFiles, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, (response) => response.data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename));
+        return files;
     }
     /**
      * Get commits between two tags via the GitHub API
