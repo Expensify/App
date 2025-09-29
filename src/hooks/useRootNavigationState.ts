@@ -11,6 +11,9 @@ type Selector<T> = (state: NavigationState) => T;
  */
 function useRootNavigationState<T>(selector: Selector<T>): T {
     const [result, setResult] = useState<T>(() => {
+        if (!navigationRef.isReady()) {
+            return undefined as unknown as T;
+        }
         return selector(navigationRef.getRootState());
     });
 
