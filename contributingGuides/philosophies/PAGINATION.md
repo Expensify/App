@@ -14,6 +14,18 @@ One example of data that's appropriate for pagination is reportActions (chat mes
 
 One example of data that's appropriate to lazy-load but not necessarily ideal for pagination is avatar images. It's too costly to load all avatar images for all users when the app loads, so we only fetch avatar images that a user wants to see on-demand. Another example might be `personalDetails`.
 
+## Terminology
+
+- Pagination: Loading a large amount of ordered data page-by-page, rather than all at once.
+- Cursor: A "pointer" to a given item in the list, which has all the data needed to pinpoint the location of that item in the list.
+- Jump: In the context of this doc, "jump" means to go immediately to a different point in the list without scrolling.
+    - Example: Click on a link to a comment, and you are taken straight there, without scrolling.
+- Unidirectional Pagination: Pagination where the user starts loading at one end of the list, and can only scroll and load pages in one direction.
+    - Example: Report search page.
+- Bidirectional Pagination: Pagination where the user can "jump" to any point in the list, and then can scroll and load pages in either direction.
+    - Example: A long chat report, opened by deep-linking to an old message.
+- Gap: Items missing between pages (can only happen under specific circumstances)
+
 ## How to implement pagination
 1. Clearly define a sorting order of the data in question. No two items in the list may be considered equal in the sorting order.
 2. Define a "cursor" - a unique piece of data that encapsulates all the data needed to pinpoint the location of a single item in the list.
