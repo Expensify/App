@@ -962,6 +962,10 @@ function getTransactionsSections(
             }
         }
 
+        if (!transactionItem.transactionID) {
+            shouldShow = false;
+        }
+
         if (shouldShow) {
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);

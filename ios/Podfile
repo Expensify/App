@@ -118,6 +118,12 @@ target 'NewExpensify' do
         end
       end
     end
+
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |c|
+        c.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+      end
+    end
   end
 end
 
