@@ -330,15 +330,7 @@ function PaymentMethodList({
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
                 const account = paymentMethod as BankAccount;
 
-                if (filterType && account.accountData?.type !== filterType) {
-                    return false;
-                }
-
-                if (filterCurrency && account.bankCurrency !== filterCurrency) {
-                    return false;
-                }
-
-                return true;
+                return (!!filterType && account.accountData?.type === filterType) || (!!filterCurrency && account.bankCurrency === filterCurrency);
             });
         }
 
