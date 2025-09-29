@@ -5225,8 +5225,6 @@ function moveIOUReportToPolicy(
         return;
     }
 
-    // Generate new variables for the policy
-    const policyName = policy.name ?? '';
     const policyID = policy.id;
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
@@ -5234,162 +5232,7 @@ function moveIOUReportToPolicy(
     const useTemporaryOptimisticExpenseChatReportID = !expenseChatReportId;
     const optimisticExpenseChatReportID = expenseChatReportId ?? generateReportID();
 
-    const optimisticData: OnyxUpdate[] = [];
-
-    const successData: OnyxUpdate[] = [];
-
-    const failureData: OnyxUpdate[] = [];
-
-    // Next we need to convert the IOU report to Expense report.
-    // We need to change:
-    // - report type
-    // - change the sign of the report total
-    // - update its policyID and policyName
-    // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
-    const expenseReport = {
-        ...iouReport,
-        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
-        policyID,
-        policyName,
-        parentReportID: iouReport.parentReportID,
-        type: CONST.REPORT.TYPE.EXPENSE,
-        total: -(iouReport?.total ?? 0),
-    };
-
-    const nextApproverAccountID = getNextApproverAccountID(iouReport, true);
-    if (iouReport.managerID !== nextApproverAccountID) {
-        expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
-        expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
-        expenseReport.managerID = nextApproverAccountID;
-    }
-
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-    if (!!titleReportField && isPaidGroupPolicy(policy)) {
-        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
-    }
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-        value: expenseReport,
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-        value: iouReport,
-    });
-
-    // The expense report transactions need to have the amount reversed to negative values
-    const reportTransactions = getReportTransactions(iouReportID);
-
-    // For performance reasons, we are going to compose a merge collection data for transactions
-    const transactionsOptimisticData: Record<string, Transaction> = {};
-    const transactionFailureData: Record<string, Transaction> = {};
-    reportTransactions.forEach((transaction) => {
-        transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
-            ...transaction,
-            amount: -transaction.amount,
-            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
-        };
-
-        transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-    });
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
-        value: transactionsOptimisticData,
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
-        value: transactionFailureData,
-    });
-
-    // We need to move the report preview action from the DM to the expense chat.
-    const parentReportActions = iouReport?.parentReportID ? allReportActions?.[iouReport.parentReportID] : undefined;
-    const parentReportActionID = iouReport.parentReportActionID;
-    const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
-    const oldChatReportID = iouReport.chatReportID;
-
-    if (reportPreview?.reportActionID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-            value: {[reportPreview.reportActionID]: null},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-            value: {[reportPreview.reportActionID]: reportPreview},
-        });
-
-        // Add the reportPreview action to expense chat
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
-            value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
-            value: {[reportPreview.reportActionID]: null},
-        });
-    }
-
-    // Create MOVED report action and add it to the expense report which indicates to the user where the report has been moved
-    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId ?? '', iouReportID, policyName, true);
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {[movedExpenseReportAction.reportActionID]: movedExpenseReportAction},
-    });
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [movedExpenseReportAction.reportActionID]: {
-                ...movedExpenseReportAction,
-                pendingAction: null,
-            },
-        },
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {[movedExpenseReportAction.reportActionID]: null},
-    });
-
-    // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
-        value: {
-            hasOutstandingChildRequest: false,
-            iouReportID: null,
-        },
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${oldChatReportID}`,
-        value: {
-            hasOutstandingChildRequest: true,
-            iouReportID,
-        },
-    });
-
-    // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticExpenseChatReportID, iouReportID, policyName);
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[movedReportAction.reportActionID]: movedReportAction},
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[movedReportAction.reportActionID]: null},
-    });
+    const {optimisticData, successData, failureData, movedExpenseReportAction, movedReportAction} = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticExpenseChatReportID);
 
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
@@ -5422,7 +5265,6 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const submitterAccountID = iouReport.ownerAccountID;
     const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(submitterAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const submitterLogin = PhoneNumber.addSMSDomainIfPhoneNumber(submitterEmail);
-    const iouReportID = iouReport.reportID;
     const policyID = policy.id;
 
     // This flow only works for admins moving an IOU report to a policy where the submitter is NOT yet a member of the policy
@@ -5510,12 +5352,35 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     successData.push(...newPersonalDetailsOnyxData.finallyData, ...policyExpenseChats.onyxSuccessData, ...announceRoomMembers.successData);
     failureData.push(...policyExpenseChats.onyxFailureData, ...announceRoomMembers.failureData);
 
-    // Next we need to convert the IOU report to Expense report.
-    // We need to change:
-    // - report type
-    // - change the sign of the report total
-    // - update its policyID and policyName
-    // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
+    const {optimisticData: convertedOptimisticData, successData: convertedSuccessData, failureData: convertedFailureData, movedExpenseReportAction, movedReportAction} = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID);
+
+    optimisticData.push(...convertedOptimisticData, ...newPersonalDetailsOnyxData.optimisticData, ...policyExpenseChats.onyxOptimisticData, ...announceRoomMembers.optimisticData);
+    successData.push(...convertedSuccessData, ...newPersonalDetailsOnyxData.finallyData, ...policyExpenseChats.onyxSuccessData, ...announceRoomMembers.successData);
+    failureData.push(...convertedFailureData, ...policyExpenseChats.onyxFailureData, ...announceRoomMembers.failureData);
+
+    const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
+        iouReportID: reportID,
+        policyID,
+        policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
+        changePolicyReportActionID: movedExpenseReportAction.reportActionID,
+        dmMovedReportActionID: movedReportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, parameters, {optimisticData, successData, failureData});
+    return {policyExpenseChatReportID: optimisticPolicyExpenseChatReportID};
+}
+
+function convertIOUReportToExpenseReport(
+    iouReport: Report,
+    policy: Policy,
+    policyID: string,
+    optimisticPolicyExpenseChatReportID: string,
+) {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
     const expenseReport = {
         ...iouReport,
         chatReportID: optimisticPolicyExpenseChatReportID,
@@ -5532,6 +5397,13 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
         expenseReport.managerID = nextApproverAccountID;
     }
+
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && isPaidGroupPolicy(policy)) {
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
+    }
+
+    const reportID = iouReport.reportID;
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -5592,7 +5464,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatReportID}`,
-            value: {[reportPreview.reportActionID]: {...reportPreview, created: DateUtils.getDBTime()}},
+            value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5602,7 +5474,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     }
 
     // Create MOVED report action and add it to the expense report which indicates to the user where the report has been moved
-    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID, iouReportID, policy.name, true);
+    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID ?? '', reportID, policy.name, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -5643,7 +5515,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID, iouReportID, policy.name);
+    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID, reportID, policy.name);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -5655,17 +5527,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         value: {[movedReportAction.reportActionID]: null},
     });
 
-    const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
-        iouReportID: reportID,
-        policyID,
-        policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
-        policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
-        changePolicyReportActionID: movedExpenseReportAction.reportActionID,
-        dmMovedReportActionID: movedReportAction.reportActionID,
-    };
-
-    API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, parameters, {optimisticData, successData, failureData});
-    return {policyExpenseChatReportID: optimisticPolicyExpenseChatReportID};
+    return {optimisticData, successData, failureData, movedExpenseReportAction, movedReportAction};
 }
 
 /**
