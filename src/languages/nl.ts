@@ -1429,7 +1429,7 @@ const translations = {
             reasonPageDescription: 'Leg uit waarom u deze uitgave afwijst.',
             rejectReason: 'Reden van afwijzing',
             markAsResolved: 'Markeren als opgelost',
-            rejectedStatus: 'Deze uitgave is afgewezen. Er wordt gewacht tot jij het/de probleem(en) oplost en het markeert als opgelost om indienen mogelijk te maken.',
+            rejectedStatus: 'Deze uitgave is afgewezen. Wacht op jou om de problemen op te lossen en als opgelost te markeren om indiening mogelijk te maken.',
             reportActions: {
                 rejectedExpense: 'wees deze uitgave af',
                 markedAsResolved: 'markeerde de reden van afwijzing als opgelost',

@@ -1434,7 +1434,7 @@ const translations = {
             reasonPageDescription: 'Expliquez pourquoi vous rejetez cette dépense.',
             rejectReason: 'Raison du rejet',
             markAsResolved: 'Marquer comme résolu',
-            rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
+            rejectedStatus: 'Cette dépense a été rejetée. En attente de votre part pour corriger les problèmes et marquer comme résolu pour permettre la soumission.',
             reportActions: {
                 rejectedExpense: 'a rejeté cette dépense',
                 markedAsResolved: 'a marqué la raison du rejet comme résolue',

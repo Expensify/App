@@ -390,5 +390,11 @@ module.exports = {
                 'rulesdir/boolean-conditional-rendering': 'error',
             },
         },
+        {
+            files: ['src/**/*.ts', 'src/**/*.tsx'],
+            rules: {
+                'rulesdir/prefer-locale-compare-from-context': 'error',
+            },
+        },
     ],
 };

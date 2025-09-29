@@ -1427,7 +1427,7 @@ const translations = {
             reasonPageDescription: 'Explique por que você está rejeitando essa despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
-            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir o(s) problema(s) e marcar como resolvido para permitir o envio.',
+            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir os problemas e marcar como resolvido para permitir o envio.',
             reportActions: {
                 rejectedExpense: 'rejeitou esta despesa',
                 markedAsResolved: 'marcou o motivo da rejeição como resolvido',

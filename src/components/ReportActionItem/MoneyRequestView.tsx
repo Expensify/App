@@ -9,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
@@ -488,9 +489,6 @@ function MoneyRequestView({
         </>
     );
 
-    // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
-    // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
-
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
 
     const previousTransactionTag = usePrevious(transactionTag);
@@ -570,6 +568,10 @@ function MoneyRequestView({
     const actualParentReport = isFromMergeTransaction ? getReportOrDraftReport(getReportIDForExpense(updatedTransaction)) : parentReport;
     const shouldShowReport = !!parentReportID || !!actualParentReport;
 
+    if (!report?.reportID || !transaction?.transactionID) {
+        return <ReportActionsSkeletonView />;
+    }
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -608,9 +610,6 @@ function MoneyRequestView({
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => {
-                            if (!transaction?.transactionID || !report?.reportID) {
-                                return;
-                            }
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, '', '', getReportRHPActiveRoute()),
                             );
@@ -628,9 +627,6 @@ function MoneyRequestView({
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
                         onPress={() => {
-                            if (!transaction?.transactionID || !report?.reportID) {
-                                return;
-                            }
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                             );
@@ -652,9 +648,6 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!transaction?.transactionID || !report?.reportID) {
-                                    return;
-                                }
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
@@ -675,9 +668,6 @@ function MoneyRequestView({
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
                         onPress={() => {
-                            if (!transaction?.transactionID || !report?.reportID) {
-                                return;
-                            }
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                             );
@@ -697,9 +687,6 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!transaction?.transactionID || !report?.reportID) {
-                                    return;
-                                }
                                 if (!policy) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
@@ -742,9 +729,6 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!transaction?.transactionID || !report?.reportID) {
-                                    return;
-                                }
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
@@ -763,9 +747,6 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!transaction?.transactionID || !report?.reportID) {
-                                    return;
-                                }
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
@@ -786,9 +767,6 @@ function MoneyRequestView({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!transaction?.transactionID || !report?.reportID) {
-                                    return;
-                                }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
                             }}
                             interactive={canEdit}
@@ -847,7 +825,7 @@ function MoneyRequestView({
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => {
-                                if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
+                                if (!canEditReport) {
                                     return;
                                 }
 
@@ -879,9 +857,6 @@ function MoneyRequestView({
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
                         onPress={() => {
-                            if (!transaction?.transactionID || !report?.reportID) {
-                                return;
-                            }
                             const reservations = transaction?.receipt?.reservationList?.length ?? 0;
                             if (reservations > 1) {
                                 Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report.reportID, transaction.transactionID, getReportRHPActiveRoute()));

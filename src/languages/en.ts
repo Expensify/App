@@ -1411,7 +1411,7 @@ const translations = {
             reasonPageDescription: "Explain why you're rejecting this expense.",
             rejectReason: 'Rejection reason',
             markAsResolved: 'Mark as resolved',
-            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
+            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issues and mark as resolved to enable submission.',
             reportActions: {
                 rejectedExpense: 'rejected this expense',
                 markedAsResolved: 'marked the rejection reason as resolved',
