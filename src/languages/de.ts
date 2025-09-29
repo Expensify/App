@@ -670,8 +670,6 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
-        description:
-            'Sie sind nicht berechtigt, diese Aktion auszuführen, wenn der Support eingeloggt ist. Wenn Sie der Meinung sind, dass Success diese Aktion ausführen können sollte, starten Sie bitte ein Gespräch in Slack.',
         descriptionWithCommand: ({
             command,
         }: {

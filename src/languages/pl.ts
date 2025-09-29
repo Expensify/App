@@ -670,8 +670,6 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
-        description:
-            'Nie masz uprawnień do wykonania tej akcji, gdy wsparcie jest zalogowane. Jeśli uważasz, że Success powinien mieć możliwość wykonania tej akcji, rozpocznij rozmowę na Slacku.',
         descriptionWithCommand: ({
             command,
         }: {

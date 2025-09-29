@@ -670,8 +670,6 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Pas si vite',
-        description:
-            "Vous n'êtes pas autorisé à effectuer cette action lorsque le support est connecté. Si vous pensez que Success devrait pouvoir effectuer cette action, veuillez commencer une conversation sur Slack.",
         descriptionWithCommand: ({
             command,
         }: {

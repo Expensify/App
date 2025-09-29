@@ -669,7 +669,6 @@ const translations = {
     },
     supportalNoAccess: {
         title: '慢一点',
-        description: '当支持人员登录时，您无权执行此操作。如果您认为成功团队应该能够执行此操作，请在Slack中发起对话。',
         descriptionWithCommand: ({
             command,
         }: {
