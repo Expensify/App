@@ -151,12 +151,14 @@ function SettlementButton({
         const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
 
         return policyBankAccounts.map((formattedPaymentMethod) => {
-            const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
+            const {icon, iconStyles, iconSize, title, description, methodID} = formattedPaymentMethod ?? {};
 
             return {
                 text: title ?? '',
                 description: description ?? '',
                 icon: typeof icon === 'number' ? Bank : icon,
+                iconStyles,
+                iconSize,
                 onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),
                 methodID,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -241,6 +243,8 @@ function SettlementButton({
                 buttonOptions.push({
                     text: latestBankItem.at(0)?.text ?? '',
                     icon: latestBankItem.at(0)?.icon,
+                    iconStyles: latestBankItem.at(0)?.iconStyles,
+                    iconSize: latestBankItem.at(0)?.iconSize,
                     value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                     description: latestBankItem.at(0)?.description,
                 });
