@@ -241,6 +241,9 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
+            if (field === 'taxValue') {
+                mergeableData.taxCode = isTargetValueEmpty ? sourceTransaction?.taxCode : targetTransaction?.taxCode;
+            }
         } else {
             conflictFields.push(field);
         }
@@ -308,7 +311,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
         taxValue: mergeTransaction.taxValue,
-        taxAmount: mergeTransaction.taxAmount,
+        taxAmount: getMergeTaxAmount(mergeTransaction.taxValue, mergeTransaction.amount, mergeTransaction.currency),
         taxCode: mergeTransaction.taxCode,
     };
 }

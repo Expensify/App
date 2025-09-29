@@ -19,7 +19,6 @@ import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
-    getMergeTaxAmount,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
     getTransactionThreadReportID,
@@ -31,7 +30,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getCurrency} from '@libs/TransactionUtils';
+import {getCurrency, getTaxCode} from '@libs/TransactionUtils';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -155,21 +154,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
-
-            // Update tax amount when either tax value or amount is selected
-            if (mergeTransaction && ((field === 'taxValue' && !isEmptyMergeValue(mergeTransaction.amount)) || (field === 'amount' && !isEmptyMergeValue(mergeTransaction.taxValue)))) {
-                setMergeTransactionKey(transactionID, {
-                    taxAmount:
-                        field === 'taxValue'
-                            ? getMergeTaxAmount(transaction.taxValue, mergeTransaction.amount, mergeTransaction.currency)
-                            : getMergeTaxAmount(mergeTransaction.taxValue, transaction.amount, transaction.currency),
-                    taxCode: field === 'taxValue' ? transaction.taxCode : mergeTransaction.taxCode,
-                });
-            }
-
             setMergeTransactionKey(transactionID, {
                 [field]: fieldValue,
                 ...(field === 'amount' && {currency: getCurrency(transaction)}),
+                ...(field === 'taxValue' && {taxCode: getTaxCode(transaction)}),
                 selectedTransactionByField: {
                     ...currentSelections,
                     [field]: transaction.transactionID,
