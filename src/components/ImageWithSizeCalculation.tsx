@@ -3,6 +3,7 @@ import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import RESIZE_MODES from './Image/resizeModes';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithLoading from './ImageWithLoading';
@@ -36,6 +37,9 @@ type ImageWithSizeCalculationProps = {
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
 };
 
 /**
@@ -44,7 +48,16 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({
+    url,
+    altText,
+    style,
+    onMeasure,
+    onLoadFailure,
+    isAuthTokenRequired,
+    objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    loadingIconSize,
+}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
     const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
@@ -70,6 +83,7 @@ function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure
                 });
             }}
             objectPosition={objectPosition}
+            loadingIconSize={loadingIconSize}
         />
     );
 }

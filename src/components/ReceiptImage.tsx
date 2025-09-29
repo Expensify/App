@@ -187,6 +187,7 @@ function ReceiptImage({
                 style={[styles.w100, styles.h100, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
+                loadingIconSize={loadingIconSize}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
                 fallbackIconColor={fallbackIconColor}

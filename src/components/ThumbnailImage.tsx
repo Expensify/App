@@ -14,6 +14,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
+import { FullScreenLoadingIndicatorIconSize } from './FullscreenLoadingIndicator';
 
 // Cache for the dimensions of the thumbnails to avoid flickering incorrect size when the
 // image has already been loaded once. This caches the dimensions based on the URL of
@@ -38,6 +39,9 @@ type ThumbnailImageProps = {
 
     /** Height of the thumbnail image */
     imageHeight?: number;
+
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
@@ -80,6 +84,7 @@ function ThumbnailImage({
     imageWidth = 200,
     imageHeight = 200,
     shouldDynamicallyResize = true,
+    loadingIconSize,
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
@@ -161,6 +166,7 @@ function ThumbnailImage({
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
+                    loadingIconSize={loadingIconSize}
                 />
             </View>
         </View>
