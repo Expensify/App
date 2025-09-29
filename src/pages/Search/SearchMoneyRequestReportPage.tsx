@@ -114,7 +114,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
 
-    const shouldResetSkipFirstTransactionsChange = !!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute
+    const shouldResetSkipFirstTransactionsChange = !!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute;
 
     if (shouldUseNarrowLayout) {
         return (
