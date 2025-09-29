@@ -54,7 +54,7 @@ const triggerKeyboardEvent = (event: string, data: SimplifiedKeyboardEvent = {})
     (mockKeyboardListeners[event] || []).forEach((handler) => handler(data));
 };
 
-const triggerKeyboardControllerEvent = (event: string, data: SimplifiedKeyboardEvent= {}) => {
+const triggerKeyboardControllerEvent = (event: string, data: SimplifiedKeyboardEvent = {}) => {
     (mockKeyboardControllerListeners[event] || []).forEach((handler) => handler(data));
 };
 
