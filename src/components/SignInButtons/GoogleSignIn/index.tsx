@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Session from '@userActions/Session';
+import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,7 @@ const mainId = 'google-sign-in-main';
 const desktopId = 'google-sign-in-desktop';
 
 const signIn = (response: Response, preferredLocale?: Locale) => {
-    Session.beginGoogleSignIn(response.credential, preferredLocale);
+    beginGoogleSignIn(response.credential, preferredLocale);
 };
 
 /**

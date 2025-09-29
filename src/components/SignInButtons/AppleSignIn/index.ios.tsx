@@ -4,7 +4,7 @@ import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
-import * as Session from '@userActions/Session';
+import {beginAppleSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleSignInProps} from '.';
@@ -39,7 +39,7 @@ function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const handleSignIn = () => {
         appleSignInRequest()
-            .then((token) => Session.beginAppleSignIn(token, preferredLocale))
+            .then((token) => beginAppleSignIn(token, preferredLocale))
             .catch((error: {code: AppleError}) => {
                 if (error.code === appleAuth.Error.CANCELED) {
                     return null;
