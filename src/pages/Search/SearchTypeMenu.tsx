@@ -139,7 +139,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             currentUserAccountID,
             allPolicies,
             policyTags,
-            currentUserAccountID,
         ],
     );
 
