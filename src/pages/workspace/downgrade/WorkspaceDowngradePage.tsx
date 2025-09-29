@@ -20,6 +20,7 @@ import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import { InteractionManager } from 'react-native';
 import DowngradeConfirmation from './DowngradeConfirmation';
 import DowngradeIntro from './DowngradeIntro';
 
@@ -62,7 +63,9 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID));
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID));
+            });
         });
     };
 
