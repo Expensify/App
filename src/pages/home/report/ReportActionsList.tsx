@@ -762,7 +762,9 @@ function ReportActionsList({
     const renderTopReportAction = () => (
         <>
             {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
-            <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+            <View style={styles.overflowScroll}>
+                <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+            </View>
         </>
     );
 
