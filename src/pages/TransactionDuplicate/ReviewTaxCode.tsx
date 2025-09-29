@@ -48,13 +48,17 @@ function ReviewTaxRate() {
         route.params.backTo,
     );
 
-    const options = compareResult.change.taxCode?.map((taxID) =>
-        !taxID
-            ? {text: translate('violations.none'), value: getDefaultTaxCode(policy, transaction) ?? ''}
-            : {
-                  text: getTaxByID(policy, taxID)?.name ?? '',
-                  value: taxID,
-              },
+    const options = useMemo(
+        () =>
+            compareResult.change.taxCode?.map((taxID) =>
+                !taxID
+                    ? {text: translate('violations.none'), value: getDefaultTaxCode(policy, transaction) ?? ''}
+                    : {
+                          text: getTaxByID(policy, taxID)?.name ?? '',
+                          value: taxID,
+                      },
+            ),
+        [compareResult.change.taxCode, policy, transaction, translate],
     );
     const getTaxAmount = useCallback(
         (taxID: string) => {

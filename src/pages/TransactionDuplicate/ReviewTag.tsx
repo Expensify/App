@@ -41,13 +41,17 @@ function ReviewTag() {
         route.params.threadReportID,
         route.params.backTo,
     );
-    const options = compareResult.change.tag?.map((tag) =>
-        !tag
-            ? {text: translate('violations.none'), value: ''}
-            : {
-                  text: getCleanedTagName(tag),
-                  value: tag,
-              },
+    const options = useMemo(
+        () =>
+            compareResult.change.tag?.map((tag) =>
+                !tag
+                    ? {text: translate('violations.none'), value: ''}
+                    : {
+                          text: getCleanedTagName(tag),
+                          value: tag,
+                      },
+            ),
+        [compareResult.change.tag, translate],
     );
     const setTag = (data: FieldItemType<'tag'>) => {
         if (data.value !== undefined) {

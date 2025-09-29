@@ -40,10 +40,14 @@ function ReviewReimbursable() {
         route.params.threadReportID,
         route.params.backTo,
     );
-    const options = compareResult.change.reimbursable?.map((reimbursable) => ({
-        text: reimbursable ? translate('common.yes') : translate('common.no'),
-        value: reimbursable ?? false,
-    }));
+    const options = useMemo(
+        () =>
+            compareResult.change.reimbursable?.map((reimbursable) => ({
+                text: reimbursable ? translate('common.yes') : translate('common.no'),
+                value: reimbursable ?? false,
+            })),
+        [compareResult.change.reimbursable, translate],
+    );
 
     const setReimbursable = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {

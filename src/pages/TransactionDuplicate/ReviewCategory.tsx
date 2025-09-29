@@ -40,13 +40,17 @@ function ReviewCategory() {
         route.params.threadReportID,
         route.params.backTo,
     );
-    const options = compareResult.change.category?.map((category) =>
-        !category
-            ? {text: translate('violations.none'), value: ''}
-            : {
-                  text: category,
-                  value: category,
-              },
+    const options = useMemo(
+        () =>
+            compareResult.change.category?.map((category) =>
+                !category
+                    ? {text: translate('violations.none'), value: ''}
+                    : {
+                          text: category,
+                          value: category,
+                      },
+            ),
+        [compareResult.change.category, translate],
     );
 
     const setCategory = (data: FieldItemType<'category'>) => {

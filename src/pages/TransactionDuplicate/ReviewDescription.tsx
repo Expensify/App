@@ -42,15 +42,18 @@ function ReviewDescription() {
         route.params.threadReportID,
         route.params.backTo,
     );
-    const options = compareResult.change.description?.map((description) =>
-        !description?.comment
-            ? {text: translate('violations.none'), value: ''}
-            : {
-                  text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description.comment)),
-                  value: description.comment,
-              },
+    const options = useMemo(
+        () =>
+            compareResult.change.description?.map((description) =>
+                !description?.comment
+                    ? {text: translate('violations.none'), value: ''}
+                    : {
+                          text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description.comment)),
+                          value: description.comment,
+                      },
+            ),
+        [compareResult.change.description, translate],
     );
-
     const setDescription = (data: FieldItemType<'description'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({description: data.value});
