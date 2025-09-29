@@ -1435,8 +1435,7 @@ const translations = {
             reasonPageDescription: 'Erklären Sie, warum Sie diese Ausgabe ablehnen.',
             rejectReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
-            rejectedStatus:
-                'Diese Ausgabe wurde abgelehnt. Es wird darauf gewartet, dass du das Problem/die Probleme behebst und sie als gelöst markierst, um die Einreichung zu ermöglichen.',
+            rejectedStatus: 'Diese Ausgabe wurde abgelehnt. Wir warten darauf, dass Sie die Probleme beheben und als gelöst markieren, um die Einreichung zu ermöglichen.',
             reportActions: {
                 rejectedExpense: 'lehnte diese Ausgabe ab',
                 markedAsResolved: 'markierte den Ablehnungsgrund als gelöst',
@@ -3273,6 +3272,9 @@ const translations = {
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen einer unterschriftsberechtigten Person wie einem Geschäftsführer oder einer Führungskraft.`,
+        error: {
+            emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
+        },
     },
     agreementsStep: {
         agreements: 'Vereinbarungen',
@@ -3610,14 +3612,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
-                invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
+                invitationFailure: 'Der Teilnehmer konnte nicht zu Uber for Business eingeladen werden.',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
                 bannerTitle: 'Expensify + Uber ren pekin angang',
                 bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
                 emptyContent: {
-                    title: 'Keine Mitglieder zur Anzeige',
-                    subtitle: 'Wir haben überall gesucht und nichts gefunden.',
+                    title: 'Keine ausstehenden Einladungen',
+                    subtitle: 'Hurra! Wir haben hoch und niedrig gesucht und keine ausstehenden Einladungen gefunden.',
                 },
             },
         },
@@ -5560,6 +5562,12 @@ const translations = {
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
             },
+            reports: {
+                title: 'Berichte',
+                description:
+                    'Erstellen Sie organisierte Spesenabrechnungen, um Ihre Geschäftsausgaben zu verfolgen, zur Genehmigung einzureichen und Ihren Erstattungsprozess zu optimieren.',
+                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
+            },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
@@ -6212,7 +6220,8 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche oben verwenden.',
+            emptyStateSubtitle:
+                'Sie können diesem Bericht Ausgaben hinzufügen,\n indem Sie auf die Schaltfläche unten klicken oder die Option „Ausgabe hinzufügen“ im Menü „Mehr“ oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
@@ -6694,7 +6703,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kassenbon kann aufgrund einer unterbrochenen Bankverbindung, die ${email} beheben muss, nicht automatisch zugeordnet werden.`
-                    : 'Konnte Beleg aufgrund einer defekten Bankverbindung, die Sie beheben müssen, nicht automatisch zuordnen.';
+                    : 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin

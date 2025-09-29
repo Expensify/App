@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
+import type {AdditionalCardProps} from '@components/SelectionListWithSections/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

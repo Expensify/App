@@ -1408,7 +1408,7 @@ const translations = {
             reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
-            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
+            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones los problemas y lo marques como resuelto para poder enviarlo.',
             reportActions: {
                 rejectedExpense: 'rechazó este gasto',
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
@@ -3252,6 +3252,9 @@ const translations = {
         thisStep: 'Este paso ha sido completado',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `está conectando una cuenta bancaria comercial en ${currency} que termina en ${bankAccountLastFour} a Expensify para pagar a los empleados en ${currency}. El siguiente paso requiere la información del firmante de un director o alto ejecutivo.`,
+        error: {
+            emailsMustBeDifferent: 'Los correos electrónicos deben ser diferentes',
+        },
     },
     agreementsStep: {
         agreements: 'Acuerdos',
@@ -3588,14 +3591,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pendiente',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendido',
                 },
-                invitationFailure: 'Error al invitar miembros a Uber for Business',
+                invitationFailure: 'Error al invitar miembro a Uber for Business',
                 autoInvite: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
                 autoRemove: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
                 bannerTitle: 'Expensify + Uber para empresas',
                 bannerDescription: 'Conecte Uber for Business para automatizar los gastos de viajes y entrega de comidas en toda su organización.',
                 emptyContent: {
-                    title: 'No hay miembros para mostrar',
-                    subtitle: 'Buscamos por todas partes y no encontramos nada.',
+                    title: 'No hay invitaciones pendientes',
+                    subtitle: '¡Hurra! Buscamos por todas partes y no encontramos ninguna invitación pendiente.',
                 },
             },
         },
@@ -5562,6 +5565,11 @@ const translations = {
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
             },
+            reports: {
+                title: 'Informes',
+                description: 'Crea informes de gastos organizados para hacer seguimiento de tus gastos comerciales, enviarlos para aprobación y optimizar tu proceso de reembolso.',
+                onlyAvailableOnPlan: 'Los informes están disponibles en el plan Recopilar, a partir de ',
+            },
             multiLevelTags: {
                 title: 'Etiquetas multinivel',
                 description:
@@ -6199,7 +6207,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
-            emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
+            emptyStateSubtitle: 'Puedes agregar gastos a este informe\n usando el botón de abajo o la opción "Agregar gasto" en el menú Más de arriba.',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
@@ -7143,7 +7151,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `No se puede adjuntar recibo debido a un problema con la conexión a tu banco que ${email} necesita arreglar`
-                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco que necesitas arreglar';
+                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin

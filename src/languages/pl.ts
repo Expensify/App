@@ -1427,7 +1427,7 @@ const translations = {
             reasonPageDescription: 'Wyjaśnij, dlaczego odrzucasz ten wydatek.',
             rejectReason: 'Powód odrzucenia',
             markAsResolved: 'Oznacz jako rozwiązane',
-            rejectedStatus: 'Ten wydatek został odrzucony. Oczekiwanie, aż rozwiążesz problem(y) i oznaczysz jako rozwiązane, aby umożliwić przesłanie.',
+            rejectedStatus: 'Ten wydatek został odrzucony. Czekamy na Ciebie, aby naprawić problemy i oznaczyć jako rozwiązane, aby umożliwić przesłanie.',
             reportActions: {
                 rejectedExpense: 'odrzucił ten wydatek',
                 markedAsResolved: 'oznaczył powód odrzucenia jako rozwiązany',
@@ -3277,6 +3277,9 @@ const translations = {
         thisStep: 'Ten krok został zakończony',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `łączy firmowe konto bankowe w ${currency} kończące się na ${bankAccountLastFour} z Expensify, aby wypłacać wynagrodzenia pracownikom w ${currency}. Następny krok wymaga danych podpisującego – dyrektora lub starszego urzędnika.`,
+        error: {
+            emailsMustBeDifferent: 'Adresy e-mail muszą się różnić',
+        },
     },
     agreementsStep: {
         agreements: 'Umowy',
@@ -3613,14 +3616,14 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Oczekujące',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Zawieszone',
                 },
-                invitationFailure: 'Nie udało się zaprosić członków do Uber for Business',
+                invitationFailure: 'Nie można zaprosić członka do Ubera dla Firm.',
                 autoInvite: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
                 autoRemove: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
                 bannerTitle: 'Expensify + Uber dla firm',
                 bannerDescription: 'Połącz się z Uberem dla Firm, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej organizacji.',
                 emptyContent: {
-                    title: 'Brak członków do wyświetlenia',
-                    subtitle: 'Szukaliśmy wszędzie i nic nie znaleźliśmy.',
+                    title: 'Brak oczekujących zaproszeń',
+                    subtitle: 'Hurra! Szukaliśmy wszędzie i nie znaleźliśmy żadnych oczekujących zaproszeń.',
                 },
             },
         },
@@ -5548,6 +5551,11 @@ const translations = {
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
             },
+            reports: {
+                title: 'Raporty',
+                description: 'Twórz uporządkowane raporty wydatków, aby śledzić swoje wydatki biznesowe, przesyłać je do zatwierdzenia i usprawniać proces zwrotu kosztów.',
+                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
+            },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',
                 description:
@@ -6195,7 +6203,7 @@ const translations = {
         groupBy: 'Grupa według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie zawiera wydatków.',
-            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu, używając przycisku powyżej.',
+            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu\n za pomocą przycisku poniżej lub opcji „Dodaj wydatek” w menu Więcej powyżej.',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
@@ -6677,7 +6685,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem, które ${email} musi naprawić.`
-                    : 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem, które musisz naprawić.';
+                    : 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Poproś ${member}, aby oznaczył jako gotówkę lub poczekaj 7 dni i spróbuj ponownie.` : 'Oczekiwanie na połączenie z transakcją kartową.';

@@ -9,10 +9,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
-import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
@@ -56,7 +54,6 @@ import {
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
-    getReportURLForCurrentContext,
     getSearchReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
@@ -89,7 +86,6 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -139,8 +135,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
-
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -2108,6 +2102,43 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns true when expense report is awaiting current user approval without parent access', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false when awaiting approval but parent accessible or user is not approver', () => {
+            const reportWithParentAccess = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: true,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess)).toBe(false);
+
+            const reportWithDifferentManager = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: 999999,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
         });
     });
 
@@ -5193,6 +5224,22 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
     });
 
     describe('canDeleteTransaction', () => {
@@ -5225,6 +5272,22 @@ describe('ReportUtils', () => {
             // When it's checked if the transactions can be deleted
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
@@ -6928,44 +6991,6 @@ describe('ReportUtils', () => {
                 shouldExcludeDeleted: true,
             });
             expect(result).toEqual([1, 4]); // participant 4 has 'add' action, should not be excluded
-        });
-    });
-
-    describe('getReportURLForCurrentContext', () => {
-        const flushPromises = () =>
-            new Promise<void>((resolve) => {
-                setImmediate(resolve);
-            });
-        const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
-        let environmentURL: string;
-
-        beforeAll(async () => {
-            environmentURL = await getEnvironmentURL();
-            await flushPromises();
-        });
-
-        afterAll(() => {
-            mockIsSearchTopmostFullScreenRoute.mockRestore();
-        });
-
-        beforeEach(() => {
-            mockIsSearchTopmostFullScreenRoute.mockReset();
-            mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
-        });
-
-        it('returns report route when not in search context', () => {
-            const reportID = '123';
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`);
-        });
-
-        it('returns search route when in search context', () => {
-            const reportID = '456';
-            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
-            expect(getReportURLForCurrentContext(reportID)).toBe(`${environmentURL}/${ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID})}`);
-        });
-
-        it('falls back to the base report path when reportID is missing', () => {
-            expect(getReportURLForCurrentContext(undefined)).toBe(`${environmentURL}/r/`);
         });
     });
 
