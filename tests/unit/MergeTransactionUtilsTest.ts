@@ -5,6 +5,7 @@ import {
     getMergeableDataAndConflictFields,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
+    getMergeTaxAmount,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
@@ -410,6 +411,8 @@ describe('MergeTransactionUtils', () => {
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                taxValue: '9%',
+                taxCode: 'id_TAX_RATE_1',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -435,6 +438,9 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
+                taxValue: '9%',
+                taxAmount: getMergeTaxAmount('9%', 2000, 'USD'),
+                taxCode: 'id_TAX_RATE_1',
             });
         });
     });
