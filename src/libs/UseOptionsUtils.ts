@@ -5,6 +5,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {searchInServer} from './actions/Report';
 import memoize from './memoize';
 import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from './OptionsListUtils';
 
@@ -26,6 +27,14 @@ function useOptions() {
 
         setIsLoading(false);
     }, [isLoading, optionsList.reports, optionsList.personalDetails]);
+
+    useEffect(() => {
+        if (!debouncedSearchValue.length) {
+            return;
+        }
+
+        searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
