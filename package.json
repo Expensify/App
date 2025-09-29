@@ -124,6 +124,7 @@
     "@rnmapbox/maps": "10.1.44",
     "@shopify/flash-list": "2.0.3",
     "@ua/react-native-airship": "~24.4.0",
+    "array.prototype.tosorted": "^1.1.4",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
