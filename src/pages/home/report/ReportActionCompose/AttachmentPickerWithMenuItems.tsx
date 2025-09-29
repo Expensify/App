@@ -172,8 +172,7 @@ function AttachmentPickerWithMenuItems({
                     icon: Expensicons.Location,
                     text: translate('quickAction.recordDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    onSelected: () =>
-                        selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
                 },
             ],
             [CONST.IOU.TYPE.PAY]: [
@@ -203,8 +202,7 @@ function AttachmentPickerWithMenuItems({
                     icon: Expensicons.Location,
                     text: translate('iou.trackDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    onSelected: () =>
-                        selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
                 },
             ],
             [CONST.IOU.TYPE.INVOICE]: [

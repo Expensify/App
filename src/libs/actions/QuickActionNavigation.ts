@@ -14,10 +14,7 @@ type NavigateToQuickActionParams = {
     lastDistanceExpenseType?: DistanceExpenseType;
 };
 
-function getQuickActionRequestType(
-    action: QuickActionName | undefined,
-    lastDistanceExpenseType?: DistanceExpenseType,
-): IOURequestType | undefined {
+function getQuickActionRequestType(action: QuickActionName | undefined, lastDistanceExpenseType?: DistanceExpenseType): IOURequestType | undefined {
     if (!action) {
         return;
     }
