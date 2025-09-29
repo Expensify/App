@@ -725,6 +725,7 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(false);
             }
             if (shouldScrollToEndAfterLayout) {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     reportScrollManager.scrollToEnd();
                 });
