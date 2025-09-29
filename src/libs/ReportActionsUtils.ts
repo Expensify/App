@@ -1,7 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
-import lodashFindLast from 'lodash/findLast';
 import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1100,27 +1099,6 @@ function getSortedReportActionsForDisplay(
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(baseURLAdjustedReportActions, true);
-}
-
-/**
- * In some cases, there can be multiple closed report actions in a chat report.
- * This method returns the last closed report action so we can always show the correct archived report reason.
- * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
- *
- */
-function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
-    // If closed report action is not present, return early
-    if (
-        !Object.values(reportActions ?? {}).some((action) => {
-            return action?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
-        })
-    ) {
-        return undefined;
-    }
-
-    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
-    const sortedReportActions = getSortedReportActions(filteredReportActions);
-    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
 /**
@@ -3071,16 +3049,6 @@ function wasMessageReceivedWhileOffline(
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
-function getReportActionFromExpensifyCard(cardID: number) {
-    return Object.values(allReportActions ?? {})
-        .map((reportActions) => Object.values(reportActions ?? {}))
-        .flat()
-        .find((reportAction) => {
-            const cardIssuedActionOriginalMessage = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ? getOriginalMessage(reportAction) : undefined;
-            return cardIssuedActionOriginalMessage?.cardID === cardID;
-        });
-}
-
 function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policyID?: string, shouldShowOldDotLink = false): string {
     const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
 
@@ -3132,7 +3100,6 @@ export {
     getIOUActionForReportID,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
-    getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
@@ -3283,7 +3250,6 @@ export {
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
-    getReportActionFromExpensifyCard,
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
@@ -3295,6 +3261,7 @@ export {
     getChangedApproverActionMessage,
     getDelegateAccountIDFromReportAction,
     isPendingHide,
+    filterOutDeprecatedReportActions,
 };
 
 export type {LastVisibleMessage};

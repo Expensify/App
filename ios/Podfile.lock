@@ -32,7 +32,7 @@ PODS:
   - EXAV (15.1.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (17.1.7):
+  - EXConstants (17.1.5):
     - ExpoModulesCore
   - EXImageLoader (5.1.0):
     - ExpoModulesCore
@@ -86,7 +86,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Expo (53.0.11):
+  - Expo (53.0.7):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -117,7 +117,7 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (13.3.1):
     - ExpoModulesCore
-  - ExpoImage (2.4.0):
+  - ExpoImage (2.1.6):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -128,7 +128,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.4.0):
+  - ExpoModulesCore (2.3.12):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1849,7 +1849,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blob-util (0.22.2):
+  - react-native-blob-util (0.19.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2193,7 +2193,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-plaid-link-sdk (12.4.0):
+  - react-native-plaid-link-sdk (12.5.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2825,30 +2825,6 @@ PODS:
     - Firebase/Performance (= 11.13.0)
     - React-Core
     - RNFBApp
-  - RNFlashList (1.8.2):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.28.0):
@@ -3410,7 +3386,6 @@ DEPENDENCIES:
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
-  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
@@ -3723,8 +3698,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/crashlytics"
   RNFBPerf:
     :path: "../node_modules/@react-native-firebase/perf"
-  RNFlashList:
-    :path: "../node_modules/@shopify/flash-list"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -3771,16 +3744,16 @@ SPEC CHECKSUMS:
   boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
-  EXConstants: 9d62a46a36eae6d28cb978efcbc68aef354d1704
+  EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
   ExpensifyNitroUtils: e23437311e907914fc58da92569b5f9805b724f3
-  Expo: 63b9951a116c03a63215ae0a116e52b50107cecd
+  Expo: a02b1eb4c08689dc866eabf48e2eefee712ded6b
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
-  ExpoImage: 04ffc79f9a0391573b77efbc549d59c655caa5a8
+  ExpoImage: a5b427e52ee7a04921081e59aac5eef7a8134ba0
   ExpoImageManipulator: 7096d6bf874c0a0a649f60733fef8a99c4ad0fe2
-  ExpoModulesCore: 4f1efd2360fd016b3ab7f13c9983320412208976
+  ExpoModulesCore: 5411340438617e068df45f70127ff34640f3f337
   ExpoSecureStore: 833b24a0d7feffef4505184910c058221066011e
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 84b955f7b4da8b895faf5946f73748267347c975
@@ -3865,7 +3838,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: d247018c1658160139c72dd3a44a1054f9ec00e5
   react-native-airship: ff2599900d29e0e64ff2b2dd9f897c0c220a9163
   react-native-app-logs: 6540c5f6f66f33cb52d0bb62f0a10131ff3a9589
-  react-native-blob-util: 68f288ed8fd64a191a4d83ffa5a1dd375dc786d2
+  react-native-blob-util: a013bd1bb12de304a726c2308cc0e219f34ab66c
   react-native-cameraroll: d98f8a64b53620754864c33a034e054ca4a3b360
   react-native-config: ab9f9cc16883aed5355ca43478fe39e6aec5ebb9
   react-native-document-picker: 06ad77eb1650e628def114ff74f9f767f1888edd
@@ -3879,7 +3852,7 @@ SPEC CHECKSUMS:
   react-native-pager-view: 12c1b7b6f50efb3e5d57d62ea5c601cba0585bfd
   react-native-pdf: 1fee221a1bdb66bb5dc14718e0687dd34f33a823
   react-native-performance: ed312c0ee791c50077b7ad22b01685fe5a0e3db6
-  react-native-plaid-link-sdk: f4838d6095aab8f12bd4194682f779c9f0927082
+  react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
   react-native-release-profiler: 3c899b04a88a63735e74beb1d1010ec8c8616347
   react-native-safe-area-context: 6cec90ce53951d3b52dc73e873323a4a7662fc0c
   react-native-view-shot: 70a8e604c289cc67324011554c63ee87dca04a06
@@ -3925,7 +3898,6 @@ SPEC CHECKSUMS:
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
   RNFBCrashlytics: c9dbfcf63b06cf8e8c4d960719e81160b6bc2e76
   RNFBPerf: c32ec64522c2e4d81d1562747809314e9050b75f
-  RNFlashList: 2e3ff9db752b552fdb1cdb00b8fb2a408af4c516
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 61d3e94abb866ee955563ddf073e405e3f541359
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
@@ -3950,6 +3922,6 @@ SPEC CHECKSUMS:
   VisionCamera: 2230ecfd78a1f6cddd8be0fe4e6589f21a6385e1
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
-PODFILE CHECKSUM: 145b53efc0407146c2decf14202d64f78e7dbd96
+PODFILE CHECKSUM: 94a51eec89bb8279467c6b11f974ad6af2e4b74c
 
 COCOAPODS: 1.15.2
