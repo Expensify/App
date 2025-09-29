@@ -333,20 +333,17 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
-          ANDROID_UPLOAD_KEYSTORE_BASE64: op://${{ vars.OP_VAULT }}/upload-key.keystore/base64
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        # rock v3
-        uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
+        uses: callstackincubator/android@8c2cb70c209cc7f832130b6e49bcbcaa7ad62613 # v3
         env:
           IS_HYBRID_APP: true
         with:
           variant: 'Adhoc'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           re-sign: true
-          ad-hoc: true
-          keystore-base64: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          keystore-file: './upload-key.keystore'
           keystore-store-file: 'upload-key.keystore'
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
