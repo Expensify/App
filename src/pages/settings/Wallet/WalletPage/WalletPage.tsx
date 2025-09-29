@@ -502,7 +502,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             triggerKYCFlow({event});
                                                         }}
                                                         shouldShowRightIcon
-                                                        disabled={network.isOffline}
                                                         wrapperStyle={[
                                                             styles.transferBalance,
                                                             shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
@@ -555,7 +554,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
                                                     }}
-                                                    disabled={network.isOffline}
                                                     wrapperStyle={[
                                                         styles.transferBalance,
                                                         shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
