@@ -13,7 +13,7 @@ Suggested search includes shortcuts for **Statement Matching** and **Reconciliat
 
 ---
 
-## Who can use the Statement Matching and Reconciliation views
+## Who can access Statement Matching and Reconciliation
 Workspace Admins with:
 - the Expensify Card, or
 - at least one company card feed connected, or
@@ -21,7 +21,7 @@ Workspace Admins with:
 
 ---
 
-## How to get there
+## Where to find Statement Matching and Reconciliation
 Go to:
 - **Reports > Accounting > Statement** — compare card statement totals against recorded spend
 - **Reports > Accounting > Reconciliation** — match bank withdrawals for reimbursements or Expensify Card charges
@@ -31,7 +31,7 @@ Go to:
 ## Statement Matching
 Statement Matching helps you verify that all company card transactions in Expensify match your card statement total.
 
-What you’ll see:
+The Statement Matching view shows:
 - **Grouped by card** view with subtotals per card
 - **Feed filter** if you have more than one card feed
 - **Posted filter** with a preset for **Last statement**
@@ -45,7 +45,7 @@ What you’ll see:
    - If totals match, you’re done.
    - If not, expand the card groups to find missing or unmatched transactions.
 
-**Note:** Admins can configure a **Statement close date** in card settings. By default, this is the last day of the month, but you can update it anytime.
+**Note:** Admins can configure a **Statement close date** in card settings. By default, this is the last day of the month, but you can update the statement close date any time.
 
 ---
 
@@ -88,6 +88,6 @@ Yes. You can expand or collapse groups (by card or withdrawal ID) inline to view
 The **Reconciliation** shortcut in the Accounting section only appears if your workspace has reimbursements enabled (verified business bank account) or an approved Expensify Card connected.
 
 ## What’s the default Statement close date?
-For new card feeds, the last day of the month is automatically selected. You can update this anytime in **Settings > Workspaces > [Workspace Name] > Company Cards**.
+For new card feeds, the last day of the month is automatically selected. You can update the statement close date anytime in **Settings > Workspaces > [Workspace Name] > Company Cards**.
 
 </div>
