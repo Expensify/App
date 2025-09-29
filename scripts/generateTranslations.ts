@@ -625,7 +625,6 @@ class TranslationGenerator {
             }
 
             // Traverse current en.ts for added and modified paths
-            // Also pass removedLines to detect context annotation removals
             this.extractPathsFromChangedLines(translationsNode, new Set([...changedLines.addedLines, ...changedLines.modifiedLines]), changedLines.removedLines);
 
             // For removed paths, we need to traverse the old version of en.ts
