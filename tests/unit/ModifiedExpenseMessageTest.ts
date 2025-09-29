@@ -388,7 +388,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct "removed" text message', () => {
                 const expectedResult = `removed the merchant (previously "Old Merchant")`;
 
-                const result = getForReportAction({reportAction, policyID: report.policyID});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -407,7 +407,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct "changed" text message', () => {
                 const expectedResult = `changed the merchant to "New Merchant" (previously "Old Merchant")`;
 
-                const result = getForReportAction({reportAction, policyID: report.policyID});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
