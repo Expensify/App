@@ -62,25 +62,23 @@ type InteractiveStepWrapperProps = {
     ref?: ForwardedRef<View>;
 };
 
-function InteractiveStepWrapper(
-    {
-        children,
-        wrapperID,
-        handleBackButtonPress,
-        headerTitle,
-        headerSubtitle,
-        startStepIndex,
-        stepNames,
-        shouldEnableMaxHeight,
-        shouldShowOfflineIndicator,
-        shouldShowOfflineIndicatorInWideScreen,
-        shouldEnablePickerAvoiding = false,
-        offlineIndicatorStyle,
-        shouldKeyboardOffsetBottomSafeAreaPadding,
-        enableEdgeToEdgeBottomSafeAreaPadding,
-        ref,
-    }: InteractiveStepWrapperProps,
-) {
+function InteractiveStepWrapper({
+    children,
+    wrapperID,
+    handleBackButtonPress,
+    headerTitle,
+    headerSubtitle,
+    startStepIndex,
+    stepNames,
+    shouldEnableMaxHeight,
+    shouldShowOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen,
+    shouldEnablePickerAvoiding = false,
+    offlineIndicatorStyle,
+    shouldKeyboardOffsetBottomSafeAreaPadding,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    ref,
+}: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
 
     return (
