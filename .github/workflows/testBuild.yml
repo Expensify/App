@@ -425,23 +425,19 @@ jobs:
         # v1
         uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
-      - name: Load iOS credentials from 1Password
-        id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
-        with:
-          export-env: false
+
+      - name: Load files from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          APPLE_CERTIFICATE_BASE64: op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/base64
-          MAIN_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision
-          SHARE_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision
-          NOTIFICATION_PROVISIONING_PROFILE_BASE64: op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        # rock v3
-        uses: callstackincubator/ios@08a533dbeda6adec39f94d08d820091514d1f7af
+        uses: callstackincubator/ios@0b4a5a6e4d6865d697bd5f277460088501982a5e # v3
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: true
@@ -452,15 +448,25 @@ jobs:
           ad-hoc: true
           scheme: 'Expensify AdHoc'
           configuration: 'DebugAdHoc'
-          certificate-base64: ${{ steps.load-credentials.outputs.APPLE_CERTIFICATE_BASE64}}
-          provisioning-profile-base64: ${{ steps.load-credentials.outputs.MAIN_PROVISIONING_PROFILE_BASE64}}
+          certificate-file: './Certificates.p12'
           certificate-password: ${{ secrets.CERTIFICATE_PASSWORD || '' }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD || '' }}
-          provisioning-profile-name: '(OldApp) AdHoc'
+          provisioning-profiles: |
+            [
+              {
+                "name": "OldApp_AdHoc",
+                "file": "./OldApp_AdHoc.mobileprovision"
+              },
+              {
+                "name": "OldApp_AdHoc_Share_Extension",
+                "file": "./OldApp_AdHoc_Share_Extension.mobileprovision"
+              },
+              {
+                "name": "OldApp_AdHoc_Notification_Service",
+                "file": "./OldApp_AdHoc_Notification_Service.mobileprovision"
+              }
+            ]
           comment-bot: true
-          rock-build-extra-params: |
-            PROVISIONING_PROFILE_SPECIFIER_ShareExtension=${{ steps.load-credentials.outputs.SHARE_PROVISIONING_PROFILE_BASE64 }}
-            PROVISIONING_PROFILE_SPECIFIER_NotificationService=${{ steps.load-credentials.outputs.NOTIFICATION_PROVISIONING_PROFILE_BASE64 }}
 
   postGithubComment:
     runs-on: ubuntu-latest
