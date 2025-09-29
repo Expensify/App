@@ -4,8 +4,8 @@ import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -113,7 +113,7 @@ function SelectFeedType() {
             </Text>
 
             <SelectionList
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={({value}) => {
                     setTypeSelected(value);
                     setHasError(false);
