@@ -63,7 +63,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                 isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
             );
         },
-        [categoryName, glCode, policyID, isQuickSettingsFlow, backTo],
+        [glCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories],
     );
 
     return (

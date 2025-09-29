@@ -66,7 +66,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 );
             });
         },
-        [isQuickSettingsFlow, currentCategoryName, policyID, backTo],
+        [currentCategoryName, policyID, policyCategories, isQuickSettingsFlow, backTo],
     );
 
     return (

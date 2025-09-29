@@ -46,7 +46,6 @@ import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/type
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyCategoriesData} from './Policy/Category';
 import {getPolicyTagsData} from './Policy/Tag';
 
 let recentWaypoints: RecentWaypoint[] = [];

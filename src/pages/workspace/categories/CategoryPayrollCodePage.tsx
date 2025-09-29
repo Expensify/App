@@ -46,7 +46,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                 isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
             );
         },
-        [categoryName, payrollCode, policyID, isQuickSettingsFlow, backTo],
+        [payrollCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories],
     );
 
     const validate = useCallback(
