@@ -20,5 +20,6 @@ declare namespace Intl {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Locale {
         getWeekInfo(): WeekInfo;
+        weekInfo: WeekInfo;
     }
 }
