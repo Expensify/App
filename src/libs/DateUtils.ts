@@ -958,7 +958,7 @@ const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean =
 };
 
 /**
- * Converts a date to a string in the format MMMM d, yyyy
+ * Converts a date to a locale-aware string in the `MMMM d, yyyy` format for the given locale.
  */
 const formatToReadableString = (date: string, locale: Locale = CONST.LOCALES.DEFAULT): string => {
     const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_FORMAT]);
