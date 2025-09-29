@@ -2240,8 +2240,10 @@ function formatSectionsFromSearchTerm(
                 title: undefined,
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
-                          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                          const reportPolicyTags = policyTags?.[participant.policyID || ''];
+                          if (!participant.policyID) {
+                              return getParticipantsOption(participant, personalDetails);
+                          }
+                          const reportPolicyTags = policyTags?.[participant.policyID];
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                           return isReportPolicyExpenseChat
                               ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived)
@@ -2271,8 +2273,10 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      const reportPolicyTags = policyTags?.[participant.policyID || ''];
+                      if (!participant.policyID) {
+                          return getParticipantsOption(participant, personalDetails);
+                      }
+                      const reportPolicyTags = policyTags?.[participant.policyID];
                       return isReportPolicyExpenseChat
                           ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived)
                           : getParticipantsOption(participant, personalDetails);
