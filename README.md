@@ -89,6 +89,8 @@ To take advantage of remote builds, setup your GitHub Personal Access Token (PAT
 After completing these steps, you should be able to start both mobile platform apps using the remote build.
 
 ### Troubleshooting
+If you haven't done any intentional edits outside of `src/` (like adding new dependencies) but your app is still running into a full build, remember that it's way easier to debug and address a remote cache miss rather than any compilation error.
+
 * Try re-installing dependencies:
     - `npm run i-standalone` for the standalone app
     - `npm install` for the hybrid app
