@@ -118,7 +118,7 @@ function WorkspaceInviteMessageComponent({
             return;
         }
         if ((backTo as string)?.endsWith('members')) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+            Navigation.setNavigationActionToMicrotaskQueue(Navigation.dismissModal);
             return;
         }
 

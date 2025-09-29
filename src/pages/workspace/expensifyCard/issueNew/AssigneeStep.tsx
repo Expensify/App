@@ -85,9 +85,6 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         clearIssueNewCardFlow(policyID);
     };
 
-    const shouldShowSearchInput = policy?.employeeList;
-    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
-
     const membersDetails = useMemo(() => {
         let membersList: ListItem[] = [];
         if (!policy?.employeeList) {
@@ -171,7 +168,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
-                textInputLabel={textInputLabel}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputValue={searchValue}
                 onChangeText={setSearchValue}
                 sections={areOptionsInitialized ? sections : []}

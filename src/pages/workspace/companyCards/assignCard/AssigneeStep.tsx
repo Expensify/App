@@ -117,9 +117,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         Navigation.goBack();
     };
 
-    const shouldShowSearchInput = policy?.employeeList;
-    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
-
     const membersDetails = useMemo(() => {
         let membersList: ListItem[] = [];
         if (!policy?.employeeList) {
@@ -219,7 +216,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
-                textInputLabel={textInputLabel}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputValue={searchValue}
                 onChangeText={setSearchValue}
                 sections={sections}
