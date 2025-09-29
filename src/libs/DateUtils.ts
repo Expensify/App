@@ -194,7 +194,8 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
 function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
     const preferredLocale = locale ?? CONST.LOCALES.DEFAULT;
     const timeFormatter = new Intl.DateTimeFormat(preferredLocale, {timeStyle: 'short'});
-    const dateFormatter = new Intl.DateTimeFormat(preferredLocale, {month: 'short', day: 'numeric', year: 'numeric'});
+    const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric'});
+    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', year: 'numeric'});
     const date = getLocalDateFromDatetime(preferredLocale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(preferredLocale, 'common.todayAt');
@@ -222,9 +223,9 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
         return `${yesterdayAt} ${timeFormatter.format(date)}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${dateFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
+        return `${monthDayAbbrFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
     }
-    return `${dateFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
+    return `${monthDayYearAbbrFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
 }
 
 /**
