@@ -3,7 +3,6 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
@@ -485,7 +484,7 @@ function MoneyRequestReportActionsList({
                 const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
                 if (index !== -1) {
                     setTimeout(() => {
-                        reportScrollManager.scrollToEnd();
+                        reportScrollManager.scrollToOffset(0);
                     }, DELAY_FOR_SCROLLING_TO_END);
                 } else {
                     setEnableScrollToEnd(true);
@@ -516,7 +515,7 @@ function MoneyRequestReportActionsList({
         const index = visibleReportActions.findIndex((item) => item.reportActionID === lastActionEventId);
         if (enableScrollToEnd && index !== -1) {
             setTimeout(() => {
-                reportScrollManager.scrollToEnd();
+                reportScrollManager.scrollToOffset(index);
             }, DELAY_FOR_SCROLLING_TO_END);
             setEnableScrollToEnd(false);
         }
@@ -652,10 +651,21 @@ function MoneyRequestReportActionsList({
         [report, policy, transactions, newTransactions, reportActions, violations, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction],
     );
 
-    const listFooterComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? styles.flex1 : undefined], [visibleReportActions, styles.flex1]);
-
     // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
     const listEmptyComponent = useMemo(() => (!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined), [isOffline, showReportActionsLoadingState]);
+
+    // Track previous visibleReportActions.length to detect 0 -> 1 transition for scroll
+    const prevCountRef = useRef(visibleReportActions.length);
+    useEffect(() => {
+        if (prevCountRef.current === 0 && visibleReportActions.length === 1) {
+            InteractionManager.runAfterInteractions(() => {
+                requestAnimationFrame(() => {
+                    reportScrollManager.scrollToOffset(0);
+                });
+            });
+        }
+        prevCountRef.current = visibleReportActions.length;
+    }, [visibleReportActions.length, reportScrollManager]);
 
     return (
         <View
@@ -750,10 +760,9 @@ function MoneyRequestReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onScroll={trackVerticalScrolling}
                     contentContainerStyle={styles.chatContentScrollView}
-                    ListFooterComponentStyle={listFooterComponentStyle}
                     ref={reportScrollManager.ref}
                     ListEmptyComponent={listEmptyComponent}
-                    shouldEnableAutoScrollToTopThreshold
+                    shouldEnableAutoScrollToTopThreshold={hasOlderActions}
                     initialScrollKey={linkedReportActionID}
                     onViewableItemsChanged={onViewableItemsChanged}
                 />
