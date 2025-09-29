@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
@@ -48,10 +48,18 @@ function WorkspaceResetBankAccountModal({
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
-        canBeMissing: true,
-        selector: (paymentMethods) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
-    });
+    const lastPaymentMethodSelector = useCallback(
+        (paymentMethods: OnyxEntry<OnyxTypes.LastPaymentMethod>) => (policyID ? (paymentMethods?.[policyID] as OnyxTypes.LastPaymentMethodType) : undefined),
+        [policyID],
+    );
+    const [lastPaymentMethod] = useOnyx(
+        ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+        {
+            canBeMissing: true,
+            selector: lastPaymentMethodSelector,
+        },
+        [lastPaymentMethodSelector],
+    );
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {

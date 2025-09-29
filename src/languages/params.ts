@@ -773,6 +773,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReceiptPartnersUberSubtitleParams = {
+    organizationName: string;
+};
+
 type ReviewParams = {
     amount: string;
 };
@@ -1176,6 +1180,7 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
     BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,

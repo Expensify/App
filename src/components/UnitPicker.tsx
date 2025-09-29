@@ -5,7 +5,7 @@ import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import SelectionList from './SelectionList';
-import SingleSelectListItem from './SelectionList/SingleSelectListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
 
 type UnitItemType = {
     value: Unit;
@@ -37,10 +37,10 @@ function UnitPicker({defaultValue, onOptionSelected}: UnitPickerProps) {
 
     return (
         <SelectionList
-            sections={[{data: unitOptions}]}
-            ListItem={SingleSelectListItem}
+            data={unitOptions}
+            ListItem={RadioListItem}
             onSelectRow={onOptionSelected}
-            initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
+            initiallyFocusedItemKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
         />
     );
 }
