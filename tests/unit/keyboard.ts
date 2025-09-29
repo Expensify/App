@@ -216,7 +216,6 @@ describe('Keyboard utils', () => {
 
             expect(callback).toHaveBeenCalledTimes(1);
 
-
             expect(mockKeyboardControllerListeners.keyboardDidHide.length).toBe(subscriptionsCount - 1);
         });
 
