@@ -853,9 +853,24 @@ const translations = {
         markAsUnread: 'Markeren als ongelezen',
         markAsRead: 'Markeren als gelezen',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'uitgave' : 'opmerking'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Verwijder ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'uitgave' : 'opmerking'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Weet je zeker dat je deze ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'uitgave' : 'opmerking'} wilt verwijderen?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'opmerking';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'uitgave';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Verwijder ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'opmerking';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'uitgave';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'rapport';
+            }
+            return `Weet je zeker dat je deze ${type} wilt verwijderen?`;
+        },
         onlyVisible: 'Alleen zichtbaar voor',
         replyInThread: 'Reageer in thread',
         joinThread: 'Deelnemen aan discussie',
@@ -1415,7 +1430,7 @@ const translations = {
             reasonPageDescription: 'Leg uit waarom u deze uitgave afwijst.',
             rejectReason: 'Reden van afwijzing',
             markAsResolved: 'Markeren als opgelost',
-            rejectedStatus: 'Deze uitgave is afgewezen. Er wordt gewacht tot jij het/de probleem(en) oplost en het markeert als opgelost om indienen mogelijk te maken.',
+            rejectedStatus: 'Deze uitgave is afgewezen. Wacht op jou om de problemen op te lossen en als opgelost te markeren om indiening mogelijk te maken.',
             reportActions: {
                 rejectedExpense: 'wees deze uitgave af',
                 markedAsResolved: 'markeerde de reden van afwijzing als opgelost',
@@ -6676,7 +6691,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kan ontvangst niet automatisch koppelen vanwege een verbroken bankverbinding die ${email} moet herstellen.`
-                    : 'Kan bon niet automatisch koppelen vanwege een verbroken bankverbinding die je moet herstellen.';
+                    : 'Kan bon niet automatisch koppelen vanwege verbroken bankverbinding.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw.` : 'In afwachting van samenvoeging met kaarttransactie.';

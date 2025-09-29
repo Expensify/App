@@ -35,6 +35,9 @@ type InteractiveStepWrapperProps = {
     // Should show offline indicator
     shouldShowOfflineIndicator?: boolean;
 
+    // Should show offline indicator in wide screen
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
+
     // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
 
@@ -66,6 +69,7 @@ function InteractiveStepWrapper(
         stepNames,
         shouldEnableMaxHeight,
         shouldShowOfflineIndicator,
+        shouldShowOfflineIndicatorInWideScreen,
         shouldEnablePickerAvoiding = false,
         offlineIndicatorStyle,
         shouldKeyboardOffsetBottomSafeAreaPadding,
@@ -84,6 +88,7 @@ function InteractiveStepWrapper(
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             offlineIndicatorStyle={offlineIndicatorStyle}
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
         >

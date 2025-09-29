@@ -858,8 +858,24 @@ const translations = {
         markAsUnread: 'Als ungelesen markieren',
         markAsRead: 'Als gelesen markieren',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Löschen ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Möchten Sie dieses ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'} wirklich löschen?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Löschen ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Möchten Sie dieses ${type} wirklich löschen?`;
+        },
         onlyVisible: 'Nur sichtbar für',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
@@ -1420,8 +1436,7 @@ const translations = {
             reasonPageDescription: 'Erklären Sie, warum Sie diese Ausgabe ablehnen.',
             rejectReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
-            rejectedStatus:
-                'Diese Ausgabe wurde abgelehnt. Es wird darauf gewartet, dass du das Problem/die Probleme behebst und sie als gelöst markierst, um die Einreichung zu ermöglichen.',
+            rejectedStatus: 'Diese Ausgabe wurde abgelehnt. Wir warten darauf, dass Sie die Probleme beheben und als gelöst markieren, um die Einreichung zu ermöglichen.',
             reportActions: {
                 rejectedExpense: 'lehnte diese Ausgabe ab',
                 markedAsResolved: 'markierte den Ablehnungsgrund als gelöst',
@@ -6679,7 +6694,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kassenbon kann aufgrund einer unterbrochenen Bankverbindung, die ${email} beheben muss, nicht automatisch zugeordnet werden.`
-                    : 'Konnte Beleg aufgrund einer defekten Bankverbindung, die Sie beheben müssen, nicht automatisch zuordnen.';
+                    : 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
