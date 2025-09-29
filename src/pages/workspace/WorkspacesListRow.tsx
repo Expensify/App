@@ -20,8 +20,10 @@ import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayNa
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getButtonState from '@libs/getButtonState';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -81,6 +83,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Function to reset loading spinner icon index */
     resetLoadingSpinnerIconIndex?: () => void;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -128,8 +133,10 @@ function WorkspacesListRow({
     isDefault,
     isLoadingBill,
     resetLoadingSpinnerIconIndex,
+    isHovered,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -291,7 +298,7 @@ function WorkspacesListRow({
                     <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
                         <Icon
                             src={Expensicons.ArrowRight}
-                            fill={theme.icon}
+                            fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                             additionalStyles={[styles.alignSelfCenter]}
                         />
                     </View>
