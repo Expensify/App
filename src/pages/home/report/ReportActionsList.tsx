@@ -39,6 +39,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
     isReversedTransaction,
+    isSentMoneyReportAction,
     isTransactionThread,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -189,7 +190,7 @@ function ReportActionsList({
     // Display the new message indicator when comment linking and not close to the newest message.
     const reportActionID = route?.params?.reportActionID;
 
-    const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction), [parentReportAction]);
+    const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
