@@ -20,7 +20,6 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
-import {updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
@@ -83,7 +82,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const welcomeNote = useMemo(() => translate('workspace.common.welcomeNote'), [translate]);
 
     useEffect(() => {
-        updateUserSearchPhrase(searchTerm);
         searchInServer(searchTerm);
     }, [searchTerm]);
 
