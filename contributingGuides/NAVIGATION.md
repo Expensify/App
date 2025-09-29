@@ -111,7 +111,12 @@ Navigation.goBack();
 > [!NOTE]
 > This function should be used mainly with the `backToRoute` param. If you want to use it, make sure there is a screen to which you should always go back in a given case and pass its route as a param.
 
-It also allows dynamic setting of `backToRoute` which is pretty handy when RHP can be opened from multiple pages. Then we should set `backTo` parameter in the URL, so it is possible to go to the previous page even after refreshing! More information on how to use backTo route param can be found [here](#how-to-use-backto-route-param).
+It also allows dynamic setting of `backToRoute` which is pretty handy when RHP can be opened from multiple pages. Then we should set `backTo` parameter in the URL, so it is possible to go to the previous page even after refreshing! 
+
+> [!WARNING]
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+
+More information on how to use backTo route param can be found [here](#how-to-use-backto-route-param).
 
 ```ts
 // src/pages/NewSettingsScreen.tsx
@@ -431,6 +436,9 @@ The easiest way to find the piece of code from which the navigation method was c
 
 ## Using `backTo` route param
 
+> [!WARNING]
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+
 When a particular screen can be opened from two or more different pages, we can use `backTo` route parameter to handle such case.
 
 1. Define `backTo` route param for the target screen in `ROUTES.ts`.
@@ -616,6 +624,9 @@ In the above example, we can see that when building a state from a link leading 
 ## Setting the correct screen underneath RHP
 
 RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs (then using `backTo` parameter comes in handy). However, most often one RHP screen has a specific central screen assigned underneath.
+
+> [!WARNING]
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
 
 To assign RHP to the appropriate central screen, you need to add it to the proper relation (`src/libs/Navigation/linkingConfig/RELATIONS`)
 

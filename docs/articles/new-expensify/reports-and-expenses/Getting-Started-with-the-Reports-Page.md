@@ -3,7 +3,6 @@ title: Getting Started with the Reports Page
 description: Learn how to use the Reports page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
 keywords: [New Expensify, reports page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions]
 ---
-<div id="new-expensify" markdown="1">
 
 Get familiar with the Reports page in New Expensify. This guide walks you through using report previews, tables, filters, and smart suggestions to streamline your expense-tracking workflow.
 
@@ -151,4 +150,3 @@ Previews update **in real time** when expenses are added. Alternatively, if a re
 ## Can someone comment on a report? 
 Yes, if someone comments on a report, a **Comments** section appears and the layout adjusts to make space for the discussion.
 
-</div>

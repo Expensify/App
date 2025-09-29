@@ -4,7 +4,6 @@ description: Learn how to configure QuickBooks Desktop with Expensify, including
 keywords: [Expensify Classic, QuickBooks Desktop, QBD, QuickBooks Desktop coding]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Our QuickBooks Desktop integration automates the import and export process between Expensify and QuickBooks Desktop.
 
@@ -101,4 +100,3 @@ To export expenses to a specific QuickBooks account:
 - **Credit Card**: If a matching vendor is not found, the expense exports to the "Credit Card Misc." vendor. Foreign currency transactions are converted 1:1.
 - **Journal Entries**: Multi-currency exports fail unless the account, vendor, and home currency match.
 
-</div>

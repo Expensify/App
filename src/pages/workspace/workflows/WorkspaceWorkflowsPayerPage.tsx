@@ -6,11 +6,12 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, Section} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem, Section} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,6 +25,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {setWorkspacePayer} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -43,6 +45,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -110,7 +113,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
-            const searchValue = getSearchValueForPhoneOrEmail(searchTerm);
+            const searchValue = getSearchValueForPhoneOrEmail(searchTerm, countryCode);
             const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? '']);
 
             return [
@@ -133,7 +136,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             shouldShow: true,
         });
         return sectionsArray;
-    }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
+    }, [searchTerm, formattedAuthorizedPayer, translate, formattedPolicyAdmins, countryCode]);
 
     const headerMessage = useMemo(
         () => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''),
@@ -160,6 +163,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         [policy, isLoadingReportData],
     );
 
+    const totalNumberOfEmployeesEitherOwnerOrAdmin = useMemo(() => {
+        return Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
+            const isOwner = policy?.owner === email;
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
+        });
+    }, [isDeletedPolicyEmployee, policy?.employeeList, policy?.owner]);
+
+    const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -182,7 +196,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     />
                     <SelectionList
                         sections={sections}
-                        textInputLabel={translate('selectionList.findMember')}
+                        textInputLabel={textInputLabel}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}

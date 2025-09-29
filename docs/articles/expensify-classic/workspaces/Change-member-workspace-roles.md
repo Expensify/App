@@ -3,7 +3,6 @@ title: Update workspace member roles
 description: Learn how to update a member's role and permissions in a workspace.
 keywords: [Expensify Classic, workspace roles, permissions, workspace admin, approval settings]
 ---
-<div id="expensify-classic" markdown="1">
 
 Workspace admins may need to update a member's role to adjust their permissions, grant approval authority, or restrict access based on changing responsibilities. This guide walks you through updating a member's role in your workspace.
 
@@ -52,4 +51,3 @@ If your workspace uses **Advanced Approvals**, you can configure an approver in 
 
 You can check the approval workflow for your workspace under **Settings > Workspaces > [Workspace Name] > Workflows**.
 
-</div>

@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextStyle, ViewStyle} from 'react-native';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
@@ -103,7 +103,10 @@ type MoneyRequestAmountInputProps = {
      * E.g., Split amount input
      */
     shouldWrapInputInContainer?: boolean;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTextInputRef>;
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 
 type Selection = {
     start: number;
@@ -115,36 +118,34 @@ const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFr
 /**
  * Specialized money amount input with currency and money amount formatting.
  */
-function MoneyRequestAmountInput(
-    {
-        amount = 0,
-        currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
-        onCurrencyButtonPress,
-        onAmountChange,
-        prefixCharacter = '',
-        hideCurrencySymbol = false,
-        moneyRequestAmountInputRef,
-        disableKeyboard = true,
-        onFormatAmount = defaultOnFormatAmount,
-        formatAmountOnBlur,
-        maxLength,
-        hideFocusedState = true,
-        shouldKeepUserInput = false,
-        shouldShowBigNumberPad = false,
-        inputStyle,
-        autoGrow = true,
-        autoGrowExtraSpace,
-        contentWidth,
-        testID,
-        submitBehavior,
-        shouldApplyPaddingToContainer = false,
-        shouldUseDefaultLineHeightForPrefix = true,
-        shouldWrapInputInContainer = true,
-        ...props
-    }: MoneyRequestAmountInputProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function MoneyRequestAmountInput({
+    amount = 0,
+    currency = CONST.CURRENCY.USD,
+    isCurrencyPressable = true,
+    onCurrencyButtonPress,
+    onAmountChange,
+    prefixCharacter = '',
+    hideCurrencySymbol = false,
+    moneyRequestAmountInputRef,
+    disableKeyboard = true,
+    onFormatAmount = defaultOnFormatAmount,
+    formatAmountOnBlur,
+    maxLength,
+    hideFocusedState = true,
+    shouldKeepUserInput = false,
+    shouldShowBigNumberPad = false,
+    inputStyle,
+    autoGrow = true,
+    autoGrowExtraSpace,
+    contentWidth,
+    testID,
+    submitBehavior,
+    shouldApplyPaddingToContainer = false,
+    shouldUseDefaultLineHeightForPrefix = true,
+    shouldWrapInputInContainer = true,
+    ref,
+    ...props
+}: MoneyRequestAmountInputProps) {
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -175,31 +176,36 @@ function MoneyRequestAmountInput(
         numberFormRef.current?.updateNumber(formattedAmount);
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
+    const inputOnBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        props.onBlur?.(e);
+        formatAmount();
+    };
+
     return (
         <NumberWithSymbolForm
             value={onFormatAmount(amount, currency)}
             decimals={decimals}
             onSymbolButtonPress={onCurrencyButtonPress}
             onInputChange={onAmountChange}
-            onBlur={formatAmount}
-            ref={(ref) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef?.current) {
+            onBlur={inputOnBlur}
+            ref={(newRef) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref?.current) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
                 // eslint-disable-next-line react-compiler/react-compiler
-                textInput.current = ref;
+                textInput.current = newRef;
             }}
-            numberFormRef={(ref) => {
+            numberFormRef={(newRef) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
-                    moneyRequestAmountInputRef(ref);
+                    moneyRequestAmountInputRef(newRef);
                 } else if (moneyRequestAmountInputRef && 'current' in moneyRequestAmountInputRef) {
                     // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
-                    moneyRequestAmountInputRef.current = ref;
+                    moneyRequestAmountInputRef.current = newRef;
                 }
-                numberFormRef.current = ref;
+                numberFormRef.current = newRef;
             }}
             symbol={getLocalizedCurrencySymbol(currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
@@ -224,11 +230,12 @@ function MoneyRequestAmountInput(
             footer={props.footer}
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
+            onFocus={props.onFocus}
         />
     );
 }
 
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
-export default React.forwardRef(MoneyRequestAmountInput);
+export default MoneyRequestAmountInput;
 export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

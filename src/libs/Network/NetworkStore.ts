@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
 let credentials: Credentials | null | undefined;
+let lastShortAuthToken: string | null | undefined;
 let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
@@ -100,12 +101,23 @@ function getAuthToken(): string | null | undefined {
     return authToken;
 }
 
+function getLastShortAuthToken(): string | null | undefined {
+    return lastShortAuthToken;
+}
+
+function setLastShortAuthToken(newLastAuthToken: string | null) {
+    lastShortAuthToken = newLastAuthToken;
+}
+
 function isSupportRequest(command: string): boolean {
     return [
         WRITE_COMMANDS.OPEN_APP,
         READ_COMMANDS.SEARCH,
         WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION,
         WRITE_COMMANDS.OPEN_REPORT,
+        WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL,
+        WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL,
         SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
         READ_COMMANDS.OPEN_CARD_DETAILS_PAGE,
         READ_COMMANDS.GET_POLICY_CATEGORIES,
@@ -128,6 +140,7 @@ function isSupportRequest(command: string): boolean {
         READ_COMMANDS.OPEN_PAYMENTS_PAGE,
         READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE,
         READ_COMMANDS.SEARCH_FOR_REPORTS,
+        READ_COMMANDS.OPEN_SEARCH_PAGE,
     ].some((cmd) => cmd === command);
 }
 
@@ -169,4 +182,6 @@ export {
     checkRequiredData,
     isSupportAuthToken,
     isSupportRequest,
+    getLastShortAuthToken,
+    setLastShortAuthToken,
 };
