@@ -34,22 +34,20 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const [expandedIndex, setExpandedIndex] = useState(0);
 
-    const {params, routeName, currentState} = useRootNavigationState(
-        (rootState) => {
-            const focusedRoute = findFocusedRoute(rootState);
-            setExpandedIndex(0);
-            return {
-                routeName: (focusedRoute?.name ?? '') as Screen,
-                params: focusedRoute?.params as Record<string, string>,
-                currentState: rootState,
-            };
-        },
-        {
-            routeName: '' as Screen,
-            params: {} as Record<string, string>,
-            currentState: {} as NavigationState,
-        },
-    );
+    const navigationState = useRootNavigationState((rootState) => {
+        const focusedRoute = findFocusedRoute(rootState);
+        setExpandedIndex(0);
+        return {
+            routeName: (focusedRoute?.name ?? '') as Screen,
+            params: focusedRoute?.params as Record<string, string>,
+            currentState: rootState,
+        };
+    });
+    const {params, routeName, currentState} = navigationState ?? {
+        routeName: '' as Screen,
+        params: {} as Record<string, string>,
+        currentState: {} as NavigationState,
+    };
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});

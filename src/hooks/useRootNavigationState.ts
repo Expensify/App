@@ -9,10 +9,10 @@ type Selector<T> = (state: NavigationState) => T;
  *
  * @param selector Selector function to get a value from the state.
  */
-function useRootNavigationState<T>(selector: Selector<T>, fallbackValue: T): T {
-    const [result, setResult] = useState<T>(() => {
+function useRootNavigationState<T>(selector: Selector<T>, fallbackValue?: T): T | undefined {
+    const [result, setResult] = useState<T | undefined>(() => {
         if (!navigationRef.isReady()) {
-            return fallbackValue;
+            return fallbackValue ?? undefined;
         }
         return selector(navigationRef.getRootState());
     });

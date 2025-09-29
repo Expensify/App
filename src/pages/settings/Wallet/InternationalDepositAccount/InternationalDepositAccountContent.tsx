@@ -69,7 +69,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
     const skippedSteps = getSkippedSteps(skipAccountTypeStep, skipAccountHolderInformationStep);
 
-    const topmostFullScreenRoute = useRootNavigationState((state) => state.routes.findLast((route) => isFullScreenName(route.name)), undefined);
+    const topmostFullScreenRoute = useRootNavigationState((state) => state.routes.findLast((route) => isFullScreenName(route.name)));
 
     const goBack = useCallback(() => {
         switch (topmostFullScreenRoute?.name) {
