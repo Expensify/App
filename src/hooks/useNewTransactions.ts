@@ -18,7 +18,7 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
         if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
-        if (skipFirstTransactionsChange.current) {
+        if (skipFirstTransactionsChange.current || shouldResetSkipFirstTransactionsChange) {
             if (!shouldResetSkipFirstTransactionsChange) {
                 skipFirstTransactionsChange.current = false;
             }

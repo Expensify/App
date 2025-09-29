@@ -114,6 +114,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
 
+    const shouldResetSkipFirstTransactionsChange = !!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute
+
     if (shouldUseNarrowLayout) {
         return (
             <ActionListContext.Provider value={actionListValue}>
@@ -139,9 +141,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     shouldWaitForReportSync={shouldWaitForReportSync}
-                                    key="SearchMoneyRequestReportPage_MoneyRequestReportView"
                                     backToRoute={route.params.backTo}
-                                    shouldResetSkipFirstTransactionsChange={!!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute}
+                                    shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -177,9 +178,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         shouldWaitForReportSync={shouldWaitForReportSync}
-                                        key="SearchMoneyRequestReportPage_MoneyRequestReportView"
                                         backToRoute={route.params.backTo}
-                                        shouldResetSkipFirstTransactionsChange={!!reportIDFromRoute && !!prevReportIDFromRoute && reportIDFromRoute !== prevReportIDFromRoute}
+                                        shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />
