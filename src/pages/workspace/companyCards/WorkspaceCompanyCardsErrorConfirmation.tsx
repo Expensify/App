@@ -46,6 +46,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
     };
 
     const onButtonPress = () => {
+        deleteCompanyCardFeed();
         Navigation.closeRHPFlow();
     };
 
@@ -53,7 +54,6 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         if (!policyID) {
             return;
         }
-        deleteCompanyCardFeed();
         setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION,
             data: {
@@ -70,7 +70,6 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         if (!policyID) {
             return;
         }
-        deleteCompanyCardFeed();
         if (!isExpensifyCardFeatureEnabled) {
             enableExpensifyCard(policyID, true, true);
             return;
@@ -82,7 +81,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         <ConfirmationPage
             heading={translate('workspace.moreFeatures.companyCards.bankConnectionError')}
             description={
-                <Text style={styles.textSupporting}>
+                <Text style={[styles.textSupporting, styles.textAlignCenter]}>
                     {translate('workspace.moreFeatures.companyCards.bankConnectionDescription')}{' '}
                     <TextLink
                         style={[styles.link]}

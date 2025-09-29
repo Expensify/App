@@ -160,7 +160,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         <ScreenWrapper
             testID={BankConnection.displayName}
             shouldShowOfflineIndicator={false}
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
