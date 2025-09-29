@@ -29,6 +29,7 @@ describe('IOU Utils', () => {
                     onSelected();
                 },
             });
+
             // Then we should start manual submit request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
         });
@@ -42,6 +43,7 @@ describe('IOU Utils', () => {
                     onSelected();
                 },
             });
+
             // Then we should start scan split request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
         });
@@ -55,8 +57,9 @@ describe('IOU Utils', () => {
                     onSelected();
                 },
             });
+
             // Then we should start distance track request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true);
         });
 
         it('should be navigated to Map distance Expense by default', () => {
@@ -68,6 +71,7 @@ describe('IOU Utils', () => {
                     onSelected();
                 },
             });
+
             // Then we should start map distance request flow
             expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true);
         });
@@ -82,6 +86,7 @@ describe('IOU Utils', () => {
                 },
                 lastDistanceExpenseType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
             });
+
             // Then we should start manual distance request flow
             expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, true);
         });
@@ -95,6 +100,7 @@ describe('IOU Utils', () => {
                     onSelected();
                 },
             });
+
             // Then we should start per diem request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true);
         });
