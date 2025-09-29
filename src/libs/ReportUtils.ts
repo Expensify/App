@@ -2642,7 +2642,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
         const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isDeletedPolicy = !shouldShowPolicy(policy, false, getCurrentUserEmail());
         const isInstant = isInstantSubmitEnabled(policy);
-        const isForwarded = isProcessingReport(report) && !isAwaitingFirstLevelApproval(report) && (isApprovalEnabled || (!isDeletedPolicy || isInstant));
+        const isForwarded = isProcessingReport(report) && !isAwaitingFirstLevelApproval(report) && (isApprovalEnabled || !isDeletedPolicy || isInstant);
 
         return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
     }
