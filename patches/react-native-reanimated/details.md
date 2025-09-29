@@ -28,3 +28,10 @@
 - Upstream PR/issue: https://github.com/software-mansion/react-native-reanimated/pull/8142
 - E/App issue: https://github.com/Expensify/App/issues/69190
 - PR Introducing Patch: https://github.com/Expensify/App/pull/69444
+
+### [react-native-reanimated+3.19.1+005+fix-broken-slideInUp-animation.patch](react-native-reanimated+3.19.1+005+fix-broken-slideInUp-animation.patch)
+
+- Reason: `SlideInUp` animation is not working correctly with React Native 0.81. The fix is already present in reanimated v4, but has not been backported yet
+- Upstream PR/issue: https://github.com/software-mansion/react-native-reanimated/pull/8089
+- E/App issue:
+- PR Introducing Patch: https://github.com/Expensify/App/pull/69535
