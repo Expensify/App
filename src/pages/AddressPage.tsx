@@ -37,7 +37,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
+    const [currentCountry, setCurrentCountry] = useState(getCountryCode(address?.country ?? defaultCountry));
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
@@ -47,7 +47,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             return;
         }
         setState(address.state);
-        setCurrentCountry(address.country);
+        setCurrentCountry(getCountryCode(address.country));
         setCity(address.city);
         setZipcode(address.zip);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -103,7 +103,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         onSubmit={updateAddress}
                         submitButtonText={translate('common.save')}
                         city={city}
-                        country={getCountryCode(currentCountry)}
+                        country={currentCountry}
                         onAddressChanged={handleAddressChange}
                         state={state}
                         street1={street1}

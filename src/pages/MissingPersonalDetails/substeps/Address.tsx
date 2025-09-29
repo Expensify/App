@@ -27,7 +27,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [currentCountry, setCurrentCountry] = useState(personalDetailsValues[INPUT_IDS.COUNTRY]);
+    const [currentCountry, setCurrentCountry] = useState(getCountryCode(personalDetailsValues[INPUT_IDS.COUNTRY]));
     const [state, setState] = useState(personalDetailsValues[INPUT_IDS.STATE]);
     const [city, setCity] = useState(personalDetailsValues[INPUT_IDS.CITY]);
     const [zipcode, setZipcode] = useState(personalDetailsValues[INPUT_IDS.ZIP_POST_CODE]);
@@ -101,7 +101,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             return;
         }
         if (addressPartKey === INPUT_IDS.COUNTRY) {
-            setCurrentCountry(getCountryCode(addressPart));
+            setCurrentCountry(addressPart as Country | '');
             setState('');
             setCity('');
             setZipcode('');
