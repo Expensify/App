@@ -854,9 +854,24 @@ const translations = {
         markAsUnread: 'Marcar como não lida',
         markAsRead: 'Marcar como lido',
         editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Excluir ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Tem certeza de que deseja excluir este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'despesa' : 'comentar'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'comentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'despesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'relatório';
+            }
+            return `Excluir ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'comentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'despesa';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'relatório';
+            }
+            return `Tem certeza de que deseja excluir este ${type}?`;
+        },
         onlyVisible: 'Apenas visível para',
         replyInThread: 'Responder no tópico',
         joinThread: 'Participar do tópico',
@@ -1412,7 +1427,7 @@ const translations = {
             reasonPageDescription: 'Explique por que você está rejeitando essa despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
-            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir o(s) problema(s) e marcar como resolvido para permitir o envio.',
+            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir os problemas e marcar como resolvido para permitir o envio.',
             reportActions: {
                 rejectedExpense: 'rejeitou esta despesa',
                 markedAsResolved: 'marcou o motivo da rejeição como resolvido',
@@ -6194,7 +6209,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão acima.',
+            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório\n usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
@@ -6676,7 +6691,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que ${email} precisa corrigir.`
-                    : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que você precisa corrigir.';
+                    : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Peça a ${member} para marcar como dinheiro ou espere 7 dias e tente novamente.` : 'Aguardando a fusão com a transação do cartão.';
