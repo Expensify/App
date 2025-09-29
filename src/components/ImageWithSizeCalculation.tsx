@@ -3,7 +3,7 @@ import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import RESIZE_MODES from './Image/resizeModes';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithLoading from './ImageWithLoading';

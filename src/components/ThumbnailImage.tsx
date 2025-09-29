@@ -10,11 +10,11 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
-import { FullScreenLoadingIndicatorIconSize } from './FullscreenLoadingIndicator';
 
 // Cache for the dimensions of the thumbnails to avoid flickering incorrect size when the
 // image has already been loaded once. This caches the dimensions based on the URL of
