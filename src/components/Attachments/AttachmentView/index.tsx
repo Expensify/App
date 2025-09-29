@@ -245,8 +245,12 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !hasReceiptSource(transaction) && transaction) {
-        return <DistanceEReceipt transaction={transaction} />;
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
+        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
+        const isImageReceiptSource = checkIsFileImage(source, file?.name);
+        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
+            return <DistanceEReceipt transaction={transaction} />;
+        }
     }
 
     // For this check we use both source and file.name since temporary file source is a blob

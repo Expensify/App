@@ -375,6 +375,44 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the merchant is cleared to PARTIAL_TRANSACTION_MERCHANT', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    oldMerchant: 'Old Merchant',
+                },
+            };
+
+            it('returns the correct "removed" text message', () => {
+                const expectedResult = `removed the merchant (previously "Old Merchant")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the merchant is changed from one valid merchant to another', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    merchant: 'New Merchant',
+                    oldMerchant: 'Old Merchant',
+                },
+            };
+
+            it('returns the correct "changed" text message', () => {
+                const expectedResult = `changed the merchant to "New Merchant" (previously "Old Merchant")`;
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the merchant and the description are removed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),

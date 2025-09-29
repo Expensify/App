@@ -36,7 +36,7 @@ function buildMessageFragmentForValue(
     if (!oldValue || isOldValuePartialMerchant) {
         const fragment = translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
         setFragments.push(fragment);
-    } else if (!newValue) {
+    } else if (!newValue || newValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
         const fragment = translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
         removalFragments.push(fragment);
     } else {

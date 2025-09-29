@@ -57,11 +57,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-    const {
-        shouldShowProductTrainingTooltip: shouldShowExpenseReportsTypeTooltip,
-        renderProductTrainingTooltip: renderExpenseReportsTypeTooltip,
-        hideProductTrainingTooltip: hideExpenseReportsTypeTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER, true);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -141,6 +136,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             taxRates,
             allCards,
             allFeeds,
+            currentUserAccountID,
             allPolicies,
             policyTags,
             currentUserAccountID,
@@ -241,12 +237,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                     const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                                     const flattenedIndex = previousItemCount + itemIndex;
                                     const focused = activeItemIndex === flattenedIndex;
-                                    const shouldShowTooltip = item.translationPath === 'common.reports' && !focused && shouldShowExpenseReportsTypeTooltip;
 
                                     const onPress = singleExecution(() => {
-                                        if (shouldShowTooltip) {
-                                            hideExpenseReportsTypeTooltip();
-                                        }
                                         clearAllFilters();
                                         clearSelectedTransactions();
                                         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
@@ -271,15 +263,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                 focused={focused}
                                                 onPress={onPress}
                                                 shouldIconUseAutoWidthStyle
-                                                shouldRenderTooltip={shouldShowTooltip}
-                                                renderTooltipContent={renderExpenseReportsTypeTooltip}
-                                                tooltipAnchorAlignment={{
-                                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                                }}
-                                                tooltipShiftHorizontal={variables.expenseReportsTypeTooltipShiftHorizontal}
-                                                tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
-                                                onEducationTooltipPress={onPress}
                                             />
                                         </Animated.View>
                                     );

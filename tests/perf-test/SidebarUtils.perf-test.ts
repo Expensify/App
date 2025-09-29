@@ -89,6 +89,7 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 localeCompare,
                 policyTags,
+                lastActionReport: undefined,
             }),
         );
     });
