@@ -2,7 +2,6 @@ import reportsSelector from '@selectors/Attributes';
 import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
-import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -149,17 +148,12 @@ function MoneyRequestParticipantsSelector({
         [onFinish, onParticipantsAdded, currentUserLogin],
     );
 
-    // Configuration for useSearchSelector hook
     const getValidOptionsConfig = useMemo(
         () => ({
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to submit an expense from their admin on their own Expense Chat.
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
-            // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-            // Per diem expenses should only be submitted to workspaces, not individual users
             includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
@@ -169,8 +163,10 @@ function MoneyRequestParticipantsSelector({
             canShowManagerMcTest,
             isPerDiemRequest,
             showRBR: false,
+            preferPolicyExpenseChat: isPaidGroupPolicy,
+            preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         }),
-        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, canShowManagerMcTest],
+        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, canShowManagerMcTest, isPaidGroupPolicy],
     );
 
     const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
@@ -186,14 +182,16 @@ function MoneyRequestParticipantsSelector({
             contactOptions: contacts,
             initialSelected: participants as OptionData[],
             onSelectionChange: (options: OptionData[]) => {
-                if (isIOUSplit) {
-                    onParticipantsAdded(options as Participant[]);
+                if (!isIOUSplit) {
+                    return;
                 }
+                onParticipantsAdded(options);
             },
             onSingleSelect: (option: OptionData) => {
-                if (!isIOUSplit) {
-                    addSingleParticipant(option as Participant & Option);
+                if (isIOUSplit) {
+                    return;
                 }
+                addSingleParticipant(option);
             },
         });
 
