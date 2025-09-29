@@ -79,7 +79,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             return;
         }
 
-        const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
+        const requestType = getRequestType(transaction);
         const receiptFilename = getReceiptFilenameFromTransaction(transaction);
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
