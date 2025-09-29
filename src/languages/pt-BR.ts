@@ -2299,7 +2299,7 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quais recursos você está interessado?',
-            featuresAlreadyEnabled: 'Seu espaço de trabalho já tem o seguinte habilitado:',
+            featuresAlreadyEnabled: 'Aqui estão nossos recursos mais populares:',
             featureYouMayBeInterestedIn: 'Ative recursos adicionais nos quais você possa estar interessado:',
         },
         error: {

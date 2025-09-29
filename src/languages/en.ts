@@ -2281,7 +2281,7 @@ const translations = {
         },
         interestedFeatures: {
             title: 'What features are you interested in?',
-            featuresAlreadyEnabled: 'Your workspace already has the following enabled:',
+            featuresAlreadyEnabled: 'Here are our most popular features:',
             featureYouMayBeInterestedIn: 'Enable additional features you may be interested in:',
         },
         error: {

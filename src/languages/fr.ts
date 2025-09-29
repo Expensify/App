@@ -2313,7 +2313,7 @@ const translations = {
         },
         interestedFeatures: {
             title: 'Quelles fonctionnalités vous intéressent ?',
-            featuresAlreadyEnabled: 'Votre espace de travail a déjà activé les éléments suivants :',
+            featuresAlreadyEnabled: 'Voici nos fonctionnalités les plus populaires :',
             featureYouMayBeInterestedIn: 'Activez des fonctionnalités supplémentaires qui pourraient vous intéresser :',
         },
         error: {

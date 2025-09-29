@@ -2272,7 +2272,7 @@ const translations = {
         },
         interestedFeatures: {
             title: '您对哪些功能感兴趣？',
-            featuresAlreadyEnabled: '您的工作区已启用以下功能：',
+            featuresAlreadyEnabled: '以下是我们最受欢迎的功能：',
             featureYouMayBeInterestedIn: '启用您可能感兴趣的其他功能：',
         },
         error: {
