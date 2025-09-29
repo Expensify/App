@@ -50,7 +50,7 @@ function ImportedFromAccountingSoftware({
     const icon = getIntegrationIcon(connectedIntegration);
 
     if (!customTagName && isDisplayingTags) {
-        return undefined;
+        return null;
     }
 
     return (
