@@ -27,7 +27,7 @@ function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderTe
             ]}
         >
             <Text style={styles.textMicroSupporting}>{leftHeaderText}</Text>
-            <View style={[StyleUtils.getMinimumWidth(rightHeaderMinimumWidth), shouldShowRightIcon && styles.mr7]}>
+            <View style={[StyleUtils.getMinimumWidth(rightHeaderMinimumWidth), shouldShowRightIcon && styles.mr6]}>
                 <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{rightHeaderText}</Text>
             </View>
         </View>

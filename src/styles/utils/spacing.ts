@@ -147,8 +147,8 @@ export default {
         marginRight: 20,
     },
 
-    mr7: {
-        marginRight: 28,
+    mr6: {
+        marginRight: 24,
     },
 
     mr8: {
