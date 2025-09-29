@@ -22,7 +22,7 @@ type OnboardingMergingAccountBlockedViewProps = {
 function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
 
     const getErrorSubtitle = () => {
         if (onboardingErrorMessage) {
