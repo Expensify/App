@@ -178,7 +178,7 @@ function IOURequestStepCategory({
                                     }
 
                                     if (!policy.areCategoriesEnabled) {
-                                        enablePolicyCategories(policy.id, true, policyTagLists, allTransactionViolations, false);
+                                        enablePolicyCategories(policy.id, true, policyTagLists, policyCategories, allTransactionViolations, false);
                                     }
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(

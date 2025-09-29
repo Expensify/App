@@ -51,6 +51,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     OnyxInputOrEntry,
     Policy,
+    PolicyCategories,
     RecentWaypoint,
     Report,
     ReviewDuplicates,
@@ -1652,6 +1653,7 @@ function compareDuplicateTransactionFields(
     duplicates?: Array<OnyxEntry<Transaction>>,
     reportID?: string | undefined,
     selectedTransactionID?: string,
+    policyCategories?: PolicyCategories,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const reviewingTransactionID = reviewingTransaction?.transactionID;
     if (!reviewingTransactionID || !reportID) {
@@ -1761,8 +1763,7 @@ function compareDuplicateTransactionFields(
                 }
             } else if (fieldName === 'category') {
                 const differentValues = getDifferentValues(transactions, keys);
-                const policyCategories = report?.policyID ? getPolicyCategoriesData(report.policyID) : {};
-                const availableCategories = Object.values(policyCategories)
+                const availableCategories = Object.values(policyCategories ?? {})
                     .filter((category) => differentValues.includes(category.name) && category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                     .map((e) => e.name);
 

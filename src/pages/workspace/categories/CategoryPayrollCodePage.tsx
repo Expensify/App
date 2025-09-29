@@ -40,7 +40,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newPayrollCode = values.payrollCode.trim();
             if (newPayrollCode !== payrollCode) {
-                setPolicyCategoryPayrollCode(policyID, categoryName, newPayrollCode);
+                setPolicyCategoryPayrollCode(policyID, categoryName, newPayrollCode, policyCategories);
             }
             Navigation.goBack(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),

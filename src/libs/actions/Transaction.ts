@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
     Policy,
+    PolicyCategories,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -613,6 +614,7 @@ function changeTransactionsReport(
     email: string,
     policy?: OnyxEntry<Policy>,
     reportNextStep?: OnyxEntry<ReportNextStep>,
+    policyCategories?: OnyxEntry<PolicyCategories>,
 ) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -717,7 +719,6 @@ function changeTransactionsReport(
     let shouldFixViolations = false;
 
     const policyTagList = getPolicyTagsData(policy?.id);
-    const policyCategories = getPolicyCategoriesData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
     transactions.forEach((transaction) => {
@@ -800,7 +801,7 @@ function changeTransactionsReport(
                 currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
                 policyTagList,
-                policyCategories,
+                policyCategories ?? {},
                 policyHasDependentTags,
                 false,
             );
@@ -1135,7 +1136,7 @@ function changeTransactionsReport(
             currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
             policyTagList,
-            policyCategories,
+            policyCategories ?? {},
             policyHasDependentTags,
             false,
         );

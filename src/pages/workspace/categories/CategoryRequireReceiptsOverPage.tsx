@@ -93,9 +93,9 @@ function CategoryRequireReceiptsOverPage({
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
-                            Category.setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value);
+                            Category.setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value, policyCategories);
                         } else {
-                            Category.removePolicyCategoryReceiptsRequired(policyID, categoryName);
+                            Category.removePolicyCategoryReceiptsRequired(policyID, categoryName, policyCategories);
                         }
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
