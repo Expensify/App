@@ -7267,7 +7267,7 @@ const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
     [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
     [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
     [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
-    [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {month: 'long', day: 'numeric', year: 'numeric'},
+    [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {dateStyle: 'long'},
     [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {month: 'short', day: 'numeric', year: 'numeric'},
     [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {month: 'long', day: 'numeric', year: 'numeric', weekday: 'long'},
 };
