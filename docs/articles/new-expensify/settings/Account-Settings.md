@@ -125,5 +125,5 @@ Yes. From the navigation tabs, go to **Account > Preferences** and toggle off bo
 Yes! Your chosen theme applies across web, mobile, and desktop versions of Expensify.
 
 ## Can I set a permanent status message?
-Yes. After entering your status, choose **Never** under “Clear After” to keep it active indefinitely.
+Yes. After entering your status, choose **Never** under “Clear After” to keep it active indefinitely .
 
