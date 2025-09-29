@@ -164,6 +164,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -835,9 +836,24 @@ const translations = {
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
         editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'comentario';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'gasto';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'informe';
+            }
+            return `Eliminar ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'comentario';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'gasto';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'informe';
+            }
+            return `¿Estás seguro de que quieres eliminar este ${type}?`;
+        },
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
@@ -1392,7 +1408,7 @@ const translations = {
             reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
-            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
+            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones los problemas y lo marques como resuelto para poder enviarlo.',
             reportActions: {
                 rejectedExpense: 'rechazó este gasto',
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
@@ -3552,7 +3568,8 @@ const translations = {
         receiptPartners: {
             connect: 'Conéctate ahora',
             uber: {
-                subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Conectado a ${organizationName}` : 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
                 sendInvites: 'Invitar miembros',
                 sendInvitesDescription: 'Estos miembros del workspace aún no tienen una cuenta de Uber for Business. Deselecciona cualquier miembro que no desees invitar en este momento.',
                 confirmInvite: 'Confirmar invitación',
@@ -3572,8 +3589,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendido',
                 },
                 invitationFailure: 'Error al invitar miembros a Uber for Business',
-                autoRemove: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
-                autoInvite: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
+                autoInvite: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
+                autoRemove: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
                 bannerTitle: 'Expensify + Uber para empresas',
                 bannerDescription: 'Conecte Uber for Business para automatizar los gastos de viajes y entrega de comidas en toda su organización.',
                 emptyContent: {
@@ -6182,7 +6199,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
-            emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
+            emptyStateSubtitle: 'Puedes agregar gastos a este informe\n usando el botón de abajo o la opción "Agregar gasto" en el menú Más de arriba.',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
@@ -7126,7 +7143,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `No se puede adjuntar recibo debido a un problema con la conexión a tu banco que ${email} necesita arreglar`
-                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco que necesitas arreglar';
+                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin

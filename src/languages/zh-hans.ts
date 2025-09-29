@@ -177,6 +177,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -852,8 +853,24 @@ const translations = {
         markAsUnread: '标记为未读',
         markAsRead: '标记为已读',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteAction: ({action}: DeleteActionParams) => `删除 ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `您确定要删除此${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}吗？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `删除 ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `您确定要删除此${type}吗？`;
+        },
         onlyVisible: '仅对...可见',
         replyInThread: '在线程中回复',
         joinThread: '加入线程',
@@ -1396,7 +1413,7 @@ const translations = {
             reasonPageDescription: '解释一下你拒绝这笔费用的原因。',
             rejectReason: '拒绝原因',
             markAsResolved: '标记为已解决',
-            rejectedStatus: '该报销已被拒绝。请先解决问题并标记为已解决，才能重新提交。',
+            rejectedStatus: '此费用被拒绝。等待您解决问题并标记为已解决以启用提交。',
             reportActions: {
                 rejectedExpense: '已拒绝该报销',
                 markedAsResolved: '已将拒绝原因标记为已解决',
@@ -3528,7 +3545,7 @@ const translations = {
         receiptPartners: {
             connect: '立即连接',
             uber: {
-                subtitle: '自动化整个组织的差旅和送餐费用。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) => (organizationName ? `已连接到${organizationName}` : '在您的组织内自动化旅行和餐饮费用。'),
                 sendInvites: '邀请成员',
                 sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
                 confirmInvite: '确认邀请',
@@ -3548,8 +3565,8 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '已暂停',
                 },
                 invitationFailure: '邀请成员加入Uber for Business失败',
-                autoRemove: '邀请新工作区成员加入 Uber for Business',
-                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                autoInvite: '邀请新工作区成员加入 Uber for Business',
+                autoRemove: '停用已从 Uber for Business 移除的工作区成员',
                 bannerTitle: 'Expensify + Uber 商务版',
                 bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
                 emptyContent: {
@@ -6069,7 +6086,7 @@ const translations = {
         groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
-            emptyStateSubtitle: '您可以使用上面的按钮将费用添加到此报告中。',
+            emptyStateSubtitle: '您可以使用下方按钮，或上方“更多”菜单中的“添加费用”选项，将费用添加到此报告中。',
         },
         noCategory: '无类别',
         noTag: '无标签',

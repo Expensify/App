@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import type {ComponentType} from 'react';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -36,10 +36,8 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
 };
 
-export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): ComponentType<TProps & RefAttributes<TRef>> {
-    function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
+export default function <TProps extends WithReportAndReportActionOrNotFoundProps>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
+    function WithReportOrNotFound(props: TProps) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
@@ -98,14 +96,13 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 parentReport={parentReport}
                 reportAction={linkedReportAction}
                 parentReportAction={parentReportAction}
-                ref={ref}
             />
         );
     }
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return React.forwardRef(WithReportOrNotFound);
+    return WithReportOrNotFound;
 }
 
 export type {WithReportAndReportActionOrNotFoundProps};

@@ -224,6 +224,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const report = useMemo(
         () =>
             reportOnyx && {
+                hasParentAccess: reportOnyx.hasParentAccess,
                 lastReadTime: reportOnyx.lastReadTime,
                 reportID: reportOnyx.reportID,
                 policyID: reportOnyx.policyID,
@@ -349,25 +350,32 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [report]);
 
     const backTo = route?.params?.backTo as string;
-    const onBackButtonPress = useCallback(() => {
-        if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+    const onBackButtonPress = useCallback(
+        (prioritizeBackTo = false) => {
+            if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+                Navigation.goBack();
+                return;
+            }
+            if (prioritizeBackTo && backTo) {
+                Navigation.goBack(backTo as Route);
+                return;
+            }
+            if (isInNarrowPaneModal) {
+                Navigation.dismissModal();
+                return;
+            }
+            if (backTo) {
+                Navigation.goBack(backTo as Route);
+                return;
+            }
+            if (Navigation.getShouldPopToSidebar()) {
+                Navigation.popToSidebar();
+                return;
+            }
             Navigation.goBack();
-            return;
-        }
-        if (backTo) {
-            Navigation.goBack(backTo as Route);
-            return;
-        }
-        if (isInNarrowPaneModal) {
-            Navigation.dismissModal();
-            return;
-        }
-        if (Navigation.getShouldPopToSidebar()) {
-            Navigation.popToSidebar();
-            return;
-        }
-        Navigation.goBack();
-    }, [isInNarrowPaneModal, backTo]);
+        },
+        [isInNarrowPaneModal, backTo],
+    );
 
     let headerView = (
         <HeaderView
