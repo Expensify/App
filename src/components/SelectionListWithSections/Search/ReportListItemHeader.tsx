@@ -2,6 +2,9 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
@@ -42,6 +45,12 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -71,6 +80,12 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
 };
 
 function HeaderFirstRow<TItem extends ListItem>({
@@ -83,9 +98,13 @@ function HeaderFirstRow<TItem extends ListItem>({
     avatarBorderColor,
     isSelectAllChecked,
     isIndeterminate,
+    onDownArrowClick,
+    isExpanded,
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const theme = useTheme();
 
     const {total, currency} = useMemo(() => {
         let reportTotal = reportItem.total ?? 0;
@@ -127,11 +146,31 @@ function HeaderFirstRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
+            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3, styles.gap1]}>
                 <TotalCell
                     total={total}
                     currency={currency}
+                    textStyle={styles.fontWeightNormal}
                 />
+                {!shouldShowAction && !!onDownArrowClick && (
+                    <View>
+                        <PressableWithFeedback
+                            onPress={onDownArrowClick}
+                            disabled={!!isDisabled}
+                            style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+                        >
+                            {({hovered}) => (
+                                <Icon
+                                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                    fill={hovered ? theme.textSupporting : theme.icon}
+                                    small
+                                />
+                            )}
+                        </PressableWithFeedback>
+                    </View>
+                )}
             </View>
             {shouldShowAction && (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
@@ -144,7 +183,27 @@ function HeaderFirstRow<TItem extends ListItem>({
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
                         amount={reportItem.total}
+                        extraSmall={!isLargeScreenWidth}
                     />
+                </View>
+            )}
+            {shouldShowAction && !!onDownArrowClick && (
+                <View style={[styles.flexShrink0, styles.pl3]}>
+                    <PressableWithFeedback
+                        onPress={onDownArrowClick}
+                        disabled={!!isDisabled}
+                        style={[styles.justifyContentCenter, styles.alignItemsEnd]}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+                    >
+                        {({hovered}) => (
+                            <Icon
+                                src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                fill={hovered ? theme.textSupporting : theme.icon}
+                                small
+                            />
+                        )}
+                    </PressableWithFeedback>
                 </View>
             )}
         </View>
@@ -160,6 +219,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
+    onDownArrowClick,
+    isExpanded,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -193,6 +254,12 @@ function ReportListItemHeader<TItem extends ListItem>({
     };
     return !isLargeScreenWidth ? (
         <View>
+            <UserInfoAndActionButtonRow
+                item={reportItem}
+                handleActionButtonPress={handleOnButtonPress}
+                shouldShowUserInfo={showUserInfo}
+                containerStyles={[styles.pr0]}
+            />
             <HeaderFirstRow
                 report={reportItem}
                 onCheckboxPress={onCheckboxPress}
@@ -201,12 +268,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                 avatarBorderColor={avatarBorderColor}
                 isSelectAllChecked={isSelectAllChecked}
                 isIndeterminate={isIndeterminate}
-            />
-            <UserInfoAndActionButtonRow
-                item={reportItem}
-                handleActionButtonPress={handleOnButtonPress}
-                shouldShowUserInfo={showUserInfo}
-                containerStyles={[styles.pr0]}
+                onDownArrowClick={onDownArrowClick}
+                isExpanded={isExpanded}
             />
         </View>
     ) : (
@@ -221,6 +284,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                 avatarBorderColor={avatarBorderColor}
                 isSelectAllChecked={isSelectAllChecked}
                 isIndeterminate={isIndeterminate}
+                onDownArrowClick={onDownArrowClick}
+                isExpanded={isExpanded}
             />
         </View>
     );
