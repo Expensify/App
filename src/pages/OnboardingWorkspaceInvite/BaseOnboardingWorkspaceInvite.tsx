@@ -93,7 +93,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         if (!areOptionsInitialized) {
             return [];
         }
-        
+
         // Selected options section
         if (selectedOptionsForDisplay.length > 0) {
             sectionsArr.push({
