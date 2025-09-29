@@ -19,6 +19,7 @@ import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
+    getMergeTaxAmount,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
     getTransactionThreadReportID,
@@ -154,6 +155,18 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+
+            // Update tax amount when either tax value or amount is selected
+            if (mergeTransaction && ((field === 'taxValue' && !isEmptyMergeValue(mergeTransaction.amount)) || (field === 'amount' && !isEmptyMergeValue(mergeTransaction.taxValue)))) {
+                setMergeTransactionKey(transactionID, {
+                    taxAmount:
+                        field === 'taxValue'
+                            ? getMergeTaxAmount(transaction.taxValue, mergeTransaction.amount, mergeTransaction.currency)
+                            : getMergeTaxAmount(mergeTransaction.taxValue, transaction.amount, transaction.currency),
+                    taxCode: field === 'taxValue' ? transaction.taxCode : mergeTransaction.taxCode,
+                });
+            }
+
             setMergeTransactionKey(transactionID, {
                 [field]: fieldValue,
                 ...(field === 'amount' && {currency: getCurrency(transaction)}),

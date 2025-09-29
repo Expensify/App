@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Policy, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
@@ -13,7 +13,7 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getReimbursable, getTaxName, isCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {calculateTaxAmount, getCurrency, getReimbursable, getTaxName, isCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -161,6 +161,12 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
     return MERGE_FIELD_TRANSLATION_KEYS[field];
 }
 
+function getMergeTaxAmount(taxPercentage: string | undefined, amount: number, currency: string) {
+    const taxAmount = calculateTaxAmount(taxPercentage, amount, currency);
+    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+    return taxAmountInSmallestCurrencyUnits;
+}
+
 /**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
@@ -301,6 +307,9 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        taxValue: mergeTransaction.taxValue,
+        taxAmount: mergeTransaction.taxAmount,
+        taxCode: mergeTransaction.taxCode,
     };
 }
 
@@ -422,6 +431,7 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
+    getMergeTaxAmount,
 };
 
 export type {MergeFieldKey, MergeFieldData};
