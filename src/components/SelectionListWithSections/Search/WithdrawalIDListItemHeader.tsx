@@ -71,7 +71,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
+                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                             />
                             <TextWithTooltip
                                 text={`${formattedWithdrawalDate}  ${translate('common.withdrawalID')}: ${withdrawalIDItem.entryID}`}

@@ -73,7 +73,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                         <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={formattedDisplayName}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
+                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                             />
                             <TextWithTooltip
                                 text={formattedLogin || formattedDisplayName}

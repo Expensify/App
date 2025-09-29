@@ -150,7 +150,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                 <TotalCell
                     total={total}
                     currency={currency}
-                    textStyle={styles.fontWeightNormal}
                 />
                 {!isLargeScreenWidth && !!onDownArrowClick && (
                     <View>
