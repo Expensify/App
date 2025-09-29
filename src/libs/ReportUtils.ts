@@ -75,7 +75,7 @@ import {canApproveIOU, canIOUBePaid, canSubmitReport, createDraftTransaction, ge
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged} from './actions/Report';
+import {getCurrentUserEmail, handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {removeDraftTransactions} from './actions/TransactionEdit';
@@ -2640,7 +2640,9 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
 
         const isReportSubmitter = isCurrentUserSubmitter(report);
         const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-        const isForwarded = isProcessingReport(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
+        const isDeletedPolicy = !shouldShowPolicy(policy, false, getCurrentUserEmail());
+        const isInstant = isInstantSubmitEnabled(policy);
+        const isForwarded = isProcessingReport(report) && !isAwaitingFirstLevelApproval(report) && (isApprovalEnabled || (!isDeletedPolicy || isInstant));
 
         return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
     }
