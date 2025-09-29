@@ -31,5 +31,5 @@ If you're unable to close your account, it’s likely due to one of the followin
 - **Your verified business account has a balance due**: Make a payment to continue.
 - **Your account is unverified**: You must verify the account before it can be closed.
 
-If you're still having trouble, reach out to **Concierge** for additional assistance.
+If you're still having trouble, reach out to **Concierge** for additional assistance .
 
