@@ -4,6 +4,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -30,6 +31,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
+    getInternalNewExpensifyPath: jest.fn(() => '/mock-path'),
+    getInternalExpensifyPath: jest.fn(() => '/mock-path'),
 }));
 
 jest.mock('@rnmapbox/maps', () => {
@@ -48,6 +51,7 @@ TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 const workEmail = 'testprivateemail@privateEmail.com';
+const HTMLProviderWrapper = ({children}: {children: React.ReactNode}) => <HTMLEngineProvider>{children}</HTMLEngineProvider>;
 
 const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL]) => {
     return render(
@@ -64,6 +68,7 @@ const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDI
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
+        {wrapper: HTMLProviderWrapper},
     );
 };
 
@@ -85,6 +90,7 @@ const renderOnboardingWorkEmailValidationPage = (
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
+        {wrapper: HTMLProviderWrapper},
     );
 };
 
