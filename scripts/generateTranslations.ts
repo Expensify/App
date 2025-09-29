@@ -718,7 +718,8 @@ class TranslationGenerator {
             }
         }
 
-        if ((isOnAddedLine || isOnRemovedLine || hasContextChange) && this.shouldTranslateNode(node)) {
+        const hasChanges = isOnAddedLine || isOnRemovedLine || hasContextChange;
+        if (hasChanges && this.shouldTranslateNode(node)) {
             // This node is on a changed line and should be translated
             // Traverse up the tree to build the dot notation path
             const translationsNode = this.findTranslationsNode(node.getSourceFile() ?? this.sourceFile);
