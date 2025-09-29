@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionListWithSections';
@@ -51,26 +50,16 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const isEditing = assignCard?.isEditing;
 
     const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
-    const [shouldShowError, setShouldShowError] = useState(false);
 
-    const selectMember = (assignee: ListItem) => {
+    const submit = (assignee: ListItem) => {
+        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         Keyboard.dismiss();
         setSelectedMember(assignee.login ?? '');
-        setShouldShowError(false);
-    };
-
-    const submit = () => {
-        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         if (selectedMember === assignCard?.data?.email) {
             setAssignCardStepAndData({
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 isEditing: false,
             });
-            return;
-        }
-
-        if (!selectedMember || (!searchValue && selectedMember !== policy?.employeeList?.[selectedMember]?.email)) {
-            setShouldShowError(true);
             return;
         }
 
@@ -222,20 +211,9 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 sections={sections}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
-                onSelectRow={selectMember}
-                initiallyFocusedOptionKey={selectedMember}
+                onSelectRow={submit}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
-                footerContent={
-                    <FormAlertWithSubmitButton
-                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                        onSubmit={submit}
-                        isAlertVisible={shouldShowError}
-                        containerStyles={[!shouldShowError && styles.mt5]}
-                        addButtonBottomPadding={false}
-                        message={translate('common.error.pleaseSelectOne')}
-                    />
-                }
                 showLoadingPlaceholder={!areOptionsInitialized}
             />
         </InteractiveStepWrapper>
