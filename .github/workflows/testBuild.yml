@@ -348,7 +348,7 @@ jobs:
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-          comment-bot: true
+          comment-bot: false
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
 
   iosHybrid:
@@ -466,7 +466,7 @@ jobs:
                 "file": "./OldApp_AdHoc_Notification_Service.mobileprovision"
               }
             ]
-          comment-bot: true
+          comment-bot: false
 
   postGithubComment:
     runs-on: ubuntu-latest
