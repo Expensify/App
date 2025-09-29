@@ -3,6 +3,10 @@ import {KeyboardEvents} from 'react-native-keyboard-controller';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
+type SimplifiedKeyboardEvent = {
+    height: number;
+};
+
 let isVisible = false;
 
 Keyboard.addListener('keyboardDidHide', () => {
@@ -22,7 +26,7 @@ const dismiss = (): Promise<void> => {
         }
 
         const subscription = Keyboard.addListener('keyboardDidHide', () => {
-            resolve(undefined);
+            resolve();
             subscription.remove();
         });
 
@@ -40,13 +44,14 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
             return;
         }
 
-        const keyboardDidHideSubscription = KeyboardEvents.addListener('keyboardDidHide', (e: {height: number; target: number}) => {
+        const keyboardDidHideSubscription = KeyboardEvents.addListener('keyboardDidHide', (e: SimplifiedKeyboardEvent) => {
             if (e.height !== 0) {
+                resolve();
                 return;
             }
             cb();
-            resolve();
             keyboardDidHideSubscription.remove();
+            resolve();
         });
         Keyboard.dismiss();
     });
@@ -54,4 +59,5 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
 
 const utils = {dismiss, dismissKeyboardAndExecute};
 
+export type {SimplifiedKeyboardEvent};
 export default utils;
