@@ -345,6 +345,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction: undefined,
+                lastActionReport: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -357,6 +358,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction: undefined,
+                lastActionReport: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -866,6 +868,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -926,6 +929,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 localeCompare,
                 lastAction,
+                lastActionReport: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -969,6 +973,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1006,6 +1011,7 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     isReportArchived: true,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1039,6 +1045,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1161,6 +1168,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
                 const formattedAmount = convertToDisplayString(totalDisplaySpend, iouReport.currency);
@@ -1205,6 +1213,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    lastActionReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1272,6 +1281,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1320,6 +1330,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -1388,6 +1399,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1501,6 +1513,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     localeCompare,
                     lastAction,
+                    lastActionReport: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);

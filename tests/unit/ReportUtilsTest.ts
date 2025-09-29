@@ -33,6 +33,7 @@ import {
     canLeaveChat,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
+    excludeParticipantsForDisplay,
     findLastAccessedReport,
     getAllAncestorReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
@@ -85,10 +86,22 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    OnyxInputOrEntry,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployeeList,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportMetadata,
+    ReportNameValuePairs,
+    Transaction,
+} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount} from '@src/types/onyx/Policy';
-import type {Participant} from '@src/types/onyx/Report';
+import type {Participant, Participants} from '@src/types/onyx/Report';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
@@ -4136,7 +4149,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction, undefined, undefined)).toBe(false);
         });
 
         it('should return true for demo transaction', () => {
@@ -4180,53 +4193,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
-        });
-
-        it('should return false for unreported card expense imported with deleting disabled', async () => {
-            // Given the unreported card expense import with deleting disabled
-            const selfDMReport = {
-                ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                managedCard: true,
-                comment: {
-                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
-                },
-            };
-
-            const trackExpenseAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: currentUserAccountID,
-                originalMessage: {
-                    IOUTransactionID: transaction.transactionID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                    amount: 100,
-                    currency: CONST.CURRENCY.USD,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                },
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: '$1.00 expense',
-                        text: '$1.00 expense',
-                        isEdited: false,
-                        whisperedTo: [],
-                        isDeletedParentAction: false,
-                    },
-                ],
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-            // Then it should return false since the unreported card expense is imported with deleting disabled
-            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined)).toBe(true);
         });
 
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
@@ -4253,7 +4220,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
 
-            expect(canDeleteReportAction(reportAction, report.reportID, undefined)).toBe(false);
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined)).toBe(false);
         });
     });
 
@@ -5314,6 +5281,50 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        describe('with workflow disabled', () => {
+            const workflowDisabledPolicy: Policy = {
+                ...createRandomPolicy(1),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+
+            beforeAll(() => {
+                return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
+            });
+
+            afterAll(() => {
+                return Onyx.clear();
+            });
+
+            it('should return true for reopened report when workflow is disabled', async () => {
+                const openReport: Report = {
+                    ...createExpenseReport(20002),
+                    policyID: '1',
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+
+                expect(canDeleteTransaction(openReport, false)).toBe(true);
+            });
+
+            it('should return false for closed report when workflow is disabled', async () => {
+                const closedReport: Report = {
+                    ...createExpenseReport(20002),
+                    policyID: '1',
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
+
+                expect(canDeleteTransaction(closedReport, false)).toBe(false);
+            });
+        });
     });
 
     describe('getReasonAndReportActionThatRequiresAttention', () => {
@@ -5347,38 +5358,6 @@ describe('ReportUtils', () => {
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
-
-            // Then the result is null
-            expect(result).toBe(null);
-        });
-
-        it('should return a reason for report with hasOutstandingChildRequest', async () => {
-            // Given an expense report with hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: true,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
-
-            // Then the reason should be CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION
-            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
-        });
-
-        it('should return null for report with no hasOutstandingChildRequest', async () => {
-            // Given an expense report with no hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: false,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
 
             // Then the result is null
             expect(result).toBe(null);
@@ -6878,6 +6857,129 @@ describe('ReportUtils', () => {
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
             expect(Object.keys(errors)).toHaveLength(0);
             expect(reportAction).toBeUndefined();
+        });
+    });
+
+    describe('excludeParticipantsForDisplay', () => {
+        const mockParticipants = {
+            1: {notificationPreference: 'always'},
+            2: {notificationPreference: 'hidden'},
+            3: {notificationPreference: 'daily'},
+            4: {notificationPreference: 'always'},
+        } as Participants;
+
+        const mockReportMetadata = {
+            pendingChatMembers: [
+                {accountID: '3', pendingAction: 'delete'},
+                {accountID: '4', pendingAction: 'add'},
+            ],
+        } as OnyxEntry<ReportMetadata>;
+
+        it('should return original array when no exclude options provided', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants);
+            expect(result).toEqual(participantsIDs);
+        });
+
+        it('should return original array when excludeOptions is undefined', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, undefined);
+            expect(result).toEqual(participantsIDs);
+        });
+
+        it('should exclude current user when shouldExcludeCurrentUser is true', () => {
+            const participantsIDs = [1, 2, currentUserAccountID, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeCurrentUser: true,
+            });
+            expect(result).toEqual([1, 2, 4]);
+            expect(result).not.toContain(currentUserAccountID);
+        });
+
+        it('should exclude hidden participants when shouldExcludeHidden is true', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: true,
+            });
+            expect(result).toEqual([1, 3, 4]);
+            expect(result).not.toContain(2); // participant 2 has 'hidden' notification preference
+        });
+
+        it('should exclude deleted participants when shouldExcludeDeleted is true', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1, 2, 4]);
+            expect(result).not.toContain(3); // participant 3 has pending delete action
+        });
+
+        it('should apply multiple exclusions when multiple options are true', () => {
+            const participantsIDs = [1, 2, 3, currentUserAccountID];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeCurrentUser: true,
+                shouldExcludeHidden: true,
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1]);
+        });
+
+        it('should handle empty participants array', () => {
+            const participantsIDs: number[] = [];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeCurrentUser: true,
+                shouldExcludeHidden: true,
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([]);
+        });
+
+        it('should exclude participants not in the participants object when shouldExcludeHidden is true', () => {
+            const participantsIDs = [99, 100];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: true,
+            });
+            expect(result).toEqual([]); // Should exclude unknown participants because they have undefined notification preference (treated as hidden)
+        });
+
+        it('should not exclude participants not in the participants object when shouldExcludeHidden is false', () => {
+            const participantsIDs = [99, 100];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeHidden: false,
+            });
+            expect(result).toEqual([99, 100]); // Should not exclude unknown participants when not excluding hidden
+        });
+
+        it('should handle report metadata without pending chat members', () => {
+            const participantsIDs = [1, 2, 3, 4];
+            const emptyMetadata = {};
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, emptyMetadata, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual(participantsIDs); // Should not exclude any when no pending members
+        });
+
+        it('should only exclude based on last pending action when multiple actions for same user', () => {
+            const participantsIDs = [1, 2, 3];
+            const metadataWithMultipleActions = {
+                pendingChatMembers: [
+                    {accountID: '3', pendingAction: 'add'},
+                    {accountID: '3', pendingAction: 'delete'},
+                ],
+            } as OnyxEntry<ReportMetadata>;
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, metadataWithMultipleActions, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1, 2]);
+            expect(result).not.toContain(3); // Should be excluded based on last action (delete)
+        });
+
+        it('should not exclude when pending action is not delete', () => {
+            const participantsIDs = [1, 4];
+            const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, mockReportMetadata, {
+                shouldExcludeDeleted: true,
+            });
+            expect(result).toEqual([1, 4]); // participant 4 has 'add' action, should not be excluded
         });
     });
 

@@ -1,6 +1,7 @@
 const testFileExtension = 'ts?(x)';
 module.exports = {
     preset: 'jest-expo',
+    collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'],
     testMatch: [
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
@@ -30,6 +31,7 @@ module.exports = {
     setupFiles: ['<rootDir>/jest/setup.ts', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
     setupFilesAfterEnv: ['<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.ts'],
     cacheDirectory: '<rootDir>/.jest-cache',
+    coverageReporters: ['json', 'lcov', 'text-summary'],
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
