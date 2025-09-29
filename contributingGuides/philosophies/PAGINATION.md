@@ -72,12 +72,12 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
 
     If bidirectional pagination is needed, ensure that queries and API endpoints fetch data from a given cursor in both directions. In the example query above, it could be as simple as switching `<` to `>=` and making the comparator and sort order explicit for each direction. Also ensure that if a front-end list library is used, it supports bidirectional pagination (i.e: both an `onEndReached` and `onStartReached` param).
 
-5. Determine whether it's possible for **gaps** to appear in the data. It's non-trivial to list all the ways gaps can appear in a list, but here are a couple of examples, one real and one contrived:
+5. Determine whether it's possible for **gaps** to appear in the data. Here are some examples to help illustrate what a "gap" is and how we might end up with one:
     - "Comment linking"
-        1. User has a simple paginated list of integers in ascending order, and it currently contains items 1-50.
-        2. User jumps to the middle of the list (say for simplicity that they are looking at items 15-35)
+        1. User has a simple paginated list of integers in ascending order, and the frontend has loaded items 1-50.
+        2. User jumps to the middle of the list and the viewport contains items 15-35.
         3. While they're looking at the middle of the list, more than 1 page (50 items) of data is added to the front of the list. Let's say these items are items 50-150.
-        4. They jump back to the front of the page, and fetch the page at the front, 100-150.
+        4. They jump to the front of the list and then fetch page 100-150.
             - _Note:_ Fetching "all the data they missed" generally isn't a scalable solution, because it's unbounded, and the unbounded loading of data is the problem pagination seeks to solve.
         5. Now there is a gap between items 51-100 :boom:
     - "Over-eager eviction"
