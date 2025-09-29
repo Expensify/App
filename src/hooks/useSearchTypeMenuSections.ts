@@ -61,7 +61,18 @@ const useSearchTypeMenuSections = () => {
                 isOffline,
                 reports,
             ),
-        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, activePolicyID, savedSearches, isOffline, reports],
+        [
+            currentUserLoginAndAccountID?.email,
+            currentUserLoginAndAccountID?.accountID,
+            cardFeedsByPolicy,
+            defaultCardFeed,
+            defaultExpensifyCard,
+            allPolicies,
+            activePolicyID,
+            savedSearches,
+            isOffline,
+            reports,
+        ],
     );
 
     return {typeMenuSections};
