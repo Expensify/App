@@ -110,7 +110,7 @@ async function run() {
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
 
-    function getDeployMessage(deployer: string, deployVerb: string, prTitle?: string): string {
+    function getDeployMessage(deployer: string, deployVerb: string): string {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} `;
         if (date) {
