@@ -58,7 +58,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
                 width: '300px',
             });
         }
-    }, []);
+    }, [preferredLocale]);
 
     React.useEffect(() => {
         const script = document.createElement('script');
