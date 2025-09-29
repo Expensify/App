@@ -5365,9 +5365,9 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         movedReportAction,
     } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID);
 
-    optimisticData.push(...convertedOptimisticData, ...newPersonalDetailsOnyxData.optimisticData, ...policyExpenseChats.onyxOptimisticData, ...announceRoomMembers.optimisticData);
-    successData.push(...convertedSuccessData, ...newPersonalDetailsOnyxData.finallyData, ...policyExpenseChats.onyxSuccessData, ...announceRoomMembers.successData);
-    failureData.push(...convertedFailureData, ...policyExpenseChats.onyxFailureData, ...announceRoomMembers.failureData);
+    optimisticData.push(...convertedOptimisticData);
+    successData.push(...convertedSuccessData);
+    failureData.push(...convertedFailureData);
 
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
         iouReportID: reportID,
