@@ -59,6 +59,7 @@ const useSearchTypeMenuSections = () => {
                 activePolicyID,
                 savedSearches,
                 isOffline,
+                defaultExpensifyCard,
                 reports,
             ),
         [
