@@ -1,8 +1,9 @@
 import {accountIDSelector} from '@selectors/Session';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
+import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -10,13 +11,13 @@ import {
     chatIncludesChronosWithID,
     createDraftTransactionAndNavigateToParticipantSelector,
     getIndicatedMissingPaymentMethod,
-    getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReport,
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant,
+    isSelfDM,
 } from '@libs/ReportUtils';
 import {
     deleteReportActionDraft,
@@ -90,14 +91,14 @@ function ReportActionItem({
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
+    const originalReportID = useOriginalReportID(reportID, action);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
     const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
@@ -149,7 +150,7 @@ function ReportActionItem({
             )}
             modifiedExpenseMessage={getForReportAction({
                 reportAction: action,
-                policyID: report?.policyID,
+                policyID: isSelfDM(parentReport) ? activePolicyID : report?.policyID,
                 movedFromReport,
                 movedToReport,
             })}
