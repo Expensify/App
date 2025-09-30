@@ -10,7 +10,7 @@ function useOnboardingTask(taskName: IntroSelectedTask) {
     const [taskParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`, {canBeMissing: true});
     const [taskParentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${taskParentReport?.reportID}`, {canBeMissing: true});
 
-    return {isParentReportAcrhived: isArchivedReport(taskParentReportNameValuePairs)};
+    return {isParentReportArchived: isArchivedReport(taskParentReportNameValuePairs)};
 }
 
 export default useOnboardingTask;

@@ -27,14 +27,14 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE;
-    const {isParentReportAcrhived: isSetupCategoryTaskParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+    const {isParentReportArchived: isSetupCategoryTaskParentReportArchived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            createPolicyCategory(route.params.policyID, values.categoryName.trim(), isSetupCategoryTaskParentReportAcrhived);
+            createPolicyCategory(route.params.policyID, values.categoryName.trim(), isSetupCategoryTaskParentReportArchived);
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
-        [route.params.policyID, isSetupCategoryTaskParentReportAcrhived, isQuickSettingsFlow, backTo],
+        [route.params.policyID, isSetupCategoryTaskParentReportArchived, isQuickSettingsFlow, backTo],
     );
 
     return (

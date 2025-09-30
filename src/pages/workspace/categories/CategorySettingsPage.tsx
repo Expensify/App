@@ -68,7 +68,7 @@ function CategorySettingsPage({
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
-    const {isParentReportAcrhived: isSetupCategoryTaskParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+    const {isParentReportArchived: isSetupCategoryTaskParentReportArchived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -134,7 +134,7 @@ function CategorySettingsPage({
         setWorkspaceCategoryEnabled(
             policyID,
             {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
-            isSetupCategoryTaskParentReportAcrhived,
+            isSetupCategoryTaskParentReportArchived,
             policyTagLists,
             allTransactionViolations,
         );
@@ -147,7 +147,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportAcrhived, policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };

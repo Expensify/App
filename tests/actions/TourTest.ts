@@ -44,14 +44,14 @@ describe('actions/Tour', () => {
                 startTestDrive(undefined, false, true, false, false);
                 await waitForBatchedUpdates();
 
-                expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
             it("should show the Test Drive demo if user doesn't have the nudge flag but is member of a paid policy", async () => {
                 startTestDrive(undefined, false, false, true, false);
                 await waitForBatchedUpdates();
 
-                expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
         });
 
@@ -105,6 +105,7 @@ describe('actions/Tour', () => {
             });
 
             it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.includes(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
+                Acrhived;
                 startTestDrive({choice}, false, false, false, false);
                 await waitForBatchedUpdates();
 
@@ -117,7 +118,7 @@ describe('actions/Tour', () => {
                 startTestDrive({choice: CONST.ONBOARDING_CHOICES.SUBMIT, inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE}, false, false, false, false);
                 await waitForBatchedUpdates();
 
-                expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 // An empty object means the task was completed.
                 expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR, false)).length).toBe(0);
             });
@@ -126,7 +127,7 @@ describe('actions/Tour', () => {
                 startTestDrive({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, false, false, true, false);
                 await waitForBatchedUpdates();
 
-                expect(Navigation.navigate).toBeCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
         });
     });
