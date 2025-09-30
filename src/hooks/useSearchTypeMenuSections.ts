@@ -40,7 +40,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
 
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
@@ -55,14 +55,26 @@ const useSearchTypeMenuSections = () => {
                 currentUserLoginAndAccountID?.email,
                 currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
-                defaultCardFeed,
+                defaultCardFeed ?? defaultExpensifyCard,
                 allPolicies,
                 activePolicyID,
                 savedSearches,
                 isOffline,
+                defaultExpensifyCard,
                 reports,
             ),
-        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, activePolicyID, savedSearches, isOffline, reports],
+        [
+            currentUserLoginAndAccountID?.email,
+            currentUserLoginAndAccountID?.accountID,
+            cardFeedsByPolicy,
+            defaultCardFeed,
+            defaultExpensifyCard,
+            allPolicies,
+            activePolicyID,
+            savedSearches,
+            isOffline,
+            reports,
+        ],
     );
 
     return {typeMenuSections};

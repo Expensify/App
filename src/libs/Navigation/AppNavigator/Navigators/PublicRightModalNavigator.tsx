@@ -27,7 +27,7 @@ function PublicRightModalNavigatorComponent({navigation}: PublicRightModalNaviga
         <NarrowPaneContextProvider>
             <NoDropZone>
                 {!shouldUseNarrowLayout && <Overlay onPress={navigation.goBack} />}
-                <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
+                <View style={[styles.RHPNavigatorContainer(shouldUseNarrowLayout), styles.r0]}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         id={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
