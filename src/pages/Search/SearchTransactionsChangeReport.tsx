@@ -24,6 +24,11 @@ function SearchTransactionsChangeReport() {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
+        canBeMissing: true,
+        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+    });
 
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
@@ -37,10 +42,10 @@ function SearchTransactionsChangeReport() {
             : undefined;
 
     // Get the policy ID from the first transaction
-    const activePolicyID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.policyID : undefined;
+    const policyID = activePolicy ? activePolicyID : selectedTransactions[firstTransactionKey ?? '']?.policyID;
 
     const createReport = () => {
-        const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
+        const createdReportID = createNewReport(currentUserPersonalDetails, policyID);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${createdReportID}`];
         changeTransactionsReport(
             selectedTransactionsKeys,
@@ -48,7 +53,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             session?.email ?? '',
-            activePolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined,
+            policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined,
             reportNextStep,
         );
         clearSelectedTransactions();
