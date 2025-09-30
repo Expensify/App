@@ -7,7 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread, isTripPreview} from '@libs/ReportActionsUtils';
+import {isTripPreview} from '@libs/ReportActionsUtils';
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
