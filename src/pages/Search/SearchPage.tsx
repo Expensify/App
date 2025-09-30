@@ -390,8 +390,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const canAllTransactionsBeMoved =
-            selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport) && !!activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL;
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
             options.push({
@@ -445,7 +444,6 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
-        activePolicy,
         selectedTransactionsKeys,
         status,
         hash,
