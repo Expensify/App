@@ -309,7 +309,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isWorkspaceMemberLeavingWorkspaceRoom = report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyEmployee;
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
+    }, [isPolicyEmployee, isRootGroupChat, report.reportID, report.visibility]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
