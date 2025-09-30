@@ -488,7 +488,7 @@ function WorkspacesListPage() {
                             {translate('workspace.common.workspaceType')}
                         </Text>
                     </View>
-                    <View style={[styles.workspaceRightColumn, styles.mr8]} />
+                    <View style={[styles.workspaceRightColumn, styles.mr7]} />
                 </View>
             )}
         </>
