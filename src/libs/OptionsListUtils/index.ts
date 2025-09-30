@@ -1753,6 +1753,7 @@ function getValidOptions(
         searchString,
         maxElements,
         includeUserToInvite = false,
+        maxRecentReportElements = undefined,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1813,7 +1814,7 @@ function getValidOptions(
             });
         };
 
-        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxElements, filteringFunction);
+        filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxRecentReportElements ?? maxElements, filteringFunction);
 
         const {recentReports, workspaceOptions, selfDMOption} = getValidReports(filteredReports, {
             ...getValidReportsConfig,
