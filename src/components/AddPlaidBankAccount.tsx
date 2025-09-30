@@ -1,10 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -14,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PlaidData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ActivityIndicator from './ActivityIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
@@ -74,7 +74,6 @@ function AddPlaidBankAccount({
     onInputChange = () => {},
     isDisplayedInWalletFlow = false,
 }: AddPlaidBankAccountProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const plaidBankAccounts = plaidData?.bankAccounts ?? [];
     const defaultSelectedPlaidAccount = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID);
@@ -230,10 +229,7 @@ function AddPlaidBankAccount({
         if (plaidData?.isLoading) {
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        color={theme.spinner}
-                        size="large"
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             );
         }
@@ -248,11 +244,9 @@ function AddPlaidBankAccount({
 
     return (
         <FullPageOfflineBlockingView>
-            <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                {translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
-            </Text>
-            {!!text && <Text style={[styles.mh5, styles.mb6, styles.textSupporting]}>{text}</Text>}
-            <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
+            {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                 <Icon
                     src={icon}
                     height={iconSize}
@@ -266,12 +260,12 @@ function AddPlaidBankAccount({
                     )}
                 </View>
             </View>
-            <Text style={[styles.mh5, styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+            <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
             <RadioButtons
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
                 onPress={handleSelectingPlaidAccount}
-                radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
+                radioButtonStyle={[styles.mb6]}
             />
             <FormHelpMessage message={errorText} />
         </FullPageOfflineBlockingView>
