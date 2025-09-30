@@ -47,7 +47,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
             onMouseLeave={bind.onMouseLeave}
         >
             <ReceiptImage
-                source={source}
+                source={source.toString()}
                 isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage
@@ -63,7 +63,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 shouldUseInitialObjectPosition
             />
             <ReceiptPreview
-                source={previewSource}
+                source={previewSource.toString()}
                 hovered={hovered}
                 isEReceipt={!!isEReceipt}
                 transactionItem={transactionItem}

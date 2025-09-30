@@ -210,7 +210,7 @@ function IOURequestStepConfirmation({
     });
 
     const receiptFilename = getReceiptFilenameFromTransaction(transaction);
-    const receiptPath = transaction?.receipt?.source;
+    const receiptPath = transaction?.receipt?.source?.toString();
     const isEditingReceipt = hasReceipt(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);

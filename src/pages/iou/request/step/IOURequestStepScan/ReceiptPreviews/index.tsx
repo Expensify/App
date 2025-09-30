@@ -102,7 +102,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
             >
                 <Image
-                    source={{uri: item.source}}
+                    source={{uri: item.source?.toString()}}
                     style={[styles.receiptPlaceholder, styles.overflowHidden]}
                     loadingIconSize="small"
                     loadingIndicatorStyles={styles.bgTransparent}
