@@ -760,14 +760,17 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
-    const renderTopReportAction = () => (
-        <>
-            {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
-            <View style={styles.overflowScroll}>
-                <View style={styles.pt4}>{renderItem({item: topReportAction, index: sortedVisibleReportActions.length - 1} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
-            </View>
-        </>
-    );
+    const renderTopReportActions = useCallback(() => {
+        const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+        return (
+            <>
+                {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
+                <View style={[styles.overflowScroll, styles.pt4]}>
+                    {previewItems.map((action) => renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>))}
+                </View>
+            </>
+        );
+    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
@@ -793,7 +796,7 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportAction() : undefined}
+                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
