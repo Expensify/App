@@ -171,8 +171,9 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
-        const previousValueHasSameOp = queryFilter.operator === 'eq' && queryFilters?.at(index - 1)?.operator === 'eq';
-        const nextValueHasSameOp = queryFilter.operator === 'eq' && queryFilters?.at(index + 1)?.operator === 'eq';
+        const allowedOps: string[] = [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO];
+        const previousValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
+        const nextValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
@@ -450,6 +451,8 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     }
 
     const filters = queryJSON.flatFilters;
+
+    console.log(filters);
 
     for (const filter of filters) {
         const filterValueString = buildFilterValuesString(filter.key, filter.filters);
@@ -1049,7 +1052,9 @@ function getQueryWithUpdatedValues(query: string) {
         return;
     }
 
+    // JACK
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
+    console.log(buildSearchQueryString(standardizedQuery));
     return buildSearchQueryString(standardizedQuery);
 }
 
