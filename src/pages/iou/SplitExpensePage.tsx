@@ -81,7 +81,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isCardTransaction(transaction);
 
-    const childTransactions = getChildTransactions(transactionID);
+    const childTransactions = useMemo(() => getChildTransactions(transactionID), [transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
 
@@ -218,7 +218,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseAmountChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                cannotBeEdited: !!item.statusNum && item.statusNum >= CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable: !!item.statusNum && item.statusNum < CONST.REPORT.STATUS_NUM.CLOSED,
             };
         });
 
@@ -324,7 +324,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             />
                         )}
                         onSelectRow={(item) => {
-                            if (item.cannotBeEdited) {
+                            if (!item.isEditable) {
                                 setCannotBeEditedModalVisible(true);
                                 return;
                             }

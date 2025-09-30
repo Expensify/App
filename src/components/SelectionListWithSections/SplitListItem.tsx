@@ -136,7 +136,7 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        {splitItem.cannotBeEdited ? (
+                        {!splitItem.isEditable ? (
                             <View style={styles.cannotBeEditedSplitInputContainer}>
                                 <Text
                                     style={[styles.optionRowAmountInput, styles.pAbsolute]}
@@ -185,7 +185,7 @@ function SplitListItem<TItem extends ListItem>({
                         )}
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
-                        {splitItem.cannotBeEdited ? null : (
+                        {!splitItem.isEditable ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
                                     src={Expensicons.ArrowRight}
