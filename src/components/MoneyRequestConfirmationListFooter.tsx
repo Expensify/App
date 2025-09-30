@@ -9,7 +9,6 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -75,6 +74,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The distance of the transaction */
     distance: number;
+
+    /** The raw numeric amount of the transaction */
+    rawAmount: number;
 
     /** The formatted amount of the transaction */
     formattedAmount: string;
@@ -244,6 +246,7 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
+    rawAmount,
     policyTagLists,
     rate,
     receiptFilename,
@@ -270,8 +273,6 @@ function MoneyRequestConfirmationListFooter({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isManualDistanceEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -335,9 +336,15 @@ function MoneyRequestConfirmationListFooter({
     let reportName = getReportName(selectedReport, selectedPolicy);
 
     if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, selectedPolicy?.id, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        const optimisticReport = buildOptimisticExpenseReport(
+            reportID,
+            selectedPolicy?.id,
+            selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            rawAmount ?? transaction?.amount ?? 0,
+            currency,
+        );
         selectedReportID = !selectedReportID ? optimisticReport.reportID : selectedReportID;
-        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
+        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy, true);
     }
 
     // When creating an expense in an individual report, the report field becomes read-only
@@ -495,7 +502,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && (isPolicyExpenseChat || isManualDistanceEnabled)}
+                    shouldShowRightIcon={!!rate && !isReadOnly}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -505,16 +512,17 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        if (isManualDistanceEnabled && !isPolicyExpenseChat) {
+                        if (!isPolicyExpenseChat) {
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action,
                                     iouType,
                                     transactionID,
                                     reportID,
-                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias,
-                                    Navigation.getActiveRoute(),
-                                ),
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                    backTo: Navigation.getActiveRoute(),
+                                    shouldSubmitExpense: true,
+                                }),
                             );
                             return;
                         }
@@ -522,7 +530,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && (isPolicyExpenseChat || isManualDistanceEnabled)}
+                    interactive={!!rate && !isReadOnly}
                 />
             ),
             shouldShow: isDistanceRequest,
@@ -1016,6 +1024,7 @@ export default memo(
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
+        prevProps.rawAmount === nextProps.rawAmount &&
         prevProps.formattedAmount === nextProps.formattedAmount &&
         prevProps.formError === nextProps.formError &&
         prevProps.hasRoute === nextProps.hasRoute &&
