@@ -2302,7 +2302,7 @@ describe('actions/Report', () => {
     it('should not overwrite testDriveModalDismissed when it is already true', async () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
-        
+
         await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
         await waitForBatchedUpdates();
