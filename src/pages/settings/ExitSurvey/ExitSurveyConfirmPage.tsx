@@ -67,7 +67,10 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     }, [backTo, getBackToParam, navigation]);
 
     return (
-        <ScreenWrapper testID={ExitSurveyConfirmPage.displayName}>
+        <ScreenWrapper
+            testID={ExitSurveyConfirmPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <HeaderWithBackButton
                 title={translate(shouldShowQuickTips ? 'exitSurvey.goToExpensifyClassic' : 'exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
