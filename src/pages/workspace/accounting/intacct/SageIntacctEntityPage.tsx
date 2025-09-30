@@ -1,11 +1,11 @@
 import React from 'react';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctEntity} from '@libs/actions/connections/SageIntacct';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -18,7 +18,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const entityID = config?.entity ?? '';
     const {translate} = useLocalize();
 
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? '-1';
 
     const sections = [
         {
@@ -48,7 +48,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={SageIntacctEntityPage.displayName}
             sections={sections ? [{data: sections}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onSelectRow={saveSelection}
             initiallyFocusedOptionKey={sections?.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.dismissModal()}
@@ -56,7 +56,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ENTITY], config?.pendingFields)}
-            errors={getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
+            errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
             errorRowStyles={[styles.ph5, styles.mv2]}
             onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
         />
