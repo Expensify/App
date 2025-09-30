@@ -1689,6 +1689,7 @@ const translations = {
         general: 'General',
     },
     closeAccountPage: {
+        // @context close as a verb, not an adjective
         closeAccount: 'Close account',
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
