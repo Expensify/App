@@ -1,0 +1,61 @@
+diff --git a/node_modules/react-native/React-Core.podspec b/node_modules/react-native/React-Core.podspec
+index 285793b..3044caf 100644
+--- a/node_modules/react-native/React-Core.podspec
++++ b/node_modules/react-native/React-Core.podspec
+@@ -136,6 +136,7 @@ Pod::Spec.new do |s|
+   s.dependency "React-runtimescheduler"
+   s.dependency "Yoga"
+   s.dependency "glog"
++  s.dependency "React-rendererconsistency"
+ 
+   s.resource_bundles = {'React-Core_privacy' => 'React/Resources/PrivacyInfo.xcprivacy'}
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec b/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec
+index a71ccaa..243b7d8 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec
++++ b/node_modules/react-native/ReactCommon/react/renderer/consistency/React-rendererconsistency.podspec
+@@ -16,7 +16,9 @@ else
+   source[:tag] = "v#{version}"
+ end
+ 
+-header_search_paths = []
++header_search_paths = [
++  "\"$(PODS_TARGET_SRCROOT)/ReactCommon/react/renderer/consistency\"",
++]
+ 
+ if ENV['USE_FRAMEWORKS']
+   header_search_paths << "\"$(PODS_TARGET_SRCROOT)/../../..\"" # this is needed to allow the rendererconsistency access its own files
+diff --git a/node_modules/react-native/ReactCommon/reactperflogger/React-perflogger.podspec b/node_modules/react-native/ReactCommon/reactperflogger/React-perflogger.podspec
+index 686454f..2294ad4 100644
+--- a/node_modules/react-native/ReactCommon/reactperflogger/React-perflogger.podspec
++++ b/node_modules/react-native/ReactCommon/reactperflogger/React-perflogger.podspec
+@@ -25,7 +25,8 @@ header_search_paths = [
+   "\"$(PODS_ROOT)/RCT-Folly\"",
+   "\"$(PODS_ROOT)/DoubleConversion\"",
+   "\"$(PODS_ROOT)/fast_float/include\"",
+-  "\"$(PODS_ROOT)/fmt/include\""
++  "\"$(PODS_ROOT)/fmt/include\"",
++  "\"$(PODS_ROOT)/boost\""
+ ]
+ 
+ Pod::Spec.new do |s|
+diff --git a/node_modules/react-native/third-party-podspecs/boost.podspec b/node_modules/react-native/third-party-podspecs/boost.podspec
+index e30a230..c42fc0c 100644
+--- a/node_modules/react-native/third-party-podspecs/boost.podspec
++++ b/node_modules/react-native/third-party-podspecs/boost.podspec
+@@ -19,12 +19,13 @@ Pod::Spec.new do |spec|
+   # Pinning to the same version as React.podspec.
+   spec.platforms = min_supported_versions
+   spec.requires_arc = false
+-  spec.source_files = 'boost/**/*.{hpp,cpp}'
++  # spec.source_files = 'boost/**/*.{hpp,cpp}'
++  spec.project_header_files = 'boost/**/list.hpp'
+ 
+   spec.module_name = 'boost'
+   spec.header_dir = 'boost'
+   spec.preserve_path = 'boost'
+-  spec.header_mappings_dir = 'boost/boost'
++  spec.header_mappings_dir = './'
+ 
+   spec.resource_bundles = {'boost_privacy' => 'boost/PrivacyInfo.xcprivacy'}
+ 

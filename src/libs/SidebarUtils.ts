@@ -18,7 +18,7 @@ import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
 import Performance from './Performance';
-import {getCleanedTagName, getPolicy} from './PolicyUtils';
+import {getCleanedTagName, getPolicy, isPolicyAdmin} from './PolicyUtils';
 import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
@@ -78,6 +78,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
     formatReportLastMessageText,
+    getAllPolicyReports,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getChatRoomSubtitle,
     getDisplayNameForParticipant,
@@ -102,6 +103,7 @@ import {
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
+    isCurrentUserSubmitter,
     isDeprecatedGroupDM,
     isDomainRoom,
     isExpenseReport,
@@ -499,6 +501,10 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+function isLHNReport(report: Report): boolean {
+    return isPolicyExpenseChat(report) && !report.parentReportID;
+}
+
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     chatReport: OnyxEntry<Report>,
@@ -518,6 +524,27 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     }
 
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
+        if (isLHNReport(report)) {
+            const allPolicyReports = getAllPolicyReports(report?.policyID ?? '');
+
+            const policy = getPolicy(report.policyID);
+            const isAdmin = isPolicyAdmin(policy);
+
+            const expenseReportsForThisChat = allPolicyReports.filter(
+                (policyReport) => policyReport?.type === 'expense' && policyReport?.chatReportID === report.reportID && isCurrentUserSubmitter(policyReport),
+            );
+
+            if (expenseReportsForThisChat.length > 0) {
+                const isOpenReports = expenseReportsForThisChat.some(
+                    (reportItem) => (reportItem?.stateNum ?? 0) === CONST.REPORT.STATE_NUM.OPEN && (reportItem?.statusNum ?? 0) === CONST.REPORT.STATUS_NUM.OPEN,
+                );
+
+                if (!isOpenReports && !isAdmin) {
+                    return null;
+                }
+            }
+        }
+
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
         };
