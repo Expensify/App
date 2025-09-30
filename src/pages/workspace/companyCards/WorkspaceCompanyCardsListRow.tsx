@@ -6,7 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -24,7 +24,7 @@ type WorkspaceCompanyCardsListRowProps = {
 
 function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceCompanyCardsListRowProps) {
     const styles = useThemeStyles();
-    const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
+    const cardholderName = useMemo(() => getDisplayNameOrDefault(cardholder), [cardholder]);
     const theme = useTheme();
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>
