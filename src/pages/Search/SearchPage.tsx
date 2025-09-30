@@ -443,28 +443,7 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         return options;
-    }, [
-        activePolicy,
-        selectedTransactionsKeys,
-        status,
-        hash,
-        selectedTransactions,
-        translate,
-        areAllMatchingItemsSelected,
-        isOffline,
-        selectedReports,
-        queryJSON,
-        clearSelectedTransactions,
-        lastPaymentMethods,
-        theme.icon,
-        styles.colorMuted,
-        styles.fontWeightNormal,
-        styles.textWrap,
-        beginExportWithTemplate,
-        integrationsExportTemplates,
-        csvExportLayouts,
-        policies,
-    ]);
+    }, [selectedTransactionsKeys, status, hash, selectedTransactions, translate, areAllMatchingItemsSelected, isOffline, selectedReports, queryJSON, clearSelectedTransactions, lastPaymentMethods, theme.icon, styles.colorMuted, styles.fontWeightNormal, styles.textWrap, beginExportWithTemplate, integrationsExportTemplates, csvExportLayouts, policies]);
 
     const handleDeleteExpenses = () => {
         if (selectedTransactionsKeys.length === 0 || !hash) {
