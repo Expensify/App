@@ -5,7 +5,7 @@
 - Reason:
   
     ```
-    This patch addes verbose error logging option.
+    This patch adds verbose error logging option.
     ```
   
 - Upstream PR/issue: https://github.com/facebook/react/pull/29080 and https://github.com/facebook/react/pull/29851
