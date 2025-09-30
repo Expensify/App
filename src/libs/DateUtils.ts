@@ -793,7 +793,6 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  */
 function getFormattedDateRange(date1: Date, date2: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
     const monthDayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_ABBR_FORMAT]);
-    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]);
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
         return monthDayAbbrFormatter.format(date1);
@@ -807,6 +806,7 @@ function getFormattedDateRange(date1: Date, date2: Date, locale: Locale = CONST.
         return `${monthDayAbbrFormatter.format(date1)} ${translateLocal('common.to').toLowerCase()} ${monthDayAbbrFormatter.format(date2)}`;
     }
     // Dates differ by years, months, days
+    const monthDayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]);
     return `${monthDayYearAbbrFormatter.format(date1)} ${translateLocal('common.to').toLowerCase()} ${monthDayYearAbbrFormatter.format(date2)}`;
 }
 
@@ -845,11 +845,11 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date, locale: Loca
  */
 function getFormattedTransportDate(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
     const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
-    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
-    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isThisYear(date)) {
+        const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
         return `${translateLocal('travel.departs')} ${monthDayWeekdayAbbrFormatter.format(date)} ${translateLocal('common.conjunctionAt')} ${timeFormatter.format(date)}`;
     }
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     return `${translateLocal('travel.departs')} ${monthDayWeekdayYearAbbrFormatter.format(date)} ${translateLocal('common.conjunctionAt')} ${timeFormatter.format(date)}`;
 }
 
