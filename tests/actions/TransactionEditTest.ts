@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import * as TransactionEdit from '@libs/actions/TransactionEdit';
+import {createBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +34,7 @@ describe('actions/TransactionEdit', () => {
                 const transaction = {...transactionOriginal, amount: 100};
                 const isDraft = false;
 
-                TransactionEdit.createBackupTransaction(transaction, isDraft);
+                createBackupTransaction(transaction, isDraft);
 
                 await waitForBatchedUpdates();
 
@@ -51,7 +51,7 @@ describe('actions/TransactionEdit', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`, transactionBackup);
                 await waitForBatchedUpdates();
 
-                TransactionEdit.createBackupTransaction(transaction, isDraft);
+                createBackupTransaction(transaction, isDraft);
                 await waitForBatchedUpdates();
 
                 const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -61,7 +61,7 @@ describe('actions/TransactionEdit', () => {
             });
 
             it('should handle null transaction gracefully', async () => {
-                TransactionEdit.createBackupTransaction(undefined, false);
+                createBackupTransaction(undefined, false);
                 await waitForBatchedUpdates();
 
                 const backups = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}`);
@@ -80,7 +80,7 @@ describe('actions/TransactionEdit', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionOriginal.transactionID}`, transactionBackup);
                 await waitForBatchedUpdates();
 
-                TransactionEdit.restoreOriginalTransactionFromBackup(transactionOriginal.transactionID, isDraft);
+                restoreOriginalTransactionFromBackup(transactionOriginal.transactionID, isDraft);
                 await waitForBatchedUpdates();
 
                 const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionOriginal.transactionID}`);
@@ -98,7 +98,7 @@ describe('actions/TransactionEdit', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionOriginal.transactionID}`, transactionBackup);
                 await waitForBatchedUpdates();
 
-                TransactionEdit.restoreOriginalTransactionFromBackup(transactionOriginal.transactionID, isDraft);
+                restoreOriginalTransactionFromBackup(transactionOriginal.transactionID, isDraft);
                 await waitForBatchedUpdates();
 
                 const restoredDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionOriginal.transactionID}`);
@@ -112,7 +112,7 @@ describe('actions/TransactionEdit', () => {
             it('should handle missing backup gracefully', async () => {
                 const isDraft = false;
 
-                TransactionEdit.restoreOriginalTransactionFromBackup(transactionOriginal.transactionID, isDraft);
+                restoreOriginalTransactionFromBackup(transactionOriginal.transactionID, isDraft);
                 await waitForBatchedUpdates();
 
                 const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionOriginal.transactionID}`);
@@ -121,7 +121,7 @@ describe('actions/TransactionEdit', () => {
             });
 
             it('should handle null transactionID gracefully', async () => {
-                TransactionEdit.restoreOriginalTransactionFromBackup(undefined, false);
+                restoreOriginalTransactionFromBackup(undefined, false);
                 await waitForBatchedUpdates();
 
                 const transactions = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}`);
