@@ -58,7 +58,6 @@ import {
     shouldShowPolicy as checkIfShouldShowPolicy,
     goBackFromInvalidPolicy,
     hasPolicyCategoriesError,
-    isDeleteWorkspaceAnnualSubscriptionError,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
@@ -492,7 +491,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             pendingAction={policy?.pendingAction}
                             onClose={() => dismissError(policyID, policy?.pendingAction)}
                             errors={policy?.errors}
-                            shouldShowErrorMessages={!isDeleteWorkspaceAnnualSubscriptionError(policy)}
                             errorRowStyles={[styles.ph5, styles.pv2]}
                             shouldDisableStrikeThrough={false}
                             shouldHideOnDelete={false}
