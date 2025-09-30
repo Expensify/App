@@ -20,10 +20,8 @@ import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayNa
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getButtonState from '@libs/getButtonState';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -136,7 +134,6 @@ function WorkspacesListRow({
     isHovered,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -298,8 +295,8 @@ function WorkspacesListRow({
                     <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
                         <Icon
                             src={Expensicons.ArrowRight}
-                            fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                            additionalStyles={[styles.alignSelfCenter]}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                             isButtonIcon
                             medium
                         />

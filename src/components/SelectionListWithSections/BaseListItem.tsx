@@ -11,7 +11,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
@@ -158,8 +157,8 @@ function BaseListItem<TItem extends ListItem>({
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
-                                additionalStyles={[styles.alignSelfCenter]}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered))}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
                                 isButtonIcon
                                 medium
                             />
