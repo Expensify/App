@@ -16,10 +16,10 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import ListItemRightCaretWithLabel from '@components/SelectionListWithSections/ListItemRightCaretWithLabel';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -609,10 +609,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         currentConnectionName={currentConnectionName}
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                        customTagName={policyTagLists.at(0)?.name ?? ''}
+                        isDisplayingTags
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {translate('workspace.tags.subtitle')}
+                        {!hasDependentTags && !!policyTagLists.at(0)?.name && (
+                            <View style={[styles.renderHTML]}>
+                                <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName: policyTagLists.at(0)?.name ?? ''})} />
+                            </View>
+                        )}
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML

@@ -22,6 +22,7 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
+    canDeleteMoneyRequestReport,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
@@ -31,7 +32,6 @@ import {
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
     isArchivedReport,
-    isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -54,8 +54,6 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCardTransaction as isCardTransactionUtils,
-    isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -66,7 +64,7 @@ import {
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report);
 
-    if (!isReportSubmitter || reportTransactions.length === 0) {
+    if (!isReportSubmitter) {
         return false;
     }
 
@@ -444,50 +442,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isIOUReport = isIOUReportUtils(report);
-    const isUnreported = isSelfDMReportUtils(report);
-    const transaction = reportTransactions.at(0);
-    const transactionID = transaction?.transactionID;
-    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
-    const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
-    const isSingleTransaction = reportTransactions.length === 1;
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransaction(t))) {
-        return true;
-    }
-
-    if (isUnreported) {
-        return isOwner;
-    }
-
-    if (isInvoiceReport) {
-        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    }
-
-    // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
-    // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
-    if (isIOUReport) {
-        return isSingleTransaction && isOwner && isReportOpenOrProcessing;
-    }
-
-    if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability =
-            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
-
-        if (isCardTransactionWithCorporateLiability) {
-            return false;
-        }
-
-        const isReportSubmitter = isCurrentUserSubmitter(report);
-        const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-        const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
-
-        return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
-    }
-
-    return false;
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions, policy);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {

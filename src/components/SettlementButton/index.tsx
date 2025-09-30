@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
+import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -33,6 +33,7 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,7 +87,7 @@ function SettlementButton({
     hasOnlyHeldExpenses = false,
 }: SettlementButtonProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const {accountID} = useCurrentUserPersonalDetails();
@@ -114,7 +115,7 @@ function SettlementButton({
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
-    const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
@@ -130,6 +131,13 @@ function SettlementButton({
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+        getPaymentMethods();
+    }, [isOffline]);
 
     useEffect(() => {
         if (isLoadingLastPaymentMethod) {
@@ -352,9 +360,15 @@ function SettlementButton({
         onlyShowPayElsewhere,
         latestBankItem,
         activeAdminPolicies,
+        latestBankItem,
     ]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
+        if (policy && shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
         if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
             if (confirmApproval) {
                 confirmApproval();
@@ -367,8 +381,29 @@ function SettlementButton({
         onPress(iouPaymentType, false);
     };
 
-    const selectPaymentMethod = (event: KYCFlowEvent, paymentType: string, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
-        triggerKYCFlow(event, paymentType as PaymentMethodType, paymentMethod, selectedPolicy ?? (event ? lastPaymentPolicy : undefined));
+    const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (policy && shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
+        let paymentType;
+        switch (paymentMethod) {
+            case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+                paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+                break;
+            case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+                paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
+                break;
+            default:
+                paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+        }
+        triggerKYCFlow(event, paymentType, paymentMethod, selectedPolicy ?? (event ? lastPaymentPolicy : undefined));
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         }
@@ -401,7 +436,9 @@ function SettlementButton({
             return lastPaymentPolicy.name;
         }
 
-        const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
+        const bankAccountToDisplay = hasIntentToPay
+            ? ((formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) ?? formattedPaymentMethods.at(0)) as BankAccount)
+            : bankAccount;
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReportUtil(iouReport))) {
             if (!personalBankAccountList.length) {
                 return;
@@ -417,6 +454,12 @@ function SettlementButton({
 
             if (!bankAccountToDisplay?.accountData?.accountNumber) {
                 return;
+            }
+
+            if (bankAccountToDisplay?.accountData?.accountNumber) {
+                return translate('paymentMethodList.bankAccountLastFour', {
+                    lastFour: bankAccountToDisplay.accountData.accountNumber.slice(-4),
+                });
             }
 
             return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
@@ -439,20 +482,11 @@ function SettlementButton({
             return;
         }
 
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-            return;
-        }
-
-        if (policy && shouldRestrictUserBillableActions(policy.id)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
-        }
-
-        const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(selectedOption, activeAdminPolicies, latestBankItem);
-
+        const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(selectedOption as PaymentMethod);
+        const shouldSelectPaymentMethod = (isPaymentMethod ?? lastPaymentPolicy ?? !isEmpty(latestBankItem)) && !shouldShowApproveButton && !shouldHidePaymentOptions;
+        const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyIDKey);
         if (!!selectedPolicy || shouldSelectPaymentMethod) {
-            selectPaymentMethod(event, paymentType, triggerKYCFlow, selectedOption as PaymentMethod, selectedPolicy);
+            selectPaymentMethod(event, triggerKYCFlow, selectedOption as PaymentMethod, selectedPolicy);
             return;
         }
 

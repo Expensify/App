@@ -16,6 +16,7 @@ import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -23,6 +24,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -90,6 +92,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions belonging to this report */
     transactions?: OnyxTypes.Transaction[];
 
+    /** Whether there is a pending delete transaction */
+    hasPendingDeletionTransaction?: boolean;
+
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
@@ -106,13 +111,6 @@ type MoneyRequestReportListProps = {
     showReportActionsLoadingState?: boolean;
 };
 
-function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
-    if (!parentReportActions || !parentReportActionID) {
-        return;
-    }
-    return parentReportActions[parentReportActionID];
-}
-
 function MoneyRequestReportActionsList({
     report,
     policy,
@@ -122,6 +120,7 @@ function MoneyRequestReportActionsList({
     violations,
     hasNewerActions,
     hasOlderActions,
+    hasPendingDeletionTransaction,
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
@@ -142,11 +141,8 @@ function MoneyRequestReportActionsList({
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
-        canEvict: false,
-        canBeMissing: true,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
-    });
+
+    const parentReportAction = useParentReportAction(report);
 
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -714,13 +710,16 @@ function MoneyRequestReportActionsList({
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
                 {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
-                    <>
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <MoneyRequestViewReportFields
                             report={report}
                             policy={policy}
                         />
-                        <SearchMoneyRequestReportEmptyState />
-                    </>
+                        <SearchMoneyRequestReportEmptyState
+                            report={report}
+                            policy={policy}
+                        />
+                    </ScrollView>
                 ) : (
                     <FlatList
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
@@ -746,11 +745,13 @@ function MoneyRequestReportActionsList({
                                     report={report}
                                     transactions={transactions}
                                     newTransactions={newTransactions}
+                                    hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                     reportActions={reportActions}
                                     violations={violations}
                                     hasComments={reportHasComments}
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
+                                    policy={policy}
                                 />
                             </>
                         }
