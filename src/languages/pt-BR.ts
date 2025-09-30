@@ -674,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
-        description: 'Você não está autorizado a realizar esta ação quando o suporte estiver conectado.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Você não está autorizado a realizar esta ação quando o suporte está conectado (comando: ${command ?? ''}). Se você acha que o Success deveria poder realizar esta ação, por favor, inicie uma conversa no Slack.`,
     },
     lockedAccount: {
         title: 'Conta Bloqueada',

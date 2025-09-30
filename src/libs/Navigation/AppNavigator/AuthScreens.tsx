@@ -14,6 +14,7 @@ import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
@@ -542,6 +543,7 @@ function AuthScreens() {
                 SearchContextProvider,
                 LockedAccountModalProvider,
                 DelegateNoAccessModalProvider,
+                SupportalPermissionDeniedModalProvider,
                 WideRHPContextProvider,
             ]}
         >
