@@ -89,7 +89,7 @@ Onyx.connect({
     callback: (val) => (introSelected = val),
 });
 
-let allReportNameValuePair: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+// let allReportNameValuePair: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 // allReportNameValuePair is used on getFinishOnboardingTaskOnyxData to generate Onyx optimistic data
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -1313,12 +1313,10 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
-function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData {
+function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask, isParentReportArchived: boolean): OnyxData {
     const taskReportID = introSelected?.[taskName];
     const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`];
-    const parentReportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`];
-    const isParentReportArchived = ReportUtils.isArchivedReport(parentReportNameValuePairs);
     if (taskReportID && canActionTask(taskReport, currentUserAccountID, parentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
@@ -1329,9 +1327,9 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
 
     return {};
 }
-function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
+function completeTestDriveTask(isTaskParentReportArchived: boolean, shouldUpdateSelfTourViewedOnlyLocally = false) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR, isTaskParentReportArchived);
 }
 
 export {
