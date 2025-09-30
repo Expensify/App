@@ -347,6 +347,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
     const shouldShowEnableGlobalReimbursementsButton =
         isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
+        paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
 
