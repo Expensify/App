@@ -74,6 +74,9 @@ function IOURequestStepUpgrade({
         }
         Navigation.goBack();
 
+        // If we're submitting the expense to the workspace, we don't need the backTo param
+        const backTo = action === CONST.IOU.ACTION.CATEGORIZE ? '' : ROUTES.REPORT_WITH_ID.getRoute(reportID);
+
         switch (upgradePath) {
             case CONST.UPGRADE_PATHS.DISTANCE_RATES: {
                 if (!policyID || !reportID) {
@@ -87,7 +90,7 @@ function IOURequestStepUpgrade({
                 break;
             }
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backTo));
                 break;
             case CONST.UPGRADE_PATHS.REPORTS:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));

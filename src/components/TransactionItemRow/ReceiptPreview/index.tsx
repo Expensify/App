@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import type {LayoutChangeEvent} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
@@ -34,7 +34,6 @@ type ReceiptPreviewProps = {
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
     const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
     const styles = useThemeStyles();
-    const theme = useTheme();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
@@ -109,10 +108,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                 <View style={[styles.w100]}>
                     {isLoading && (
                         <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                            <ActivityIndicator
-                                color={theme.spinner}
-                                size="large"
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     )}
 

@@ -1,4 +1,5 @@
 import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -91,7 +92,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
         [navigationState],
     );
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);

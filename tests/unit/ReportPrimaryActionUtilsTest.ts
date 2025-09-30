@@ -44,7 +44,7 @@ describe('getPrimaryAction', () => {
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
-    it('should return ADD_EXPENSE for expense report with no transactions', async () => {
+    it('should return empty string for expense report with no transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -53,10 +53,7 @@ describe('getPrimaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [], violations: {}, policy: {} as Policy, isChatReportArchived: false})).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE,
-        );
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [], violations: {}, policy: {} as Policy, isChatReportArchived: false})).toBe('');
     });
 
     it('should return SUBMIT for expense report with manual submit', async () => {
