@@ -4,7 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
