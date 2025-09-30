@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.2.18-6",
+  "version": "9.2.20-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -77,7 +77,8 @@
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy src/libs/SearchParser/baseRules.peggy",
     "generate-autocomplete-parser": "peggy --format es -o src/libs/SearchParser/autocompleteParser.js src/libs/SearchParser/autocompleteParser.peggy src/libs/SearchParser/baseRules.peggy && ./scripts/parser-workletization.sh src/libs/SearchParser/autocompleteParser.js",
     "web:prod": "http-server ./dist --cors",
-    "octokit": "cd scripts && npx ts-node -i -e \"$(cat ./octokit.ts)\""
+    "octokit": "cd scripts && npx ts-node -i -e \"$(cat ./octokit.ts)\"",
+    "compress-svg": "npx ts-node scripts/compressSvg.ts --dir assets/images"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -123,6 +124,7 @@
     "@rnmapbox/maps": "10.1.44",
     "@shopify/flash-list": "2.0.3",
     "@ua/react-native-airship": "~24.4.0",
+    "array.prototype.tosorted": "^1.1.4",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
@@ -131,7 +133,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
-    "expensify-common": "2.0.159",
+    "expensify-common": "2.0.160",
     "expo": "53.0.7",
     "expo-asset": "^11.1.2",
     "expo-av": "^15.1.5",
@@ -312,7 +314,7 @@
     "electron-builder": "25.0.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-config-expensify": "2.0.87",
+    "eslint-config-expensify": "2.0.88",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-jest": "^28.6.0",
@@ -357,6 +359,7 @@
     "source-map": "^0.7.4",
     "storybook": "^8.6.9",
     "style-loader": "^2.0.0",
+    "svgo": "^4.0.0",
     "time-analytics-webpack-plugin": "^0.1.17",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
