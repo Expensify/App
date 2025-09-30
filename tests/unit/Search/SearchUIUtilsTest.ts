@@ -2478,7 +2478,7 @@ describe('SearchUIUtils', () => {
                 } as OnyxTypes.Policy,
             };
 
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, {}, adminAccountID);
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
             expect(response.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -2492,7 +2492,7 @@ describe('SearchUIUtils', () => {
                 successfulDate: new Date().toISOString(),
             };
 
-            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, {}, adminAccountID);
+            const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, {}, adminAccountID);
             expect(response2.export).toBe(true);
         });
     });
