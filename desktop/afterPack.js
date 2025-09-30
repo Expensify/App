@@ -20,13 +20,15 @@ const assetSource = path.resolve(dirname, `./${getAssetSourceFilename()}`);
 
 // This will copy Assets.car with MacOS Liquid Glass icon
 // and will be removed after Electron builder supports this natively
-export default async function afterPack(context) {
-    if (context.electronPlatformName !== "darwin") return;
+export default function afterPack(context) {
+    if (context.electronPlatformName !== "darwin") {
+        return Promise.resolve();
+    }
 
     const appName = context.packager.appInfo.productFilename;
     const appRoot = path.join(context.appOutDir, `${appName}.app`, "Contents");
     const resourcesDir = path.join(appRoot, "Resources");
 
-    await fs.mkdir(resourcesDir, { recursive: true });
-    await fs.copyFile(assetSource, path.join(resourcesDir, "Assets.car"));
+    return fs.mkdir(resourcesDir, { recursive: true })
+        .then(() => fs.copyFile(assetSource, path.join(resourcesDir, "Assets.car")));
 }
