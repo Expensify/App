@@ -55,6 +55,7 @@ function ValidateCodeActionContent({
             shouldEnableMaxHeight
             testID={ValidateCodeActionContent.displayName}
             offlineIndicatorStyle={themeStyles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={title}
