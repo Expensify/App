@@ -6,7 +6,7 @@ import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {UnreportedExpenseListItemType} from '@components/SelectionList/types';
+import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -210,6 +210,10 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
+}
+
+function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return isCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEnabled?: boolean): IOURequestType {
@@ -2071,6 +2075,7 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
+    isCorporateCardTransaction,
     isExpenseUnreported,
 };
 
