@@ -218,7 +218,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onSplitExpenseAmountChange,
                 isSelected: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
-                isEditable: !!item.statusNum && item.statusNum < CONST.REPORT.STATUS_NUM.CLOSED,
+                isEditable: !!(item.statusNum && item.statusNum < CONST.REPORT.STATUS_NUM.CLOSED),
             };
         });
 
