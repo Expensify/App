@@ -555,9 +555,10 @@ function IOURequestStepConfirmation({
             });
         },
         [
-            report,
             transactions,
             receiptFiles,
+            archivedReportsIdSet,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
@@ -567,9 +568,9 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
-            backToReport,
             shouldGenerateTransactionThreadReport,
-            archivedReportsIdSet,
+            backToReport,
+            isViewTourParentReportArchived,
         ],
     );
 

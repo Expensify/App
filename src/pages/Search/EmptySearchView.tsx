@@ -442,6 +442,9 @@ function EmptySearchViewContent({
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected,
+        tryNewDot?.hasBeenAddedToNudgeMigration,
+        isUserPaidPolicyMember,
+        isViewTourParentReportArchived,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
@@ -450,10 +453,8 @@ function EmptySearchViewContent({
         activePolicyID,
         currentUserPersonalDetails,
         tripViewChildren,
-        shouldRedirectToExpensifyClassic,
         hasTransactions,
-        tryNewDot?.hasBeenAddedToNudgeMigration,
-        isUserPaidPolicyMember,
+        shouldRedirectToExpensifyClassic,
     ]);
 
     return (
