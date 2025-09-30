@@ -22,7 +22,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
