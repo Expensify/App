@@ -201,8 +201,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.delaySubmissionDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    const hasCustomApprovalWorkflows = policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
-                    if (!isEnabled && hasCustomApprovalWorkflows) {
+                    if (!isEnabled) {
                         setIsDisableApprovalsConfirmModalOpen(true);
                         return;
                     }
@@ -235,6 +234,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    const hasCustomApprovalWorkflows = policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+                    if (!isEnabled && hasCustomApprovalWorkflows) {
+                        setIsDisableApprovalsConfirmModalOpen(true);
+                        return;
+                    }
                     setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
                 subMenuItems: (
