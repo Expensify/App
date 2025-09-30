@@ -321,4 +321,4 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
 MoneyRequestAttendeeSelector.displayName = 'MoneyRequestAttendeeSelector';
 
-export default memo(MoneyRequestAttendeeSelector, (prevProps, nextProps) => deepEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouType === nextProps.iouType);
+export default memo(MoneyRequestAttendeeSelector, (prevProps, nextProps) => deepEqual(prevProps, nextProps) && prevProps.iouType === nextProps.iouType);

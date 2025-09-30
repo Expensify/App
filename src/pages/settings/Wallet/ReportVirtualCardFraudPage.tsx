@@ -67,7 +67,7 @@ function ReportVirtualCardFraudPage({
             Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(latestIssuedVirtualCardID));
             setIsValidateCodeActionModalVisible(false);
         }
-    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors, validateCodeAction?.errorFields]);
+    }, [formData, latestIssuedVirtualCardID, prevIsLoading, virtualCard, validateCodeAction]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
