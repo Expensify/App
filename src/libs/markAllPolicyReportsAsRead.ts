@@ -16,7 +16,8 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<ReportActions> = {};
-Onyx.connect({
+// It is not used in the business logic but give directly access to all actions to mark the reports as read
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
