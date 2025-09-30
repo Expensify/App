@@ -2,8 +2,8 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -107,7 +107,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopOutOfPocketExpenseAccountSelectPage.displayName}
             sections={data.length ? [{data}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{description}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportAccount}

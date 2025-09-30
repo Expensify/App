@@ -7,9 +7,9 @@ import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -99,7 +99,7 @@ function ChooseTransferAccountPage() {
 
             <SelectionList
                 sections={[{data}]}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={(value) => {
                     const accountType = value?.bankAccount?.accountType;
                     const accountData = value?.bankAccount?.accountData;

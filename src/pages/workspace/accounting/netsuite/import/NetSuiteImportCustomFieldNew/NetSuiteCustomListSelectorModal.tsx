@@ -3,8 +3,8 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
@@ -90,7 +90,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     onChangeText={setSearchValue}
                     onSelectRow={onCustomListSelected}
                     headerMessage={headerMessage}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     isRowMultilineSupported
                     initiallyFocusedOptionKey={currentCustomListValue}
                     shouldSingleExecuteRowSelect

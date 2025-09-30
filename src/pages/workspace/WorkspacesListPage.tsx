@@ -21,7 +21,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
@@ -31,7 +31,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
@@ -109,7 +108,6 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -122,7 +120,6 @@ function WorkspacesListPage() {
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
-    const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
     const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
     const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
 
@@ -263,7 +260,7 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (isAdmin && isDuplicatedWorkspaceEnabled) {
+            if (isAdmin) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
@@ -371,13 +368,13 @@ function WorkspacesListPage() {
             duplicateWorkspace?.policyID,
             translate,
             policies,
-            isDuplicatedWorkspaceEnabled,
             canUserSetWorkspaceAsDefault,
             fundList,
             deleteWorkspaceErrorModal?.isVisible,
             styles.ph5,
             styles.mb2,
             styles.mh5,
+            styles.ph5,
             styles.hoveredComponentBG,
             styles.offlineFeedback.deleted,
             loadingSpinnerIconIndex,
