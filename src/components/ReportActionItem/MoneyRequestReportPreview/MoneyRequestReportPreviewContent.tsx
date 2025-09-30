@@ -1,7 +1,8 @@
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, FlatList, View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
@@ -739,10 +740,7 @@ function MoneyRequestReportPreviewContent({
                                                 styles.mtn1,
                                             ]}
                                         >
-                                            <ActivityIndicator
-                                                color={theme.spinner}
-                                                size={40}
-                                            />
+                                            <ActivityIndicator size={40} />
                                         </View>
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
