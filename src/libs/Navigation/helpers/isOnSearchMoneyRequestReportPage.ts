@@ -1,8 +1,10 @@
+import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import SCREENS from '@src/SCREENS';
 
 const isOnSearchMoneyRequestReportPage = (): boolean => {
     if (!navigationRef.isReady()) {
+        Log.warn('NavigationRef is not ready. Returning false.');
         return false;
     }
 

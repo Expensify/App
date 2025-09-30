@@ -2,6 +2,7 @@ import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, St
 import {StackActions, StackRouter} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Log from '@libs/Log';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
@@ -34,6 +35,7 @@ type AdaptStateIfNecessaryArgs = {
  */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     if (!navigationRef.isReady()) {
+        Log.warn('NavigationRef is not ready. Returning the original state without adaptation.');
         return state;
     }
 
