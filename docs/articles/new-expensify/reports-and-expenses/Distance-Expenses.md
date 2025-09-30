@@ -30,12 +30,12 @@ To submit a distance-based expense by entering the distance manually:
 
 1. Click the green “+” sign and select **Track distance** from any page in the app or directly  
 from an expense chat
-3. Choose the **Manual** tab
-4. Enter the number of miles or kilometres you need to be reimbursed for
-5. Review the calculated reimbursement amount
-6. Tap **Next** to continue
-7. Confirm the expense details, recipient, category, and add a receipt if needed
-8. Submit the expense
+2. Choose the **Manual** tab
+3. Enter the number of miles or kilometres you need to be reimbursed for
+4. Review the calculated reimbursement amount
+5. Tap **Next** to continue
+6. Confirm the expense details, recipient, category, and add a receipt if needed
+7. Submit the expense
 
 A Workspace Admin will be notified of the expense and, depending on your workspace settings, can reimburse you through Expensify or another method.
 
@@ -94,9 +94,9 @@ Only map-based distance expenses can be split, manual distance expenses are not 
 
 The distance unit and rate can only be updated at the workspace level, not at the expense level. If you need these updated, you will need to speak with an admin.
 
-## Can I move my distance expense to a new Workspace?
+## Can I move my distance expense to a new workspace?
 
-Yes, you can do this before the expenses have been approved. But be aware that doing so will automatically update the distance rate and unit based on the new workspace.
+Yes, you can do this before the expenses have been approved. However, be aware that doing so will automatically update the distance rate and unit based on the new workspace.
 
 ## What if I enter 0 miles or kilometres?
 
