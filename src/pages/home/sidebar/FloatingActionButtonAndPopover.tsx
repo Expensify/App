@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {createPoliciesSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
@@ -57,7 +58,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -88,6 +88,8 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
+const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
+
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
@@ -117,7 +119,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -133,7 +135,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
-    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
@@ -351,7 +352,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, isManualDistanceTrackingEnabled, lastDistanceExpenseType});
+                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType});
                 });
             };
             return [
@@ -411,7 +412,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         isReportArchived,
-        isManualDistanceTrackingEnabled,
         lastDistanceExpenseType,
         allTransactionDrafts,
     ]);
@@ -436,31 +436,27 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const menuItems = [
         ...expenseMenuItems,
-        ...(isManualDistanceTrackingEnabled
-            ? [
-                  {
-                      icon: Expensicons.Location,
-                      text: translate('iou.trackDistance'),
-                      shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      onSelected: () => {
-                          interceptAnonymousUser(() => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
-                                  return;
-                              }
-                              // Start the flow to start tracking a distance request
-                              startDistanceRequest(
-                                  CONST.IOU.TYPE.CREATE,
-                                  // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                  // for all of the routes in the creation flow.
-                                  generateReportID(),
-                                  lastDistanceExpenseType,
-                              );
-                          });
-                      },
-                  },
-              ]
-            : []),
+        {
+            icon: Expensicons.Location,
+            text: translate('iou.trackDistance'),
+            shouldCallAfterModalHide: shouldUseNarrowLayout,
+            onSelected: () => {
+                interceptAnonymousUser(() => {
+                    if (shouldRedirectToExpensifyClassic) {
+                        setModalVisible(true);
+                        return;
+                    }
+                    // Start the flow to start tracking a distance request
+                    startDistanceRequest(
+                        CONST.IOU.TYPE.CREATE,
+                        // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                        // for all of the routes in the creation flow.
+                        generateReportID(),
+                        lastDistanceExpenseType,
+                    );
+                });
+            },
+        },
         ...(shouldShowCreateReportOption
             ? [
                   {
