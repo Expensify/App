@@ -302,8 +302,6 @@ function MoneyRequestView({
     const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
-    console.log('AAAA');
-    console.log(formattedTransactionAmount);
     let amountTitle = formattedTransactionAmount.toString();
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
