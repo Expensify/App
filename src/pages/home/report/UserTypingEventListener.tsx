@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import * as Report from '@userActions/Report';
+import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -15,7 +15,7 @@ type UserTypingEventListenerProps = {
     report: OnyxTypes.Report;
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {selector: (path) => path ?? ''});
+    const [lastVisitedPath = ''] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
@@ -30,7 +30,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             // unsubscribe from report typing events when the component unmounts
             didSubscribeToReportTypingEvents.current = false;
             InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(reportID);
+                unsubscribeFromReportChannel(reportID);
             });
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -52,7 +52,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
                 interactionTask = InteractionManager.runAfterInteractions(() => {
-                    Report.subscribeToReportTypingEvents(reportID);
+                    subscribeToReportTypingEvents(reportID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
             }
@@ -62,7 +62,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             if (topmostReportId !== reportID && didSubscribeToReportTypingEvents.current) {
                 didSubscribeToReportTypingEvents.current = false;
                 InteractionManager.runAfterInteractions(() => {
-                    Report.unsubscribeFromReportChannel(reportID);
+                    unsubscribeFromReportChannel(reportID);
                 });
             }
         }
