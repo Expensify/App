@@ -60,7 +60,8 @@ import {
     getReimbursable,
     getTagForDisplay,
     getTaxName,
-    hasMissingSmartscanFields, hasReceipt,
+    hasMissingSmartscanFields,
+    hasReceipt,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
     isCardTransaction as isCardTransactionTransactionUtils,
@@ -196,7 +197,9 @@ function MoneyRequestView({
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || (!!actualAmount && hasReceipt(updatedTransaction ?? transaction)) || !hasReceipt(updatedTransaction ?? transaction)) && actualAmount !== undefined;
+    const shouldDisplayTransactionAmount =
+        ((isDistanceRequest && hasRoute) || (!!actualAmount && hasReceipt(updatedTransaction ?? transaction)) || !hasReceipt(updatedTransaction ?? transaction)) &&
+        actualAmount !== undefined;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
 
