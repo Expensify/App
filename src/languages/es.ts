@@ -5698,8 +5698,7 @@ const translations = {
                 nonBillable: 'No facturable',
                 nonBillableDescription: 'Los gastos se vuelven a facturar a los clientes en ocasiones',
                 eReceipts: 'Recibos electrónicos',
-                eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
-                eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
+                eReceiptsHint: `Los recibos electrónicos se crean automáticamente [para la mayoría de las transacciones en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Seguimiento de asistentes',
                 attendeeTrackingHint: 'Haz un seguimiento del coste por persona para cada gasto.',
                 prohibitedDefaultDescription:

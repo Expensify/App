@@ -5705,8 +5705,7 @@ const translations = {
                 nonBillable: 'Non-fatturabile',
                 nonBillableDescription: 'Le spese sono occasionalmente riaddebitate ai clienti.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'Gli eReceipts sono creati automaticamente',
-                eReceiptsHintLink: 'per la maggior parte delle transazioni di credito in USD',
+                eReceiptsHint: `Le ricevute elettroniche vengono create automaticamente [per la maggior parte delle transazioni di credito in USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Monitoraggio dei partecipanti',
                 attendeeTrackingHint: 'Tieni traccia del costo per persona per ogni spesa.',
                 prohibitedDefaultDescription:
