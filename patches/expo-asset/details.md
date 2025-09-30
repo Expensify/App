@@ -5,7 +5,7 @@
 - Reason:
   
     ```
-    This is patch makes StoryBook work.
+    This patch makes StoryBook work.
     ```
   
 - Upstream PR/issue: 🛑, commented in the App PR https://github.com/Expensify/App/pull/45289#issuecomment-3346150253
