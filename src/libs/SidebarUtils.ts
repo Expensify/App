@@ -85,6 +85,7 @@ import {
     getIcons,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
+    getReportActionActorAccountID,
     getReportDescription,
     getReportMetadata,
     getReportName,
@@ -706,7 +707,7 @@ function getOptionData({
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
+    const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.

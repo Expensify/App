@@ -185,6 +185,12 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
 
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
+    /** The login of the admin (used in admin-submit) */
+    admin?: string;
+
+    /** The account id of the admin (used in admin-submit) */
+    adminAccountID?: number;
+
     /** Approved expense amount */
     amount: number;
 
@@ -192,7 +198,7 @@ type OriginalMessageSubmitted = {
     currency: string;
 
     /** Report ID of the expense */
-    expenseReportID: string;
+    expenseReportID?: string;
 
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
@@ -205,6 +211,9 @@ type OriginalMessageSubmitted = {
 
     /** The login of the approver who is on a vacation */
     vacationer?: string;
+
+    /** Carbon copy list */
+    cc?: string;
 };
 
 /** Model of `closed` report action */
