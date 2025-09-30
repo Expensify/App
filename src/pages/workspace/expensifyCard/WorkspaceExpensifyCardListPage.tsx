@@ -18,6 +18,7 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
@@ -65,7 +66,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const defaultFundID = useDefaultFundID(policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: true});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`, {canBeMissing: false});
@@ -150,7 +151,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
                 errors={item.errors}
-                onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
+                onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
             >
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
@@ -170,7 +171,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
-        [personalDetails, settlementCurrency, policyID, workspaceAccountID, styles],
+        [personalDetails, settlementCurrency, policyID, defaultFundID, styles],
     );
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;

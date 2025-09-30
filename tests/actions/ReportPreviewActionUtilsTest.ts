@@ -100,6 +100,36 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
+    it('canSubmit should return true for open report in instant submit policy with no approvers', async () => {
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN, // Report is OPEN
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL; // Submit & Close
+        policy.autoReporting = true;
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT; // Instant submit
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        // Simulate how components use a hook to pass the isReportArchived parameter
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
     it('canSubmit should return false for expense preview report with only pending transactions', async () => {
         const report: Report = {
             ...createRandomReport(REPORT_ID),

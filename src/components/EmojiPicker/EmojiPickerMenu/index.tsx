@@ -1,7 +1,6 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
@@ -30,7 +29,7 @@ import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const throttleTime = isMobile() ? 200 : 50;
 
-function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
@@ -361,4 +360,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 }
 
 EmojiPickerMenu.displayName = 'EmojiPickerMenu';
-export default React.forwardRef(EmojiPickerMenu);
+export default EmojiPickerMenu;

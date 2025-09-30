@@ -1,3 +1,4 @@
+import {getLastClosedReportAction} from '@selectors/ReportAction';
 import lodashEscape from 'lodash/escape';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
@@ -5,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getLastClosedReportAction, getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +24,7 @@ function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
     const {translate} = useLocalize();
 
     const [personalDetails = getEmptyObject<PersonalDetailsList>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, selector: getLastClosedReportAction, canBeMissing: false});
+    const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, selector: getLastClosedReportAction, canBeMissing: true});
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;

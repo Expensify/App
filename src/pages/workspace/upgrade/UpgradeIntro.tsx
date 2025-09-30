@@ -28,12 +28,16 @@ type Props = {
     loading?: boolean;
     feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
+    /** Whether is categorizing the expense */
     isCategorizing?: boolean;
+    /** Whether is adding an unreported expense to a report */
+    isReporting?: boolean;
+    isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -45,10 +49,11 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
         return `${convertToShortDisplayString(
-            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][isCategorizing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][isCategorizing || isDistanceRateUpgrade ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
-    }, [preferredCurrency, isCategorizing]);
+    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade]);
 
     const subscriptionLink = useMemo(() => {
         if (!subscriptionPlan) {
@@ -65,7 +70,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
      * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
      * In such scenarios, a separate Categories upgrade UI is displayed.
      */
-    if (!feature || (!isCategorizing && !policyID)) {
+    if (!feature || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}

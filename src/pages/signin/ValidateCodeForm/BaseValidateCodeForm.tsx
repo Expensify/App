@@ -7,6 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
@@ -373,8 +374,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
                             <Text style={[styles.mt2]}>
-                                {translate('validateCodeForm.requestNewCode')}
-                                <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
+                                <RenderHTML
+                                    html={translate('validateCodeForm.requestNewCode', {
+                                        timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                                    })}
+                                />
                             </Text>
                         ) : (
                             <PressableWithFeedback

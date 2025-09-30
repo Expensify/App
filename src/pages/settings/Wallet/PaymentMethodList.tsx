@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement} from 'react';
@@ -82,6 +83,9 @@ type PaymentMethodListProps = {
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
 
+    /** The policy ID associated with the workspace, if component is rendered in workspace context */
+    policyID?: string;
+
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
 
@@ -90,6 +94,9 @@ type PaymentMethodListProps = {
 
     /** Type of payment method to filter by */
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
+
+    /* Currency of payment method to filter by */
+    filterCurrency?: string;
 
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
@@ -177,9 +184,11 @@ function PaymentMethodList({
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
+    policyID = '',
     onAddBankAccountPress = () => {},
     itemIconRight,
     filterType,
+    filterCurrency,
     shouldHideDefaultBadge = false,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
@@ -189,7 +198,7 @@ function PaymentMethodList({
     const illustrations = useThemeIllustrations();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.validated,
+        selector: isUserValidatedSelector,
         canBeMissing: true,
     });
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -317,8 +326,12 @@ function PaymentMethodList({
             );
         }
 
-        if (filterType) {
-            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => (paymentMethod as BankAccount).accountData?.type === filterType);
+        if (filterType ?? filterCurrency) {
+            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
+                const account = paymentMethod as BankAccount;
+
+                return (!!filterType && account.accountData?.type === filterType) || (!!filterCurrency && account.bankCurrency === filterCurrency);
+            });
         }
 
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
@@ -357,6 +370,7 @@ function PaymentMethodList({
         styles,
         isOffline,
         filterType,
+        filterCurrency,
         isLoadingCardList,
         cardList,
         illustrations,
@@ -371,11 +385,16 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
+            const path = Navigation.getActiveRoute();
+            if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
+                Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
+            } else {
+                Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT);
+            }
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress]);
+    }, [isUserValidated, onAddBankAccountPress, policyID]);
 
     const renderListFooterComponent = useCallback(
         () => (

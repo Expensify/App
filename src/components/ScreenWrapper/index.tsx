@@ -108,7 +108,7 @@ function ScreenWrapper({
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
@@ -159,7 +159,7 @@ function ScreenWrapper({
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
     const displayStickySmallScreenOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
     const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowSmallScreenOfflineIndicator ?? showOnSmallScreens ?? true);
-    const displayWideScreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
+    const displayWideScreenOfflineIndicator = !isSmallScreenWidth && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
     const addSmallScreenOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;

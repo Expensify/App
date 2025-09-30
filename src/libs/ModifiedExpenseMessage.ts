@@ -51,7 +51,7 @@ function buildMessageFragmentForValue(
     if (!oldValue || isOldValuePartialMerchant) {
         const fragment = translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
         setFragments.push(fragment);
-    } else if (!newValue) {
+    } else if (!newValue || newValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
         const fragment = translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
         removalFragments.push(fragment);
     } else {
@@ -308,7 +308,7 @@ function getForReportAction({
         buildMessageFragmentForValue(taxAmount, oldTaxAmount, translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
-    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && ('oldTaxRate' in reportActionOriginalMessage || 'taxRate' in reportActionOriginalMessage);
     if (hasModifiedTaxRate) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.taxRate ?? '',

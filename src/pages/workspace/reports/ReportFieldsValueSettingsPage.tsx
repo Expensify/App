@@ -68,7 +68,11 @@ function ReportFieldsValueSettingsPage({
         if (reportFieldID) {
             removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
         } else {
-            deleteReportFieldsListValue([valueIndex]);
+            deleteReportFieldsListValue({
+                valueIndexes: [valueIndex],
+                listValues: formDraft?.listValues ?? [],
+                disabledListValues: formDraft?.disabledListValues ?? [],
+            });
         }
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
@@ -80,7 +84,11 @@ function ReportFieldsValueSettingsPage({
             return;
         }
 
-        setReportFieldsListValueEnabled([valueIndex], value);
+        setReportFieldsListValueEnabled({
+            valueIndexes: [valueIndex],
+            enabled: value,
+            disabledListValues: formDraft?.disabledListValues ?? [],
+        });
     };
 
     const navigateToEditValue = () => {

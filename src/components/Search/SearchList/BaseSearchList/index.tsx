@@ -2,7 +2,7 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
@@ -29,6 +29,7 @@ function BaseSearchList({
     onLayout,
     contentContainerStyle,
     flattenedItemsLength,
+    newTransactions,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
 
@@ -100,7 +101,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, isFocused, columns], [focusedIndex, isFocused, columns]);
+    const extraData = useMemo(() => [focusedIndex, isFocused, columns, newTransactions], [focusedIndex, isFocused, columns, newTransactions]);
 
     return (
         <AnimatedFlashListComponent

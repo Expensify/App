@@ -3,7 +3,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
@@ -58,6 +58,25 @@ function useSearchHighlightAndScroll({
         }
         return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
     }, [searchResults?.data, isChat]);
+
+    const newTransactions = useMemo(() => {
+        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+
+        if (previousTransactionsIDs.length === 0) {
+            return [];
+        }
+
+        const previousIDs = new Set(previousTransactionsIDs);
+        const result: Transaction[] = [];
+
+        for (const [id, transaction] of Object.entries(transactions ?? {})) {
+            if (!previousIDs.has(id) && transaction) {
+                result.push(transaction);
+            }
+        }
+
+        return result;
+    }, [previousTransactions, transactions]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -247,7 +266,7 @@ function useSearchHighlightAndScroll({
         [newSearchResultKey, isChat],
     );
 
-    return {newSearchResultKey, handleSelectionListScroll};
+    return {newSearchResultKey, handleSelectionListScroll, newTransactions};
 }
 
 /**
