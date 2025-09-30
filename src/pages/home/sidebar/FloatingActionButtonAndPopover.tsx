@@ -137,7 +137,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
-    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
@@ -355,7 +354,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction({isValidReport, quickAction, selectOption, isManualDistanceTrackingEnabled, lastDistanceExpenseType});
+                    navigateToQuickAction({isValidReport, quickAction, selectOption, lastDistanceExpenseType});
                 });
             };
             return [
@@ -415,7 +414,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         isReportArchived,
-        isManualDistanceTrackingEnabled,
         lastDistanceExpenseType,
         allTransactionDrafts,
         isRestrictedToPreferredPolicy,
@@ -441,31 +439,27 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const menuItems = [
         ...expenseMenuItems,
-        ...(isManualDistanceTrackingEnabled
-            ? [
-                  {
-                      icon: Expensicons.Location,
-                      text: translate('iou.trackDistance'),
-                      shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      onSelected: () => {
-                          interceptAnonymousUser(() => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
-                                  return;
-                              }
-                              // Start the flow to start tracking a distance request
-                              startDistanceRequest(
-                                  CONST.IOU.TYPE.CREATE,
-                                  // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                  // for all of the routes in the creation flow.
-                                  generateReportID(),
-                                  lastDistanceExpenseType,
-                              );
-                          });
-                      },
-                  },
-              ]
-            : []),
+        {
+            icon: Expensicons.Location,
+            text: translate('iou.trackDistance'),
+            shouldCallAfterModalHide: shouldUseNarrowLayout,
+            onSelected: () => {
+                interceptAnonymousUser(() => {
+                    if (shouldRedirectToExpensifyClassic) {
+                        setModalVisible(true);
+                        return;
+                    }
+                    // Start the flow to start tracking a distance request
+                    startDistanceRequest(
+                        CONST.IOU.TYPE.CREATE,
+                        // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                        // for all of the routes in the creation flow.
+                        generateReportID(),
+                        lastDistanceExpenseType,
+                    );
+                });
+            },
+        },
         ...(shouldShowCreateReportOption
             ? [
                   {
