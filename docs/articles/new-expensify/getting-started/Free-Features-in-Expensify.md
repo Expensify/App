@@ -29,7 +29,7 @@ You can use Expensify without a paid workspace on a free account and still acces
 
 ---
 
-# Common Use Cases for Free Users
+# Common Use Cases for free Users
 
 ## Track Receipts for Taxes or Deductions
 
