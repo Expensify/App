@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
@@ -33,7 +34,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import NewChatSelectorPage from './NewChatSelectorPage';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
