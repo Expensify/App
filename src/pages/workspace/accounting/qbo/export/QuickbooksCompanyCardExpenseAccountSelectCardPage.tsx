@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -103,7 +103,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             displayName={QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName}
             title="workspace.accounting.exportAs"
             sections={sections}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExportCompanyCard(selection as MenuItem)}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}
