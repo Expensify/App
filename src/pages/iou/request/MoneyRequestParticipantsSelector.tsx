@@ -82,6 +82,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
+    /** Whether this is a corporate card transaction */
+    isCorporateCardTransaction?: boolean;
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
@@ -98,6 +101,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
@@ -175,8 +179,8 @@ function MoneyRequestParticipantsSelector({
                 // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
                 excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
 
-                // Per diem expenses should only be submitted to workspaces, not individual users
-                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
+                // Per diem expenses and corporate card transactions should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -208,6 +212,7 @@ function MoneyRequestParticipantsSelector({
         isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
+        isCorporateCardTransaction,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -596,7 +601,6 @@ function MoneyRequestParticipantsSelector({
                 onDeny={setContactPermissionState}
                 onFocusTextInput={() => {
                     setTextInputAutoFocus(true);
-                    selectionListRef.current?.focusTextInput?.();
                 }}
             />
             <SelectionList
@@ -626,7 +630,7 @@ function MoneyRequestParticipantsSelector({
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={!isNative}
+                textInputAutoFocus={textInputAutoFocus}
                 ref={selectionListRef}
             />
         </>
