@@ -48,7 +48,7 @@ Backup recovery codes work like one-time passwords. They are your fastest recove
 **Tip:** Store unused recovery codes in a secure, offline location. Each code can only be used once.
 
 ## If you lost your device and have no recovery codes
-- **Individual account**: If you're using a public domain, you'll need to create a new Expensify account with a different email. Concierge can assist with transferring access to any shared Workspaces.  
+- **Individual account**: If you're using a public domain (like gmail.com or outlook.com), you'll need to create a new Expensify account with a different email. Concierge can assist with transferring access to any shared Workspaces.  
 - **Domain account**: A **Domain Admin** can reset your 2FA. Once reset, you’ll log in normally and set up 2FA again.
 
 # Admin recovery and overrides
