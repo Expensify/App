@@ -8,12 +8,12 @@ import CONST from '@src/CONST';
 jest.mock('@hooks/useHasLoggedIntoMobileApp');
 jest.mock('@hooks/useHasPhoneNumberLogin');
 jest.mock('@components/RenderHTML', () => {
-    const React = require('react');
-    const {Text} = require('react-native');
+    const ReactMock = require('react') as typeof React;
+    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
 
-    return function MockRenderHTML({html}: {html: string}) {
+    return ({html}: {html: string}) => {
         const plainText = html.replace(/<[^>]*>/g, '');
-        return React.createElement(Text, null, plainText);
+        return ReactMock.createElement(Text, null, plainText);
     };
 });
 
