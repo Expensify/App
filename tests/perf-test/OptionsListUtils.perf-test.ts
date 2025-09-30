@@ -2,7 +2,7 @@ import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getShareLogOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

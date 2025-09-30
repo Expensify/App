@@ -2054,42 +2054,6 @@ function getAttendeeOptions(
 }
 
 /**
- * Build the options for the Share Destination for a Task
- */
-
-function getShareDestinationOptions(
-    reports: Array<SearchOption<Report>> = [],
-    personalDetails: Array<SearchOption<PersonalDetails>> = [],
-    betas: OnyxEntry<Beta[]> = [],
-    selectedOptions: Array<Partial<SearchOptionData>> = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeOwnedWorkspaceChats = true,
-    searchString = '',
-    maxElements?: number,
-    includeUserToInvite = false,
-) {
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            selectedOptions,
-            includeMultipleParticipantReports: true,
-            showChatPreviewLine: true,
-            forcePolicyNamePreview: true,
-            includeThreads: true,
-            includeMoneyRequests: true,
-            includeTasks: true,
-            excludeLogins,
-            includeOwnedWorkspaceChats,
-            includeSelfDM: true,
-            searchString,
-            maxElements,
-            includeUserToInvite,
-        },
-    );
-}
-
-/**
  * Format personalDetails or userToInvite to be shown in the list
  *
  * @param member - personalDetails or userToInvite
@@ -2619,7 +2583,6 @@ export {
     getReportOption,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareDestinationOptions,
     getShareLogOptions,
     getUserToInviteContactOption,
     getUserToInviteOption,

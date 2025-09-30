@@ -20,7 +20,6 @@ import {
     getMemberInviteOptions,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
-    getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
     optionsOrderBy,
