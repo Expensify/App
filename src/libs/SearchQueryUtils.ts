@@ -452,8 +452,6 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 
     const filters = queryJSON.flatFilters;
 
-    console.log(filters);
-
     for (const filter of filters) {
         const filterValueString = buildFilterValuesString(filter.key, filter.filters);
         queryParts.push(filterValueString.trim());
@@ -736,10 +734,12 @@ function buildFilterFormValuesFromQuery(
             const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
             const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
 
-            const beforeFilter = filterList.find((filter) => filter.operator === 'lt' && isValidDate(filter.value.toString()));
-            const afterFilter = filterList.find((filter) => filter.operator === 'gt' && isValidDate(filter.value.toString()));
+            const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
+            const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
             // The `On` filter could be either a date or a date preset (e.g. Last month)
-            const onFilter = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())));
+            const onFilter = filterList.find(
+                (filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())),
+            );
 
             filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
             filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
@@ -753,14 +753,17 @@ function buildFilterFormValuesFromQuery(
 
             // backend amount is an integer and is 2 digits longer than frontend amount
             filtersForm[equalToKey] =
-                filterList.find((filter) => filter.operator === 'eq' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[equalToKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[equalToKey];
             filtersForm[lessThanKey] =
-                filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[lessThanKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[lessThanKey];
             filtersForm[greaterThanKey] =
-                filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[greaterThanKey];
+                filterList
+                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))
+                    ?.value.toString() ?? filtersForm[greaterThanKey];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
