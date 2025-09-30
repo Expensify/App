@@ -446,6 +446,8 @@ const CONST = {
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
+        MONTH_DAY_WEEKDAY_ABBR_FORMAT: 'EEEE, MMM d',
+        MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT: 'EEEE, MMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -7267,9 +7269,11 @@ const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
     [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
     [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
     [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
+    [CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric'},
+    [CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'},
     [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {dateStyle: 'long'},
     [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {month: 'short', day: 'numeric', year: 'numeric'},
-    [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {month: 'long', day: 'numeric', year: 'numeric', weekday: 'long'},
+    [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {dateStyle: 'full'},
 };
 
 const FEATURE_IDS = {

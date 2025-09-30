@@ -272,7 +272,7 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  * @returns Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime: string | Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
-    const dateFormatter = new Intl.DateTimeFormat(locale, {dateStyle: 'full'});
+    const dateFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]);
     return dateFormatter.format(new Date(datetime));
 }
 
@@ -816,8 +816,8 @@ function getFormattedDateRange(date1: Date, date2: Date, locale: Locale = CONST.
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
 function getFormattedReservationRangeDate(date1: Date, date2: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
-    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
-    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
         return monthDayWeekdayAbbrFormatter.format(date1);
@@ -842,8 +842,8 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date, locale: Loca
  */
 function getFormattedTransportDate(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
     const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
-    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
-    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isThisYear(date)) {
         return `${translateLocal('travel.departs')} ${monthDayWeekdayAbbrFormatter.format(date)} ${translateLocal('common.conjunctionAt')} ${timeFormatter.format(date)}`;
     }
@@ -858,8 +858,8 @@ function getFormattedTransportDate(date: Date, locale: Locale = CONST.LOCALES.DE
  */
 function getFormattedTransportDateAndHour(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): {date: string; hour: string} {
     const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
-    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
-    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isThisYear(date)) {
         return {
             date: monthDayWeekdayAbbrFormatter.format(date),
@@ -880,8 +880,8 @@ function getFormattedTransportDateAndHour(date: Date, locale: Locale = CONST.LOC
  */
 function getFormattedCancellationDate(date: Date, locale: Locale = CONST.LOCALES.DEFAULT): string {
     const timeFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
-    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
-    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]);
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]);
     if (isThisYear(date)) {
         return `${monthDayWeekdayAbbrFormatter.format(date)} ${timeFormatter.format(date)}`;
     }
