@@ -125,6 +125,7 @@ function IOURequestStepParticipants({
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
     const isPerDiem = isPerDiemRequest(initialTransaction);
+    const isCorporateCard = isCorporateCardTransaction(initialTransaction);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
@@ -376,7 +377,7 @@ function IOURequestStepParticipants({
                 iouType={iouType}
                 action={action}
                 isPerDiemRequest={isPerDiem}
-                isCorporateCardTransaction={isCorporateCardTransaction(initialTransaction)}
+                isCorporateCardTransaction={isCorporateCard}
             />
         </StepScreenWrapper>
     );
