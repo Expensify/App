@@ -17,6 +17,7 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -123,6 +124,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData({policyID: policy?.id});
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -212,6 +214,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.receiptPartners',
+                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 icon: Receipt,
                 action: singleExecution(
                     waitForNavigate(() => {
@@ -382,6 +385,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         Feed,
         Car,
         ExpensifyCard,
+        shouldShowEnterCredentialsError,
         allFeedsCards,
         workspaceAccountID,
         cardsDomainIDs,

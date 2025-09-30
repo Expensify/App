@@ -40,6 +40,8 @@ import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
+import SafeBlue from '@assets/images/product-illustrations/safe.svg';
+import SewerDino from '@assets/images/product-illustrations/sewer_dino.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
@@ -126,6 +128,7 @@ export {
     RocketBlue,
     RocketDude,
     ToddBehindCloud,
+    SewerDino,
     ToddWithPhones,
     ToddInCar,
     ShieldYellow,
@@ -210,7 +213,6 @@ export {
     ExpensifyMobileApp,
     ModalHoldOrReject,
     ThumbsDown,
-    // ReportReceipt,
     PlaidCompanyCardDetailLarge,
     PlaidCompanyCardDetail,
     ReceiptsStackedOnPin,
