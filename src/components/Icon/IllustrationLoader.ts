@@ -1,8 +1,8 @@
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type IllustrationsChunk = {
-    getIllustration: (illustrationName: string) => unknown;
-    AVAILABLE_ILLUSTRATIONS: string[];
+    getIllustration: (illustrationName: IllustrationName) => IconAsset | undefined;
+    AVAILABLE_ILLUSTRATIONS: IllustrationName[];
 } & Record<string, IconAsset>;
 
 type IllustrationName = string;
@@ -53,7 +53,7 @@ function loadIllustrationsChunk(): Promise<IllustrationsChunk> {
 function loadIllustration(illustrationName: IllustrationName): Promise<{default: IconAsset}> {
     return loadIllustrationsChunk()
         .then((chunk) => {
-            const illustration = chunk.getIllustration(illustrationName) as IconAsset;
+            const illustration = chunk.getIllustration(illustrationName);
             if (!illustration) {
                 throw new Error(`Illustration "${illustrationName}" not found`);
             }

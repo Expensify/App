@@ -1,11 +1,12 @@
 import type IconAsset from '@src/types/utils/IconAsset';
+import type ExpensifyIcons from './chunks/expensify-icons.chunk';
 
 type ExpensifyIconsChunk = {
-    getExpensifyIcon: (iconName: string) => unknown;
-    AVAILABLE_EXPENSIFY_ICONS: string[];
+    getExpensifyIcon: (iconName: ExpensifyIconName) => IconAsset | undefined;
+    AVAILABLE_EXPENSIFY_ICONS: ExpensifyIconName[];
 } & Record<string, IconAsset>;
 
-type ExpensifyIconName = string;
+type ExpensifyIconName = keyof typeof ExpensifyIcons;
 
 let expensifyIconsChunk: ExpensifyIconsChunk | null = null;
 let chunkLoadingPromise: Promise<ExpensifyIconsChunk> | null = null;
@@ -47,7 +48,7 @@ function loadExpensifyIconsChunk(): Promise<ExpensifyIconsChunk> {
 function loadExpensifyIcon(iconName: ExpensifyIconName): Promise<{default: IconAsset}> {
     return loadExpensifyIconsChunk()
         .then((chunk) => {
-            const icon = chunk.getExpensifyIcon(iconName) as IconAsset;
+            const icon = chunk.getExpensifyIcon(iconName);
             if (!icon) {
                 throw new Error(`ExpensifyIcon "${iconName}" not found`);
             }

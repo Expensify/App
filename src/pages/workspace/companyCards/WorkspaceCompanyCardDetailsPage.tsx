@@ -6,7 +6,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -56,7 +56,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadIllustration('MoneySearch'));
+    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadExpensifyIcon('MoneySearch'));
 
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);

@@ -11,7 +11,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
@@ -79,7 +79,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {isBetaEnabled} = usePermissions();
-    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadIllustration('MoneySearch'));
+    const {asset: MoneySearch} = useMemoizedLazyAsset(() => loadExpensifyIcon('MoneySearch'));
 
     const theme = useTheme();
     const styles = useThemeStyles();
