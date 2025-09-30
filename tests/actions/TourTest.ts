@@ -105,7 +105,6 @@ describe('actions/Tour', () => {
             });
 
             it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.includes(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
-                Acrhived;
                 startTestDrive({choice}, false, false, false, false);
                 await waitForBatchedUpdates();
 
