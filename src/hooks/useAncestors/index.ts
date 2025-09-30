@@ -75,7 +75,7 @@ function useAncestors(report: OnyxEntry<Report>, excludeAncestorCallback: (paren
             parentReportID = parentReport.parentReportID;
         }
         return ancestors;
-    }, [report, reportCollection, reportDraftCollection, reportActionsCollection]);
+    }, [report, reportCollection, reportDraftCollection, reportActionsCollection, excludeAncestorCallback]);
 }
 
 export default useAncestors;
