@@ -219,7 +219,7 @@ function MoneyRequestReceiptView({
     let receiptStyle: StyleProp<ViewStyle>;
 
     if (fillSpace && shouldShowReceiptEmptyState) {
-        receiptStyle = styles.fullHeight;
+        receiptStyle = styles.h100;
     } else if (fillSpace) {
         receiptStyle = styles.flexibleHeight;
     } else {

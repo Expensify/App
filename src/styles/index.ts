@@ -5194,10 +5194,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
 
-        fullHeight: {
-            height: '100%',
-        },
-
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
