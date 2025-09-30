@@ -62,7 +62,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
-    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived, true, isLoadingReportFromOnyx);
+    const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
@@ -139,7 +139,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     report={report}
                                     reportMetadata={reportMetadata}
                                     policy={policy}
-                                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                    shouldDisplayReportFooter={!shouldWaitForReportSync}
                                     shouldWaitForReportSync={shouldWaitForReportSync}
                                     backToRoute={route.params.backTo}
                                     shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}
@@ -176,7 +176,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         policy={policy}
-                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                        shouldDisplayReportFooter={!shouldWaitForReportSync}
                                         shouldWaitForReportSync={shouldWaitForReportSync}
                                         backToRoute={route.params.backTo}
                                         shouldResetSkipFirstTransactionsChange={shouldResetSkipFirstTransactionsChange}

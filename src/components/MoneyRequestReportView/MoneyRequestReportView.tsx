@@ -118,7 +118,7 @@ function MoneyRequestReportView({
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, shouldWaitForReportSync ? [] : transactions, shouldResetSkipFirstTransactionsChange);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions, shouldResetSkipFirstTransactionsChange);
 
     const parentReportAction = useParentReportAction(report);
 
