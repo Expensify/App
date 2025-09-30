@@ -98,7 +98,7 @@ function SearchTransactionsChangeReport() {
             selectedReportID={selectedReportID}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
-            createReport={createReport}
+            createReport={activePolicy ? createReport : undefined}
             isEditing
         />
     );
