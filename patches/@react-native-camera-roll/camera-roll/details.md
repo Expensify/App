@@ -1,4 +1,4 @@
-# `@react-native-camera-roll` patches
+# `@react-native-camera-roll/camera-roll` patches
 
 ### [@react-native-camera-roll+camera-roll+7.4.0+001+asset.patch](@react-native-camera-roll+camera-roll+7.4.0+001+asset.patch)
 

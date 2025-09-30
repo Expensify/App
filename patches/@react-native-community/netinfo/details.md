@@ -1,4 +1,4 @@
-# `@react-native-community` patches
+# `@react-native-community/netinfo` patches
 
 ### [@react-native-community+netinfo+11.2.1+001+initial.patch](@react-native-community+netinfo+11.2.1+001+initial.patch)
 
