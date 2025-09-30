@@ -1255,7 +1255,7 @@ function orderReportOptionsWithSearch(
     );
 }
 
-function orderWorkspaceOptions(options: SearchOptionData[], activePolicyID?: string): SearchOptionData[] {
+function orderWorkspaceOptions(options: SearchOptionData[], activePolicyID: string | undefined): SearchOptionData[] {
     return options.sort((a, b) => {
         // Check if `a` is the default workspace
         if (a.isPolicyExpenseChat && a.policyID === activePolicyID) {
