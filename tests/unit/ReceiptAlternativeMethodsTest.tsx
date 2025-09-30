@@ -10,7 +10,7 @@ jest.mock('@hooks/useHasPhoneNumberLogin');
 jest.mock('@components/RenderHTML', () => {
     const React = require('react');
     const {Text} = require('react-native');
-    
+
     return function MockRenderHTML({html}: {html: string}) {
         const plainText = html.replace(/<[^>]*>/g, '');
         return React.createElement(Text, null, plainText);
