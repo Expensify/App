@@ -2,8 +2,8 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {TeleScope} from '@components/Icon/Illustrations';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -101,7 +101,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                 ) : null
             }
             sections={data.length ? [{data}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onSelectRow={selectExportAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
