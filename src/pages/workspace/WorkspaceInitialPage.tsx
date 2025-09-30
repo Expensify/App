@@ -1,10 +1,11 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -122,7 +123,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
-    const isFocused = useIsFocused();
+    const {setIsLoaderVisible} = useFullScreenLoader();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData({policyID: policy?.id});
     const waitForNavigate = useWaitForNavigation();
@@ -160,6 +161,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [policy, isUberForBusinessEnabled],
     ) as PolicyFeatureStates;
     const [isPolicyErrorModalOpen, setIsPolicyErrorModalOpen] = useState(false);
+    const [policyErrorMessage, setPolicyErrorMessage] = useState('');
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -411,18 +413,42 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         confirmReadyToOpenApp();
     }, []);
 
+    const prevPolicy = usePrevious(policy);
+
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
-    const policyErrorMessage = getLatestErrorMessage(policy);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowPolicy && !isPendingDelete;
 
     useEffect(() => {
-        if (!isFocused || isPolicyErrorModalOpen || !policyErrorMessage) {
+        if (isEmptyObject(prevPolicy)) {
             return;
         }
+        // Show fullscreen loading while waiting for BE deletion to complete
+        // Go back to workspaces list page if offline
+        if (!prevIsPendingDelete && isPendingDelete) {
+            if (!isOffline) {
+                setIsLoaderVisible(true);
+                return;
+            }
+            goBackFromInvalidPolicy();
+            return;
+        }
+        if (prevIsPendingDelete && !isPendingDelete) {
+            setIsLoaderVisible(false);
+        }
+    }, [isPendingDelete, policy, prevIsPendingDelete, prevPolicy, isOffline, setIsLoaderVisible]);
+
+    const policyLatestErrorMessage = getLatestErrorMessage(policy);
+    useEffect(() => {
+        if (isPolicyErrorModalOpen || !policyLatestErrorMessage) {
+            return;
+        }
+        dismissError(policy?.id, policy?.pendingAction);
+        setPolicyErrorMessage(policyLatestErrorMessage);
         setIsPolicyErrorModalOpen(true);
-    }, [policyErrorMessage, isFocused, isPolicyErrorModalOpen]);
+    }, [policyLatestErrorMessage, isPolicyErrorModalOpen, policy?.id, policy?.pendingAction]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
@@ -458,7 +484,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const hideWorkspaceErrorModal = () => {
         setIsPolicyErrorModalOpen(false);
-        dismissError(policy?.id, policy?.pendingAction);
+        setPolicyErrorMessage('');
     };
 
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;

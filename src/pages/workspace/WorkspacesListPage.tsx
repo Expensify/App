@@ -2,7 +2,6 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -59,7 +58,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Policy as PolicyType} from '@src/types/onyx';
+import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -129,7 +128,6 @@ function WorkspacesListPage() {
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
     const [policyErrorMessage, setPolicyErrorMessage] = useState('');
-    const [policyWithError, setPolicyWithError] = useState<OnyxEntry<Policy>>();
     const [isPolicyErrorModalOpen, setIsPolicyErrorModalOpen] = useState(false);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
@@ -174,11 +172,7 @@ function WorkspacesListPage() {
 
     const hideWorkspaceErrorModal = () => {
         setIsPolicyErrorModalOpen(false);
-        if (!policyWithError) {
-            return;
-        }
         setPolicyErrorMessage('');
-        dismissWorkspaceError(policyWithError.id, policyWithError.pendingAction);
     };
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
@@ -229,16 +223,14 @@ function WorkspacesListPage() {
         if (!isFocused || !!policyErrorMessage || isPolicyErrorModalOpen) {
             return;
         }
-
         const workspaceWithError = Object.values(policies ?? {}).find(shouldShowPolicyError);
         const workspaceErrorMessage = getLatestErrorMessage(workspaceWithError);
-        if (!workspaceErrorMessage) {
+        if (!workspaceWithError || !workspaceErrorMessage) {
             return;
         }
-
-        setIsPolicyErrorModalOpen(true);
         setPolicyErrorMessage(workspaceErrorMessage);
-        setPolicyWithError(workspaceWithError);
+        dismissWorkspaceError(workspaceWithError.id, workspaceWithError.pendingAction);
+        setIsPolicyErrorModalOpen(true);
     }, [policyErrorMessage, isFocused, isPolicyErrorModalOpen, policies]);
 
     /**
