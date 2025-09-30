@@ -51,6 +51,7 @@ import {
     getPolicyExpenseChat,
     getPolicyExpenseChatName,
     getReasonAndReportActionThatRequiresAttention,
+    getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
@@ -2103,6 +2104,43 @@ describe('ReportUtils', () => {
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
         });
+
+        it('returns true when expense report is awaiting current user approval without parent access', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false when awaiting approval but parent accessible or user is not approver', () => {
+            const reportWithParentAccess = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: true,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess)).toBe(false);
+
+            const reportWithDifferentManager = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: 999999,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
+        });
     });
 
     describe('getChatRoomSubtitle', () => {
@@ -4131,7 +4169,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction, undefined, undefined)).toBe(false);
         });
 
         it('should return true for demo transaction', () => {
@@ -4175,7 +4213,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined)).toBe(true);
         });
 
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
@@ -4202,7 +4240,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
 
-            expect(canDeleteReportAction(reportAction, report.reportID, undefined)).toBe(false);
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined)).toBe(false);
         });
     });
 
@@ -5227,6 +5265,22 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
     });
 
     describe('canDeleteTransaction', () => {
@@ -5259,6 +5313,22 @@ describe('ReportUtils', () => {
             // When it's checked if the transactions can be deleted
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = canDeleteTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
             expect(result).toBe(false);
@@ -7046,6 +7116,154 @@ describe('ReportUtils', () => {
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getReportActionActorAccountID', () => {
+        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(20);
+        });
+
+        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return original actor account id if action is ADDCOMMENT', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 123,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(123);
         });
     });
 });
