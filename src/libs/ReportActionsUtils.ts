@@ -710,14 +710,14 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
         return false;
     }
 
-    if (isSubmittedAction(currentAction)) {
+    if (isSubmittedAction(currentAction) || isSubmittedAndClosedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
         return typeof currentActionAdminAccountID === 'number'
             ? currentActionAdminAccountID === adjacentAction.actorAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    if (isSubmittedAction(adjacentAction)) {
+    if (isSubmittedAction(adjacentAction) || isSubmittedAndClosedAction(adjacentAction)) {
         return typeof adjacentAction.adminAccountID === 'number'
             ? currentAction.actorAccountID === adjacentAction.adminAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
@@ -866,6 +866,12 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !isMarkAsClosedAction(reportAction)) {
+        return false;
+    }
+
+    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
+    // elsewhere in the IOU reportAction
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
         return false;
     }
 
@@ -1143,20 +1149,6 @@ function getReportAction(reportID: string | undefined, reportActionID: string | 
     }
 
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
-}
-
-/**
- * @returns The report preview action or `null` if one couldn't be found
- */
-function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
-    if (!chatReportID || !iouReportID) {
-        return;
-    }
-
-    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
-        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
-            reportAction && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
-    );
 }
 
 /**
@@ -3043,16 +3035,6 @@ function wasMessageReceivedWhileOffline(
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
-function getReportActionFromExpensifyCard(cardID: number) {
-    return Object.values(allReportActions ?? {})
-        .map((reportActions) => Object.values(reportActions ?? {}))
-        .flat()
-        .find((reportAction) => {
-            const cardIssuedActionOriginalMessage = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ? getOriginalMessage(reportAction) : undefined;
-            return cardIssuedActionOriginalMessage?.cardID === cardID;
-        });
-}
-
 function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policyID?: string, shouldShowOldDotLink = false): string {
     const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
 
@@ -3075,7 +3057,7 @@ function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefin
 }
 
 function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
+    if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
         return;
     }
 
@@ -3083,7 +3065,7 @@ function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
 }
 
 function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
+    if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
         return;
     }
 
@@ -3127,7 +3109,6 @@ export {
     getReportActionMessage,
     getReportActionMessageText,
     getReportActionText,
-    getReportPreviewAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getTextFromHtml,
@@ -3254,7 +3235,6 @@ export {
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
-    getReportActionFromExpensifyCard,
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
