@@ -40,6 +40,11 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
+    const [submitterEmail] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {canBeMissing: false, selector: (personalDetailsList) => personalDetailsList?.[report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login},
+        [report?.ownerAccountID],
+    );
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -67,7 +72,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
     );
 
-    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
