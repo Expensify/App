@@ -51,6 +51,7 @@ function KYCWall({
     shouldListenForResize = false,
     source,
     shouldShowPersonalBankAccountOption = false,
+    currency,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -113,8 +114,9 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const canLinkExistingBusinessBankAccount = useCallback(
-        (policy?: Policy) => policy !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, policy.outputCurrency).length > 0,
-        [bankAccountList],
+        //
+        (policy?: Policy) => policy !== undefined && policies !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, policy.outputCurrency ?? currency).length > 0,
+        [bankAccountList, currency, policies],
     );
 
     const selectPaymentMethod = useCallback(

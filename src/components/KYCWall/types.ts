@@ -66,6 +66,9 @@ type KYCWallProps = {
 
     /** The policy used for payment */
     policy?: Policy;
+
+    /** Currency associated with the payment */
+    currency?: string;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};
