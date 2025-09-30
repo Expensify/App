@@ -156,6 +156,7 @@ function shouldComputeReportName(report: Report, context: UpdateContext): boolea
     // Only compute names for expense reports with policies that have title fields
     // Check if the report has a title field with a formula in rNVP
     const reportTitleField = getTitleFieldFromRNVP(report.reportID, context);
+
     if (!reportTitleField?.defaultValue) {
         return false;
     }
