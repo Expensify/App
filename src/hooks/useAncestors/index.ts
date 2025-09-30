@@ -11,10 +11,10 @@ import type {Report, ReportAction} from '@src/types/onyx';
  * then returns the ancestor reports and their associated actions based on `parentReportActionID`.
  *
  * @param report - The report for which to fetch ancestor reports and actions.
- * @param excludeAncestorCallback - Callback to determine if an ancestor should be excluded.
+ * @param shouldExcludeAncestor - Callback to determine if an ancestor should be excluded.
  */
 
-function useAncestors(report: OnyxEntry<Report>, excludeAncestorCallback: (parentReportAction: ReportAction, ancestors: Ancestor[]) => boolean = () => false): Ancestor[] {
+function useAncestors(report: OnyxEntry<Report>, shouldExcludeAncestor: (parentReportAction: ReportAction, ancestors: Ancestor[]) => boolean = () => false): Ancestor[] {
     const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
@@ -29,7 +29,7 @@ function useAncestors(report: OnyxEntry<Report>, excludeAncestorCallback: (paren
         while (parentReportID && parentReportActionID) {
             const parentReport = reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${parentReportID}`];
             const parentReportAction = reportActionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[`${parentReportActionID}`];
-            if (!parentReport || !parentReportAction || excludeAncestorCallback(parentReportAction, ancestors)) {
+            if (!parentReport || !parentReportAction || shouldExcludeAncestor(parentReportAction, ancestors)) {
                 return ancestors;
             }
 
@@ -52,7 +52,7 @@ function useAncestors(report: OnyxEntry<Report>, excludeAncestorCallback: (paren
             Report 2 -> parentReportID = "r_1", parentReportActionID = "a_3": (should be "a_1")
             Report 1 -> parentReportID = null,  parentReportActionID = "a_3": (should be null)
 
-            `ancestors` result (and expecated result in parentheses):
+            `ancestors` result (and expected result in parentheses):
             [
                 {"pr_1": "pa_3"} (should be {"pr_1": "pa_1"}),
                 {"pr_2": "pa_3"} (should be {"pr_2": "pa_2"}),
@@ -75,7 +75,7 @@ function useAncestors(report: OnyxEntry<Report>, excludeAncestorCallback: (paren
             parentReportID = parentReport.parentReportID;
         }
         return ancestors;
-    }, [report, reportCollection, reportDraftCollection, reportActionsCollection, excludeAncestorCallback]);
+    }, [report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestor]);
 }
 
 export default useAncestors;

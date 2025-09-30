@@ -217,6 +217,7 @@ import {
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
+    isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
     shouldReportActionBeVisible,
@@ -8287,6 +8288,25 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Determine if we should exclude an ancestor report from being displayed in the thread.
+ * @param parentReportAction - The report action of the parent report
+ * @param ancestors - The list of ancestor reports
+ * @returns boolean - true if the ancestor report should be excluded, false otherwise
+ */
+function shouldExcludeAncestor(parentReportAction: OnyxEntry<ReportAction>, ancestors: Ancestor[]): boolean {
+    // We exclude trip preview actions as we don't want to display trip summary for threads,
+    if (isTripPreview(parentReportAction) && ancestors.length > 0) {
+        return false;
+    }
+
+    // We exclude ancestor reports when their parent's ReportAction is a transaction-thread action,
+    // except for sent-money and report-preview actions. <ReportActionsListItemRenderer> does not render
+    // the <ReportActionItemParentAction> component when the parent action is a transaction-thread,
+    // unless it's a sent-money action, or a report-preview action. so we skip those ancestors to match the renderer's behavior.
+    return (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction);
+}
+
+/**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived = false): boolean {
@@ -12096,6 +12116,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     shouldUnmaskChat,
+    shouldExcludeAncestor,
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,

@@ -14,6 +14,7 @@ import {
     getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
+    shouldExcludeAncestor,
 } from '@libs/ReportUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -24,19 +25,6 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
-
-function excludeAncestorCallback(parentReportAction: OnyxEntry<OnyxTypes.ReportAction>, ancestors: Ancestor[]): boolean {
-    // We exclude trip preview actions as we don't want to display trip summary for threads,
-    if (isTripPreview(parentReportAction) && ancestors.length > 0) {
-        return false;
-    }
-
-    // We exclude ancestor reports when their parent's ReportAction is a transaction-thread action,
-    // except for sent-money and report-preview actions. <ReportActionsListItemRenderer> does not render
-    // the <ReportActionItemParentAction> component when the parent action is a transaction-thread,
-    // unless it's a sent-money action, or a report-preview action. so we skip those ancestors to match the renderer's behavior.
-    return (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction);
-}
 
 type ReportActionItemParentActionProps = {
     /** All the data of the report collection */
@@ -127,8 +115,7 @@ function ReportActionItemParentAction({
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-
-    const ancestors = useAncestors(report, excludeAncestorCallback);
+    const ancestors = useAncestors(report, shouldExcludeAncestor);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const [ancestorsReportNameValuePairs] = useOnyx(

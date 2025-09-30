@@ -74,6 +74,7 @@ import {
     requiresManualSubmission,
     shouldDisableRename,
     shouldDisableThread,
+    shouldExcludeAncestor,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -3102,7 +3103,7 @@ describe('ReportUtils', () => {
 
             const {
                 result: {current: ancestors},
-            } = renderHook(() => useAncestors(expenseReport, true));
+            } = renderHook(() => useAncestors(expenseReport, shouldExcludeAncestor));
 
             putOnHold(expenseTransaction.transactionID, 'hold', ancestors, transactionThreadReport.reportID);
             await waitForBatchedUpdates();
