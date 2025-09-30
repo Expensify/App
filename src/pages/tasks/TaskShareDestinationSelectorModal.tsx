@@ -122,34 +122,6 @@ function TaskShareDestinationSelectorModal() {
         searchInServer(searchTerm);
     }, [searchTerm]);
 
-    // const shouldShowEmptyState = areOptionsInitialized && searchTerm.trim() === '' && sections.length === 0 && didScreenTransitionEnd;
-
-    // if (shouldShowEmptyState) {
-    //     return (
-    //         <ScreenWrapper
-    //             includeSafeAreaPaddingBottom={false}
-    //             testID="TaskShareDestinationSelectorModal"
-    //             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
-    //         >
-    //             <HeaderWithBackButton
-    //                 title={translate('common.share')}
-    //                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK.getRoute())}
-    //             />
-    //             <EmptyStateComponent
-    //                 cardStyles={[styles.appBG]}
-    //                 cardContentStyles={[styles.pt5, styles.pb0]}
-    //                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-    //                 headerMedia={LottieAnimations.GenericEmptyState}
-    //                 title={'No share members'}
-    //                 subtitle={'It appears that you do not have a user with whom you can share this task.'}
-    //                 headerStyles={[styles.emptyStateMoneyRequestReport]}
-    //                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-    //                 headerContentStyles={styles.emptyStateFolderWebStyles}
-    //             />
-    //         </ScreenWrapper>
-    //     );
-    // }
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -171,7 +143,7 @@ function TaskShareDestinationSelectorModal() {
                         textInputValue={searchTerm}
                         headerMessage={headerMessage}
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={!didScreenTransitionEnd}
+                        showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? false : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
                         onEndReached={onListEndReached}
