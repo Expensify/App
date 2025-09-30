@@ -7,10 +7,15 @@ permissions:
 on:
   pull_request:
     types: [opened]
+  pull_request_review_comment:
+      types: [created]
+  pull_request_review:
+      types: [submitted]
 
 jobs:
   review:
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4

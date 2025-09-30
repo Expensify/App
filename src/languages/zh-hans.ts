@@ -142,6 +142,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -177,6 +178,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -853,8 +855,24 @@ const translations = {
         markAsUnread: '标记为未读',
         markAsRead: '标记为已读',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteAction: ({action}: DeleteActionParams) => `删除 ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `您确定要删除此${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '费用' : '评论'}吗？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `删除 ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = '评论';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '费用';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = '报告';
+            }
+            return `您确定要删除此${type}吗？`;
+        },
         onlyVisible: '仅对...可见',
         replyInThread: '在线程中回复',
         joinThread: '加入线程',
@@ -1397,7 +1415,7 @@ const translations = {
             reasonPageDescription: '解释一下你拒绝这笔费用的原因。',
             rejectReason: '拒绝原因',
             markAsResolved: '标记为已解决',
-            rejectedStatus: '该报销已被拒绝。请先解决问题并标记为已解决，才能重新提交。',
+            rejectedStatus: '此费用被拒绝。等待您解决问题并标记为已解决以启用提交。',
             reportActions: {
                 rejectedExpense: '已拒绝该报销',
                 markedAsResolved: '已将拒绝原因标记为已解决',
@@ -1676,13 +1694,13 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: '合并账户',
         accountDetails: {
-            accountToMergeInto: '输入您想要合并的账户',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `输入要合并到 <strong>${login}</strong> 中的账户。`,
             notReversibleConsent: '我明白这是不可逆的。',
         },
         accountValidate: {
             confirmMerge: '您确定要合并账户吗？',
-            lossOfUnsubmittedData: `合并您的账户是不可逆的，并且将导致任何未提交费用的丢失`,
-            enterMagicCode: `要继续，请输入发送到的验证码`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `合并账户是不可逆转的，将导致 <strong>${login}</strong> 失去任何未提交的支出。`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `要继续，请输入发送到 <strong>${login}</strong> 的神奇代码。`,
             errors: {
                 incorrectMagicCode: '魔法代码不正确或无效。请重试或请求新代码。',
                 fallback: '出现问题。请稍后再试。',
@@ -1735,7 +1753,7 @@ const translations = {
         compromisedDescription: '注意到您的账户有异常吗？报告问题将立即锁定您的账户，阻止新的Expensify卡交易，并防止任何账户更改。',
         domainAdminsDescription: '对于域管理员：这也会暂停您域内所有Expensify Card活动和管理员操作。',
         areYouSure: '您确定要锁定您的Expensify账户吗?',
-        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
+        onceLocked: '一旦锁定，您的账户将被限制，等待解锁请求和安全审查。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',
@@ -2569,13 +2587,10 @@ const translations = {
     },
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) => `由于发送问题，我们的电子邮件提供商已暂时暂停向${login}发送电子邮件。要解除对您登录的阻止，请按照以下步骤操作：`,
-        confirmThat: ({login}: ConfirmThatParams) => `确认${login}的拼写正确，并且是一个真实可投递的电子邮件地址。`,
-        emailAliases: '像“expenses@domain.com”这样的电子邮件别名必须能够访问其自己的电子邮件收件箱，才能成为有效的Expensify登录。',
-        ensureYourEmailClient: '确保您的电子邮件客户端允许接收来自expensify.com的电子邮件。',
-        youCanFindDirections: '您可以找到有关如何完成此步骤的说明',
-        helpConfigure: '但您可能需要 IT 部门的帮助来配置您的电子邮件设置。',
-        onceTheAbove: '完成上述步骤后，请联系',
-        toUnblock: '以解除您的登录阻止。',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>确认${login}的拼写正确，并且是一个真实可投递的电子邮件地址。</strong>像“expenses@domain.com”这样的电子邮件别名必须能够访问其自己的电子邮件收件箱，才能成为有效的Expensify登录。`,
+        ensureYourEmailClient: `<strong>确保您的电子邮件客户端允许接收来自expensify.com的电子邮件。</strong>您可以在<a href="${CONST.SET_NOTIFICATION_LINK}">此处</a>找到如何完成此步骤的说明，但您可能需要 IT 部门帮助配置电子邮件设置。`,
+        onceTheAbove: `完成上述步骤后，请联系 <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> 解除对您登录的限制。`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `我们无法向${login}发送短信，因此已暂时暂停。请尝试验证您的号码：`,
@@ -3057,11 +3072,13 @@ const translations = {
         selectIncorporationCountry: '选择注册国家/地区',
         selectIncorporationState: '选择注册州',
         selectAverageReimbursement: '选择平均报销金额',
+        selectBusinessType: '选择业务类型',
         findIncorporationType: '查找公司注册类型',
         findBusinessCategory: '查找业务类别',
         findAnnualPaymentVolume: '查找年度支付量',
         findIncorporationState: '查找注册州',
         findAverageReimbursement: '查找平均报销金额',
+        findBusinessType: '查找业务类型',
         error: {
             registrationNumber: '请提供有效的注册号码',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3219,6 +3236,9 @@ const translations = {
         thisStep: '此步骤已完成',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事或高级管理人员的签署人信息。`,
+        error: {
+            emailsMustBeDifferent: '电子邮件地址必须不同',
+        },
     },
     agreementsStep: {
         agreements: '协议',
@@ -3524,7 +3544,7 @@ const translations = {
         receiptPartners: {
             connect: '立即连接',
             uber: {
-                subtitle: '自动化整个组织的差旅和送餐费用。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) => (organizationName ? `已连接到${organizationName}` : '在您的组织内自动化旅行和餐饮费用。'),
                 sendInvites: '邀请成员',
                 sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
                 confirmInvite: '确认邀请',
@@ -3543,19 +3563,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '待处理',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '已暂停',
                 },
-                invitationFailure: '邀请成员加入Uber for Business失败',
-                autoRemove: '邀请新工作区成员加入 Uber for Business',
-                autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                invitationFailure: '无法邀请会员加入 Uber for Business。',
+                autoInvite: '邀请新工作区成员加入 Uber for Business',
+                autoRemove: '停用已从 Uber for Business 移除的工作区成员',
                 bannerTitle: 'Expensify + Uber 商务版',
                 bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
                 emptyContent: {
-                    title: '没有可显示的成员',
-                    subtitle: '我们到处寻找，但一无所获。',
+                    title: '没有待处理的邀请',
+                    subtitle: '太好了！我们到处寻找，但没有找到任何待处理的邀请。',
                 },
             },
         },
         perDiem: {
-            subtitle: '设置每日津贴标准以控制员工的日常支出。',
+            subtitle: `<muted-text>设置每日津贴标准以控制员工的日常支出。<a href="${CONST.DEEP_DIVE_PER_DIEM}">了解更多</a>。</muted-text>`,
             amount: '金额',
             deleteRates: () => ({
                 one: '删除费率',
@@ -4303,10 +4323,7 @@ const translations = {
                 whoIsYourBankAccount: '您的银行是哪家？',
                 whereIsYourBankLocated: '您的银行在哪里？',
                 howDoYouWantToConnect: '您想如何连接到您的银行？',
-                learnMoreAboutOptions: {
-                    text: '了解更多关于这些的信息',
-                    linkText: '选项。',
-                },
+                learnMoreAboutOptions: `<muted-text>了解有关这些<a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">选项</a>的更多信息。</muted-text>`,
                 commercialFeedDetails: '需要与您的银行进行设置。这通常由较大的公司使用，并且如果您符合条件，这通常是最佳选择。',
                 commercialFeedPlaidDetails: `需要与您的银行进行设置，但我们会指导您。通常这仅限于较大的公司。`,
                 directFeedDetails: '最简单的方法。使用您的主账户凭证立即连接。这是最常见的方法。',
@@ -4794,6 +4811,13 @@ const translations = {
                 prompt4: '通过导出您的标签。',
                 prompt5: '了解更多',
                 prompt6: '关于标签级别。',
+            },
+            overrideMultiTagWarning: {
+                title: '导入标签',
+                prompt1: '你确定吗？',
+                prompt2: ' 现有标签将被覆盖，但您可以',
+                prompt3: ' 下载备份文件',
+                prompt4: ' 第一。',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `我们在您的电子表格中找到了*${columnCounts} 列*。在包含标签名称的列旁边选择*名称*。您还可以在设置标签状态的列旁边选择*启用*。`,
@@ -5430,6 +5454,11 @@ const translations = {
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
             },
+            reports: {
+                title: '报告',
+                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
+                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
+            },
             multiLevelTags: {
                 title: '多级标签',
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
@@ -5557,8 +5586,7 @@ const translations = {
                 nonBillable: '非计费',
                 nonBillableDescription: '费用有时会重新计入客户账单。',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: '电子收据是自动创建的',
-                eReceiptsHintLink: '对于大多数美元信用交易',
+                eReceiptsHint: `电子收据是自动创建的[用于大多数美元贷记交易](${CONST.DEEP_DIVE_ERECEIPTS})。`,
                 attendeeTracking: '参与者跟踪',
                 attendeeTrackingHint: '跟踪每笔费用的每人成本。',
                 prohibitedDefaultDescription: '标记任何包含酒精、赌博或其他受限物品的收据。包含这些项目的收据将需要人工审核。',
@@ -6057,7 +6085,7 @@ const translations = {
         groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
-            emptyStateSubtitle: '您可以使用上面的按钮将费用添加到此报告中。',
+            emptyStateSubtitle: '您可以使用下方按钮，或上方“更多”菜单中的“添加费用”选项，将费用添加到此报告中。',
         },
         noCategory: '无类别',
         noTag: '无标签',

@@ -142,6 +142,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -177,6 +178,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -855,8 +857,24 @@ const translations = {
         markAsUnread: '未読としてマーク',
         markAsRead: '既読にする',
         editAction: ({action}: EditActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を編集`,
-        deleteAction: ({action}: DeleteActionParams) => `${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `この${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? '経費' : 'コメント'}を削除してもよろしいですか？`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `${type}を削除`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'コメント';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = '経費';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'レポート';
+            }
+            return `この${type}を削除してもよろしいですか?`;
+        },
         onlyVisible: 'にのみ表示',
         replyInThread: 'スレッドで返信',
         joinThread: 'スレッドに参加する',
@@ -1413,7 +1431,7 @@ const translations = {
             reasonPageDescription: 'この経費を拒否する理由を説明してください。',
             rejectReason: '却下の理由',
             markAsResolved: '解決済みにする',
-            rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
+            rejectedStatus: 'この経費は却下されました。問題を修正して解決済みとしてマークし、提出を可能にするのをお待ちしています。',
             reportActions: {
                 rejectedExpense: 'この経費を却下しました',
                 markedAsResolved: '却下理由を解決済みとしてマークしました',
@@ -1695,13 +1713,13 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'アカウントを統合する',
         accountDetails: {
-            accountToMergeInto: 'マージしたいアカウントを入力してください',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `マージしたいアカウントを<strong>${login}</strong>に入力する。`,
             notReversibleConsent: 'これは元に戻せないことを理解しています。',
         },
         accountValidate: {
             confirmMerge: 'アカウントをマージしてもよろしいですか？',
-            lossOfUnsubmittedData: `アカウントの統合は元に戻せず、未提出の経費が失われる結果になります。`,
-            enterMagicCode: `続行するには、に送信されたマジックコードを入力してください。`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `アカウントの統合は不可逆的であり、<strong>${login}</strong>の未提出の経費は失われます。`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `続行するには、<strong>${login}</strong>に送られたマジックコードを入力してください。`,
             errors: {
                 incorrectMagicCode: '無効または不正なマジックコードです。もう一度お試しいただくか、新しいコードをリクエストしてください。',
                 fallback: '問題が発生しました。後でもう一度お試しください。',
@@ -1754,7 +1772,7 @@ const translations = {
         compromisedDescription: 'アカウントに何か異常を感じましたか？報告すると、アカウントが即座にロックされ、新しいExpensify Cardの取引がブロックされ、アカウントの変更が防止されます。',
         domainAdminsDescription: 'ドメイン管理者向け: これにより、ドメイン全体のすべてのExpensify Cardのアクティビティと管理者の操作も一時停止されます。',
         areYouSure: '本当にExpensifyアカウントをロックしますか？',
-        ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
+        onceLocked: 'ロックされると、アカウントはロック解除リクエストとセキュリティレビューが完了するまで制限されます。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
@@ -2597,13 +2615,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `私たちのメールプロバイダーは、配信の問題により${login}へのメールを一時的に停止しました。ログインを解除するには、次の手順に従ってください。`,
-        confirmThat: ({login}: ConfirmThatParams) => `${login}が正しく綴られており、実際に配信可能なメールアドレスであることを確認してください。`,
-        emailAliases: '「expenses@domain.com」のようなメールエイリアスは、有効なExpensifyログインとするために、自分のメール受信箱にアクセスできる必要があります。',
-        ensureYourEmailClient: 'メールクライアントがexpensify.comからのメールを許可していることを確認してください。',
-        youCanFindDirections: 'このステップを完了する方法についての指示を見つけることができます。',
-        helpConfigure: 'ただし、メール設定の構成にはIT部門の支援が必要な場合があります。',
-        onceTheAbove: '上記の手順が完了したら、に連絡してください。',
-        toUnblock: 'ログインを解除するために。',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>${login}が正しく綴られており、実際に配信可能なメールアドレスであることを確認してください。</strong>「expenses@domain.com」のようなメールエイリアスは、有効なExpensifyログインとするために、自分のメール受信箱にアクセスできる必要があります。`,
+        ensureYourEmailClient: `<strong>メールクライアントがexpensify.comからのメールを許可していることを確認してください。</strong>このステップを完了する方法は<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>を参照してください。`,
+        onceTheAbove: `上記の手順が完了したら、<a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a>までご連絡いただき、ログインブロックを解除してください。`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `${login}にSMSメッセージを送信できなかったため、一時的に停止しました。番号を確認してください。`,
@@ -3086,11 +3101,13 @@ const translations = {
         selectIncorporationCountry: '法人設立国を選択',
         selectIncorporationState: '法人設立州を選択',
         selectAverageReimbursement: '平均払い戻し額を選択',
+        selectBusinessType: '事業タイプを選択する',
         findIncorporationType: '法人の種類を見つける',
         findBusinessCategory: 'ビジネスカテゴリを見つける',
         findAnnualPaymentVolume: '年間支払い額を見つける',
         findIncorporationState: '設立州を見つける',
         findAverageReimbursement: '平均払い戻し額を見つける',
+        findBusinessType: '事業タイプを見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3250,6 +3267,9 @@ const translations = {
         thisStep: 'このステップは完了しました',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
+        error: {
+            emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
+        },
     },
     agreementsStep: {
         agreements: '契約書',
@@ -3562,7 +3582,8 @@ const translations = {
         receiptPartners: {
             connect: '今すぐ接続',
             uber: {
-                subtitle: '組織全体で出張費や食事の配達費を自動化します。',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `${organizationName}に接続しました` : '組織全体で旅行および食事の配達経費を自動化します。',
                 sendInvites: 'メンバーを招待',
                 sendInvitesDescription: 'これらのワークスペースメンバーはまだUber for Businessアカウントを持っていません。現在招待したくないメンバーの選択を解除してください。',
                 confirmInvite: '招待を確認',
@@ -3581,19 +3602,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '保留中',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '停止中',
                 },
-                invitationFailure: 'Uber for Businessへのメンバー招待に失敗しました',
-                autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
-                autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
+                invitationFailure: 'メンバーを Uber for Business に招待できません。',
+                autoInvite: 'Uber for Business に新しいワークスペースメンバーを招待する',
+                autoRemove: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
                 bannerTitle: 'Expensify + ビジネス向け Uber',
                 bannerDescription: 'Uber for Business を接続すると、組織全体の出張費や食事の配達費を自動化できます。',
                 emptyContent: {
-                    title: '表示するメンバーがいません',
-                    subtitle: 'あらゆる場所を探しましたが、何も見つかりませんでした。',
+                    title: '未処理の招待はありません',
+                    subtitle: 'やった！あらゆる場所を探しましたが、未処理の招待は見つかりませんでした。',
                 },
             },
         },
         perDiem: {
-            subtitle: '日当料金を設定して、従業員の1日の支出を管理します。',
+            subtitle: `<muted-text>日当料金を設定して、従業員の1日の支出を管理します。<a href="${CONST.DEEP_DIVE_PER_DIEM}">詳しくはこちら</a>。</muted-text>`,
             amount: '金額',
             deleteRates: () => ({
                 one: 'レートを削除',
@@ -4356,10 +4377,7 @@ const translations = {
                 whoIsYourBankAccount: 'あなたの銀行はどこですか？',
                 whereIsYourBankLocated: 'あなたの銀行はどこにありますか？',
                 howDoYouWantToConnect: 'どのように銀行に接続したいですか？',
-                learnMoreAboutOptions: {
-                    text: 'これらについて詳しく学ぶ',
-                    linkText: 'オプション。',
-                },
+                learnMoreAboutOptions: `<muted-text>これらの<a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">オプション</a>の詳細については、こちらをご覧ください。</muted-text>`,
                 commercialFeedDetails: '銀行との設定が必要です。これは通常、大企業によって使用され、資格がある場合には最良のオプションであることが多いです。',
                 commercialFeedPlaidDetails: `銀行との設定が必要ですが、私たちが案内します。これは通常、大企業に限定されています。`,
                 directFeedDetails: '最も簡単な方法です。マスター資格情報を使用してすぐに接続します。この方法が最も一般的です。',
@@ -4854,6 +4872,13 @@ const translations = {
                 prompt4: 'タグをエクスポートすることによって。',
                 prompt5: '詳細を確認',
                 prompt6: 'タグレベルについて。',
+            },
+            overrideMultiTagWarning: {
+                title: 'タグをインポート',
+                prompt1: '本当に大丈夫ですか？',
+                prompt2: ' 既存のタグは上書きされますが、あなたは',
+                prompt3: ' バックアップをダウンロード',
+                prompt4: ' 最初。',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `スプレッドシートで*${columnCounts}列*が見つかりました。タグ名を含む列の横に*名前*を選択してください。また、タグのステータスを設定する列の横に*有効*を選択することもできます。`,
@@ -5492,6 +5517,11 @@ const translations = {
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
             },
+            reports: {
+                title: 'レポート',
+                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
+                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
+            },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
                 description:
@@ -5623,8 +5653,7 @@ const translations = {
                 nonBillable: '非請求対象',
                 nonBillableDescription: '経費は時々クライアントに再請求されます。',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceiptsは自動作成されます',
-                eReceiptsHintLink: 'ほとんどのUSDクレジット取引の場合',
+                eReceiptsHint: `eレシートは[ほとんどのUSDクレジット取引で](${CONST.DEEP_DIVE_ERECEIPTS})自動作成されます。`,
                 attendeeTracking: '出席者の追跡',
                 attendeeTrackingHint: '各経費の一人当たりの費用を追跡します。',
                 prohibitedDefaultDescription:
@@ -6134,7 +6163,7 @@ const translations = {
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
-            emptyStateSubtitle: 'このレポートに経費を追加するには、上のボタンを使用してください。',
+            emptyStateSubtitle: 'このレポートに経費を追加するには、\n 下のボタンを使用するか、上の「その他」メニューから「経費を追加」を選択してください。',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
@@ -6613,9 +6642,7 @@ const translations = {
                 return '銀行接続が切れているため、領収書を自動照合できません。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return isAdmin
-                    ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。`
-                    : '壊れた銀行接続のため、領収書を自動マッチングできません。修正が必要です。';
+                return isAdmin ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。` : '銀行接続が切れているため、領収書を自動照合できません。';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `${member}に現金としてマークするように依頼するか、7日間待って再試行してください。` : 'カード取引とのマージを待機中。';
