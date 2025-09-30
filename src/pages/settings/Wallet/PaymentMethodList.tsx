@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement} from 'react';
@@ -94,6 +95,9 @@ type PaymentMethodListProps = {
     /** Type of payment method to filter by */
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
 
+    /* Currency of payment method to filter by */
+    filterCurrency?: string;
+
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 };
@@ -184,6 +188,7 @@ function PaymentMethodList({
     onAddBankAccountPress = () => {},
     itemIconRight,
     filterType,
+    filterCurrency,
     shouldHideDefaultBadge = false,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
@@ -193,7 +198,7 @@ function PaymentMethodList({
     const illustrations = useThemeIllustrations();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.validated,
+        selector: isUserValidatedSelector,
         canBeMissing: true,
     });
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -321,8 +326,12 @@ function PaymentMethodList({
             );
         }
 
-        if (filterType) {
-            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => (paymentMethod as BankAccount).accountData?.type === filterType);
+        if (filterType ?? filterCurrency) {
+            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
+                const account = paymentMethod as BankAccount;
+
+                return (!!filterType && account.accountData?.type === filterType) || (!!filterCurrency && account.bankCurrency === filterCurrency);
+            });
         }
 
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
@@ -361,6 +370,7 @@ function PaymentMethodList({
         styles,
         isOffline,
         filterType,
+        filterCurrency,
         isLoadingCardList,
         cardList,
         illustrations,
@@ -384,7 +394,7 @@ function PaymentMethodList({
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress]);
+    }, [isUserValidated, onAddBankAccountPress, policyID]);
 
     const renderListFooterComponent = useCallback(
         () => (
