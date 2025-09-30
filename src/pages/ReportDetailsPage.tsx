@@ -570,7 +570,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     ) : null;
 
     const renderedAvatar = useMemo(() => {
-        if (isChatRoom) {
+        if (isChatRoom && !isThread) {
             return (
                 <View style={styles.mb3}>
                     <RoomHeaderAvatars
@@ -619,6 +619,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     }, [
         isGroupChat,
         isThread,
+        isChatRoom,
+
         icons,
         report.avatarUrl,
         report.pendingFields?.avatar,
@@ -629,7 +631,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         styles.mt6,
         styles.w100,
         styles.mb3,
-        moneyRequestReport,
+        moneyRequestReport?.reportID,
     ]);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);

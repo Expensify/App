@@ -35,7 +35,6 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isChatThread = isThread(report);
     const isPolicyRoom = isUserCreatedPolicyRoom(report);
 
     if (!icons.length) {
@@ -49,7 +48,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
             return;
         }
 
-        if (isPolicyRoom && !isChatThread) {
+        if (isPolicyRoom) {
             return (
                 <AvatarWithImagePicker
                     source={icon.source}
@@ -66,9 +65,9 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
                     errors={report.errorFields?.avatar ?? null}
                     errorRowStyles={styles.mt6}
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
-                    shouldUseStyleUtilityForAnchorPosition
                     style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                     type={icon.type}
+                    editorMaskImage={Expensicons.ImageCropSquareMask}
                 />
             );
         }
