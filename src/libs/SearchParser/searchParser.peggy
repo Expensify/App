@@ -149,6 +149,7 @@ key "key"
       / billable
       / action
       / has
+      / is
       / purchaseCurrency
       / purchaseAmount
     )

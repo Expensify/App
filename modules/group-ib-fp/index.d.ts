@@ -1,5 +1,5 @@
 declare module 'group-ib-fp' {
-    export enum FPAttributeFormat { ClearText = 1 }
+    export enum FPAttributeFormat { ClearText = 1, Hashed = 2 }
     export enum Capability {
       BatteryStatus = 0,
       Cellular = 1,

@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -20,13 +21,13 @@ import {updateLegalName as updateLegalNamePersonalDetails} from '@userActions/Pe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/LegalNameForm';
-import type {PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 const updateLegalName = (
     values: PrivatePersonalDetails,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'>,
+    currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
 ) => {
     updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber, currentUserPersonalDetail);
 };
@@ -102,7 +103,14 @@ function LegalNamePage() {
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                         validate={validate}
-                        onSubmit={(values) => updateLegalName(values, formatPhoneNumber, {firstName: currentUserPersonalDetails.firstName, lastName: currentUserPersonalDetails.lastName})}
+                        onSubmit={(values) =>
+                            updateLegalName(values, formatPhoneNumber, {
+                                firstName: currentUserPersonalDetails.firstName,
+                                lastName: currentUserPersonalDetails.lastName,
+                                accountID: currentUserPersonalDetails.accountID,
+                                email: currentUserPersonalDetails.email,
+                            })
+                        }
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >

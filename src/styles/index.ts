@@ -1215,8 +1215,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: variables.inputPaddingTop,
         },
 
-        textInputDesktop: addOutlineWidth(theme, {}, 0),
-
         textInputLeftIconContainer: {
             justifyContent: 'center',
             paddingRight: 8,
@@ -1305,8 +1303,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             color: theme.icon,
         },
-
-        noOutline: addOutlineWidth(theme, {}, 0),
 
         labelStrong: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -5808,6 +5804,8 @@ const nestedStyles = (theme: ThemeColors) =>
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
         },
+        textInputDesktop: addOutlineWidth(theme, {}, 0),
+        noOutline: addOutlineWidth(theme, {}, 0),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
@@ -19,8 +21,10 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -193,6 +197,71 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    describe('useDefaultFundID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return domainID for given policyID when workspaceID is not set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 0,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`, {
+                [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`]: {
+                    currentBalance: 0,
+                    domainName: 'expensify-policy8fe6324c4897.exfy',
+                    earnedCashback: 0,
+                    isLoading: false,
+                    isMonthlySettlementAllowed: false,
+                    limit: 0,
+                    marqetaBusinessToken: 18441278,
+                    ownerEmail: 'user@gmail.com',
+                    paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
+                    paymentBankAccountID: 3288123,
+                    paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
+                    preferredPolicy: '2',
+                    remainingLimit: 0,
+                },
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(18441278);
+        });
+
+        it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 0,
+            };
+            const lastSelectedExpensifyCardFeed = 11111;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
+                paymentBankAccountID: 1234,
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(lastSelectedExpensifyCardFeed);
+        });
+
+        it('should return workspaceAccountID for given policyID', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 123234,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(123234);
+        });
+    });
+
     describe('getActivePolicies', () => {
         it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
             const policies = createCollection<Policy>(
@@ -963,6 +1032,140 @@ describe('PolicyUtils', () => {
             };
             const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getPolicyBrickRoadIndicatorStatus', () => {
+        const baseAdminPolicy: OnyxEntry<Policy> = {
+            id: 'ABC123',
+            name: 'Test Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        const baseUserPolicy: OnyxEntry<Policy> = {
+            id: 'DEF456',
+            name: 'User Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        it('does return an ERROR RBR when a sync error exists for an admin', () => {
+            const policyWithConnectionFailures = {
+                ...baseAdminPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('does not return an ERROR RBR when a sync error exists for a user', () => {
+            const policyWithConnectionFailures = {
+                ...baseUserPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
+            const policyWithoutConnections = {
+                ...baseAdminPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseAdminPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result2).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync error exists for a user', () => {
+            const policyWithoutConnections = {
+                ...baseUserPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseUserPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result2).toBeUndefined();
         });
     });
 });

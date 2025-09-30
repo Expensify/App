@@ -18,8 +18,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getReportActionFromExpensifyCard} from '@libs/ReportActionsUtils';
-import {findReportIDForAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeed} from '@src/types/onyx';
@@ -410,7 +408,15 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
-function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
+function updateExpensifyCardLimit(
+    workspaceAccountID: number,
+    cardID: number,
+    newLimit: number,
+    newAvailableSpend: number,
+    oldLimit?: number,
+    oldAvailableSpend?: number,
+    isVirtualCard?: boolean,
+) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!authToken) {
@@ -478,6 +484,7 @@ function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, ne
         authToken,
         cardID,
         limit: newLimit,
+        isVirtualCard: isVirtualCard ?? false,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT, parameters, {optimisticData, successData, failureData});
@@ -625,8 +632,6 @@ function updateExpensifyCardLimitType(workspaceAccountID: number, cardID: number
 function deactivateCard(workspaceAccountID: number, card?: Card) {
     const authToken = NetworkStore.getAuthToken();
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const reportAction = getReportActionFromExpensifyCard(cardID);
-    const reportID = findReportIDForAction(reportAction) ?? reportAction?.reportID;
 
     if (!authToken) {
         return;
@@ -671,28 +676,6 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
             },
         },
     ];
-
-    if (reportAction?.reportActionID && reportID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [reportAction.reportActionID]: {
-                    ...reportAction,
-                    originalMessage: {
-                        cardID: null,
-                    },
-                },
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportID}`,
-            value: {
-                [reportAction.reportActionID]: reportAction,
-            },
-        });
-    }
 
     const parameters: CardDeactivateParams = {
         authToken,

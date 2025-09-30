@@ -70,9 +70,9 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-import SelectionList from './SelectionList';
-import type {SectionListDataType} from './SelectionList/types';
-import UserListItem from './SelectionList/UserListItem';
+import SelectionList from './SelectionListWithSections';
+import type {SectionListDataType} from './SelectionListWithSections/types';
+import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -198,6 +198,8 @@ type MoneyRequestConfirmationListProps = {
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
 
+const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
+
 function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
@@ -244,11 +246,11 @@ function MoneyRequestConfirmationList({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        selector: (selectedPolicy) => DistanceRequestUtils.getDefaultMileageRate(selectedPolicy),
+        selector: mileageRateSelector,
         canBeMissing: true,
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
@@ -1063,16 +1065,30 @@ function MoneyRequestConfirmationList({
                         style={styles.mb3}
                     />
                 )}
-                <ButtonWithDropdownMenu
-                    pressOnEnter
-                    onPress={(event, value) => confirm(value as PaymentMethodType)}
-                    options={splitOrRequestOptions}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                    enterKeyEventListenerPriority={1}
-                    useKeyboardShortcuts
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isLoading={isConfirmed || isConfirming}
-                />
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shouldHideOnNavigate
+                    shiftVertical={-10}
+                >
+                    <View>
+                        <ButtonWithDropdownMenu
+                            pressOnEnter
+                            onPress={(event, value) => confirm(value as PaymentMethodType)}
+                            options={splitOrRequestOptions}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            enterKeyEventListenerPriority={1}
+                            useKeyboardShortcuts
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            isLoading={isConfirmed || isConfirming}
+                        />
+                    </View>
+                </EducationalTooltip>
             </>
         );
 
@@ -1085,20 +1101,7 @@ function MoneyRequestConfirmationList({
                         message={errorMessage}
                     />
                 )}
-
-                <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
-                    renderTooltipContent={renderProductTrainingTooltip}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
-                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                    shouldHideOnNavigate
-                    shiftVertical={-10}
-                >
-                    <View>{button}</View>
-                </EducationalTooltip>
+                <View>{button}</View>
             </>
         );
     }, [

@@ -376,14 +376,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
-    if (isMarkAsResolvedReportAction(report, chatReport, reportTransactions, violations, policy, reportActions)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
-    }
-
-    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
-    }
-
     if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
@@ -444,7 +436,8 @@ function getTransactionThreadPrimaryAction(
     parentReport: Report,
     reportTransaction: Transaction,
     violations: TransactionViolation[],
-    policy?: Policy,
+    policy: OnyxEntry<Policy>,
+    isFromReviewDuplicates: boolean,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
     if (isMarkAsResolvedAction(parentReport, violations, policy)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED;
@@ -455,7 +448,7 @@ function getTransactionThreadPrimaryAction(
     }
 
     if (isReviewDuplicatesAction(parentReport, [reportTransaction])) {
-        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+        return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
     if (isMarkAsCashActionForTransaction(parentReport, violations, policy)) {
