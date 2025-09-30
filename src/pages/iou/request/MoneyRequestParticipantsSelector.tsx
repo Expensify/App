@@ -67,6 +67,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
+    /** Whether this is a corporate card transaction */
+    isCorporateCardTransaction?: boolean;
+
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
@@ -89,6 +92,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
@@ -154,7 +158,7 @@ function MoneyRequestParticipantsSelector({
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
+            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
             shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -166,7 +170,7 @@ function MoneyRequestParticipantsSelector({
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         }),
-        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, canShowManagerMcTest, isPaidGroupPolicy],
+        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy],
     );
 
     const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
