@@ -4,7 +4,7 @@
  */
 type SupportalPermissionDenied = {
     /** API command that was blocked */
-    command?: string;
+    command: string;
 };
 
 export default SupportalPermissionDenied;

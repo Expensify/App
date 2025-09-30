@@ -20,9 +20,10 @@ const SupportalPermission: Middleware = (responsePromise: Promise<Response | voi
                 request.data.shouldRetry = false;
             }
 
-            Log.info('Supportal insufficient permissions; suppressing retry', false, {command: request.command});
+            const command = request?.command ?? 'unknown';
+            Log.info('Supportal insufficient permissions; suppressing retry', false, {command});
             showSupportalPermissionDenied({
-                command: request.command,
+                command,
             });
         }
 

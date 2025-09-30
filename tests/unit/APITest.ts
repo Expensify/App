@@ -832,9 +832,12 @@ describe('APITests', () => {
                 expect(PersistedRequests.getAll().length).toBe(0);
 
                 // Failure data should be applied through Onyx.update at flush time
-                const failureApplied = onyxUpdateSpy.mock.calls.some(
-                    ([updates]) => Array.isArray(updates) && updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed'),
-                );
+                const failureApplied = onyxUpdateSpy.mock.calls.some(([updates]) => {
+                    if (!Array.isArray(updates)) {
+                        return false;
+                    }
+                    return updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed');
+                });
                 expect(failureApplied).toBe(true);
 
                 // Supportal permission middleware should have set the modal payload via Onyx.set
