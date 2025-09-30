@@ -33,6 +33,9 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         if (currentDataIndex <= 0) {
             return data;
         }
+        // If data.length > 1 and highlighted item is the last element, there will be a bug that does not trigger the `onStartReached` event.
+        // So we will need to return at least the last 2 elements in this case.
+        const offset = !inverted && currentDataIndex === data.length - 1 ? 1 : 0;
         // We always render the list from the highlighted item to the end of the list because:
         // - With an inverted FlatList, items are rendered from bottom to top,
         //   so the highlighted item stays at the bottom and within the visible viewport.
@@ -40,8 +43,8 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         //   making the highlighted item appear at the top of the list.
         // Then, `maintainVisibleContentPosition` ensures the highlighted item remains in place
         // as the rest of the items are appended.
-        return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
-    }, [currentDataIndex, data, isInitialData]);
+        return data.slice(Math.max(0, currentDataIndex - (isInitialData ? offset : getInitialPaginationSize)));
+    }, [currentDataIndex, data, inverted, isInitialData]);
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
@@ -80,16 +83,15 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const [shouldPreserveVisibleContentPosition, setShouldPreserveVisibleContentPosition] = useState(false);
+    const [shouldPreserveVisibleContentPosition, setShouldPreserveVisibleContentPosition] = useState(true);
     const maintainVisibleContentPosition = useMemo(() => {
-        if (shouldPreserveVisibleContentPosition) {
+        if (!shouldPreserveVisibleContentPosition) {
             return undefined;
         }
 
-        const dataLength = inverted ? data.length : displayedData.length;
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: dataLength ? Math.min(1, dataLength - 1) : 0,
+            minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
         };
 
         if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
@@ -97,7 +99,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         }
 
         return config;
-    }, [shouldPreserveVisibleContentPosition, inverted, data.length, displayedData.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [shouldPreserveVisibleContentPosition, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     useEffect(() => {
         if (inverted || isInitialData) {
@@ -111,7 +113,7 @@ export default function useFlatListScrollKey<T>({data, keyExtractor, initialScro
         // Additionally, keeping `minIndexForVisible` at 1 may cause the scroll offset to shift
         // when the height of the ListHeaderComponent changes, as FlatList tries to keep items within the visible viewport.
         InteractionManager.runAfterInteractions(() => {
-            setShouldPreserveVisibleContentPosition(true);
+            setShouldPreserveVisibleContentPosition(false);
         });
     }, [inverted, isInitialData]);
 

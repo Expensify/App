@@ -17,7 +17,19 @@ type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScr
  * FlatList component that handles initial scroll key.
  */
 function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor, ListHeaderComponent, onLayout, onContentSizeChange, ...rest} = props;
+    const {
+        shouldEnableAutoScrollToTopThreshold,
+        initialScrollKey,
+        data,
+        onStartReached,
+        renderItem,
+        keyExtractor,
+        ListHeaderComponent,
+        onLayout,
+        onContentSizeChange,
+        contentContainerStyle,
+        ...rest
+    } = props;
     const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
@@ -93,6 +105,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             // it will be rendered once the data has finished loading.
             // This prevents an unnecessary empty space above the highlighted item.
             ListHeaderComponent={!isInitialData ? ListHeaderComponent : undefined}
+            contentContainerStyle={!isInitialData ? contentContainerStyle : undefined}
             onLayout={onLayoutInner}
             onContentSizeChange={onContentSizeChangeInner}
             // eslint-disable-next-line react/jsx-props-no-spreading
