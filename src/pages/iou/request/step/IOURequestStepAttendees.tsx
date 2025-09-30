@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,6 +46,9 @@ function IOURequestStepAttendees({
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
+    const initialAttendees = useMemo(() => {
+        return getAttendees(transaction);
+    }, [transaction]);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -76,6 +79,7 @@ function IOURequestStepAttendees({
                 onFinish={saveAttendees}
                 onAttendeesAdded={(v) => setAttendees(v)}
                 attendees={attendees}
+                initialAttendees={initialAttendees}
                 iouType={iouType}
                 action={action}
             />

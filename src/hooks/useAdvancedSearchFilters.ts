@@ -211,6 +211,7 @@ function useAdvancedSearchFilters() {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: undefined,
         searchTerm: '',
+        initialSelectedPolicyIDs: undefined,
         localeCompare,
     });
 

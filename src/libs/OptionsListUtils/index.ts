@@ -2027,7 +2027,6 @@ function getAttendeeOptions(
     }
 
     const filteredRecentAttendees = recentAttendees
-        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
             ...attendee,
             login: attendee.email ?? attendee.displayName,
@@ -2044,7 +2043,7 @@ function getAttendeeOptions(
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
             includeP2P,
-            includeSelectedOptions: false,
+            includeSelectedOptions: true,
             includeSelfDM: false,
             includeInvoiceRooms,
             action,

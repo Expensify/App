@@ -72,6 +72,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
+        initialSelectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         localeCompare,
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
     });

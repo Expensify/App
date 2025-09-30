@@ -148,11 +148,20 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
                 : approvers;
 
+        const currentApprover = approvalWorkflow?.approvers[approverIndex];
         const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
+        const orderedApprovers = data.reduce<typeof data>((acc, approver) => {
+            if (approver.login === currentApprover?.email) {
+                acc.unshift(approver);
+            } else {
+                acc.push(approver);
+            }
+            return acc;
+        }, []);
         return [
             {
                 title: undefined,
-                data,
+                data: orderedApprovers,
                 shouldShow: true,
             },
         ];
@@ -161,14 +170,15 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         employeeList,
         debouncedSearchTerm,
         countryCode,
+        approvalWorkflow?.approvers,
+        approverIndex,
         localeCompare,
+        isDefault,
         policy?.preventSelfApproval,
         policy?.owner,
         membersEmail,
         approversFromWorkflow,
         selectedApproverEmail,
-        isDefault,
-        approverIndex,
         defaultApprover,
         personalDetails,
     ]);
