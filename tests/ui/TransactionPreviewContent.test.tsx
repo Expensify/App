@@ -131,19 +131,19 @@ describe('TransactionPreviewContent - Violation Indicators', () => {
 
     it('renders the component with violations without crashing', async () => {
         const violations = createMockViolations();
-        
-        renderTransactionPreviewContent({ violations });
+
+        renderTransactionPreviewContent({violations});
         await waitForBatchedUpdates();
 
         // Check that the component renders with the merchant name
         expect(screen.getByText('Test Merchant')).toBeOnTheScreen();
-        
+
         // The actual violation display logic is complex and depends on many factors
         // This test ensures the component can handle violations without crashing
     });
 
     it('renders the component without violations without crashing', async () => {
-        renderTransactionPreviewContent({ violations: [] });
+        renderTransactionPreviewContent({violations: []});
         await waitForBatchedUpdates();
 
         // Component should render normally without violations
@@ -164,7 +164,7 @@ describe('TransactionPreviewContent - Violation Indicators', () => {
             },
         ];
 
-        renderTransactionPreviewContent({ violations: multipleViolations });
+        renderTransactionPreviewContent({violations: multipleViolations});
         await waitForBatchedUpdates();
 
         // Component should handle multiple violations without crashing
@@ -180,7 +180,7 @@ describe('TransactionPreviewContent - Violation Indicators', () => {
             },
         ];
 
-        renderTransactionPreviewContent({ violations: noticeViolations });
+        renderTransactionPreviewContent({violations: noticeViolations});
         await waitForBatchedUpdates();
 
         // Component should handle notice violations without issues
@@ -189,16 +189,16 @@ describe('TransactionPreviewContent - Violation Indicators', () => {
 
     it('passes violations data to the component correctly', async () => {
         const violations = createMockViolations();
-        
-        renderTransactionPreviewContent({ 
+
+        renderTransactionPreviewContent({
             violations,
-            transaction: createMockTransaction({ merchant: 'Custom Merchant' })
+            transaction: createMockTransaction({merchant: 'Custom Merchant'}),
         });
         await waitForBatchedUpdates();
 
         // Verify the custom merchant name is displayed
         expect(screen.getByText('Custom Merchant')).toBeOnTheScreen();
-        
+
         // The component receives the violations - the actual display logic
         // is tested in the utility function tests and integration tests
     });
