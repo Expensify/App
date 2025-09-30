@@ -22,8 +22,12 @@ import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-v
 import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
+import Computer from '@assets/images/computer.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
+import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
+import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
@@ -112,10 +116,12 @@ export {
     BrokenMagnifyingGlass,
     ChatBubbles,
     PinkCar,
+    Computer,
     EmailAddress,
     EmptyCardState,
     EmptyStateExpenses,
     EnvelopeReceipt,
+    ExpensifyCardImage,
     PaymentHands,
     MagicCode,
     Mailbox,
@@ -129,6 +135,8 @@ export {
     ShieldYellow,
     CreditCardsNewGreen,
     LaptopWithSecondScreenAndHourglass,
+    LaptopWithSecondScreenSync,
+    LaptopWithSecondScreenX,
     LockOpen,
     Luggage,
     MoneyIntoWallet,

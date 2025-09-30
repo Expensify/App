@@ -2,15 +2,16 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
-import Computer from '@assets/images/computer.svg';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -28,6 +29,7 @@ type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNaviga
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: Computer} = useMemoizedLazyAsset(() => loadIllustration('Computer'));
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
     const backTo = route.params.backTo;

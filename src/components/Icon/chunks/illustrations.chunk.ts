@@ -1,8 +1,13 @@
 // This file contains all the SVG imports for illustrations used in the app
 // Company Cards
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+// Other assets
+import Computer from '@assets/images/computer.svg';
+import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 // Expensify Card
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
+import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 // Simple Illustrations - Core ones that are actually used
@@ -28,6 +33,12 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 const Illustrations = {
     // Company Cards
     CompanyCardsEmptyState,
+
+    // Other assets
+    Computer,
+    ExpensifyCardImage,
+    LaptopWithSecondScreenSync,
+    LaptopWithSecondScreenX,
 
     // Expensify Card
     ExpensifyCardIllustration,

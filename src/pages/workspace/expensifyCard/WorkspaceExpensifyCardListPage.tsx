@@ -2,7 +2,6 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -65,6 +64,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {asset: HandCard} = useMemoizedLazyAsset(() => loadIllustration('HandCard'));
+    const {asset: ExpensifyCardImage} = useMemoizedLazyAsset(() => loadIllustration('ExpensifyCardImage'));
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
