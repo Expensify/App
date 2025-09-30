@@ -11,6 +11,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -23,7 +24,6 @@ import {
     getCombinedReportActions,
     getMostRecentIOURequestActionID,
     getOriginalMessage,
-    getReportPreviewAction,
     getSortedReportActionsForDisplay,
     isCreatedAction,
     isDeletedParentAction,

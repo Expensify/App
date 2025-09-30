@@ -15,6 +15,7 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         type: policy.type,
         role: policy.role,
         owner: policy.owner,
+        connections: policy.connections,
         outputCurrency: policy.outputCurrency,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         reimburser: policy.reimburser,
