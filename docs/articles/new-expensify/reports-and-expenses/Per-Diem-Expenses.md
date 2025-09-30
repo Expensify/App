@@ -12,7 +12,7 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 
 **To create a per diem expense:**
 
-1. In the left-hand menu, click the green **+** button and click **Create expense**.
+1. In the navigation tabs, click the green **+** button and click **Create expense**.
 2. If your workspace supports Per Diem, you'll have the option to choose **Per Diem**.
 3. Choose the **workspace** you want to create under (if you're in more than one).
 4. Choose the **destination** (country or region where the Per Diem applies).
@@ -29,7 +29,7 @@ Per diem expenses let you claim daily allowances for meals, lodging, and inciden
 
 # FAQ
 
-## Why don’t I see the per diem option?  
+## Why don’t I see the per diem option?
 The option only appears if the workspace you're submitting the expense on has Per Diem enabled. It won't show if you’re submitting an expense in a group chat, direct message, or if your workspace doesn't have that setting enabled.
 
 ## Can I create per diem expenses for multiple days?

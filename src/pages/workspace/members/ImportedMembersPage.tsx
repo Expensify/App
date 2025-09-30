@@ -1,4 +1,5 @@
 import React, {useCallback, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
@@ -29,7 +30,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const {setIsClosing} = useCloseImportPage();
-
+    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -157,13 +158,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        setShouldShowConfirmModal(false);
     };
 
     return (
         <ScreenWrapper
             testID={ImportedMembersPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.people.importMembers')}
@@ -179,7 +181,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
             <ConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
                 title={spreadsheet?.importFinalModal?.title ?? ''}
                 prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
                 onConfirm={closeImportPageAndModal}
@@ -187,6 +189,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
                 shouldHandleNavigationBack
+                onModalHide={() => {
+                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
+                }}
             />
         </ScreenWrapper>
     );

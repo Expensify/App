@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -66,7 +67,7 @@ function IOURequestStartPage({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}),
+        selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
@@ -84,7 +85,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
 
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
+    const isFromGlobalCreate = isEmptyObject(report);
     const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
     const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
     const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
@@ -147,7 +148,7 @@ function IOURequestStartPage({
             initMoneyRequest({
                 reportID,
                 policy,
-                isFromGlobalCreate,
+                isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -156,7 +157,7 @@ function IOURequestStartPage({
                 lastSelectedDistanceRates,
             });
         },
-        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates],
+        [transaction?.iouRequestType, transaction?.isFromGlobalCreate, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
@@ -179,7 +180,6 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
-    const manualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
@@ -266,7 +266,7 @@ function IOURequestStartPage({
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
-                                {(!manualDistanceTrackingEnabled || iouType === CONST.IOU.TYPE.SPLIT) && (
+                                {iouType === CONST.IOU.TYPE.SPLIT && (
                                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>

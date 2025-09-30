@@ -19,7 +19,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
@@ -29,13 +29,14 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
@@ -46,6 +47,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import colors from '@styles/theme/colors';
@@ -102,7 +104,6 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -112,8 +113,9 @@ function WorkspacesListPage() {
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
-    const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -131,7 +133,7 @@ function WorkspacesListPage() {
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [cardFeeds] = useCardFeeds(policyIDToDelete);
+    const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
         canBeMissing: true,
@@ -159,7 +161,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, lastPaymentMethod);
+        deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, defaultCardFeeds, lastPaymentMethod);
         setIsDeleteModalOpen(false);
     };
 
@@ -168,6 +170,26 @@ function WorkspacesListPage() {
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);
     }, []);
+
+    const startChangeOwnershipFlow = useCallback(
+        (policyID: string | undefined) => {
+            if (!policyID) {
+                return;
+            }
+
+            clearWorkspaceOwnerChangeFlow(policyID);
+            requestWorkspaceOwnerChange(policyID);
+            Navigation.navigate(
+                ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
+                    policyID,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
+                    Navigation.getActiveRoute(),
+                ),
+            );
+        },
+        [session?.accountID],
+    );
 
     /**
      * Gets the menu item for each workspace
@@ -196,15 +218,15 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (isAdmin && isDuplicatedWorkspaceEnabled) {
+            if (isAdmin) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
-                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID, ROUTES.WORKSPACES_LIST.route)) : undefined),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
                 });
             }
 
-            if (!isDefault && !item?.isJoinRequestPending) {
+            if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Star,
                     text: translate('workspace.common.setAsDefault'),
@@ -245,6 +267,14 @@ function WorkspacesListPage() {
                     },
                     shouldKeepModalOpen: shouldCalculateBillNewDot,
                     shouldCallAfterModalHide: !shouldCalculateBillNewDot,
+                });
+            }
+
+            if (isAdmin && !isOwner && shouldRenderTransferOwnerButton(fundList)) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Transfer,
+                    text: translate('workspace.people.transferOwner'),
+                    onSelected: () => startChangeOwnershipFlow(item.policyID),
                 });
             }
 
@@ -289,25 +319,27 @@ function WorkspacesListPage() {
             );
         },
         [
-            isLessThanMediumScreen,
+            session?.email,
+            session?.accountID,
+            activePolicyID,
+            duplicateWorkspace?.policyID,
+            translate,
+            policies,
+            fundList,
             styles.mb2,
             styles.mh5,
             styles.ph5,
-            duplicateWorkspace?.policyID,
             styles.hoveredComponentBG,
-            translate,
             styles.offlineFeedback.deleted,
-            session?.accountID,
-            session?.email,
-            activePolicyID,
-            isSupportalAction,
-            isDuplicatedWorkspaceEnabled,
-            setIsDeletingPaidWorkspace,
-            isLoadingBill,
-            shouldCalculateBillNewDot,
             loadingSpinnerIconIndex,
+            shouldCalculateBillNewDot,
+            isSupportalAction,
+            setIsDeletingPaidWorkspace,
+            startChangeOwnershipFlow,
+            isLessThanMediumScreen,
+            isLoadingBill,
             resetLoadingSpinnerIconIndex,
-            policies,
+            isRestrictedToPreferredPolicy,
         ],
     );
 

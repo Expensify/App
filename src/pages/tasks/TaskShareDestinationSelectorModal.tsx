@@ -1,10 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,7 +24,7 @@ import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -47,33 +48,37 @@ const reportFilter = (reportOptions: Array<SearchOption<Report>>, archivedReport
         return filtered;
     }, []);
 
+const archivedReportsIdSetSelector = (all?: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
+    const ids = new Set<string>();
+    if (!all) {
+        return ids;
+    }
+
+    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+    for (const [key, value] of Object.entries(all)) {
+        if (isArchivedReport(value)) {
+            const reportID = key.slice(prefixLength);
+            ids.add(reportID);
+        }
+    }
+    return ids;
+};
+
 function TaskShareDestinationSelectorModal() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    const reportID = key.slice(prefixLength);
-                    ids.add(reportID);
-                }
-            }
-            return ids;
-        },
+        selector: archivedReportsIdSetSelector,
     });
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
@@ -104,13 +109,13 @@ function TaskShareDestinationSelectorModal() {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
-        const filteredReports = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredReports = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             canInviteUser: false,
         });
         const header = getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
         return {...filteredReports, header};
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, countryCode]);
 
     const sections = useMemo(
         () =>

@@ -60,6 +60,8 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
         <View
             style={[
                 styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom),
+                // There is a missing border right on the wide layout
+                !shouldUseNarrowLayout ? styles.borderRight : {},
                 shouldDisplayLHB ? StyleUtils.positioning.l0 : StyleUtils.positioning.b0,
             ]}
         >
@@ -68,7 +70,6 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 2. We need to hide tooltips as well if they were displayed. */}
             <NavigationTabBar
                 selectedTab={selectedTab}
-                isTooltipAllowed={isReadyToDisplayBottomBar}
                 isTopLevelBar
             />
         </View>
