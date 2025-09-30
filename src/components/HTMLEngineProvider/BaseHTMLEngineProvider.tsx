@@ -176,7 +176,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'a-label': HTMLElementModel.fromCustomModel({
                 tagName: 'a-label',
                 contentModel: HTMLContentModel.textual,
-                getMixedUAStyles: (tnode) => {
+                getMixedUAStyles: () => {
                     return {
                         ...styles.textLabel,
                         color: styles.link.color,
