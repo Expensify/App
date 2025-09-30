@@ -6,6 +6,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrencySymbol} from './CurrencyUtils';
+import localeCompare from './LocaleCompare';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
 
@@ -33,7 +34,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
         return mileageRates;
     }
 
-    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+    const sortedRateEntries = Object.entries(distanceUnit.rates).sort(([, a], [, b]) => localeCompare(a.name ?? '', b.name ?? ''));
+    sortedRateEntries.forEach(([rateID, rate]) => {
         if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
             return;
         }
