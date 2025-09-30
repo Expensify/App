@@ -35,7 +35,7 @@ type AdaptStateIfNecessaryArgs = {
  */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     if (!navigationRef.isReady()) {
-        Log.warn('NavigationRef is not ready. Returning the original state without adaptation.');
+        Log.warn('[src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts] NavigationRef is not ready. Returning the original state without adaptation.');
         return state;
     }
 

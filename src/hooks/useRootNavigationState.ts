@@ -22,7 +22,7 @@ const EMPTY_ROOT_STATE: NavigationState = {
 function useRootNavigationState<T>(selector: Selector<T>): T {
     const [result, setResult] = useState<T>(() => {
         if (!navigationRef.isReady()) {
-            Log.warn('NavigationRef is not ready. Returning selector value with empty root state.');
+            Log.warn('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with empty root state.');
             return selector(EMPTY_ROOT_STATE);
         }
         return selector(navigationRef.getRootState());
