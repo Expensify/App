@@ -12623,7 +12623,7 @@ function initSplitExpenseItemData(
         category: transactionDetails?.category,
         tags: transaction?.tag ? [transaction?.tag] : [],
         created: transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
-        merchant: transactionDetails?.merchant ?? '',
+        merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
         statusNum: currentReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
     };
@@ -12657,7 +12657,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
                 amount: transactionDetails?.amount ?? 0,
                 currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
                 participants: transaction?.participants,
-                merchant: transactionDetails?.merchant ?? '',
+                merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
                 attendees: transactionDetails?.attendees as Attendee[],
                 reportID,
                 reimbursable: transactionDetails?.reimbursable,
