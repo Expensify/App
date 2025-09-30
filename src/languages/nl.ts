@@ -4409,10 +4409,7 @@ const translations = {
                 whoIsYourBankAccount: 'Wie is jouw bank?',
                 whereIsYourBankLocated: 'Waar is uw bank gevestigd?',
                 howDoYouWantToConnect: 'Hoe wilt u verbinding maken met uw bank?',
-                learnMoreAboutOptions: {
-                    text: 'Meer informatie hierover',
-                    linkText: 'opties.',
-                },
+                learnMoreAboutOptions: `<muted-text>Meer informatie over deze <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">opties</a>.</muted-text>`,
                 commercialFeedDetails: 'Vereist installatie met uw bank. Dit wordt meestal gebruikt door grotere bedrijven en is vaak de beste optie als u in aanmerking komt.',
                 commercialFeedPlaidDetails: `Vereist installatie met uw bank, maar we zullen u begeleiden. Dit is meestal beperkt tot grotere bedrijven.`,
                 directFeedDetails: 'De eenvoudigste aanpak. Maak direct verbinding met je hoofdreferenties. Deze methode is het meest gebruikelijk.',
