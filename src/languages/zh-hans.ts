@@ -2194,7 +2194,7 @@ const translations = {
         enterAuthenticatorCode: '请输入您的身份验证器代码',
         enterRecoveryCode: '请输入您的恢复代码',
         requiredWhen2FAEnabled: '启用双重身份验证时必需',
-        requestNewCode: '请求新代码',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `在<a>${timeRemaining}</a>内请求新代码`,
         requestNewCodeAfterErrorOccurred: '请求新代码',
         error: {
             pleaseFillMagicCode: '请输入您的魔法代码',

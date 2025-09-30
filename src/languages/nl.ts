@@ -2222,7 +2222,7 @@ const translations = {
         enterAuthenticatorCode: 'Voer uw authenticatiecode in alstublieft',
         enterRecoveryCode: 'Voer uw herstelcode in alstublieft',
         requiredWhen2FAEnabled: 'Vereist wanneer 2FA is ingeschakeld',
-        requestNewCode: 'Vraag een nieuwe code aan in',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Vraag een nieuwe code aan over <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Vraag een nieuwe code aan',
         error: {
             pleaseFillMagicCode: 'Voer uw magische code in alstublieft',

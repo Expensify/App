@@ -2233,7 +2233,7 @@ const translations = {
         enterAuthenticatorCode: "Veuillez entrer votre code d'authentification",
         enterRecoveryCode: 'Veuillez entrer votre code de récupération',
         requiredWhen2FAEnabled: "Requis lorsque l'authentification à deux facteurs est activée",
-        requestNewCode: 'Demander un nouveau code dans',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Demander un nouveau code dans <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Demander un nouveau code',
         error: {
             pleaseFillMagicCode: 'Veuillez entrer votre code magique',
