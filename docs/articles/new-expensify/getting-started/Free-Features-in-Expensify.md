@@ -5,7 +5,7 @@ keywords: [New Expensify, free features, SmartScan, expense tracking, tax deduct
 ---
 
 
-You can use Expensify without joining a paid workspace! This guide outlines the free features available to individuals who want to manage personal, freelance, or household expenses.
+You can use Expensify without joining a paid workspace. This guide outlines the free features available to individuals who want to manage personal, freelance, or household expenses.
 
 ---
 
