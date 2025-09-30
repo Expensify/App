@@ -378,10 +378,6 @@ function MoneyRequestView({
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
-                amount: {
-                    isError: transactionAmount === 0,
-                    translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
-                },
                 merchant: {
                     isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
                     translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',

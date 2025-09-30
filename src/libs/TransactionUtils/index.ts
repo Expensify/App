@@ -442,7 +442,8 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
-    return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    const isAmountRequired = hasReceipt(transaction);
+    return (isMerchantRequired && isMerchantMissing(transaction)) || (isAmountMissing(transaction) && isAmountRequired) || isCreatedMissing(transaction);
 }
 
 /**

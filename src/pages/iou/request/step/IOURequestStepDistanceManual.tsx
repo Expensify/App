@@ -290,7 +290,7 @@ function IOURequestStepDistanceManual({
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
-        if (!value.length || parseFloat(value) < 0.01) {
+        if (!value.length) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
