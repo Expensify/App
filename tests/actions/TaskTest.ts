@@ -296,13 +296,8 @@ describe('actions/Task', () => {
         it('Return not empty object', () => {
             expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories', false)).length).toBeGreaterThan(0);
         });
-        it('Return empty object', async () => {
-            const reportNameValuePairs = {
-                private_isArchived: DateUtils.getDBTime(),
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.reportID}`, reportNameValuePairs);
-            await waitForBatchedUpdates();
-            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories', false)).length).toBe(0);
+        it('Return empty object', () => {
+            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories', true)).length).toBe(0);
         });
     });
 
