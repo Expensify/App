@@ -7,7 +7,8 @@ import {getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {isUnread} from './ReportUtils';
 
 let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
+// It is not used in business logic but to give direct access of reports to markAllPolicyReportsAsRead from console
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
