@@ -89,19 +89,6 @@ Onyx.connect({
     callback: (val) => (introSelected = val),
 });
 
-// let allReportNameValuePair: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-// allReportNameValuePair is used on getFinishOnboardingTaskOnyxData to generate Onyx optimistic data
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportNameValuePair = value;
-    },
-});
-
 /**
  * Clears out the task info from the store
  */
