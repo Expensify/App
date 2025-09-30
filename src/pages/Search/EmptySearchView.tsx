@@ -174,7 +174,7 @@ function EmptySearchViewContent({
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 
-    const {isViewTourParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const {isParentReportAcrhived: isViewTourParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});

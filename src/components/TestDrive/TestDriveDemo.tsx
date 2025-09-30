@@ -28,7 +28,7 @@ function TestDriveDemo() {
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
-    const {isViewTourParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const {isParentReportAcrhived: isViewTourParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

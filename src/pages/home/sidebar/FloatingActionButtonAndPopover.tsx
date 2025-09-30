@@ -153,7 +153,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
 
-    const {isViewTourParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const {isParentReportAcrhived: isViewTourParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
 
