@@ -1,8 +1,6 @@
 import {FlatCompat} from '@eslint/eslintrc';
-import js from '@eslint/js';
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-import deprecation from 'eslint-plugin-deprecation';
+import expensify from 'eslint-config-expensify';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
@@ -12,16 +10,12 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
-import path from 'path';
-import {fileURLToPath} from 'url';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import typescriptEslint from 'typescript-eslint';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all,
-});
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 const restrictedImportPaths = [
     {
@@ -153,21 +147,24 @@ const restrictedImportPatterns = [
 ];
 
 const config = defineConfig([
+    expensify,
+
+    typescriptEslint.configs.recommendedTypeChecked,
+    typescriptEslint.configs.stylisticTypeChecked,
+
     {
-        extends: compat.extends(
-            'expensify',
+        extends: new FlatCompat({baseDirectory: dirname}).extends(
             'airbnb-typescript',
             'plugin:storybook/recommended',
             'plugin:react-native-a11y/basic',
             'plugin:@dword-design/import-alias/recommended',
-            'plugin:@typescript-eslint/recommended-type-checked',
-            'plugin:@typescript-eslint/stylistic-type-checked',
+            //'plugin:@typescript-eslint/recommended-type-checked',
+            //'plugin:@typescript-eslint/stylistic-type-checked',
             'plugin:you-dont-need-lodash-underscore/all',
             'prettier',
         ),
 
         plugins: {
-            '@typescript-eslint': typescriptEslint,
             jsdoc,
             'you-dont-need-lodash-underscore': youDontNeedLodashUnderscore,
             'react-native-a11y': reactNativeA11Y,
@@ -175,14 +172,13 @@ const config = defineConfig([
             'testing-library': testingLibrary,
             'react-compiler': reactCompiler,
             lodash,
-            deprecation,
         },
 
         languageOptions: {
             parser: tsParser,
 
             parserOptions: {
-                project: path.resolve(__dirname, './tsconfig.json'),
+                project: path.resolve(dirname, './tsconfig.json'),
             },
 
             globals: {
@@ -191,12 +187,17 @@ const config = defineConfig([
             },
         },
 
+        linterOptions: {
+            reportUnusedDisableDirectives: 'off',
+        },
+
+        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs'],
         rules: {
             // TypeScript specific rules
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-non-null-assertion': 'error',
-            '@typescript-eslint/switch-exhaustiveness-check': 'error',
+            '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
             '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
             '@typescript-eslint/no-floating-promises': 'off',
             '@typescript-eslint/no-import-type-side-effects': 'error',
@@ -232,13 +233,12 @@ const config = defineConfig([
                     leadingUnderscore: 'allow',
                 },
             ],
-            '@typescript-eslint/ban-types': [
+            '@typescript-eslint/no-restricted-types': [
                 'error',
                 {
                     types: {
                         object: "Use 'Record<string, T>' instead.",
                     },
-                    extendDefaults: true,
                 },
             ],
             '@typescript-eslint/consistent-type-imports': [
@@ -259,7 +259,7 @@ const config = defineConfig([
             // ESLint core rules
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
-            'deprecation/deprecation': 'off',
+            '@typescript-eslint/no-deprecated': 'off',
             'arrow-body-style': 'off',
             'no-continue': 'off',
 
@@ -363,7 +363,10 @@ const config = defineConfig([
             'you-dont-need-lodash-underscore/clone-deep': 'off',
             'lodash/import-scope': ['error', 'method'],
             'prefer-regex-literals': 'off',
-            'valid-jsdoc': 'off',
+            'jsdoc/require-param': 'off',
+            'jsdoc/require-param-type': 'off',
+            'jsdoc/check-param-names': 'off',
+            'jsdoc/check-tag-names': 'off',
             'jsdoc/no-types': 'error',
             '@dword-design/import-alias/prefer-alias': [
                 'warn',
@@ -389,6 +392,53 @@ const config = defineConfig([
         },
     },
 
+    // Some rules became stricter or stopped working after upgrading, so these configs adjust the rules to match the old behavior.
+    // TODO: Consider clearing them gradually.
+    {
+        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs'],
+        rules: {
+            // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
+            // TODO: Remove these after uninstalling eslint-config-airbnb-typescript or switching to @stylistic/lines-between-class-members.
+            'lines-between-class-members': 'error',
+            '@typescript-eslint/lines-between-class-members': 'off',
+
+            '@typescript-eslint/no-require-imports': 'off',
+
+            // @typescript-eslint/no-throw-literal was removed, so replaced with no-throw-literal.
+            // TODO: Remove these after uninstalling eslint-config-airbnb-typescript.
+            'no-throw-literal': 'error',
+            '@typescript-eslint/no-throw-literal': 'off',
+
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    vars: 'all',
+                    args: 'after-used',
+                    caughtErrors: 'none',
+                    ignoreRestSiblings: true,
+                },
+            ],
+            '@typescript-eslint/prefer-find': 'off',
+            '@typescript-eslint/prefer-includes': 'off',
+            '@typescript-eslint/prefer-nullish-coalescing': [
+                'error',
+                {
+                    ignoreIfStatements: true,
+                    ignorePrimitives: {
+                        // string: true,
+                    },
+                    ignoreTernaryTests: true,
+                },
+            ],
+
+            // @typescript-eslint/prefer-promise-reject-errors enforces Promises are only rejected with Error objects, so replaced with prefer-promise-reject-errors.
+            'prefer-promise-reject-errors': 'error',
+            '@typescript-eslint/prefer-promise-reject-errors': 'off',
+
+            '@typescript-eslint/prefer-regexp-exec': 'off',
+        },
+    },
+
     // Enforces every Onyx type and its properties to have a comment explaining its purpose.
     {
         files: ['src/types/onyx/**/*.ts'],
@@ -405,7 +455,10 @@ const config = defineConfig([
     // Remove once no JS files are left
     {
         files: ['**/*.js', '**/*.jsx'],
-        extends: compat.extends('plugin:@typescript-eslint/disable-type-checked'),
+        ...typescriptEslint.configs.disableTypeChecked,
+    },
+    {
+        files: ['**/*.js', '**/*.jsx'],
         rules: {
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
@@ -503,7 +556,6 @@ const config = defineConfig([
         '!**/.github',
         '.github/actions/**/index.js',
         '**/*.config.js',
-        // TODO: remove'**/.eslintrc.changed.js',
         '**/node_modules/**/*',
         '**/dist/**/*',
         'android/**/build/**/*',
