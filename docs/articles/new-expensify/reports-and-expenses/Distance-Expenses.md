@@ -28,7 +28,7 @@ To submit a distance-based expense using the Start and End locations of your tri
 
 To submit a distance-based expense by entering the distance manually:
 
-1. Click the green “+” sign and select **Track distance**from any page in the app or directly  
+1. Click the green “+” sign and select **Track distance** from any page in the app or directly  
 from an expense chat
 3. Choose the **Manual** tab
 4. Enter the number of miles or kilometres you need to be reimbursed for
