@@ -46,7 +46,10 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           ref: ${{ steps.pr-data.outputs.HEAD_SHA }}
-          fetch-depth: 0
+
+      - name: Fetch PR head ref
+        run: |
+          git fetch --no-tags --depth=0 origin +refs/pull/${{ steps.pr-data.outputs.PR_NUMBER }}/head:refs/remotes/origin/pr/${{ steps.pr-data.outputs.PR_NUMBER }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
