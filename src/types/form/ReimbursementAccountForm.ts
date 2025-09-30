@@ -448,7 +448,7 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             ACHContractStepProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
-    >;
+    > & {currency?: string};
 
 export type {
     ReimbursementAccountForm,
