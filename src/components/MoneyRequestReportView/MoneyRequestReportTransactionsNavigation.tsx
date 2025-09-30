@@ -1,12 +1,12 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -46,6 +46,17 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         };
     }, []);
 
+    const goToReportId = useCallback((e?: GestureResponderEvent | KeyboardEvent, reportId?: string) => {
+        e?.preventDefault();
+
+        if (!reportId) {
+            return;
+        }
+        Navigation.setParams({
+            reportID: reportId,
+        });
+    }, []);
+
     if (reportIDsList.length < 2) {
         return;
     }
@@ -54,16 +65,8 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         <PrevNextButtons
             isPrevButtonDisabled={!prevReportID}
             isNextButtonDisabled={!nextReportID}
-            onNext={(e) => {
-                const backTo = Navigation.getActiveRoute();
-                e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
-            }}
-            onPrevious={(e) => {
-                const backTo = Navigation.getActiveRoute();
-                e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
-            }}
+            onNext={(e) => goToReportId(e, nextReportID)}
+            onPrevious={(e) => goToReportId(e, prevReportID)}
         />
     );
 }
