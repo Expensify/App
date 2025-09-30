@@ -2054,6 +2054,26 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
+        it('returns true for @here mention in an admin room', () => {
+            const adminRoom = createAdminRoom(42);
+            const report = {
+                ...adminRoom,
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false for @here in an admin room when user already read after mention', () => {
+            const adminRoom2 = createAdminRoom(43);
+            const report = {
+                ...adminRoom2,
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
         it('returns true when the report is an outstanding task', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
