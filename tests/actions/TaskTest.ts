@@ -272,8 +272,8 @@ describe('actions/Task', () => {
         });
 
         it('Completes test drive task', () => {
-            completeTestDriveTask();
-            expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR)).length).toBe(0);
+            completeTestDriveTask(false);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR, false)).length).toBe(0);
         });
     });
 
@@ -294,7 +294,7 @@ describe('actions/Task', () => {
             await waitForBatchedUpdates();
         });
         it('Return not empty object', () => {
-            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBeGreaterThan(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories', false)).length).toBeGreaterThan(0);
         });
         it('Return empty object', async () => {
             const reportNameValuePairs = {
@@ -302,7 +302,7 @@ describe('actions/Task', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.reportID}`, reportNameValuePairs);
             await waitForBatchedUpdates();
-            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBe(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories', false)).length).toBe(0);
         });
     });
 
