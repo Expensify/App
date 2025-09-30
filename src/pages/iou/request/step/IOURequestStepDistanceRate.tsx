@@ -1,7 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +14,15 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isReportInGroupPolicy} from '@libs/ReportUtils';
-import {calculateTaxAmount, getCurrency, getDistanceInMeters, getRateID, getTaxValue, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getCurrency,
+    getDistanceInMeters,
+    getRateID,
+    getTaxValue,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -37,6 +45,12 @@ function IOURequestStepDistanceRate({
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
+        canBeMissing: true,
+        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+    });
+    const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -44,7 +58,7 @@ function IOURequestStepDistanceRate({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
-    const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
+    const policy: OnyxEntry<OnyxTypes.Policy> = isExpenseUnreported ? activePolicy : (policyReal ?? policyDraft);
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();

@@ -926,6 +926,14 @@ type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
 };
 
+type DisconnectYourBankAccountParams = {
+    bankName: string;
+};
+
+type MergeAccountIntoParams = {
+    login: string;
+};
+
 type ReceiptAlternativeMethodsPhoneNumberParams = {
     phoneNumber: string;
 };
@@ -1237,5 +1245,7 @@ export type {
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
+    DisconnectYourBankAccountParams,
+    MergeAccountIntoParams,
     ReceiptAlternativeMethodsPhoneNumberParams,
 };

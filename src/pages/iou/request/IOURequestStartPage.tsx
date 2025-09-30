@@ -179,7 +179,6 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
-    const manualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
@@ -266,7 +265,7 @@ function IOURequestStartPage({
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
-                                {(!manualDistanceTrackingEnabled || iouType === CONST.IOU.TYPE.SPLIT) && (
+                                {iouType === CONST.IOU.TYPE.SPLIT && (
                                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
