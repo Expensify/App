@@ -14,7 +14,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-restricted-types */
 // THOSE FUNCTIONS ARE COPIED FROM react-navigation/core IN ORDER TO AVOID PATCHING
 // THAT'S THE REASON WHY ESLINT IS DISABLED
 import type {PathConfigMap} from '@react-navigation/native';
