@@ -1,6 +1,6 @@
 type AskForCorpaySignerInformationParams = {
     bankAccountID: number;
-    signerEmail: string;
+    signerEmail?: string;
     secondSignerEmail?: string;
     policyID: string;
 };

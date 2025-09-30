@@ -4,9 +4,9 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -175,14 +175,12 @@ function AccountValidatePage() {
                     descriptionPrimaryStyles={{...styles.mb8, ...styles.textStrong}}
                     descriptionSecondary={
                         <View style={[styles.w100]}>
-                            <Text style={[styles.mb8]}>
-                                {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
-                                <Text style={styles.textStrong}>{email}</Text>.
-                            </Text>
-                            <Text>
-                                {translate('mergeAccountsPage.accountValidate.enterMagicCode')}
-                                <Text style={styles.textStrong}>{email}</Text>.
-                            </Text>
+                            <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {login: email})} />
+                            </View>
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', {login: email})} />
+                            </View>
                         </View>
                     }
                     descriptionSecondaryStyles={styles.mb8}

@@ -27,6 +27,9 @@ type BaseBlockingViewProps = {
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
 
+    /** The style of the title message */
+    titleStyles?: StyleProp<TextStyle>;
+
     /** Translation key for the link text displayed below the subtitle */
     linkTranslationKey?: TranslationPaths;
 
@@ -103,6 +106,7 @@ function BlockingView({
     onLinkPress = () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
+    titleStyles = [],
     animationWebStyle = {},
     accessibilityLabel = '',
     CustomSubtitle,
@@ -145,7 +149,7 @@ function BlockingView({
                 />
             )}
             <View>
-                <Text style={[styles.notFoundTextHeader]}>{title}</Text>
+                <Text style={[titleStyles, styles.notFoundTextHeader]}>{title}</Text>
 
                 {CustomSubtitle}
                 {!CustomSubtitle && (

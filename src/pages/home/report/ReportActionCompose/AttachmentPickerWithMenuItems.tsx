@@ -14,7 +14,6 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -131,11 +130,8 @@ function AttachmentPickerWithMenuItems({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {isProduction} = useEnvironment();
-    const {isBetaEnabled} = usePermissions();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
-
-    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -172,17 +168,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
-                ...(isManualDistanceTrackingEnabled
-                    ? [
-                          {
-                              icon: Expensicons.Location,
-                              text: translate('quickAction.recordDistance'),
-                              shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () =>
-                                  selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
-                          },
-                      ]
-                    : []),
+                {
+                    icon: Expensicons.Location,
+                    text: translate('quickAction.recordDistance'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                },
             ],
             [CONST.IOU.TYPE.PAY]: [
                 {
@@ -207,17 +198,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
-                ...(isManualDistanceTrackingEnabled
-                    ? [
-                          {
-                              icon: Expensicons.Location,
-                              text: translate('iou.trackDistance'),
-                              shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () =>
-                                  selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
-                          },
-                      ]
-                    : []),
+                {
+                    icon: Expensicons.Location,
+                    text: translate('iou.trackDistance'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                },
             ],
             [CONST.IOU.TYPE.INVOICE]: [
                 {
@@ -241,7 +227,6 @@ function AttachmentPickerWithMenuItems({
         selectOption,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
-        isManualDistanceTrackingEnabled,
         isReportArchived,
         lastDistanceExpenseType,
     ]);

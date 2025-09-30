@@ -111,17 +111,17 @@ describe('Git', () => {
 
             expect(hunk.lines).toHaveLength(3);
             expect(hunk.lines.at(0)).toEqual({
-                lineNumber: 2,
+                number: 2,
                 type: 'removed',
                 content: "const farewell = 'Goodbye';",
             });
             expect(hunk.lines.at(1)).toEqual({
-                lineNumber: 2,
+                number: 2,
                 type: 'added',
                 content: "const farewell = 'Farewell';",
             });
             expect(hunk.lines.at(2)).toEqual({
-                lineNumber: 3,
+                number: 3,
                 type: 'added',
                 content: "const newLine = 'New';",
             });
@@ -321,19 +321,19 @@ describe('Git', () => {
 
             // Check removed line
             expect(hunk.lines.at(0)).toEqual({
-                lineNumber: 4,
+                number: 4,
                 type: 'removed',
                 content: 'line 1 old',
             });
 
             // Check added lines
             expect(hunk.lines.at(1)).toEqual({
-                lineNumber: 4,
+                number: 4,
                 type: 'added',
                 content: 'line 1 new',
             });
             expect(hunk.lines.at(2)).toEqual({
-                lineNumber: 5,
+                number: 5,
                 type: 'added',
                 content: 'line 2 added',
             });
