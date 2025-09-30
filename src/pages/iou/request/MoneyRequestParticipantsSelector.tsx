@@ -75,6 +75,12 @@ type InputFocusRef = {
     focus?: () => void;
 };
 
+const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUType) => ({
+    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
+    selected: true,
+    iouType,
+});
+
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -120,13 +126,7 @@ function MoneyRequestParticipantsSelector({
      */
     const addSingleParticipant = useCallback(
         (option: Participant & Option) => {
-            const newParticipants: Participant[] = [
-                {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
-                    selected: true,
-                    iouType,
-                },
-            ];
+            const newParticipants: Participant[] = [sanitizedSelectedParticipant(option, iouType)];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
                 const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(currentUserLogin)?.id;
@@ -185,7 +185,8 @@ function MoneyRequestParticipantsSelector({
                 if (!isIOUSplit) {
                     return;
                 }
-                onParticipantsAdded(options);
+                const sanitizedParticipants: Participant[] = options.map((option) => sanitizedSelectedParticipant(option, iouType));
+                onParticipantsAdded(sanitizedParticipants);
             },
             onSingleSelect: (option: OptionData) => {
                 if (isIOUSplit) {
