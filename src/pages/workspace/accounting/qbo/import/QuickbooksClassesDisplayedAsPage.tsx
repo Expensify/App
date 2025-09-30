@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateQuickbooksOnlineSyncClasses} from '@libs/actions/connections/QuickbooksOnline';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
 function QuickbooksClassesDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id;
+    const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const data: CardListItem[] = useMemo(
@@ -51,7 +51,7 @@ function QuickbooksClassesDisplayedAsPage({policy}: WithPolicyProps) {
                     );
                     return;
                 }
-                updateQuickbooksOnlineSyncClasses(policyID, row.value, qboConfig?.syncClasses);
+                QuickbooksOnline.updateQuickbooksOnlineSyncClasses(policyID, row.value, qboConfig?.syncClasses);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID));
         },
@@ -65,7 +65,7 @@ function QuickbooksClassesDisplayedAsPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksClassesDisplayedAsPage.displayName}
             sections={data.length ? [{data}] : []}
-            listItem={SingleSelectListItem}
+            listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID))}
             onSelectRow={selectDisplayedAs}
             shouldSingleExecuteRowSelect
@@ -73,7 +73,7 @@ function QuickbooksClassesDisplayedAsPage({policy}: WithPolicyProps) {
             title="workspace.common.displayedAs"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.pendingFields)}
-            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES)}
+            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES)}
         />
