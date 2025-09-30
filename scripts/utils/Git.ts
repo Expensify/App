@@ -1,7 +1,10 @@
 import {context} from '@actions/github';
-import {execSync} from 'child_process';
+import {execSync, exec as execWithCallback} from 'child_process';
+import {promisify} from 'util';
 import GitHubUtils from '@github/libs/GithubUtils';
 import {error as logError} from './Logger';
+
+const exec = promisify(execWithCallback);
 
 const IS_CI = process.env.CI === 'true';
 
@@ -14,7 +17,7 @@ const GIT_ERRORS = {
  * With -U0, only added and removed lines are present (no context).
  */
 type DiffLine = {
-    lineNumber: number;
+    number: number;
     type: 'added' | 'removed';
     content: string;
 };
@@ -77,18 +80,20 @@ class Git {
      *
      * @param fromRef - The starting reference (commit, branch, tag, etc.)
      * @param toRef - The ending reference (defaults to working directory if not provided)
-     * @param filePath - Optional specific file path to diff (relative to git repo root)
+     * @param filePaths - Optional specific file path(s) to diff (relative to git repo root)
      * @returns Structured diff result with line numbers and change information
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
-    static diff(fromRef: string, toRef?: string, filePath?: string): DiffResult {
+    static diff(fromRef: string, toRef?: string, filePaths?: string | string[]): DiffResult {
         // Build git diff command (with 0 context lines for easier parsing)
         let command = `git diff -U0 ${fromRef}`;
         if (toRef) {
             command += ` ${toRef}`;
         }
-        if (filePath) {
-            command += ` -- "${filePath}"`;
+        if (filePaths) {
+            const pathsArray = Array.isArray(filePaths) ? filePaths : [filePaths];
+            const quotedPaths = pathsArray.map((path) => `"${path}"`).join(' ');
+            command += ` -- ${quotedPaths}`;
         }
 
         // Execute git diff with unified format - let errors bubble up
@@ -97,6 +102,16 @@ class Git {
             cwd: process.cwd(),
         });
 
+        return Git.parseDiff(diffOutput);
+    }
+
+    /**
+     * Parse git diff output into structured format.
+     *
+     * @param diffOutput - Raw git diff output string
+     * @returns Structured diff result with line numbers and change information
+     */
+    static parseDiff(diffOutput: string): DiffResult {
         // Parse the diff output inline
         if (!diffOutput.trim()) {
             return {
@@ -172,7 +187,7 @@ class Git {
                     const lineNumber = this.calculateLineNumber(currentHunk, 'added');
 
                     currentHunk.lines.push({
-                        lineNumber,
+                        number: lineNumber,
                         type: 'added',
                         content,
                     });
@@ -181,7 +196,7 @@ class Git {
                     const lineNumber = this.calculateLineNumber(currentHunk, 'removed');
 
                     currentHunk.lines.push({
-                        lineNumber,
+                        number: lineNumber,
                         type: 'removed',
                         content,
                     });
@@ -214,7 +229,7 @@ class Git {
                 for (let j = 0; j < modifiedCount; j++) {
                     const addedLine = addedLines.at(j);
                     if (addedLine) {
-                        file.modifiedLines.add(addedLine.lineNumber);
+                        file.modifiedLines.add(addedLine.number);
                     }
                 }
 
@@ -222,7 +237,7 @@ class Git {
                 for (let j = modifiedCount; j < addedCount; j++) {
                     const addedLine = addedLines.at(j);
                     if (addedLine) {
-                        file.addedLines.add(addedLine.lineNumber);
+                        file.addedLines.add(addedLine.number);
                     }
                 }
 
@@ -230,7 +245,7 @@ class Git {
                 for (let j = modifiedCount; j < removedCount; j++) {
                     const removedLine = removedLines.at(j);
                     if (removedLine) {
-                        file.removedLines.add(removedLine.lineNumber);
+                        file.removedLines.add(removedLine.number);
                     }
                 }
             }
@@ -267,6 +282,34 @@ class Git {
             return execSync(`git show ${ref}:${filePath}`, {encoding: 'utf8'});
         } catch (error) {
             throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    /**
+     * Ensure a git reference is available locally, fetching it if necessary.
+     *
+     * @param ref - The git reference to ensure is available (commit hash, branch, tag, etc.)
+     * @param remote - The remote to fetch from (defaults to 'origin')
+     * @throws Error when the reference cannot be fetched or is invalid
+     */
+    static async ensureRef(ref: string, remote = 'origin'): Promise<void> {
+        if (this.isValidRef(ref)) {
+            return; // Reference is already available locally
+        }
+
+        try {
+            console.log(`🔄 Fetching missing ref: ${ref}`);
+            await exec(`git fetch --no-tags --depth=1 ${remote} ${ref}`, {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            });
+
+            // Verify the ref is now available
+            if (!this.isValidRef(ref)) {
+                throw new Error(`Reference ${ref} is still not valid after fetching`);
+            }
+        } catch (error) {
+            throw new Error(`Failed to fetch git reference ${ref}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
