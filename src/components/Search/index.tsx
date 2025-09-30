@@ -104,6 +104,7 @@ function mapTransactionItemToSelectedEntry(
             policyID: item.policyID,
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
             convertedCurrency: item.convertedCurrency,
         },
     ];
