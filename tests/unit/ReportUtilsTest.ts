@@ -51,6 +51,7 @@ import {
     getPolicyExpenseChat,
     getPolicyExpenseChatName,
     getReasonAndReportActionThatRequiresAttention,
+    getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
@@ -2051,6 +2052,26 @@ describe('ReportUtils', () => {
                 isUnreadWithMention: true,
             };
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns true for @here mention in an admin room', () => {
+            const adminRoom = createAdminRoom(42);
+            const report = {
+                ...adminRoom,
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false for @here in an admin room when user already read after mention', () => {
+            const adminRoom2 = createAdminRoom(43);
+            const report = {
+                ...adminRoom2,
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
         });
 
         it('returns true when the report is an outstanding task', () => {
@@ -7115,6 +7136,155 @@ describe('ReportUtils', () => {
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getReportActionActorAccountID', () => {
+        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(20);
+        });
+
+        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return original actor account id if action is ADDCOMMENT', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 123,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(123);
         });
     });
 });
