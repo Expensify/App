@@ -43,7 +43,6 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
@@ -236,10 +235,6 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (isDistanceRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.distance'}];
-
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
     } else if (isTransactionScanning) {
@@ -345,11 +340,8 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolationsOfTypeNotice ||
-        hasWarningTypeViolation(transaction, violations, true) ||
-        hasViolation(transaction, violations, true);
+        hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction, violations, true) || hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction);
