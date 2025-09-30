@@ -108,6 +108,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={cardholderName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <ScrollView
                 style={styles.pt0}
