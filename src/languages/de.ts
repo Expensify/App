@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -5433,8 +5434,8 @@ const translations = {
             updateDetails: 'Details aktualisieren',
             yesDisconnectMyBankAccount: 'Ja, trennen Sie mein Bankkonto.',
             yesStartOver: 'Ja, von vorne beginnen.',
-            disconnectYour: 'Trennen Sie Ihr',
-            bankAccountAnyTransactions: 'Bankkonto. Alle ausstehenden Transaktionen für dieses Konto werden trotzdem abgeschlossen.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Trennen Sie Ihr <strong>${bankName}</strong> Bankkonto. Alle ausstehenden Transaktionen für dieses Konto werden trotzdem abgeschlossen.`,
             clearProgress: 'Ein Neuanfang wird den bisherigen Fortschritt löschen.',
             areYouSure: 'Bist du sicher?',
             workspaceCurrency: 'Arbeitsbereichswährung',

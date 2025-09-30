@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -5398,8 +5399,8 @@ const translations = {
             updateDetails: '詳細を更新',
             yesDisconnectMyBankAccount: 'はい、私の銀行口座を切断してください。',
             yesStartOver: 'はい、最初からやり直してください。',
-            disconnectYour: '切断する',
-            bankAccountAnyTransactions: '銀行口座。この口座の未処理の取引は引き続き完了します。',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `<strong>${bankName}</strong>銀行口座を切断してください。この口座の未処理の取引は引き続き完了します。`,
             clearProgress: 'やり直すと、これまでの進捗がクリアされます。',
             areYouSure: 'よろしいですか？',
             workspaceCurrency: 'ワークスペース通貨',
