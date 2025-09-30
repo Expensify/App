@@ -8,6 +8,7 @@ type Selector<T> = (state: NavigationState) => T;
  * Hook to get a value from the current root navigation state using a selector.
  *
  * @param selector Selector function to get a value from the state.
+ * @param fallbackValue Value to return if the navigation is not ready yet.
  */
 function useRootNavigationState<T>(selector: Selector<T>, fallbackValue?: T): T | undefined {
     const [result, setResult] = useState<T | undefined>(() => {
