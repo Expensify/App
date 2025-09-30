@@ -13217,6 +13217,35 @@ function addReportApprover(report: OnyxTypes.Report, newApproverEmail: string, n
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
+function navigateToConfirmationPage(
+    iouType: IOUType,
+    transactionID: string,
+    reportID: string,
+    backToReport: string | undefined,
+    shouldNavigateToSubmit: boolean = false,
+    reportIDParam: string | undefined = undefined
+) {
+    switch (iouType) {
+        case CONST.IOU.TYPE.REQUEST:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
+            break;
+        case CONST.IOU.TYPE.SEND:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+            break;
+        default:
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    transactionID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    reportIDParam || reportID,
+                    backToReport,
+                ),
+            );
+    }
+}
+
 export {
     adjustRemainingSplitShares,
     approveMoneyRequest,
@@ -13336,6 +13365,7 @@ export {
     addReportApprover,
     hasOutstandingChildRequest,
     getReportPreviewAction,
+    navigateToConfirmationPage
 };
 export type {
     GPSPoint as GpsPoint,

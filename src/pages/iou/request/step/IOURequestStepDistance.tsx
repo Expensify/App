@@ -27,6 +27,7 @@ import {
     createDistanceRequest,
     getIOURequestPolicyID,
     getMoneyRequestParticipantsFromReport,
+    navigateToConfirmationPage,
     resetSplitShares,
     setCustomUnitRateID,
     setMoneyRequestAmount,
@@ -278,19 +279,6 @@ function IOURequestStepDistance({
         [action, transactionID, report?.reportID, reportID],
     );
 
-    const navigateToConfirmationPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
-        }
-    }, [backToReport, iouType, reportID, transactionID]);
-
     const navigateToNextStep = useCallback(() => {
         if (transaction?.splitShares) {
             resetSplitShares(transaction);
@@ -372,7 +360,7 @@ function IOURequestStepDistance({
                 return;
             }
             setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
-                navigateToConfirmationPage();
+                navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
             });
             return;
         }
@@ -425,7 +413,6 @@ function IOURequestStepDistance({
         waypoints,
         backToReport,
         customUnitRateID,
-        navigateToConfirmationPage,
         reportID,
         lastSelectedDistanceRates,
     ]);

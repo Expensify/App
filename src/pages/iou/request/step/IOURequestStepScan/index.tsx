@@ -62,6 +62,7 @@ import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
     getMoneyRequestParticipantsFromReport,
+    navigateToConfirmationPage,
     replaceReceipt,
     requestMoney,
     setMoneyRequestParticipants,
@@ -327,31 +328,6 @@ function IOURequestStepScan({
         Navigation.goBack(backTo);
     }, [backTo]);
 
-    const navigateToConfirmationPage = useCallback(
-        (shouldNavigateToSubmit = false, reportIDParam: string | undefined = undefined) => {
-            switch (iouType) {
-                case CONST.IOU.TYPE.REQUEST:
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, initialTransactionID, reportID, backToReport));
-                    break;
-                case CONST.IOU.TYPE.SEND:
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, initialTransactionID, reportID));
-                    break;
-                default:
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CREATE,
-                            shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
-                            initialTransactionID,
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            reportIDParam || reportID,
-                            backToReport,
-                        ),
-                    );
-            }
-        },
-        [backToReport, iouType, reportID, initialTransactionID],
-    );
-
     const createTransaction = useCallback(
         (
             files: ReceiptFile[],
@@ -443,7 +419,7 @@ function IOURequestStepScan({
                     ],
                     true,
                 ).then(() => {
-                    navigateToConfirmationPage(true, reportIDParam);
+                    navigateToConfirmationPage(iouType, initialTransactionID, reportID, backToReport, true, reportIDParam);
                 });
                 return;
             }
@@ -511,7 +487,7 @@ function IOURequestStepScan({
                     return;
                 }
                 const transactionIDs = files.map((receiptFile) => receiptFile.transactionID);
-                setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report).then(() => navigateToConfirmationPage());
+                setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report).then(() => navigateToConfirmationPage(iouType, initialTransactionID, reportID, backToReport));
                 return;
             }
 
@@ -534,7 +510,14 @@ function IOURequestStepScan({
                         if (isTrackExpense) {
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID));
                         } else {
-                            navigateToConfirmationPage(iouType === CONST.IOU.TYPE.CREATE, initialTransaction?.reportID);
+                            navigateToConfirmationPage(
+                                iouType,
+                                initialTransactionID,
+                                reportID,
+                                backToReport,
+                                iouType === CONST.IOU.TYPE.CREATE,
+                                initialTransaction?.reportID
+                            );
                         }
                     });
                     return;
@@ -566,7 +549,6 @@ function IOURequestStepScan({
             defaultExpensePolicy,
             report,
             initialTransactionID,
-            navigateToConfirmationPage,
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
