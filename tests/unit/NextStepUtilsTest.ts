@@ -127,7 +127,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'fix the issue(s)',
+                        text: 'fix the issues',
                     },
                 ];
 
@@ -676,7 +676,6 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
             test('non-payer', () => {
-                report.managerID = strangeAccountID;
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [
                     {
@@ -686,6 +685,7 @@ describe('libs/NextStepUtils', () => {
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                    role: 'user',
                 }).then(() => {
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 

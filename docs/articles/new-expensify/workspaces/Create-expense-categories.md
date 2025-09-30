@@ -19,7 +19,7 @@ Admins can manually create categories for a workspace, or they can be imported a
 
 To add a category:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
 4. Click **Add Category** in the top-right corner.

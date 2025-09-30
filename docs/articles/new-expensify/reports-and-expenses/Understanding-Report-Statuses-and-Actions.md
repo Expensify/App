@@ -12,11 +12,11 @@ Understand what each report status means, what actions are available, and how to
 
 Each report status reflects a different stage in the reporting workflow:
 
-- **Open**: The report is a draft. You can still add or remove expenses.
+- **Draft**: The report is a draft. You can still add or remove expenses.
 - **Submitted**: The report is awaiting approval from another person.
 - **Processing**: The report is in progress—under review, held, or partially completed.
 - **Approved**: The report is approved and ready for payment or export. This is the final status for reports containing only non-reimbursable (e.g. company card) expenses.
-- **Reimbursed**: The report has been paid. All actions are complete.
+- **Paid**: The report has been paid. All actions are complete.
 - **Closed**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
 
 ---
@@ -74,14 +74,14 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 
 # Moving Expenses or Reports
 
-- **To move a single expense**: Open the expense, then update the **Report** field to select another Open report.
+- **To move a single expense**: Open the expense, then update the **Report** field to select another Draft report.
 - **To move a report to another workspace**: Tap **More > Change Workspace**.
 
 ---
 
 # Deleting a Report
 
-- **To delete a report**: Go to an **Open** report and tap **More > Delete**.
+- **To delete a report**: Go to a **Draft** report and tap **More > Delete**.
   - If the report contains only one expense, that expense will also be deleted.
   - If the report contains multiple expenses, they will become **Unreported** and available to add to a new report.
 
@@ -111,7 +111,7 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 If no green button appears, it means no immediate action is required. Tap the **More** button to find available options.
 
 ## Can I delete reports?  
-Yes—if the report is **Open** or **Processing**. **Closed** reports cannot be deleted.
+Yes—if the report is a **Draft** or is **Processing**. **Closed** or **Paid** reports cannot be deleted.
 
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.

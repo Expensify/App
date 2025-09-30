@@ -54,15 +54,6 @@ Onyx.connect({
     callback: (val) => (recentWaypoints = val ?? []),
 });
 
-let currentUserEmail = '';
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserEmail = value?.email ?? '';
-    },
-});
-
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -352,6 +343,7 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
 
     API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
 }
+
 /**
  * Updates all waypoints stored in the transaction specified by the provided transactionID.
  *
@@ -648,7 +640,7 @@ function changeTransactionsReport(
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -804,7 +796,15 @@ function changeTransactionsReport(
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
-            const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+            const violationData = ViolationsUtils.getViolationsOnyxData(
+                transaction,
+                currentTransactionViolations[transaction.transactionID] ?? [],
+                policy,
+                policyTagList,
+                policyCategories,
+                policyHasDependentTags,
+                false,
+            );
             optimisticData.push(violationData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -974,7 +974,7 @@ function changeTransactionsReport(
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
             const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
-            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail);
+            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
             newIOUAction.childReportID = transactionThreadReportID;
@@ -1131,7 +1131,15 @@ function changeTransactionsReport(
         if (!isPaidGroupPolicy(policy) || !policy?.id) {
             return;
         }
-        const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+        const violationData = ViolationsUtils.getViolationsOnyxData(
+            transaction,
+            currentTransactionViolations[transaction.transactionID] ?? [],
+            policy,
+            policyTagList,
+            policyCategories,
+            policyHasDependentTags,
+            false,
+        );
         const hasOtherViolationsBesideDuplicates =
             Array.isArray(violationData.value) &&
             !violationData.value.every((violation) => {
