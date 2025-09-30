@@ -36,7 +36,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
 
     const reportID = report?.reportID;
@@ -80,7 +80,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         created: splitCreated,
         category: splitCategory,
         billable: splitBillable,
-    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
+    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction, undefined, undefined, preferredLocale) ?? {};
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
