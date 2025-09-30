@@ -74,7 +74,7 @@ import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton
 const EmptyParentReportActionForTransactionThread = undefined;
 
 const INITIAL_NUM_TO_RENDER = 20;
-// Amount of time to wait until all list items should be rendered and scrollToBottom will behave well
+// Amount of time to wait until all list items should be rendered and scrollToOffset 0will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
 
 type MoneyRequestReportListProps = {
@@ -428,7 +428,7 @@ function MoneyRequestReportActionsList({
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+            reportScrollManager.scrollToOffset(0);
         }
 
         previousLastIndex.current = lastActionIndex;
@@ -593,7 +593,7 @@ function MoneyRequestReportActionsList({
 
         if (!hasNewestReportAction) {
             openReport(report.reportID);
-            reportScrollManager.scrollToBottom();
+            reportScrollManager.scrollToOffset(0);
             return;
         }
 
