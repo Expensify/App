@@ -45,10 +45,8 @@ function VacationDelegatePage() {
     const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: true,
         excludeLogins,
         includeRecentReports: true,
-        shouldInitialize: true,
         getValidOptionsConfig: {
             excludeLogins,
         },
@@ -56,7 +54,7 @@ function VacationDelegatePage() {
 
     const headerMessage = useMemo(() => {
         return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, searchTerm);
-    }, [availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, searchTerm]);
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, searchTerm]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
