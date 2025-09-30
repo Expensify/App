@@ -1,8 +1,8 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
-import useRouteValidatedCallback from '@hooks/useRouteValidatedCallback';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,22 +14,22 @@ type SearchTypeMenuNarrowProps = {
 
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
-    const validatedOpenMenu = useRouteValidatedCallback(openMenu);
 
     return (
         <>
             <Button
                 icon={Expensicons.Menu}
-                onPress={validatedOpenMenu}
+                onPress={openMenu}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems}
-                    isVisible={isPopoverVisible}
+                    isVisible={isFocused && isPopoverVisible}
                     anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
