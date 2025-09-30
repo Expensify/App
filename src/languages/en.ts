@@ -132,6 +132,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -1412,7 +1413,7 @@ const translations = {
             reasonPageDescription: "Explain why you're rejecting this expense.",
             rejectReason: 'Rejection reason',
             markAsResolved: 'Mark as resolved',
-            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
+            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issues and mark as resolved to enable submission.',
             reportActions: {
                 rejectedExpense: 'rejected this expense',
                 markedAsResolved: 'marked the rejection reason as resolved',
@@ -1698,13 +1699,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Merge accounts',
         accountDetails: {
-            accountToMergeInto: 'Enter the account you want to merge into ',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Enter the account you want to merge into <strong>${login}</strong>.`,
             notReversibleConsent: 'I understand this is not reversible',
         },
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
-            lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
-            enterMagicCode: `To continue, please enter the magic code sent to `,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `To continue, please enter the magic code sent to <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
                 fallback: 'Something went wrong. Please try again later.',
@@ -2609,13 +2611,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
-        emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
-        ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
-        youCanFindDirections: 'You can find directions on how to complete this step ',
-        helpConfigure: ' but you may need your IT department to help configure your email settings.',
-        onceTheAbove: 'Once the above steps are completed, please reach out to ',
-        toUnblock: ' to unblock your login.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirm that ${login} is spelled correctly and is a real, deliverable email address.</strong> Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.`,
+        ensureYourEmailClient: `<strong>Ensure your email client allows expensify.com emails.</strong> You can find directions on how to complete this step <a href="${CONST.SET_NOTIFICATION_LINK}">here</a> but you may need your IT department to help configure your email settings.`,
+        onceTheAbove: `Once the above steps are completed, please reach out to <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> to unblock your login.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -3264,6 +3263,9 @@ const translations = {
         thisStep: 'This step has been completed',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director or senior officer.`,
+        error: {
+            emailsMustBeDifferent: 'Emails must be different',
+        },
     },
     agreementsStep: {
         agreements: 'Agreements',
@@ -3599,19 +3601,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pending',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspended',
                 },
-                invitationFailure: 'Failed to invite members to Uber for Business',
+                invitationFailure: 'Failed to invite member to Uber for Business',
                 autoInvite: 'Invite new workspace members to Uber for Business',
                 autoRemove: 'Deactivate removed workspace members from Uber for Business',
                 bannerTitle: 'Expensify + Uber for Business',
                 bannerDescription: 'Connect Uber for Business to automate travel and meal delivery expenses across your organization.',
                 emptyContent: {
-                    title: 'No members to display',
-                    subtitle: 'We looked everywhere and couldn’t find anything.',
+                    title: 'No outstanding invites',
+                    subtitle: 'Huzzah! We looked high and low and couldn’t find any outstanding invites.',
                 },
             },
         },
         perDiem: {
-            subtitle: 'Set per diem rates to control daily employee spend. ',
+            subtitle: `<muted-text>Set per diem rates to control daily employee spend. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Learn more</a>.</muted-text>`,
             amount: 'Amount',
             deleteRates: () => ({
                 one: 'Delete rate',
@@ -4380,10 +4382,7 @@ const translations = {
                 whoIsYourBankAccount: 'Who’s your bank?',
                 whereIsYourBankLocated: 'Where’s your bank located?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
-                learnMoreAboutOptions: {
-                    text: 'Learn more about these ',
-                    linkText: 'options.',
-                },
+                learnMoreAboutOptions: `<muted-text>Learn more about these <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">options</a>.</muted-text>`,
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
                 commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
@@ -5530,6 +5529,11 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
             },
+            reports: {
+                title: 'Reports',
+                description: 'Create organized expense reports to track your business spending, submit for approvals, and streamline your reimbursement process.',
+                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
+            },
             multiLevelTags: {
                 title: 'Multi-level tags',
                 description:
@@ -5661,8 +5665,7 @@ const translations = {
                 nonBillable: 'Non-billable',
                 nonBillableDescription: 'Expenses are occasionally re-billed to clients',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceipts are auto-created',
-                eReceiptsHintLink: 'for most USD credit transactions',
+                eReceiptsHint: `eReceipts are auto-created [for most USD credit transactions](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Attendee tracking',
                 attendeeTrackingHint: 'Track the per-person cost for every expense.',
                 prohibitedDefaultDescription:
@@ -6179,7 +6182,7 @@ const translations = {
         groupBy: 'Group by',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
-            emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
+            emptyStateSubtitle: 'You can add expenses to this report \n using the button below or the "Add expense" option in the More menu above.',
         },
         noCategory: 'No category',
         noTag: 'No tag',

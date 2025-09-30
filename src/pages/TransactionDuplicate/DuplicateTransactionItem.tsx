@@ -21,6 +21,8 @@ type DuplicateTransactionItemProps = {
     policies: OnyxCollection<Policy>;
 };
 
+const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>) => transaction?.errorFields?.route ?? null;
+
 function DuplicateTransactionItem({transaction, index, allReports, policies}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
@@ -50,7 +52,7 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID}`, {
         canBeMissing: true,
-        selector: (transactionItem) => transactionItem?.errorFields?.route ?? null,
+        selector: linkedTransactionRouteErrorSelector,
     });
 
     const contextValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);

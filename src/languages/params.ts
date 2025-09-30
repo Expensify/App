@@ -930,6 +930,10 @@ type DisconnectYourBankAccountParams = {
     bankName: string;
 };
 
+type MergeAccountIntoParams = {
+    login: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1238,4 +1242,5 @@ export type {
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
     DisconnectYourBankAccountParams,
+    MergeAccountIntoParams,
 };
