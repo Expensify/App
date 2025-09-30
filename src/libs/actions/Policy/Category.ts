@@ -631,7 +631,7 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
 
 function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName];
 
@@ -1402,7 +1402,7 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 
 function setPolicyCategoryTax(policyID: string, categoryName: string, taxID: string) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const expenseRules = policy?.rules?.expenseRules ?? [];
     const updatedExpenseRules: ExpenseRule[] = lodashCloneDeep(expenseRules);
