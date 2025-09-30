@@ -3377,6 +3377,10 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: 0,
         },
 
+        overlayBackground: {
+            backgroundColor: theme.overlay,
+        },
+
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
@@ -5262,6 +5266,9 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             height: '100%',
         },
+        easeInOpacityTransition: {
+            transition: 'opacity 0.2s ease-in',
+        },
         overscrollSpacerPosition: {
             position: 'absolute',
             left: 0,
@@ -5393,7 +5400,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
                 right: hasMarginRight ? variables.sideBarWidth : 0,
-                backgroundColor: theme.overlay,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -5481,7 +5487,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
             return {
                 opacity: isActive ? 1 : 0,
-                transition: 'opacity 0.2s ease-in',
                 ...(isSafariOrChromeBrowser && {
                     backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
                     backgroundSize: '100% 100%',
