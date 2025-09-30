@@ -10160,6 +10160,7 @@ function getReportActionActorAccountID(
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
 
         default:
