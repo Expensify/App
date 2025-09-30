@@ -29,5 +29,5 @@ The task **creator** and the **assignee** can:
 - **Edit the title or description** by clicking the arrow next to each field.
 - **Mark the task as complete** by checking the box or opening the task and clicking **Mark as Complete**.
 
-✅ **Note:** When a task is completed, it will be visibly marked as done in the chat and can be reopened if needed.
+✅ **Note:** When a task is completed - it will be visibly marked as done in the chat and can be reopened if needed.
 
