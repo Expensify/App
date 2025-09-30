@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearSupportalPermissionDenied} from '@userActions/App';
@@ -8,17 +8,15 @@ import ConfirmModal from './ConfirmModal';
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
     const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {canBeMissing: true});
-    const [isVisible, setIsVisible] = useState(false);
+    const isVisible = !!payload;
 
-    const title = translate('supportalNoAccess.title');
-    const prompt = translate('supportalNoAccess.descriptionWithCommand', {command: payload?.command});
-
-    React.useEffect(() => {
-        setIsVisible(!!payload);
-    }, [payload]);
+    const title = useMemo(() => translate('supportalNoAccess.title'), [translate]);
+    const prompt = useMemo(
+        () => translate('supportalNoAccess.descriptionWithCommand', {command: payload?.command}),
+        [translate, payload?.command],
+    );
 
     const close = useCallback(() => {
-        setIsVisible(false);
         // Clear the flag so it doesn't re-open
         clearSupportalPermissionDenied();
     }, []);
