@@ -13027,7 +13027,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             });
 
             if (Object.keys(transactionChanges).length > 0) {
-                const {onyxData: moneyRequestParamsOnyxData} = getUpdateMoneyRequestParams(
+                const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams(
                     existingTransactionID,
                     isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID,
                     transactionChanges,
@@ -13038,6 +13038,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                     undefined,
                     splitExpense?.reportID,
                 );
+                if (currentSplit) {
+                    currentSplit.modifiedExpenseReportActionID = params.reportActionID;
+                }
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
             }
             // For new split transactions, set the reportID once the transaction and associated report are created

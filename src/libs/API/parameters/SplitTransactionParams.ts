@@ -11,6 +11,7 @@ type SplitTransactionSplitsParam = Array<{
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
+    modifiedExpenseReportActionID?: string;
     reimbursable?: boolean;
     billable?: boolean;
     reportID?: string;
