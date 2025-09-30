@@ -39,7 +39,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
             style={[styles.mt6, styles.mh5, styles.alignSelfStart, styles.alignItemsBaseline]}
             onLayout={onLayout}
         >
-            <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('receipt.alternativeMethodsTitle')}</Text>
+            <Text style={[styles.textMicroSupporting, styles.mb3]}>{translate('receipt.alternativeMethodsTitle')}</Text>
 
             {!hasLoggedIntoMobileApp && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
