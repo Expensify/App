@@ -1,11 +1,10 @@
-import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DeleteWorkspaceErrorConfirmModal from '@components/DeleteWorkspaceErrorConfirmModal';
-import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -49,7 +48,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {clearDeleteWorkspaceError, clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -68,7 +67,6 @@ import {
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
-import type {DeleteWorkspaceErrorModal} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -125,7 +123,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
-    const {setIsLoaderVisible} = useFullScreenLoader();
+    const isFocused = useIsFocused();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData({policyID: policy?.id});
     const waitForNavigate = useWaitForNavigation();
@@ -162,7 +160,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }),
         [policy, isUberForBusinessEnabled],
     ) as PolicyFeatureStates;
-    const [deleteWorkspaceErrorModal, setDeleteWorkspaceErrorModal] = useState<DeleteWorkspaceErrorModal | null>(null);
+    const [isPolicyErrorModalOpen, setIsPolicyErrorModalOpen] = useState(false);
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -414,39 +412,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         confirmReadyToOpenApp();
     }, []);
 
-    const prevPolicy = usePrevious(policy);
-
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
-    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     const policyErrorMessage = getLatestErrorMessage(policy);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowPolicy && !isPendingDelete;
 
     useEffect(() => {
-        if (isEmptyObject(prevPolicy)) {
+        if (!isFocused || isPolicyErrorModalOpen || !policyErrorMessage) {
             return;
         }
-        if (!prevIsPendingDelete && isPendingDelete) {
-            if (!isOffline) {
-                setIsLoaderVisible(true);
-                return;
-            }
-            goBackFromInvalidPolicy();
-            return;
-        }
-        if (prevIsPendingDelete && !isPendingDelete) {
-            setIsLoaderVisible(false);
-            if (policyErrorMessage) {
-                setDeleteWorkspaceErrorModal({
-                    isVisible: true,
-                    errorMessage: policyErrorMessage,
-                });
-                return;
-            }
-            goBackFromInvalidPolicy();
-        }
-    }, [isPendingDelete, prevIsPendingDelete, prevPolicy, isOffline, policyErrorMessage, policyID, setIsLoaderVisible]);
+        setIsPolicyErrorModalOpen(true);
+    }, [policyErrorMessage, isFocused, isPolicyErrorModalOpen]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
@@ -479,6 +456,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             id: policy.id,
         };
     }, [policy]);
+
+    const hideWorkspaceErrorModal = () => {
+        setIsPolicyErrorModalOpen(false);
+        dismissError(policy?.id, policy?.pendingAction);
+    };
 
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
@@ -557,15 +539,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 </FullPageNotFoundView>
             </ScreenWrapper>
-            {deleteWorkspaceErrorModal?.isVisible ? (
-                <DeleteWorkspaceErrorConfirmModal
-                    onModalHide={() => {
-                        setDeleteWorkspaceErrorModal(null);
-                        clearDeleteWorkspaceError(policyID);
-                    }}
-                    errorMessage={deleteWorkspaceErrorModal?.errorMessage}
-                />
-            ) : null}
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={isPolicyErrorModalOpen}
+                onConfirm={hideWorkspaceErrorModal}
+                onCancel={hideWorkspaceErrorModal}
+                prompt={policyErrorMessage}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+                success={false}
+            />
         </>
     );
 }
