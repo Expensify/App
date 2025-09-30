@@ -576,7 +576,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
     it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
         await TestHelper.signInWithTestUser();
 
-        const specificErrorMessage = 'some extraordinarily specific error has occured!';
+        const specificErrorMessage = 'some extraordinarily specific error has occurred!';
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
