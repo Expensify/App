@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearSupportalPermissionDenied} from '@userActions/App';
@@ -17,11 +17,11 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
         setIsVisible(!!payload);
     }, [payload]);
 
-    const close = () => {
+    const close = useCallback(() => {
         setIsVisible(false);
         // Clear the flag so it doesn't re-open
         clearSupportalPermissionDenied();
-    };
+    }, []);
 
     return (
         <>
