@@ -12104,6 +12104,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     let movedToReport;
     let rejectedToReportID;
     let urlToNavigateBack;
+    let reportPreviewAction: OnyxTypes.ReportAction | undefined;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
 
@@ -12320,7 +12321,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
             // Create report preview action for the parent report (chat report)
             const chatReport = report?.chatReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`] : null;
-            const reportPreviewAction = buildOptimisticReportPreview(
+            reportPreviewAction = buildOptimisticReportPreview(
                 chatReport,
                 optimisticReport as OnyxTypes.Report,
                 '', // No comment for rejected expenses
@@ -12670,6 +12671,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         reportID,
         comment,
         rejectedToReportID,
+        reportPreviewReportActionID: reportPreviewAction?.reportActionID,
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
     };
