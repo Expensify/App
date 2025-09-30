@@ -71,7 +71,7 @@ describe('DateUtils', () => {
     });
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
-        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, datetime, timezone);
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, timezone, datetime);
         expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-06T16:00:00-08:00');
     });
 
@@ -80,7 +80,7 @@ describe('DateUtils', () => {
         expect(localDate.getTime()).not.toBeNaN();
     });
 
-    it.only('should return the date in calendar time when calling datetimeToCalendarTime', () => {
+    it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
         expect(DateUtils.datetimeToCalendarTime(LOCALE, today, UTC as SelectedTimezone, false)).toBe('Today at 2:32 PM');
 
