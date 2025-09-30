@@ -10,6 +10,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import NetworkConnection from '@libs/NetworkConnection';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -153,7 +154,7 @@ function createTaskAndNavigate(
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
-    const currentTime = DateUtils.getDBTimeWithSkew();
+    const currentTime = NetworkConnection.getDBTimeWithSkew();
     const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const optimisticParentReport = {
