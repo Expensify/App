@@ -1,7 +1,7 @@
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -74,12 +74,13 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
 
-    useEffect(() => {
-        if (!errorMessage) {
-            return;
-        }
-        setShouldScrollToBottom?.(true);
-    }, [errorMessage, setShouldScrollToBottom]);
+    const showError = useCallback(
+        (msg: string | ReactElement) => {
+            setErrorMessage(msg);
+            setShouldScrollToBottom?.(true);
+        },
+        [setShouldScrollToBottom],
+    );
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
@@ -91,7 +92,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            setErrorMessage(<RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />);
+            showError(<RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />);
             return;
         }
 
@@ -107,7 +108,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         }
 
         if (!isPaidGroupPolicy(policy)) {
-            setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
+            showError(translate('travel.termsAndConditions.defaultWorkspaceError'));
             return;
         }
 
@@ -147,6 +148,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         translate,
         isUserValidated,
         phoneErrorMethodsRoute,
+        showError,
     ]);
 
     return (
