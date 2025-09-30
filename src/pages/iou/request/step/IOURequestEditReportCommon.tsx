@@ -162,7 +162,7 @@ function IOURequestEditReportCommon({
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
                 description={activePolicy?.name}
-                icon={Expensicons.DocumentPlus}
+                icon={Expensicons.Document}
             />
         );
     }, [createReport, isUnreported, translate, activePolicy?.name]);
