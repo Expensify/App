@@ -41,13 +41,12 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         id: pr-data
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "::notice::🔧 Manual workflow dispatch triggered"
-            PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number)
-            {
-              echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')"
-            } >> "$GITHUB_OUTPUT"
-            echo "::notice::✅ Processing PR #$(echo "$PR_INFO" | jq -r '.number')"
+          echo "::notice::🔧 Manual workflow dispatch triggered"
+          PR_INFO=$(gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json number)
+          {
+            echo "PR_NUMBER=$(echo "$PR_INFO" | jq -r '.number')"
+          } >> "$GITHUB_OUTPUT"
+          echo "::notice::✅ Processing PR #$(echo "$PR_INFO" | jq -r '.number')"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
