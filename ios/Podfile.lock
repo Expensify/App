@@ -2592,36 +2592,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-pager-view (6.5.3):
-    - boost
-    - DoubleConversion
-    - fast_float
-    - fmt
-    - glog
-    - hermes-engine
-    - RCT-Folly
-    - RCT-Folly/Fabric
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - react-native-pager-view/common (= 6.5.3)
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - SocketRocket
-    - Yoga
-  - react-native-pager-view/common (6.5.3):
+  - react-native-pager-view (6.9.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2706,6 +2677,7 @@ PODS:
     - SocketRocket
     - Yoga
   - react-native-plaid-link-sdk (12.5.3):
+    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -4665,10 +4637,10 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: ef239acc614d5d520b07853be6bfa6e87b7770db
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6645bc83721568992c3c981ed057e4048a48006e
-  react-native-pager-view: fbe4d1f3b4686eca244a2bce9dc15f873fd959e4
+  react-native-pager-view: e9b3e17cf3222a23fedcf72c969bcbe3640667d2
   react-native-pdf: 182fa857ba09bf5e4010f0fbbeda8e84825850b8
   react-native-performance: f034c3cb6981ee7ca6cd5f5e9a2fda5c91469d32
-  react-native-plaid-link-sdk: 017d025be9fdb05151e03453bb191e0518e3fe6a
+  react-native-plaid-link-sdk: 270016bf266e89ef8a95280a1696759f516395e9
   react-native-release-profiler: 855b08b38ac0630c7482a0dc87b9385d929b8d0a
   react-native-safe-area-context: 0f0e3b00124df1e2e76f9883ca64a426fd08bc0f
   react-native-view-shot: 211aabbc0a76150531e66d32ffbee0ae0f149144
