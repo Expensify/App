@@ -24,7 +24,8 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
     const newTransaction = {
         ...transaction,
     };
-    const conn = Onyx.connect({
+    // We need to read the old transaction backup first before writing a new one, otherwise we might overwrite an existing backup
+    const conn = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
         callback: (transactionBackup) => {
             Onyx.disconnect(conn);
@@ -56,7 +57,8 @@ function restoreOriginalTransactionFromBackup(transactionID: string | undefined,
         return;
     }
 
-    connection = Onyx.connect({
+    // we need to use connectWithoutView as this action is called during unmount and we need to read latest value from Onyx before we can restore it
+    connection = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
             Onyx.disconnect(connection);
