@@ -11,10 +11,7 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
     const isVisible = !!payload;
 
     const title = useMemo(() => translate('supportalNoAccess.title'), [translate]);
-    const prompt = useMemo(
-        () => translate('supportalNoAccess.descriptionWithCommand', {command: payload?.command}),
-        [translate, payload?.command],
-    );
+    const prompt = useMemo(() => translate('supportalNoAccess.descriptionWithCommand', {command: payload?.command}), [translate, payload?.command]);
 
     const close = useCallback(() => {
         // Clear the flag so it doesn't re-open
