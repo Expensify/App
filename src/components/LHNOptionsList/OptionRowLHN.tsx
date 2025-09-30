@@ -98,7 +98,7 @@ function OptionRowLHN({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
@@ -177,7 +177,7 @@ function OptionRowLHN({
     const emojiCode = optionItem.status?.emojiCode ?? '';
     const statusText = optionItem.status?.text ?? '';
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
-    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate, preferredLocale);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 

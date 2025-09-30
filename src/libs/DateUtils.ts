@@ -530,7 +530,7 @@ function getLocalizedTimePeriodDescription(data: string): string {
 /**
  * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
  */
-function getStatusUntilDate(inputDate: string): string {
+function getStatusUntilDate(inputDate: string, locale: Locale = CONST.LOCALES.DEFAULT): string {
     if (!inputDate) {
         return '';
     }
@@ -546,16 +546,19 @@ function getStatusUntilDate(inputDate: string): string {
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
-        return translateLocal('statusPage.untilTime', {time: format(input, CONST.DATE.LOCAL_TIME_FORMAT)});
+        const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.LOCAL_TIME_FORMAT]);
+        return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+        const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.SHORT_DATE_WITH_LOCAL_TIME_FORMAT]);
+        return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
     }
 
     // If it's in another year
-    return translateLocal('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+    const formatter = new Intl.DateTimeFormat(locale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_DATE_WITH_LOCAL_TIME_FORMAT]);
+    return translateLocal('statusPage.untilTime', {time: formatter.format(input)});
 }
 
 /**
