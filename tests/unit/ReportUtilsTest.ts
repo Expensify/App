@@ -82,7 +82,7 @@ import {
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type {Ancestor, OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -7075,6 +7075,183 @@ describe('ReportUtils', () => {
             policy6.autoReporting = true;
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('shouldExcludeAncestor', () => {
+        it('should return true for trip preview actions when ancestors exist', () => {
+            const tripPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
+            };
+            const ancestors = [
+                {
+                    report: LHNTestUtils.getFakeReport(),
+                    reportAction: createRandomReportAction(2),
+                    shouldDisplayNewMarker: false,
+                },
+            ];
+
+            const result = shouldExcludeAncestor(tripPreviewAction, ancestors);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for trip preview actions when no ancestors exist', () => {
+            const tripPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(tripPreviewAction, ancestors);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for transaction thread CREATE actions', () => {
+            const transactionThreadAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(transactionThreadAction, ancestors);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for transaction thread TRACK actions', () => {
+            const transactionThreadAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(transactionThreadAction, ancestors);
+            expect(result).toBe(true);
+        });
+
+        it('should return true for transaction thread PAY actions with IOUDetails', () => {
+            const transactionThreadAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUDetails: {
+                        amount: 100,
+                        currency: 'USD',
+                        comment: ''
+                    },
+                },
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(transactionThreadAction, ancestors);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for sent money report actions (PAY with IOUDetails)', () => {
+            const sentMoneyAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUDetails: {
+                        amount: 100,
+                        currency: 'USD',
+                        comment: '',
+                    },
+                },
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(sentMoneyAction, ancestors);
+            expect(result).toBe(false);
+        });
+
+        it('should return true for report preview actions', () => {
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(reportPreviewAction, ancestors);
+            expect(result).toBe(true);
+        });
+
+        it('should return false for regular comment actions', () => {
+            const commentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(commentAction, ancestors);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for regular IOU actions that are not transaction threads', () => {
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                },
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(iouAction, ancestors);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for PAY actions without IOUDetails', () => {
+            const payAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    created: DateUtils.getDBTime(),
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                },
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(payAction, ancestors);
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non-money request actions', () => {
+            const nonMoneyRequestAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+            };
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(nonMoneyRequestAction, ancestors);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when parent report action is undefined', () => {
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor(undefined, ancestors);
+            expect(result).toBe(false);
+        });
+
+        it('should handle empty object as parent report action', () => {
+            const ancestors: Ancestor[] = [];
+
+            const result = shouldExcludeAncestor({} as ReportAction, ancestors);
             expect(result).toBe(false);
         });
     });
