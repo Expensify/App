@@ -341,7 +341,6 @@ function WorkspacesListPage() {
             styles.offlineFeedback.deleted,
             loadingSpinnerIconIndex,
             shouldCalculateBillNewDot,
-            isSupportalAction,
             setIsDeletingPaidWorkspace,
             startChangeOwnershipFlow,
             isLessThanMediumScreen,
