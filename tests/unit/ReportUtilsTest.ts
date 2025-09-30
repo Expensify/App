@@ -7154,6 +7154,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(1),
                 type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(20);
