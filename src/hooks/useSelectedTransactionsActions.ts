@@ -107,7 +107,7 @@ function useSelectedTransactionsActions({
                 return;
             }
 
-            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, currentSearchHash);
+            deleteMoneyRequest(transactionID, action, duplicateTransactions, duplicateTransactionViolations, false, deletedTransactionIDs, selectedTransactionIDs, currentSearchHash);
             deletedTransactionIDs.push(transactionID);
         });
         clearSelectedTransactions(true);

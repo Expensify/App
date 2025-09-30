@@ -438,7 +438,16 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isParentReportArchived,
                         );
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true, undefined, currentSearchHash);
+                        deleteMoneyRequest(
+                            transaction.transactionID,
+                            parentReportAction,
+                            duplicateTransactions,
+                            duplicateTransactionViolations,
+                            true,
+                            undefined,
+                            undefined,
+                            currentSearchHash,
+                        );
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
