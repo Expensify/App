@@ -192,7 +192,19 @@ function useSearchSelectorBase({
             default:
                 return getEmptyOptions();
         }
-    }, [areOptionsInitialized, searchContext, optionsWithContacts, betas, computedSearchTerm, maxResults, includeUserToInvite, excludeLogins, includeRecentReports, maxRecentReportsToShow, getValidOptionsConfig]);
+    }, [
+        areOptionsInitialized,
+        searchContext,
+        optionsWithContacts,
+        betas,
+        computedSearchTerm,
+        maxResults,
+        includeUserToInvite,
+        excludeLogins,
+        includeRecentReports,
+        maxRecentReportsToShow,
+        getValidOptionsConfig,
+    ]);
 
     const isOptionSelected = useMemo(() => {
         return (option: OptionData) =>
