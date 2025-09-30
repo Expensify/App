@@ -43,7 +43,11 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                             dropStyles={styles.attachmentDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.attachmentDropText}
                             dropWrapperStyles={shouldStackVertically ? styles.pb0 : styles.pr0}
-                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver)]}
+                            dashedBorderStyles={[
+                                styles.dropzoneArea,
+                                styles.easeInOpacityTransition,
+                                styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, isDraggingOver),
+                            ]}
                         />
                     )}
                 </DropZoneWrapper>
