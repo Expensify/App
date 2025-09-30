@@ -1037,12 +1037,12 @@ const translations = {
         chooseReceipts: 'Kies bonnen om te uploaden of stuur bonnen door naar',
         alternativeMethodsTitle: 'Andere manieren om bonnetjes toe te voegen:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<muted-text-label><a href="${downloadUrl}">Download de app</a> om te scannen vanaf je telefoon</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Stuur bonnetjes door naar <a href="mailto:${email}">${email}</a></muted-text-label>`,
+            `<label-text><a-label href="${downloadUrl}">Download de app</a-label> om te scannen vanaf je telefoon</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Stuur bonnetjes door naar <a-label href="mailto:${email}">${email}</a-label></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Voeg je nummer toe</a> om bonnetjes te versturen naar ${phoneNumber}</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">Voeg je nummer toe</a-label> om bonnetjes te versturen naar ${phoneNumber}</label-text>`,
         alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Stuur bonnetjes naar ${phoneNumber} (alleen Amerikaanse nummers)</muted-text-label>`,
+            `<label-text>Stuur bonnetjes naar ${phoneNumber} (alleen Amerikaanse nummers)</label-text>`,
         takePhoto: 'Maak een foto',
         cameraAccess: "Cameratoegang is vereist om foto's van bonnetjes te maken.",
         deniedCameraAccess: 'Camera-toegang is nog steeds niet verleend, volg alstublieft',

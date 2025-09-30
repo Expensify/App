@@ -1039,12 +1039,11 @@ const translations = {
         chooseReceipts: 'アップロードするレシートを選択するか、レシートを転送してください',
         alternativeMethodsTitle: 'レシートを追加する他の方法：',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<muted-text-label><a href="${downloadUrl}">アプリをダウンロード</a>してスマートフォンからスキャン</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>レシートを<a href="mailto:${email}">${email}</a>に転送</muted-text-label>`,
+            `<label-text><a-label href="${downloadUrl}">アプリをダウンロード</a-label>してスマートフォンからスキャン</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>レシートを<a-label href="mailto:${email}">${email}</a-label>に転送</label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">電話番号を追加</a>してレシートを${phoneNumber}にSMSで送信</muted-text-label>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>レシートを${phoneNumber}にSMSで送信（米国番号のみ）</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">電話番号を追加</a-label>してレシートを${phoneNumber}にSMSで送信</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>レシートを${phoneNumber}にSMSで送信（米国番号のみ）</label-text>`,
         takePhoto: '写真を撮る',
         cameraAccess: '領収書の写真を撮るためにカメラへのアクセスが必要です。',
         deniedCameraAccess: 'カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。',

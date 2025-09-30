@@ -12,11 +12,14 @@ jest.mock('@hooks/useEnvironment', () => jest.fn(() => ({environmentURL: 'https:
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({textSupporting: '#123456'})));
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
-        mt4: {},
-        ph4: {},
+        mt2: {},
+        ph0: {},
+        mh0: {},
         textLabelSupporting: {},
         mb3: {},
         textAlignCenter: {},
+        alignSelfStretch: {},
+        alignItemsStart: {},
         flexRow: {},
         alignItemsCenter: {},
         mr3: {},

@@ -1043,12 +1043,11 @@ const translations = {
         chooseReceipts: 'Wählen Sie Quittungen zum Hochladen aus oder leiten Sie Quittungen weiter an ',
         alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<muted-text-label><a href="${downloadUrl}">App herunterladen</a> zum Scannen vom Telefon</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Belege weiterleiten an <a href="mailto:${email}">${email}</a></muted-text-label>`,
+            `<label-text><a-label href="${downloadUrl}">App herunterladen</a-label> zum Scannen vom Telefon</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Belege weiterleiten an <a-label href="mailto:${email}">${email}</a-label></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Ihre Nummer hinzufügen</a> zum Senden von Belegen an ${phoneNumber}</muted-text-label>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Belege per SMS an ${phoneNumber} senden (nur US-Nummern)</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">Ihre Nummer hinzufügen</a-label> zum Senden von Belegen an ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>Belege per SMS an ${phoneNumber} senden (nur US-Nummern)</label-text>`,
         takePhoto: 'Ein Foto machen',
         cameraAccess: 'Der Kamerazugriff ist erforderlich, um Fotos von Belegen zu machen.',
         deniedCameraAccess: 'Kamerazugriff wurde noch nicht gewährt, bitte folgen Sie',

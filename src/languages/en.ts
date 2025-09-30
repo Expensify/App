@@ -1029,12 +1029,11 @@ const translations = {
         chooseReceipt: 'Choose a receipt to upload or forward a receipt to ',
         chooseReceipts: 'Choose receipts to upload or forward receipts to ',
         alternativeMethodsTitle: 'Other ways to add receipts:',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<muted-text-label><a href="${downloadUrl}">Download the app</a> to scan from your phone</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Forward receipts to <a href="mailto:${email}">${email}</a></muted-text-label>`,
+        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a-label href="${downloadUrl}">Download the app</a-label> to scan from your phone</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Forward receipts to <a-label href="mailto:${email}">${email}</a-label></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Add your number</a> to text receipts to ${phoneNumber}</muted-text-label>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Text receipts to ${phoneNumber} (US numbers only)</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">Add your number</a-label> to text receipts to ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>Text receipts to ${phoneNumber} (US numbers only)</label-text>`,
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         deniedCameraAccess: "Camera access still hasn't been granted, please follow ",

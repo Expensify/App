@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
-import {ChatBubble, Download, Mail} from './Icon/Expensicons';
+import {ChatBubbles, Download, Mail} from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -36,7 +36,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
 
     return (
         <View
-            style={[styles.mt4, styles.ph4]}
+            style={[styles.mt6, styles.mh5, styles.alignSelfStart, styles.alignItemsBaseline]}
             onLayout={onLayout}
         >
             <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('receipt.alternativeMethodsTitle')}</Text>
@@ -46,9 +46,9 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                     <View style={[styles.mr3]}>
                         <Icon
                             src={Download}
-                            width={20}
-                            height={20}
-                            fill={theme.textSupporting}
+                            width={16}
+                            height={16}
+                            fill={theme.icon}
                         />
                     </View>
                     <View style={[styles.flex1]}>
@@ -61,9 +61,9 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                 <View style={[styles.mr3]}>
                     <Icon
                         src={Mail}
-                        width={20}
-                        height={20}
-                        fill={theme.textSupporting}
+                        width={16}
+                        height={16}
+                        fill={theme.icon}
                     />
                 </View>
                 <View style={[styles.flex1]}>
@@ -75,10 +75,10 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb0]}>
                     <View style={[styles.mr3]}>
                         <Icon
-                            src={ChatBubble}
-                            width={20}
-                            height={20}
-                            fill={theme.textSupporting}
+                            src={ChatBubbles}
+                            width={16}
+                            height={16}
+                            fill={theme.icon}
                         />
                     </View>
                     <View style={[styles.flex1]}>
@@ -91,10 +91,10 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb0]}>
                     <View style={[styles.mr3]}>
                         <Icon
-                            src={ChatBubble}
-                            width={20}
-                            height={20}
-                            fill={theme.textSupporting}
+                            src={ChatBubbles}
+                            width={16}
+                            height={16}
+                            fill={theme.icon}
                         />
                     </View>
                     <View style={[styles.flex1]}>

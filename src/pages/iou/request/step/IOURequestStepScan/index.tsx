@@ -1003,7 +1003,7 @@ function IOURequestStepScan({
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [alternativeMethodsHeight, setAlternativeMethodsHeight] = useState(0);
     // We use isMobile() here to explicitly hide the alternative methods component on both mobile web and native apps
-    const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + styles.uploadFileView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + styles.chooseFilesView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
         <View
@@ -1023,7 +1023,7 @@ function IOURequestStepScan({
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
-                <Text style={[styles.subTextFileUpload]}>{translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}</Text>
+                <Text style={[styles.subTextChooseFiles]}>{translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}</Text>
             </View>
 
             <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>
@@ -1032,7 +1032,7 @@ function IOURequestStepScan({
                         success
                         text={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                         accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
-                        style={[styles.p9]}
+                        style={[styles.p5]}
                         onPress={() => {
                             openPicker({
                                 onPicked: (data) => validateFiles(data),
@@ -1060,7 +1060,7 @@ function IOURequestStepScan({
                         }
                         onLayout(setTestReceiptAndNavigate);
                     }}
-                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
+                    style={[styles.flex1, !isMobile() && styles.chooseFilesView(isSmallScreenWidth)]}
                 >
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}

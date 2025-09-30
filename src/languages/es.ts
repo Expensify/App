@@ -1022,12 +1022,12 @@ const translations = {
         chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
         alternativeMethodsTitle: 'Otras formas de añadir recibos:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<muted-text-label><a href="${downloadUrl}">Descarga la aplicación</a> para escanear desde tu teléfono</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Reenvía recibos a <a href="mailto:${email}">${email}</a></muted-text-label>`,
+            `<label-text><a-label href="${downloadUrl}">Descarga la aplicación</a-label> para escanear desde tu teléfono</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Reenvía recibos a <a-label href="mailto:${email}">${email}</a-label></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Añade tu número</a> para enviar recibos por SMS a ${phoneNumber}</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">Añade tu número</a-label> para enviar recibos por SMS a ${phoneNumber}</label-text>`,
         alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</muted-text-label>`,
+            `<label-text>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</label-text>`,
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',

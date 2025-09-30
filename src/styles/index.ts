@@ -1106,6 +1106,22 @@ const styles = (theme: ThemeColors) =>
                 flex: 1,
             }) satisfies ViewStyle,
 
+        chooseFilesView: (isSmallScreenWidth: boolean) =>
+            ({
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderWidth: isSmallScreenWidth ? 0 : 2,
+                borderColor: theme.borderFocus,
+                borderStyle: 'dotted',
+                marginBottom: variables.chooseFilesViewMargin,
+                marginLeft: variables.chooseFilesViewMargin,
+                marginRight: variables.chooseFilesViewMargin,
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingVertical: 20,
+                gap: 4,
+                flex: 1,
+            }) satisfies ViewStyle,
+
         uploadFileViewTextContainer: {
             paddingHorizontal: 40,
             ...sizing.w100,
@@ -1543,6 +1559,13 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
             color: theme.text,
+        },
+
+        subTextChooseFiles: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            lineHeight: variables.lineHeightLarge,
+            textAlign: 'center',
+            color: theme.textSupporting,
         },
 
         furtherDetailsText: {

@@ -1037,12 +1037,11 @@ const translations = {
         chooseReceipts: 'Scegli ricevute da caricare o inoltra ricevute a',
         alternativeMethodsTitle: 'Altri modi per aggiungere ricevute:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<muted-text-label><a href="${downloadUrl}">Scarica l'app</a> per scansionare dal tuo telefono</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Inoltra ricevute a <a href="mailto:${email}">${email}</a></muted-text-label>`,
+            `<label-text><a-label href="${downloadUrl}">Scarica l'app</a-label> per scansionare dal tuo telefono</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Inoltra ricevute a <a-label href="mailto:${email}">${email}</a-label></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Aggiungi il tuo numero</a> per inviare ricevute via SMS a ${phoneNumber}</muted-text-label>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Invia ricevute via SMS a ${phoneNumber} (solo numeri USA)</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">Aggiungi il tuo numero</a-label> per inviare ricevute via SMS a ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>Invia ricevute via SMS a ${phoneNumber} (solo numeri USA)</label-text>`,
         takePhoto: 'Scatta una foto',
         cameraAccess: "L'accesso alla fotocamera è necessario per scattare foto delle ricevute.",
         deniedCameraAccess: "L'accesso alla fotocamera non è ancora stato concesso, si prega di seguire",

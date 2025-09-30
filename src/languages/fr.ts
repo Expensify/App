@@ -1041,12 +1041,12 @@ const translations = {
         chooseReceipts: 'Choisissez des reçus à télécharger ou transférez des reçus à',
         alternativeMethodsTitle: "Autres façons d'ajouter des reçus :",
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<muted-text-label><a href="${downloadUrl}">Téléchargez l'application</a> pour scanner depuis votre téléphone</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Transférez les reçus à <a href="mailto:${email}">${email}</a></muted-text-label>`,
+            `<label-text><a-label href="${downloadUrl}">Téléchargez l'application</a-label> pour scanner depuis votre téléphone</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Transférez les reçus à <a-label href="mailto:${email}">${email}</a-label></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Ajoutez votre numéro</a> pour envoyer des reçus par SMS à ${phoneNumber}</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">Ajoutez votre numéro</a-label> pour envoyer des reçus par SMS à ${phoneNumber}</label-text>`,
         alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Envoyez des reçus par SMS à ${phoneNumber} (numéros US uniquement)</muted-text-label>`,
+            `<label-text>Envoyez des reçus par SMS à ${phoneNumber} (numéros US uniquement)</label-text>`,
         takePhoto: 'Prendre une photo',
         cameraAccess: "L'accès à la caméra est requis pour prendre des photos des reçus.",
         deniedCameraAccess: "L'accès à la caméra n'a toujours pas été accordé, veuillez suivre",

@@ -1035,12 +1035,11 @@ const translations = {
         chooseReceipts: 'Wybierz paragony do przesłania lub prześlij paragony do',
         alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<muted-text-label><a href="${downloadUrl}">Pobierz aplikację</a> aby skanować z telefonu</muted-text-label>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<muted-text-label>Prześlij paragony do <a href="mailto:${email}">${email}</a></muted-text-label>`,
+            `<label-text><a-label href="${downloadUrl}">Pobierz aplikację</a-label> aby skanować z telefonu</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Prześlij paragony do <a-label href="mailto:${email}">${email}</a-label></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<muted-text-label><a href="${contactMethodsUrl}">Dodaj swój numer</a> aby wysyłać paragony SMS do ${phoneNumber}</muted-text-label>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<muted-text-label>Wyślij paragony SMS do ${phoneNumber} (tylko numery US)</muted-text-label>`,
+            `<label-text><a-label href="${contactMethodsUrl}">Dodaj swój numer</a-label> aby wysyłać paragony SMS do ${phoneNumber}</label-text>`,
+        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>Wyślij paragony SMS do ${phoneNumber} (tylko numery US)</label-text>`,
         takePhoto: 'Zrób zdjęcie',
         cameraAccess: 'Dostęp do aparatu jest wymagany, aby robić zdjęcia paragonów.',
         deniedCameraAccess: 'Dostęp do kamery nadal nie został przyznany, proszę postępować zgodnie z',
