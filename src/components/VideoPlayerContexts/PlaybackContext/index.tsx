@@ -27,7 +27,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const updateCurrentURLAndReportID: PlaybackContextValues['updateCurrentURLAndReportID'] = useCallback(
         (url, reportID) => {
-            if (!url || !reportID) {
+            if (!reportID) {
+                return;
+            }
+
+            if(!url){
+                if (currentlyPlayingURL) {
+                    video.pause();
+                    setCurrentlyPlayingURL(null);
+                }
                 return;
             }
 
