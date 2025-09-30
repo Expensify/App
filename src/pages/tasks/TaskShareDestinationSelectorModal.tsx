@@ -90,7 +90,7 @@ function TaskShareDestinationSelectorModal() {
             ...availableOptions,
             recentReports: filteredReports ?? [],
         };
-    }, [availableOptions.recentReports, archivedReportsIdSet]);
+    }, [availableOptions, archivedReportsIdSet]);
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
