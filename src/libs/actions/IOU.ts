@@ -232,6 +232,7 @@ import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -784,6 +785,20 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
     waitForCollectionCallback: true,
     callback: (val) => (allPolicyCategories = val),
+});
+
+let allSnapshotKeys: OnyxKey[] = [];
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        allSnapshotKeys = Object.keys(val) as OnyxKey[];
+    },
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
@@ -8223,7 +8238,6 @@ function deleteMoneyRequest(
     isSingleTransactionView = false,
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
-    searchHash?: number,
 ) {
     if (!transactionID) {
         return;
@@ -8256,20 +8270,6 @@ function deleteMoneyRequest(
             value: {...transaction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         },
     ];
-
-    if (searchHash) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
-                },
-            },
-        });
-    }
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.SET,
@@ -8402,6 +8402,40 @@ function deleteMoneyRequest(
             },
         },
     ];
+
+    if (allSnapshotKeys?.length && allSnapshotKeys.length > 0) {
+        allSnapshotKeys.forEach((key) => {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            pendingAction: null,
+                        },
+                    },
+                },
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key,
+                value: null,
+            });
+        });
+    }
 
     if (reportPreviewAction?.reportActionID) {
         successData.push({

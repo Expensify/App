@@ -103,7 +103,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
-    const {removeTransaction, currentSearchHash} = useSearchContext();
+    const {removeTransaction} = useSearchContext();
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
@@ -438,16 +438,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isParentReportArchived,
                         );
                     } else {
-                        deleteMoneyRequest(
-                            transaction.transactionID,
-                            parentReportAction,
-                            duplicateTransactions,
-                            duplicateTransactionViolations,
-                            true,
-                            undefined,
-                            undefined,
-                            currentSearchHash,
-                        );
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
