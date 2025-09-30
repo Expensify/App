@@ -13,6 +13,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTask from '@hooks/useOnboardingTask';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +68,7 @@ function CategorySettingsPage({
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
+    const {isParentReportAcrhived: isSetupCategoryTaskParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -129,7 +131,13 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}}, policyTagLists, allTransactionViolations);
+        setWorkspaceCategoryEnabled(
+            policyID,
+            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoryTaskParentReportAcrhived,
+            policyTagLists,
+            allTransactionViolations,
+        );
     };
 
     const navigateToEditCategory = () => {
@@ -139,7 +147,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportAcrhived, policyTagLists, allTransactionViolations);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };

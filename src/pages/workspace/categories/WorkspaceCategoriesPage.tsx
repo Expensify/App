@@ -29,6 +29,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingTask from '@hooks/useOnboardingTask';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -91,6 +92,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
 
+    const {isParentReportAcrhived: isSetupCategoryTaskParentReportAcrhived} = useOnboardingTask(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
     }, [policyId]);
@@ -141,9 +144,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}}, policyTagLists, allTransactionViolations);
+            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}}, isSetupCategoryTaskParentReportAcrhived, policyTagLists, allTransactionViolations);
         },
-        [policyId, policyTagLists, allTransactionViolations],
+        [policyId, isSetupCategoryTaskParentReportAcrhived, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -254,7 +257,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(policyId, selectedCategories, policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyId, selectedCategories, isSetupCategoryTaskParentReportAcrhived, policyTagLists, allTransactionViolations);
         setDeleteCategoriesConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -358,7 +361,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable, policyTagLists, allTransactionViolations);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable, isSetupCategoryTaskParentReportAcrhived, policyTagLists, allTransactionViolations);
                     },
                 });
             }
@@ -380,7 +383,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable, policyTagLists, allTransactionViolations);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable, isSetupCategoryTaskParentReportAcrhived, policyTagLists, allTransactionViolations);
                     },
                 });
             }
