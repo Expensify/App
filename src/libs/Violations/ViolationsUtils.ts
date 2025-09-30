@@ -385,7 +385,7 @@ const ViolationsUtils = {
                     shouldShowCategoryReceiptRequiredViolation || !policy.maxExpenseAmountNoReceipt
                         ? undefined
                         : {
-                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
+                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency, true),
                           },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,

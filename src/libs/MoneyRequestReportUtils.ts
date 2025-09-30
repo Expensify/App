@@ -76,6 +76,11 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         if (!transaction) {
             return false;
         }
+
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
         return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });

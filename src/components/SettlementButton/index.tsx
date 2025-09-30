@@ -33,6 +33,7 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -130,6 +131,13 @@ function SettlementButton({
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+        getPaymentMethods();
+    }, [isOffline]);
 
     useEffect(() => {
         if (isLoadingLastPaymentMethod) {
@@ -428,7 +436,9 @@ function SettlementButton({
             return lastPaymentPolicy.name;
         }
 
-        const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
+        const bankAccountToDisplay = hasIntentToPay
+            ? ((formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) ?? formattedPaymentMethods.at(0)) as BankAccount)
+            : bankAccount;
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReportUtil(iouReport))) {
             if (!personalBankAccountList.length) {
                 return;
@@ -444,6 +454,12 @@ function SettlementButton({
 
             if (!bankAccountToDisplay?.accountData?.accountNumber) {
                 return;
+            }
+
+            if (bankAccountToDisplay?.accountData?.accountNumber) {
+                return translate('paymentMethodList.bankAccountLastFour', {
+                    lastFour: bankAccountToDisplay.accountData.accountNumber.slice(-4),
+                });
             }
 
             return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
@@ -468,8 +484,7 @@ function SettlementButton({
 
         const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(selectedOption as PaymentMethod);
         const shouldSelectPaymentMethod = (isPaymentMethod ?? lastPaymentPolicy ?? !isEmpty(latestBankItem)) && !shouldShowApproveButton && !shouldHidePaymentOptions;
-        const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === selectedOption);
-
+        const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyIDKey);
         if (!!selectedPolicy || shouldSelectPaymentMethod) {
             selectPaymentMethod(event, triggerKYCFlow, selectedOption as PaymentMethod, selectedPolicy);
             return;

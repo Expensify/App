@@ -3,6 +3,7 @@ import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
 import TerserPlugin from 'terser-webpack-plugin';
 import type {Class} from 'type-fest';
@@ -149,6 +150,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                       new IgnorePlugin({
                           resourceRegExp: /@welldone-software\/why-did-you-render/,
                       }),
+                      new IgnorePlugin({
+                          resourceRegExp: /react-is/,
+                      }),
                   ]
                 : []),
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
@@ -166,6 +170,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
             }),
+            ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
 
             // This allows us to interactively inspect JS bundle contents
             ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),
@@ -232,7 +237,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 },
                 {
                     test: /\.css$/i,
-                    use: ['style-loader', 'css-loader'],
+                    use: isDevelopment ? ['style-loader', 'css-loader'] : [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
                 {
                     test: /\.(woff|woff2)$/i,

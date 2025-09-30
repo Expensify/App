@@ -1,7 +1,8 @@
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -100,11 +101,9 @@ function WorkspaceResetBankAccountModal({
             cancelText={translate('common.cancel')}
             prompt={
                 isInOpenState ? (
-                    <Text>
-                        <Text>{translate('workspace.bankAccount.disconnectYour')}</Text>
-                        <Text style={styles.textStrong}>{bankShortName}</Text>
-                        <Text>{translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
-                    </Text>
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', {bankName: bankShortName})} />
+                    </View>
                 ) : (
                     translate('workspace.bankAccount.clearProgress')
                 )
