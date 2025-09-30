@@ -120,6 +120,7 @@ function MoneyRequestReportActionsList({
     violations,
     hasNewerActions,
     hasOlderActions,
+    hasPendingDeletionTransaction,
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
@@ -643,6 +644,7 @@ function MoneyRequestReportActionsList({
                     report={report}
                     transactions={transactions}
                     newTransactions={newTransactions}
+                    hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                     reportActions={reportActions}
                     violations={violations}
                     hasComments={reportHasComments}
@@ -651,7 +653,7 @@ function MoneyRequestReportActionsList({
                 />
             </>
         ),
-        [report, policy, transactions, newTransactions, reportActions, violations, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction],
+        [report, policy, transactions, newTransactions, reportActions, violations, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction, hasPendingDeletionTransaction],
     );
 
     // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
