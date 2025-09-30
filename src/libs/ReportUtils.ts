@@ -176,6 +176,7 @@ import {
     getReportActionMessageText,
     getReportActionText,
     getRetractedMessage,
+    getSortedReportActions,
     getTravelUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
@@ -223,7 +224,6 @@ import {
     isWhisperAction,
     shouldReportActionBeVisible,
     wasActionTakenByCurrentUser,
-    getSortedReportActions,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import type {ArchivedReportsIDSet} from './SearchUIUtils';
