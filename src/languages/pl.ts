@@ -142,6 +142,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -854,8 +855,24 @@ const translations = {
         markAsUnread: 'Oznacz jako nieprzeczytane',
         markAsRead: 'Oznacz jako przeczytane',
         editAction: ({action}: EditActionParams) => `Edytuj ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Usuń ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Czy na pewno chcesz usunąć ten ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'wydatek' : 'komentarz'}?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'komentarz';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'wydatek';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'raport';
+            }
+            return `Usuń ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'komentarz';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'wydatek';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'raport';
+            }
+            return `Czy na pewno chcesz usunąć ten ${type}?`;
+        },
         onlyVisible: 'Widoczne tylko dla',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
@@ -1411,7 +1428,7 @@ const translations = {
             reasonPageDescription: 'Wyjaśnij, dlaczego odrzucasz ten wydatek.',
             rejectReason: 'Powód odrzucenia',
             markAsResolved: 'Oznacz jako rozwiązane',
-            rejectedStatus: 'Ten wydatek został odrzucony. Oczekiwanie, aż rozwiążesz problem(y) i oznaczysz jako rozwiązane, aby umożliwić przesłanie.',
+            rejectedStatus: 'Ten wydatek został odrzucony. Czekamy na Ciebie, aby naprawić problemy i oznaczyć jako rozwiązane, aby umożliwić przesłanie.',
             reportActions: {
                 rejectedExpense: 'odrzucił ten wydatek',
                 markedAsResolved: 'oznaczył powód odrzucenia jako rozwiązany',
@@ -1693,13 +1710,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Połącz konta',
         accountDetails: {
-            accountToMergeInto: 'Wprowadź konto, z którym chcesz połączyć',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Wprowadź konto, które chcesz scalić z <strong>${login}</strong>.`,
             notReversibleConsent: 'Rozumiem, że to jest nieodwracalne',
         },
         accountValidate: {
             confirmMerge: 'Czy na pewno chcesz połączyć konta?',
-            lossOfUnsubmittedData: `Scalanie kont jest nieodwracalne i spowoduje utratę wszelkich niezatwierdzonych wydatków dla`,
-            enterMagicCode: `Aby kontynuować, wprowadź magiczny kod wysłany na`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Połączenie kont jest nieodwracalne i spowoduje utratę wszelkich niezgłoszonych wydatków dla <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Aby kontynuować, wprowadź magiczny kod wysłany na adres <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Niepoprawny lub nieważny kod magiczny. Spróbuj ponownie lub poproś o nowy kod.',
                 fallback: 'Coś poszło nie tak. Spróbuj ponownie później.',
@@ -2201,7 +2219,7 @@ const translations = {
         enterAuthenticatorCode: 'Proszę wprowadzić kod uwierzytelniający',
         enterRecoveryCode: 'Proszę wprowadzić swój kod odzyskiwania',
         requiredWhen2FAEnabled: 'Wymagane, gdy 2FA jest włączone',
-        requestNewCode: 'Poproś o nowy kod w',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Poproś o nowy kod za <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Poproś o nowy kod',
         error: {
             pleaseFillMagicCode: 'Proszę wprowadzić swój magiczny kod',
@@ -2602,13 +2620,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Nasz dostawca poczty e-mail tymczasowo zawiesił wysyłanie wiadomości e-mail na adres ${login} z powodu problemów z dostarczeniem. Aby odblokować swój login, wykonaj następujące kroki:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Potwierdź, że ${login} jest poprawnie napisany i jest prawdziwym, dostarczalnym adresem e-mail.`,
-        emailAliases: 'Alias e-mail, takie jak "expenses@domain.com", muszą mieć dostęp do własnej skrzynki odbiorczej, aby były ważnym loginem do Expensify.',
-        ensureYourEmailClient: 'Upewnij się, że Twój klient poczty e-mail akceptuje wiadomości z domeny expensify.com.',
-        youCanFindDirections: 'Możesz znaleźć instrukcje, jak wykonać ten krok',
-        helpConfigure: 'ale możesz potrzebować pomocy działu IT w skonfigurowaniu ustawień poczty e-mail.',
-        onceTheAbove: 'Po zakończeniu powyższych kroków, proszę skontaktować się z',
-        toUnblock: 'aby odblokować swoje logowanie.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Potwierdź, że ${login} jest poprawnie napisany i jest prawdziwym, dostarczalnym adresem e-mail.</strong> Alias e-mail, takie jak "expenses@domain.com", muszą mieć dostęp do własnej skrzynki odbiorczej, aby były ważnym loginem do Expensify.`,
+        ensureYourEmailClient: `<strong>Upewnij się, że Twój klient poczty e-mail akceptuje wiadomości z domeny expensify.com.</strong> Możesz znaleźć wskazówki, jak wykonać ten krok <a href="${CONST.SET_NOTIFICATION_LINK}">tutaj</a>, ale możesz potrzebować pomocy działu IT, aby skonfigurować ustawienia poczty e-mail.`,
+        onceTheAbove: `Po wykonaniu powyższych kroków skontaktuj się z <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> w celu odblokowania loginu.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -3261,6 +3276,9 @@ const translations = {
         thisStep: 'Ten krok został zakończony',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `łączy firmowe konto bankowe w ${currency} kończące się na ${bankAccountLastFour} z Expensify, aby wypłacać wynagrodzenia pracownikom w ${currency}. Następny krok wymaga danych podpisującego – dyrektora lub starszego urzędnika.`,
+        error: {
+            emailsMustBeDifferent: 'Adresy e-mail muszą się różnić',
+        },
     },
     agreementsStep: {
         agreements: 'Umowy',
@@ -3597,19 +3615,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Oczekujące',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Zawieszone',
                 },
-                invitationFailure: 'Nie udało się zaprosić członków do Uber for Business',
+                invitationFailure: 'Nie można zaprosić członka do Ubera dla Firm.',
                 autoInvite: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
                 autoRemove: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
                 bannerTitle: 'Expensify + Uber dla firm',
                 bannerDescription: 'Połącz się z Uberem dla Firm, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej organizacji.',
                 emptyContent: {
-                    title: 'Brak członków do wyświetlenia',
-                    subtitle: 'Szukaliśmy wszędzie i nic nie znaleźliśmy.',
+                    title: 'Brak oczekujących zaproszeń',
+                    subtitle: 'Hurra! Szukaliśmy wszędzie i nie znaleźliśmy żadnych oczekujących zaproszeń.',
                 },
             },
         },
         perDiem: {
-            subtitle: 'Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników.',
+            subtitle: `<muted-text>Ustaw stawki diety, aby kontrolować dzienne wydatki pracowników. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Dowiedz się więcej</a>.</muted-text>`,
             amount: 'Kwota',
             deleteRates: () => ({
                 one: 'Usuń stawkę',
@@ -4381,10 +4399,7 @@ const translations = {
                 whoIsYourBankAccount: 'Kim jest Twój bank?',
                 whereIsYourBankLocated: 'Gdzie znajduje się Twój bank?',
                 howDoYouWantToConnect: 'Jak chcesz połączyć się ze swoim bankiem?',
-                learnMoreAboutOptions: {
-                    text: 'Dowiedz się więcej na ten temat',
-                    linkText: 'opcje.',
-                },
+                learnMoreAboutOptions: `<muted-text>Dowiedz się więcej o tych <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">opcjach</a>.</muted-text>`,
                 commercialFeedDetails: 'Wymaga konfiguracji z Twoim bankiem. Zazwyczaj jest używane przez większe firmy i często jest najlepszą opcją, jeśli się kwalifikujesz.',
                 commercialFeedPlaidDetails: `Wymaga konfiguracji z Twoim bankiem, ale poprowadzimy Cię. Zazwyczaj jest to ograniczone do większych firm.`,
                 directFeedDetails: 'Najprostsze podejście. Połącz się od razu, używając swoich głównych poświadczeń. Ta metoda jest najczęściej stosowana.',
@@ -5532,6 +5547,11 @@ const translations = {
                     'Expensify Travel to nowa platforma do rezerwacji i zarządzania podróżami służbowymi, która umożliwia członkom rezerwację zakwaterowania, lotów, transportu i nie tylko.',
                 onlyAvailableOnPlan: 'Podróże są dostępne w planie Collect, zaczynając od',
             },
+            reports: {
+                title: 'Raporty',
+                description: 'Twórz uporządkowane raporty wydatków, aby śledzić swoje wydatki biznesowe, przesyłać je do zatwierdzenia i usprawniać proces zwrotu kosztów.',
+                onlyAvailableOnPlan: 'Raporty są dostępne w planie Collect, zaczynając od ',
+            },
             multiLevelTags: {
                 title: 'Wielopoziomowe tagi',
                 description:
@@ -5664,8 +5684,7 @@ const translations = {
                 nonBillable: 'Niepodlegające fakturowaniu',
                 nonBillableDescription: 'Wydatki są czasami ponownie fakturowane klientom.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eParagony są tworzone automatycznie',
-                eReceiptsHintLink: 'dla większości transakcji kredytowych w USD',
+                eReceiptsHint: `ePokwitowania są tworzone automatycznie [dla większości transakcji kredytowych w USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Śledzenie uczestników',
                 attendeeTrackingHint: 'Śledź koszt na osobę dla każdego wydatku.',
                 prohibitedDefaultDescription:
@@ -6179,7 +6198,7 @@ const translations = {
         groupBy: 'Grupa według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie zawiera wydatków.',
-            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu, używając przycisku powyżej.',
+            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu\n za pomocą przycisku poniżej lub opcji „Dodaj wydatek” w menu Więcej powyżej.',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
@@ -6661,7 +6680,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem, które ${email} musi naprawić.`
-                    : 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem, które musisz naprawić.';
+                    : 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Poproś ${member}, aby oznaczył jako gotówkę lub poczekaj 7 dni i spróbuj ponownie.` : 'Oczekiwanie na połączenie z transakcją kartową.';
