@@ -2,11 +2,6 @@
 
 ## Prerequisites
 
-### General Prerequisites
-1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
-2. Install `watchman`: `brew install watchman`
-3. Install dependencies: `npm install`
-
 ### iOS-Specific Prerequisites
 For an M1 Mac, read this [Stack Overflow post](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 

@@ -2,16 +2,10 @@
 
 ## Prerequisites
 
-### General Prerequisites
-1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
-2. Install `watchman`: `brew install watchman`
-3. Install dependencies: `npm install`
-
 ### Android-Specific Prerequisites
 
 1. **Configure MapBox**
    - Before installing Android dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions. If you already did this step for iOS, there is no need to repeat this step.
-
 2. **React Native Environment Setup**
    - Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
 

@@ -2,11 +2,6 @@
 
 ## Prerequisites
 
-### General Prerequisites
-1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
-2. Install `watchman`: `brew install watchman`
-3. Install dependencies: `npm install`
-
 ### Desktop-Specific Prerequisites
 
 1. **Install mkcert and Setup HTTPS**
