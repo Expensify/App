@@ -8296,7 +8296,7 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 function shouldExcludeAncestor(parentReportAction: OnyxEntry<ReportAction>, ancestors: Ancestor[]): boolean {
     // We exclude trip preview actions as we don't want to display trip summary for threads,
     if (isTripPreview(parentReportAction) && ancestors.length > 0) {
-        return false;
+        return true;
     }
 
     // We exclude ancestor reports when their parent's ReportAction is a transaction-thread action,
