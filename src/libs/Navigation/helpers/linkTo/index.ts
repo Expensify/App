@@ -131,7 +131,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             if (
                 matchingFullScreenRoute &&
                 lastFullScreenRoute &&
-                (matchingFullScreenRoute.name !== lastFullScreenRoute.name || lastRouteInMatchingFullScreen?.name !== lastRouteInLastFullScreenRoute?.name)
+                (matchingFullScreenRoute.name !== lastFullScreenRoute.name ||
+                    (lastRouteInMatchingFullScreen?.name && lastRouteInLastFullScreenRoute?.name && lastRouteInMatchingFullScreen.name !== lastRouteInLastFullScreenRoute.name))
             ) {
                 const isMatchingRoutePreloaded = currentState.preloadedRoutes.some(
                     (preloadedRoute) =>
