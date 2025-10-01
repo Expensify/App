@@ -4,8 +4,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -192,7 +192,13 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         Navigation.dismissModal();
     }, []);
 
-    if (isInvitationSent) {
+    // Check if we should skip to "All set" page immediately
+    const shouldSkipToAllSet = useMemo(() => {
+        // Skip if no workspace members can be invited (covers all cases: no employees, only owner, already linked)
+        return workspaceMembers.length === 0;
+    }, [workspaceMembers.length]);
+
+    if (isInvitationSent || shouldSkipToAllSet) {
         return (
             <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
                 <HeaderWithBackButton
