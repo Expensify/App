@@ -134,5 +134,6 @@ For the most stable connection, consider:
 - Assign cards during the connection session.
 - If using multiple programs, connect **ALL programs** at once.
 
+
 If you still experience issues with your company card connection, contact Expensify Concierge for additional support.
 
