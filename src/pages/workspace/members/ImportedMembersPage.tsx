@@ -165,6 +165,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         <ScreenWrapper
             testID={ImportedMembersPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.people.importMembers')}
@@ -189,6 +190,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 shouldShowCancelButton={false}
                 shouldHandleNavigationBack
                 onModalHide={() => {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
                 }}
             />

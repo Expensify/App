@@ -16,6 +16,7 @@ import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as Report from '@src/libs/actions/Report';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
+import {translateLocal} from '@src/libs/Localize';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -27,6 +28,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
+import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -140,7 +142,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -270,7 +272,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -391,7 +393,7 @@ describe('actions/Report', () => {
                 // When a new comment is added by the current user
 
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -403,7 +405,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -414,7 +416,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -679,7 +681,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -807,7 +809,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -897,12 +899,16 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const newReportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, newReportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -969,7 +975,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
@@ -978,7 +984,10 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1020,7 +1029,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1069,7 +1078,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachment(REPORT_ID, file, CONST.DEFAULT_TIME_ZONE);
+        Report.addAttachment(REPORT_ID, REPORT_ID, file, CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1138,7 +1147,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachment(REPORT_ID, file, CONST.DEFAULT_TIME_ZONE, 'Attachment with comment');
+        Report.addAttachment(REPORT_ID, REPORT_ID, file, CONST.DEFAULT_TIME_ZONE, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1211,7 +1220,8 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Promise.resolve();
 
-        Report.addComment(REPORT_ID, 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT_ID, REPORT_ID, 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
+
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1307,7 +1317,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT_ID, REPORT_ID, 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1379,7 +1389,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
-        Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1437,12 +1447,15 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        Report.editReportComment(REPORT_ID, reportAction, 'Testing an edited comment');
+        const originalReport = {
+            reportID: REPORT_ID,
+        };
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment');
 
         await waitForBatchedUpdates();
 
@@ -1483,9 +1496,12 @@ describe('actions/Report', () => {
             created: '2024-10-21 10:37:59.881',
         };
 
-        Report.editReportComment(reportID, action, 'value1');
-        Report.editReportComment(reportID, action, 'value2');
-        Report.editReportComment(reportID, action, 'value3');
+        const originalReport = {
+            reportID,
+        };
+        Report.editReportComment(originalReport, action, 'value1');
+        Report.editReportComment(originalReport, action, 'value2');
+        Report.editReportComment(originalReport, action, 'value3');
 
         const requests = PersistedRequests?.getAll();
 
@@ -2023,6 +2039,84 @@ describe('actions/Report', () => {
             });
             expect(isArchived).toBe(false);
         });
+
+        it('correctly implements RedBrickRoad error handling for ChangeReportPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
+            const ownerAccountID = 999;
+            const ownerEmail = 'submitter@test.com';
+            const adminEmail = 'admin@test.com';
+            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                reportID: 'expenseReport123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'oldPolicy123',
+                ownerAccountID,
+                total: 15000,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const newPolicy: OnyxTypes.Policy = {
+                ...createRandomPolicy(2),
+                id: 'newPolicy456',
+                name: 'New Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    [adminEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    // Note: submitter is NOT in the employee list, which will trigger the invitation
+                },
+            };
+
+            const employeeList = {
+                [adminEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            };
+
+            const submitter = {
+                accountID: ownerAccountID,
+                login: ownerEmail,
+                email: ownerEmail,
+            };
+
+            global.fetch = mockFetch;
+            mockFetch.pause?.();
+
+            // Setup initial data
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: submitter}),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Call changeReportPolicyAndInviteSubmitter
+            Report.changeReportPolicyAndInviteSubmitter(expenseReport, newPolicy, employeeList, TestHelper.formatPhoneNumber, false);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+
+            // Verify error handling after failure - focus on workspace invitation error
+            const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`);
+
+            // The submitter should have been added to the employee list with error
+            const submitterEmployee = policyData?.employeeList?.[ownerEmail];
+            expect(submitterEmployee).toBeTruthy();
+            expect(submitterEmployee?.errors).toBeTruthy();
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            // Cleanup
+            mockFetch.succeed?.();
+        });
     });
 
     describe('moveIOUReportToPolicy', () => {
@@ -2101,6 +2195,85 @@ describe('actions/Report', () => {
                 });
             });
             expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
+        });
+
+        it('correctly implements RedBrickRoad error handling for MoveIOUReportToPolicyAndInviteSubmitter when the request fails to add a new user to workspace', async () => {
+            const ownerAccountID = 999;
+            const ownerEmail = 'submitter@test.com';
+            const mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                reportID: 'iouReport123',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const policy: OnyxTypes.Policy = {
+                ...createRandomPolicy(1),
+                id: 'policy456',
+                name: 'Test Policy for IOU Move',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    'admin@test.com': {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                    // Note: submitter is NOT in the employee list, which will trigger the invitation
+                },
+            };
+
+            const submitter = {
+                accountID: ownerAccountID,
+                login: ownerEmail,
+                email: ownerEmail,
+            };
+
+            global.fetch = mockFetch;
+            mockFetch.pause?.();
+
+            // Setup initial data
+            await Promise.all([
+                Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport),
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: submitter}),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Call moveIOUReportToPolicyAndInviteSubmitter
+            const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber);
+            await waitForBatchedUpdates();
+
+            // Simulate network failure
+            mockFetch.fail?.();
+            await (mockFetch.resume?.() as Promise<unknown>);
+
+            // Verify error handling after failure - focus on workspace invitation error
+            const policyData = await new Promise<OnyxEntry<OnyxTypes.Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+
+            // The submitter should have been added to the employee list with error
+            const submitterEmployee = policyData?.employeeList?.[ownerEmail];
+            expect(submitterEmployee).toBeTruthy();
+            expect(submitterEmployee?.errors).toBeTruthy();
+            expect(Object.values(submitterEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+
+            // Cleanup
+            mockFetch.succeed?.();
         });
     });
 
