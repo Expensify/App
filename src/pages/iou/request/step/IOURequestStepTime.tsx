@@ -32,6 +32,9 @@ type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
+    /** Indicates whether the transaction data is loading */
+    isLoadingTransaction?: boolean;
+
     /** The report linked to the transaction */
     report: OnyxEntry<Report>;
 };
@@ -42,6 +45,7 @@ function IOURequestStepTime({
         name,
     },
     transaction,
+    isLoadingTransaction,
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
@@ -52,9 +56,8 @@ function IOURequestStepTime({
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
-    const shouldShowLoading = isEmptyObject(transaction?.comment?.customUnit);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy);
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
 
     const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
@@ -123,7 +126,7 @@ function IOURequestStepTime({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
 
-    if (shouldShowLoading) {
+    if (isLoadingTransaction) {
         return <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />;
     }
 
