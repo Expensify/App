@@ -13,7 +13,7 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {getCurrency, getReimbursable, isCardTransaction, isDistanceRequest, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -110,7 +110,8 @@ const getTargetTransactionFromMergeTransaction = (mergeTransaction: OnyxEntry<Me
  * @returns True if both transactions have a receipt
  */
 function shouldNavigateToReceiptReview(transactions: Array<OnyxEntry<Transaction>>): boolean {
-    return transactions.every((transaction) => transaction?.receipt?.receiptID);
+    // If it's a distance request, the receipt will be automatically merged on merchant selection
+    return transactions.every((transaction) => !isDistanceRequest(transaction) && transaction?.receipt?.receiptID);
 }
 
 // Check if whether merge value is truly "empty" (null, undefined, or empty string)
