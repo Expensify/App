@@ -94,7 +94,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         }
 
         const contentView = getContentView();
-        if (contentView == null) {
+        if (!(contentView instanceof Node)) {
             return;
         }
 
@@ -141,7 +141,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
 
     const setupMutationObserver = useCallback(() => {
         const contentView = getContentView();
-        if (contentView == null) {
+        if (!(contentView instanceof Node)) {
             return;
         }
 
