@@ -376,4 +376,6 @@ export default {
 
     // Uber employee invite button width
     uberEmployeeInviteButtonWidth: 62,
+    uberEmptyListIconWidth: 190,
+    uberEmptyListIconHeight: 136,
 } as const;

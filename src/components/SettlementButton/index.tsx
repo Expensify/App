@@ -8,7 +8,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
-import type {PaymentMethod} from '@components/KYCWall/types';
+import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -44,7 +44,7 @@ import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void;
+type TriggerKYCFlow = (params: ContinueActionParams) => void;
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
@@ -396,7 +396,7 @@ function SettlementButton({
             default:
                 paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
         }
-        triggerKYCFlow(event, paymentType, paymentMethod, selectedPolicy ?? (event ? lastPaymentPolicy : undefined));
+        triggerKYCFlow({event, iouPaymentType: paymentType, paymentMethod, policy: selectedPolicy ?? (event ? lastPaymentPolicy : undefined)});
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         }
@@ -460,7 +460,7 @@ function SettlementButton({
     const handlePaymentSelection = (
         event: GestureResponderEvent | KeyboardEvent | undefined,
         selectedOption: PaymentMethodType | PaymentMethod,
-        triggerKYCFlow: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void,
+        triggerKYCFlow: (params: ContinueActionParams) => void,
     ) => {
         if (isAccountLocked) {
             showLockedAccountModal();
