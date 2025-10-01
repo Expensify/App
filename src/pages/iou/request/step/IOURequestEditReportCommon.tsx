@@ -1,10 +1,12 @@
+import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useMemo} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -17,8 +19,8 @@ import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 
 type TransactionGroupListItem = ListItem & {
@@ -37,6 +39,10 @@ type Props = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
 };
+
+const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
+
+const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policyIdSelector);
 
 function IOURequestEditReportCommon({
     backTo,
@@ -57,7 +63,7 @@ function IOURequestEditReportCommon({
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
+    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
@@ -74,7 +80,7 @@ function IOURequestEditReportCommon({
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
-    const shouldShowRemoveFromReport = (isOwner || !selectedReport) && !isReportIOU && !isUnreported && !isCardTransaction;
+    const shouldShowRemoveFromReport = isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -179,7 +185,7 @@ function IOURequestEditReportCommon({
                     shouldShowRemoveFromReport ? (
                         <MenuItem
                             onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')} // s77rt change title based on isEditing
+                            title={translate('iou.removeFromReport')}
                             description={translate('iou.moveToPersonalSpace')}
                             icon={Expensicons.Close}
                         />

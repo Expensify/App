@@ -2,7 +2,7 @@ import React from 'react';
 import {InteractionManager} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
@@ -93,6 +93,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         handleGoBack();
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setTransactionReport(
                 transaction.transactionID,
@@ -142,28 +143,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        if (isEditing) {
-            Navigation.dismissModal();
-            InteractionManager.runAfterInteractions(() => {
-                changeTransactionsReport(
-                    [transaction.transactionID],
-                    CONST.REPORT.UNREPORTED_REPORT_ID,
-                    isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                );
-                removeTransaction(transaction.transactionID);
-            });
-        } else {
-            handleGoBack();
-            setTransactionReport(
-                transaction.transactionID,
-                {
-                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                },
-                true,
+        Navigation.dismissModal();
+        // eslint-disable-next-line deprecation/deprecation
+        InteractionManager.runAfterInteractions(() => {
+            changeTransactionsReport(
+                [transaction.transactionID],
+                CONST.REPORT.UNREPORTED_REPORT_ID,
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
             );
-        }
+        });
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables

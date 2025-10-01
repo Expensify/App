@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,13 +12,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
+import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {AnchorPosition} from '@src/styles';
-import {getReceiptPartnersIntegrationData} from './utils';
+import getSynchronizationErrorMessage from './utils';
 
 type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS>;
 
@@ -45,14 +45,13 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {isOffline} = useNetwork();
     const threeDotsMenuContainerRef = useRef<View>(null);
     const policy = usePolicy(policyID);
-    const theme = useTheme();
+    const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData({policyID});
     const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
     const isLoading = policy?.isLoading;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
-    const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
 
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
@@ -117,14 +116,18 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
             switch (integration) {
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
                     return [
-                        {
-                            icon: Expensicons.Key,
-                            text: translate('workspace.accounting.enterCredentials'),
-                            onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
-                            shouldCallAfterModalHide: true,
-                            disabled: isOffline,
-                            iconRight: Expensicons.NewWindow,
-                        },
+                        ...(shouldShowEnterCredentialsError
+                            ? [
+                                  {
+                                      icon: Expensicons.Key,
+                                      text: translate('workspace.accounting.enterCredentials'),
+                                      onSelected: () => startIntegrationFlow({name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER}),
+                                      shouldCallAfterModalHide: true,
+                                      disabled: isOffline,
+                                      iconRight: Expensicons.NewWindow,
+                                  },
+                              ]
+                            : []),
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('workspace.accounting.disconnect'),
@@ -139,7 +142,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [translate, isOffline, startIntegrationFlow],
+        [shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
     );
 
     const onCloseModal = useCallback(() => {
@@ -160,7 +163,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         if (policyID) {
             return receiptPartnerIntegrations
                 .map((integration) => {
-                    const integrationData = getReceiptPartnersIntegrationData(integration, translate);
+                    const integrationData = getReceiptPartnersIntegrationData(integration);
                     if (!integrationData) {
                         return undefined;
                     }
@@ -175,14 +178,16 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
 
                     return {
                         ...iconProps,
+                        ...integrationData,
                         interactive: false,
+                        errorText: shouldShowEnterCredentialsError ? getSynchronizationErrorMessage(integrationData.title, translate, styles) : undefined,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
-                        brickRoadIndicator: policy?.receiptPartners?.uber?.errorFields ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                        brickRoadIndicator: !!integrationData?.errorFields || shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                         rightComponent: isUberConnected ? (
                             <View ref={threeDotsMenuContainerRef}>
                                 <ThreeDotsMenu
@@ -200,6 +205,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 small
+                                isLoading={!policy?.receiptPartners?.uber}
                                 isDisabled={isOffline}
                             />
                         ),
@@ -212,14 +218,14 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     }, [
         policyID,
         receiptPartnerIntegrations,
-        translate,
+        getReceiptPartnersIntegrationData,
         getOverflowMenu,
-        styles.sectionMenuItemTopDescription,
-        styles.pr2,
-        styles.justifyContentCenter,
-        policy?.receiptPartners?.uber?.errorFields,
+        shouldShowEnterCredentialsError,
+        translate,
+        styles,
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
+        policy?.receiptPartners?.uber,
         isOffline,
         startIntegrationFlow,
     ]);
@@ -234,7 +240,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.flex1}
-                    color={theme.spinner}
                 />
             ) : (
                 <ScreenWrapper
@@ -267,6 +272,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                         shouldDisableStrikeThrough
                                     >
                                         <MenuItem
+                                            errorTextStyle={styles.mt3}
                                             brickRoadIndicator={menuItem.brickRoadIndicator}
                                             key={menuItem.title}
                                             // eslint-disable-next-line react/jsx-props-no-spreading

@@ -9,7 +9,6 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -235,6 +234,7 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
+    rawAmount,
     policyTagLists,
     rate,
     receiptFilename,
@@ -261,8 +261,6 @@ function MoneyRequestConfirmationListFooter({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isManualDistanceEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -326,10 +324,11 @@ function MoneyRequestConfirmationListFooter({
         const reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUse}`];
         return [reportIDToUse, reportToUse];
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
+
     const reportName = useMemo(() => {
         const name = getReportName(selectedReport, selectedPolicy);
         if (!name) {
-            return isUnreported ? translate('common.none') : translate('common.newReport');
+            return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
     }, [isUnreported, selectedReport, selectedPolicy, translate]);
@@ -489,7 +488,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && (isPolicyExpenseChat || isManualDistanceEnabled)}
+                    shouldShowRightIcon={!!rate && !isReadOnly}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -499,16 +498,17 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        if (isManualDistanceEnabled && !isPolicyExpenseChat) {
+                        if (!isPolicyExpenseChat) {
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action,
                                     iouType,
                                     transactionID,
                                     reportID,
-                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias,
-                                    Navigation.getActiveRoute(),
-                                ),
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                    backTo: Navigation.getActiveRoute(),
+                                    shouldSubmitExpense: true,
+                                }),
                             );
                             return;
                         }
@@ -516,7 +516,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && (isPolicyExpenseChat || isManualDistanceEnabled)}
+                    interactive={!!rate && !isReadOnly}
                 />
             ),
             shouldShow: isDistanceRequest,

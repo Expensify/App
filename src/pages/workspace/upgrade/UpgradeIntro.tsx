@@ -28,6 +28,7 @@ type Props = {
     loading?: boolean;
     feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
+    /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
@@ -86,7 +87,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     return (
         <View style={styles.p5}>
-            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})}>
+            <View style={[styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     {!isIllustration ? (
                         <Avatar
