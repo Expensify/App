@@ -122,6 +122,12 @@ target 'NewExpensify' do
         end
       end
     end
+
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |c|
+        c.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+      end
+    end
   end
 end
 
@@ -131,4 +137,4 @@ target 'NotificationServiceExtension' do
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz'
