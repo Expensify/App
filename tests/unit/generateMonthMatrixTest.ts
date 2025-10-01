@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 
 type MonthMatrix = Array<Array<number | undefined>>;
 
-const LOCALE = CONST.LOCALES.EN;
+const LOCALE = CONST.LOCALES.ES;
 
 describe('generateMonthMatrix', () => {
     it('returns the correct matrix for January 2022', () => {
