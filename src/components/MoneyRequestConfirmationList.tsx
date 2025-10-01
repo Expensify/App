@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -70,9 +71,9 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-import SelectionList from './SelectionList';
-import type {SectionListDataType} from './SelectionList/types';
-import UserListItem from './SelectionList/UserListItem';
+import SelectionList from './SelectionListWithSections';
+import type {SectionListDataType} from './SelectionListWithSections/types';
+import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -283,6 +284,7 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -811,8 +813,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt,
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt,
+                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),
@@ -822,7 +824,18 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt]);
+    }, [
+        isTypeSplit,
+        translate,
+        payeePersonalDetails,
+        getSplitSectionHeader,
+        splitParticipants,
+        selectedParticipants,
+        isCreateExpenseFlow,
+        isTestReceipt,
+        isRestrictedToPreferredPolicy,
+        isTypeInvoice,
+    ]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
@@ -1007,6 +1020,7 @@ function MoneyRequestConfirmationList({
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     blurActiveElement();
                 });
@@ -1036,7 +1050,7 @@ function MoneyRequestConfirmationList({
             <SettlementButton
                 pressOnEnter
                 onPress={confirm}
-                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 chatReportID={reportID}
                 shouldShowPersonalBankAccountOption
                 currency={iouCurrencyCode}

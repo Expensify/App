@@ -396,6 +396,7 @@ function MoneyReportHeader({
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
                     setIsHoldMenuVisible(true);
@@ -820,15 +821,6 @@ function MoneyReportHeader({
                 }}
             />
         ),
-        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('iou.addExpense')}
-                options={addExpenseDropdownOptions}
-                isSplitButton={false}
-            />
-        ),
     };
 
     const beginPDFExport = (reportID: string) => {
@@ -1114,9 +1106,16 @@ function MoneyReportHeader({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
+    useEffect(() => {
+        return () => {
+            turnOffMobileSelectionMode();
+        };
+    }, []);
+
     if (isMobileSelectionModeEnabled) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
-        if (transactions.length <= 1) {
+        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
         }
 
@@ -1305,6 +1304,7 @@ function MoneyReportHeader({
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations);
                             removeTransaction(transaction.transactionID);
@@ -1346,6 +1346,7 @@ function MoneyReportHeader({
                     setIsDeleteReportModalVisible(false);
 
                     Navigation.goBack();
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport(moneyRequestReport?.reportID);
                     });
