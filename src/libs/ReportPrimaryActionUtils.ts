@@ -378,8 +378,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
-
-    if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
+    if (isMarkAsCashAction(currentUserEmail, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
