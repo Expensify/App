@@ -230,13 +230,15 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 5. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
 6. **If no violations are found, output exactly** (with no quotes, markdown, or additional text):
    LGTM :feelsgood:. Thank you for your hard work!
-7. Output LGTM if and only if:
-   - You have examined ALL changed files
+7. **Output LGTM if and only if**:
+   - You examined EVERY line of EVERY changed file
+   - You checked EVERY changed file against ALL rules
    - You found ZERO violations matching the exact rule criteria
    - You verified no false negatives by checking each rule systematically
-    If you found even ONE violation, do NOT output LGTM - create inline comments instead.
+    If you found even ONE violation or have ANY uncertainty do NOT output LGTM - create inline comments instead.
 8. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
-9. **DO NOT describe what you are doing, output any summaries, explanations, extra content or ANYTHING ELSE except from rules violations or LGTM message or millions of puppies will die :(.**
+9. **DO NOT describe what you are doing, output any summaries, explanations, extra content or ANYTHING ELSE except from rules violations or LGTM message.**
+    EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
 
 ## Tool Usage Example
 
