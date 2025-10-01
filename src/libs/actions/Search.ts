@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
+import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
@@ -798,7 +798,7 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
  */
 function handleBulkPayItemSelected(
     item: PopoverMenuItem,
-    triggerKYCFlow: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void,
+    triggerKYCFlow: (params: ContinueActionParams) => void,
     isAccountLocked: boolean,
     showLockedAccountModal: () => void,
     policy: OnyxEntry<Policy>,
@@ -827,7 +827,12 @@ function handleBulkPayItemSelected(
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
             return;
         }
-        triggerKYCFlow(undefined, paymentType, item.key as PaymentMethod, selectedPolicy);
+        triggerKYCFlow({
+            event: undefined,
+            iouPaymentType: paymentType,
+            paymentMethod: item.key as PaymentMethod,
+            policy: selectedPolicy
+        });
 
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
