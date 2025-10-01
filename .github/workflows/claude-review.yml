@@ -14,8 +14,10 @@ jobs:
     if: ${{ !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Check for excluded PRs
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          if [[ "${{ github.event.pull_request.title }}" == *"Revert"* ]]; then
+          if [[ "$PR_TITLE" == *"Revert"* ]]; then
             echo "::notice::Skipping review because the PR is a revert"
             exit 0
           fi
