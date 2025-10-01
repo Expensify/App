@@ -46,23 +46,10 @@ import type {Policy, SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-
-const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
-    policy && {
-        id: policy.id,
-        name: policy.name,
-        type: policy.type,
-        role: policy.role,
-        owner: policy.owner,
-        outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
-        autoReporting: policy.autoReporting,
-    };
 
 type AmountParams = {
     amount: string;

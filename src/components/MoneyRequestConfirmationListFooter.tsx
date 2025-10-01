@@ -234,7 +234,6 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
-    rawAmount,
     policyTagLists,
     rate,
     receiptFilename,
