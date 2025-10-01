@@ -421,7 +421,9 @@ function peg$parse(input, options) {
 
       // Apply negation only when "-" is present and the key can be negated
       if (neg && !nonNegatableKeys.has(key)) {
-        if (operator === "eq") operator = "neq";
+        if (operator === "eq") {
+          operator = "neq";
+          }
       }
 
       return buildFilter(operator, key, values);
