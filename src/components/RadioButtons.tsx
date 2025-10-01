@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -33,12 +33,9 @@ type RadioButtonsProps = {
 
     /** The checked value, if you're using this component as a controlled input. */
     value?: string;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
 };
 
-function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyle, errorText, onInputChange = () => {}, value, ref}: RadioButtonsProps) {
+function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyle, errorText, onInputChange = () => {}, value}: RadioButtonsProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const [checkedValue, setCheckedValue] = useState(defaultCheckedValue);
 
@@ -77,4 +74,4 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
 RadioButtons.displayName = 'RadioButtons';
 
 export type {Choice};
-export default RadioButtons;
+export default forwardRef(RadioButtons);
