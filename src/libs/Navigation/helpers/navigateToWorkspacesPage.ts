@@ -19,6 +19,10 @@ type Params = {
 
 // Gets the latest workspace navigation state, restoring from session or preserved state if needed.
 const getWorkspaceNavigationRouteState = () => {
+    if (!navigationRef.isReady()) {
+        return {};
+    }
+
     const rootState = navigationRef.getRootState();
 
     // Only consider main (fullscreen) routes for top-level navigation context.

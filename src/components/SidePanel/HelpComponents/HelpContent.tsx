@@ -1,4 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/routers';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -33,7 +34,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const [expandedIndex, setExpandedIndex] = useState(0);
 
-    const {params, routeName, currentState} = useRootNavigationState((rootState) => {
+    const navigationState = useRootNavigationState((rootState) => {
         const focusedRoute = findFocusedRoute(rootState);
         setExpandedIndex(0);
         return {
@@ -42,6 +43,11 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             currentState: rootState,
         };
     });
+    const {params, routeName, currentState} = navigationState ?? {
+        routeName: '' as Screen,
+        params: {} as Record<string, string>,
+        currentState: {} as NavigationState,
+    };
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
