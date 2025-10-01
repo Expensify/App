@@ -535,7 +535,6 @@ function getReasonAndReportActionThatHasRedBrickRoad(
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
         };
     }
-    // console.log('getReasonAndReportActionThatHasRedBrickRoad with report', report.reportID);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
     if (transactionThreadReportID) {
