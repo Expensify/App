@@ -4252,8 +4252,8 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
 
     // Check if someone took control and should be the next approver
     const bypassApprover = getBypassApproverIfTakenControl(report);
-    if (bypassApprover) {
-        return getAccountIDsByLogins([bypassApprover]).at(0);
+    if (bypassApprover === currentUserAccountID) {
+        return null;
     }
 
     const approvalChain = getApprovalChain(policy, report);
@@ -11388,7 +11388,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
  * Checks if someone took control of the report and if that take control is still valid
  * A take control is invalidated if there's a SUBMITTED action after it
  */
-function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): string | null {
+function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): number | null {
     if (!expenseReport?.reportID) {
         return null;
     }
@@ -11403,10 +11403,8 @@ function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): stri
         return null;
     }
 
-    const actions = Object.values(reportActions).filter(Boolean);
-
     // Sort actions by created timestamp to get chronological order
-    const sortedActions = getSortedReportActions(actions, true);
+    const sortedActions = getSortedReportActions(Object.values(reportActions ?? {}), true)
 
     let lastTakeControlAction: ReportAction | null = null;
     let lastTakeControlActorAccountID: number | null = null;
@@ -11417,20 +11415,16 @@ function getBypassApproverIfTakenControl(expenseReport: OnyxEntry<Report>): stri
         if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED)) {
             // If we find a SUBMITTED action, no take control is valid since it would be older
             return null;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        }
+        
+        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
             lastTakeControlAction = action;
             lastTakeControlActorAccountID = action.actorAccountID ?? null;
             break; // Found the most recent take control, no need to continue
         }
     }
 
-    // If we have a valid take control action, return the approver email
-    if (lastTakeControlAction && lastTakeControlActorAccountID) {
-        const approverEmail = getLoginsByAccountIDs([lastTakeControlActorAccountID]).at(0);
-        return approverEmail ?? null;
-    }
-
-    return null;
+    return lastTakeControlActorAccountID;
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {

@@ -9734,10 +9734,10 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(expenseReport.policyID);
     const nextApproverAccountID = getNextApproverAccountID(expenseReport);
-    const isCurrentUserNextApprover = !nextApproverAccountID || nextApproverAccountID === userAccountID;
-    const predictedNextStatus = isCurrentUserNextApprover ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
-    const predictedNextState = isCurrentUserNextApprover ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
-    const managerID = isCurrentUserNextApprover ? expenseReport.managerID : nextApproverAccountID;
+    const noNextApproverExist = !nextApproverAccountID;
+    const predictedNextStatus = noNextApproverExist ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = noNextApproverExist ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const managerID = noNextApproverExist ? expenseReport.managerID : nextApproverAccountID;
 
     const hasViolations = hasViolationsReportUtils(expenseReport.reportID, allTransactionViolations);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
