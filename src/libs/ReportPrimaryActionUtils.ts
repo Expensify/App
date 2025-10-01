@@ -41,7 +41,6 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
-    getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -299,35 +298,6 @@ function isMarkAsCashAction(currentUserEmail: string, report: Report, reportTran
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isMarkAsResolvedReportAction(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportTransactions?: Transaction[],
-    violations?: OnyxCollection<TransactionViolation[]>,
-    policy?: Policy,
-    reportActions?: ReportAction[],
-) {
-    if (!report || !reportTransactions || !violations) {
-        return false;
-    }
-
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
-    const isOneExpenseReport = reportTransactions.length === 1;
-    const transaction = reportTransactions.at(0);
-
-    if ((!!reportActions && !transactionThreadReportID) || !isOneExpenseReport || !transaction) {
-        return false;
-    }
-
-    const isReportSubmitter = isCurrentUserSubmitter(report);
-    const isAdmin = isPolicyAdminPolicyUtils(policy);
-    if (!isReportSubmitter && !isAdmin) {
-        return false;
-    }
-
-    return getTransactionViolations(transaction, violations)?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
-}
-
 function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[], policy?: Policy) {
     if (!report || !violations) {
         return false;
@@ -468,7 +438,6 @@ export {
     isPrimaryPayAction,
     isExportAction,
     isMarkAsResolvedAction,
-    isMarkAsResolvedReportAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
 };
