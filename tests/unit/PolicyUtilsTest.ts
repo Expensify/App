@@ -13,6 +13,7 @@ import {
     getSubmitToAccountID,
     getTagList,
     getTagListByOrderWeight,
+    getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
@@ -315,6 +316,65 @@ describe('PolicyUtils', () => {
                 const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5313');
             });
+        });
+    });
+
+    describe('getUberConnectionErrorDirectlyFromPolicy', () => {
+        it('should return true if Uber connection is enabled and has an error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: 'Some error',
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
+        });
+
+        it('should return false if Uber connection is enabled but has no error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: undefined,
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if Uber connection is not enabled', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: false,
+                        error: 'Some error',
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if Uber connection does not exist', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if policy is undefined', () => {
+            expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
         });
     });
 
