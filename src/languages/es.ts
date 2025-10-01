@@ -1111,8 +1111,8 @@ const translations = {
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
-        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` de <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` desde <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movió este gasto a tu <a href="${reportUrl}">espacio personal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
