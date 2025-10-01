@@ -14,9 +14,8 @@ import {
     getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
-    shouldExcludeAncestor,
+    shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
-import type {Ancestor} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -115,7 +114,7 @@ function ReportActionItemParentAction({
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const ancestors = useAncestors(report, shouldExcludeAncestor);
+    const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const [ancestorsReportNameValuePairs] = useOnyx(

@@ -2,8 +2,6 @@
 
 /* eslint-disable rulesdir/no-negated-variables */
 
-/* eslint-disable @lwc/lwc/no-async-await */
-
 /**
  * This file is a modified version of the electron-serve package.
  * We keep the same interface, but instead of file protocol we use buffer protocol (with support of JS self profiling).
@@ -97,6 +95,7 @@ export default function electronServe(options: ServeOptions) {
     app.on('ready', () => {
         const partitionSession = mandatoryOptions.partition ? session.fromPartition(mandatoryOptions.partition) : session.defaultSession;
 
+        // eslint-disable-next-line deprecation/deprecation
         partitionSession.protocol.registerBufferProtocol(mandatoryOptions.scheme, handler);
     });
 
