@@ -830,7 +830,7 @@ function handleBulkPayItemSelected(
             event: undefined,
             iouPaymentType: paymentType,
             paymentMethod: item.key as PaymentMethod,
-            policy: selectedPolicy
+            policy: selectedPolicy,
         });
 
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
