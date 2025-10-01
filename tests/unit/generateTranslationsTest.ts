@@ -1635,5 +1635,398 @@ describe('generateTranslations', () => {
             expect(result).toContain('[it] Create a workspace');
             expect(result).toContain('satisfies Record<'); // Should preserve the satisfies expression
         });
+
+        it('detects modifications when only a context annotation is added with --compare-ref', async () => {
+            // Create English source with a context annotation on one translation
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context as a verb, not a noun
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation without the context annotation
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    pin: '[it] Pin',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing only the comment line was added (line 3)
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // Only the context comment line
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version without the context annotation
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged translations
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // BUG: The 'pin' translation should be retranslated with the new context
+            // The translation should now include the context indicator
+            expect(itContent).toContain('[it][ctx: as a verb, not a noun] Pin');
+
+            // Should translate the string with the new context
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun');
+        });
+
+        it('detects modifications when a context annotation is changed with --compare-ref', async () => {
+            // Create English source with a modified context annotation
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context as a verb, not a noun
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with the old context
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    // @context original context
+                    pin: '[it][ctx: original context] Pin',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing the context comment line was modified
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // New context comment
+                        removedLines: new Set([3]), // Old context comment on same line in old version
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version with different context
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context original context
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged translations
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should retranslate with new context
+            expect(itContent).toContain('[it][ctx: as a verb, not a noun] Pin');
+            expect(itContent).not.toContain('[it][ctx: original context] Pin');
+
+            // Should translate the string with the new context
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun');
+        });
+
+        it('detects modifications when a context annotation is removed with --compare-ref', async () => {
+            // Update mockEn to match the test data
+            const strings = {
+                unchanged: 'This stays the same',
+                pin: 'Pin',
+                alsoUnchanged: 'Also unchanged',
+            };
+            mockEn = strings;
+
+            // Create English source without context annotation
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with context
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    // @context as a verb, not a noun
+                    pin: '[it][ctx: as a verb, not a noun] Pin',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing the context comment line was removed
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set(),
+                        removedLines: new Set([3]), // Context comment removed
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version with context
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // @context as a verb, not a noun
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged translations
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should retranslate without context (no context indicator in translation)
+            expect(itContent).toContain("pin: '[it] Pin'");
+            expect(itContent).not.toContain('[it][ctx: as a verb, not a noun] Pin');
+
+            // Should translate the string without context
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', undefined);
+
+            // The context comment should not be in the output
+            expect(itContent).not.toContain('// @context as a verb, not a noun');
+        });
+
+        it('does NOT trigger retranslation when only a regular comment is added with --compare-ref', async () => {
+            // Create English source with a regular comment
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // This is just a regular comment
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation without any comment
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    pin: '[it] Pin (existing)',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing only the regular comment line was added
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // Regular comment line
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version without the comment
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve all existing translations unchanged
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Pin (existing)');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should NOT retranslate since it's just a regular comment
+            expect(translateSpy).not.toHaveBeenCalled();
+        });
+
+        it('does NOT trigger retranslation when a regular comment is modified with --compare-ref', async () => {
+            // Create English source with a modified regular comment
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // TODO: update this translation later
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation with different regular comment
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    unchanged: '[it] This stays the same',
+                    // TODO: fix this
+                    pin: '[it] Pin (existing)',
+                    alsoUnchanged: '[it] Also unchanged',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing the regular comment was modified
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([3]), // Modified comment
+                        removedLines: new Set([3]), // Old comment
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            // Mock Git.show to return the old version with old comment
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    unchanged: 'This stays the same',
+                    // TODO: fix this
+                    pin: 'Pin',
+                    alsoUnchanged: 'Also unchanged',
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve all existing translations unchanged
+            expect(itContent).toContain('[it] This stays the same');
+            expect(itContent).toContain('[it] Pin (existing)');
+            expect(itContent).toContain('[it] Also unchanged');
+
+            // Should NOT retranslate since it's just a regular comment change
+            expect(translateSpy).not.toHaveBeenCalled();
+        });
     });
 });

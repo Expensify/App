@@ -45,6 +45,7 @@ function measureFailSafe(measureName: string, startOrMeasureOptions: string, end
  */
 function measureTTI(endMark?: string): void {
     // Make sure TTI is captured when the app is really usable
+    // eslint-disable-next-line deprecation/deprecation
     InteractionManager.runAfterInteractions(() => {
         requestAnimationFrame(() => {
             measureFailSafe('TTI', 'nativeLaunchStart', endMark);

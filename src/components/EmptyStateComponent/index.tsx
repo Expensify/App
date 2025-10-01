@@ -101,7 +101,7 @@ function EmptyStateComponent({
             )}
             <View style={styles.emptyStateForeground}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
-                    <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
+                    <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         {subtitleText ??

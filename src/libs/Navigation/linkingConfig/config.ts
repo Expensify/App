@@ -230,6 +230,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
@@ -946,8 +950,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
                         },
-                        [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
-                            path: ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.route,
+                        [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {

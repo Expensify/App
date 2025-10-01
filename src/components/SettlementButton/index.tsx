@@ -8,7 +8,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
-import type {PaymentMethod} from '@components/KYCWall/types';
+import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +33,6 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
-import {getPaymentMethods} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +44,7 @@ import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
-type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void;
+type TriggerKYCFlow = (params: ContinueActionParams) => void;
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
@@ -131,13 +130,6 @@ function SettlementButton({
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || !!policy?.achAccount) && !lastPaymentMethod;
-
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-        getPaymentMethods();
-    }, [isOffline]);
 
     useEffect(() => {
         if (isLoadingLastPaymentMethod) {
@@ -403,7 +395,7 @@ function SettlementButton({
             default:
                 paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
         }
-        triggerKYCFlow(event, paymentType, paymentMethod, selectedPolicy ?? (event ? lastPaymentPolicy : undefined));
+        triggerKYCFlow({event, iouPaymentType: paymentType, paymentMethod, policy: selectedPolicy ?? (event ? lastPaymentPolicy : undefined)});
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         }
@@ -436,9 +428,7 @@ function SettlementButton({
             return lastPaymentPolicy.name;
         }
 
-        const bankAccountToDisplay = hasIntentToPay
-            ? ((formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) ?? formattedPaymentMethods.at(0)) as BankAccount)
-            : bankAccount;
+        const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReportUtil(iouReport))) {
             if (!personalBankAccountList.length) {
                 return;
@@ -456,12 +446,6 @@ function SettlementButton({
                 return;
             }
 
-            if (bankAccountToDisplay?.accountData?.accountNumber) {
-                return translate('paymentMethodList.bankAccountLastFour', {
-                    lastFour: bankAccountToDisplay.accountData.accountNumber.slice(-4),
-                });
-            }
-
             return translate('paymentMethodList.bankAccountLastFour', {lastFour: bankAccountToDisplay?.accountData?.accountNumber?.slice(-4)});
         }
 
@@ -475,7 +459,7 @@ function SettlementButton({
     const handlePaymentSelection = (
         event: GestureResponderEvent | KeyboardEvent | undefined,
         selectedOption: PaymentMethodType | PaymentMethod,
-        triggerKYCFlow: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void,
+        triggerKYCFlow: (params: ContinueActionParams) => void,
     ) => {
         if (isAccountLocked) {
             showLockedAccountModal();
@@ -484,7 +468,8 @@ function SettlementButton({
 
         const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(selectedOption as PaymentMethod);
         const shouldSelectPaymentMethod = (isPaymentMethod ?? lastPaymentPolicy ?? !isEmpty(latestBankItem)) && !shouldShowApproveButton && !shouldHidePaymentOptions;
-        const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyIDKey);
+        const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === selectedOption);
+
         if (!!selectedPolicy || shouldSelectPaymentMethod) {
             selectPaymentMethod(event, triggerKYCFlow, selectedOption as PaymentMethod, selectedPolicy);
             return;
