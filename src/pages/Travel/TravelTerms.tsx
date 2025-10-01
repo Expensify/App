@@ -104,7 +104,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                             asyncOpenURL(
                                 acceptSpotnanaTerms(domain).then((response) => {
                                     if (response?.jsonCode !== 200) {
-                                        return;
+                                        return Promise.reject();
                                     }
                                     if (response?.spotnanaToken) {
                                         return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
