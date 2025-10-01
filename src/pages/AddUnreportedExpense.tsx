@@ -132,7 +132,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom
-                shouldShowOfflineIndicator={false}
                 shouldEnablePickerAvoiding={false}
                 testID={NewChatSelectorPage.displayName}
                 focusTrapSettings={{active: false}}
@@ -175,7 +174,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom
-            shouldShowOfflineIndicator={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatSelectorPage.displayName}
             focusTrapSettings={{active: false}}
