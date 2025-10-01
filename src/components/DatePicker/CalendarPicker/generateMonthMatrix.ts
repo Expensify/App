@@ -1,5 +1,6 @@
 import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
 import DateUtils from '@libs/DateUtils';
+import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
 
 /**
@@ -9,7 +10,7 @@ import type Locale from '@src/types/onyx/Locale';
  * @param month - The month (0-indexed) for which to generate the month matrix.
  * @returns A 2D array of the month's calendar days, with null values representing days outside the current month.
  */
-export default function generateMonthMatrix(year: number, month: number, locale: Locale) {
+export default function generateMonthMatrix(year: number, month: number, locale: Locale = CONST.LOCALES.DEFAULT) {
     if (year < 0) {
         throw new Error('Year cannot be less than 0');
     }
