@@ -18,7 +18,7 @@ jest.mock('react-native', () => ({
         }),
     },
     Platform: {
-        Version: 15,
+        Version: 35,
     },
 }));
 
