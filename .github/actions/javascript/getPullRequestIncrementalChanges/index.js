@@ -12560,7 +12560,7 @@ class Git {
      */
     static isValidRef(ref) {
         try {
-            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}"`, {
+            (0, child_process_1.execSync)(`git rev-parse --verify "${ref}^{commit}"`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe', // Suppress output
