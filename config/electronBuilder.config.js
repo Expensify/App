@@ -86,5 +86,5 @@ module.exports = {
         name: 'New Expensify',
         schemes: ['new-expensify'],
     },
-    afterPack: 'desktop/afterPack.js',
+    afterPack: 'desktop/afterPack.ts',
 };
