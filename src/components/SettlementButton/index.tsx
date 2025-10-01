@@ -485,7 +485,7 @@ function SettlementButton({
         const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(selectedOption as PaymentMethod);
         const shouldSelectPaymentMethod = (isPaymentMethod ?? lastPaymentPolicy ?? !isEmpty(latestBankItem)) && !shouldShowApproveButton && !shouldHidePaymentOptions;
         const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyIDKey);
-        if (!!selectedPolicy || shouldSelectPaymentMethod) {
+        if (!!selectedPolicy && shouldSelectPaymentMethod) {
             selectPaymentMethod(event, triggerKYCFlow, selectedOption as PaymentMethod, selectedPolicy);
             return;
         }
@@ -528,6 +528,7 @@ function SettlementButton({
             policy={lastPaymentPolicy}
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
+            currency={currency}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentMethodType | PaymentMethod>

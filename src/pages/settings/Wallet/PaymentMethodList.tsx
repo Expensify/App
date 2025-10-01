@@ -329,8 +329,10 @@ function PaymentMethodList({
         if (filterType ?? filterCurrency) {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
                 const account = paymentMethod as BankAccount;
+                const typeMatches = !filterType || account.accountData?.type === filterType;
+                const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency;
 
-                return (!!filterType && account.accountData?.type === filterType) || (!!filterCurrency && account.bankCurrency === filterCurrency);
+                return typeMatches && currencyMatches;
             });
         }
 
