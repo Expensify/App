@@ -52,8 +52,8 @@ function IOURequestStepTime({
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowLoading = isEmptyObject(transaction?.comment?.customUnit);
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
 
