@@ -813,8 +813,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice,
-                shouldShowRightIcon: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice,
+                isInteractive: isCreateExpenseFlow && ((!isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice),
+                shouldShowRightIcon: isCreateExpenseFlow && ((!isTestReceipt && !isRestrictedToPreferredPolicy) || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),
