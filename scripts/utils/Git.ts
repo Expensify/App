@@ -14,7 +14,7 @@ const GIT_ERRORS = {
 
 /**
  * Represents a single changed line in a git diff.
- * With -U0, only added and removed lines are present (no context).
+ * Only added and removed lines are tracked (context lines are skipped during parsing).
  */
 type DiffLine = {
     number: number;
@@ -200,6 +200,9 @@ class Git {
                         type: 'removed',
                         content,
                     });
+                } else if (firstChar === ' ') {
+                    // Context line - skip it (we only care about added/removed lines)
+                    continue;
                 } else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
