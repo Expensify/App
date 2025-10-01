@@ -34,6 +34,7 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
             return;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
