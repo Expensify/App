@@ -373,6 +373,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         deletePolicyTags(policyID, selectedTags, policyTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
             if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
@@ -609,10 +610,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         currentConnectionName={currentConnectionName}
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                        customTagName={policyTagLists.at(0)?.name ?? ''}
+                        isDisplayingTags
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {translate('workspace.tags.subtitle')}
+                        {!hasDependentTags && !!policyTagLists.at(0)?.name && (
+                            <View style={[styles.renderHTML]}>
+                                <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName: policyTagLists.at(0)?.name ?? ''})} />
+                            </View>
+                        )}
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML

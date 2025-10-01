@@ -309,6 +309,7 @@ function PolicyDistanceRatesPage({
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
         setIsDeleteModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedDistanceRates([]);
         });

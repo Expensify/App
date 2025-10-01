@@ -343,7 +343,6 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
 
     API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
 }
-
 /**
  * Updates all waypoints stored in the transaction specified by the provided transactionID.
  *

@@ -190,6 +190,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 shouldShowCancelButton={false}
                 shouldHandleNavigationBack
                 onModalHide={() => {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
                 }}
             />

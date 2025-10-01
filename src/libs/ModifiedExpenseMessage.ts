@@ -308,7 +308,7 @@ function getForReportAction({
         buildMessageFragmentForValue(taxAmount, oldTaxAmount, translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
-    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && ('oldTaxRate' in reportActionOriginalMessage || 'taxRate' in reportActionOriginalMessage);
+    const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
     if (hasModifiedTaxRate) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.taxRate ?? '',

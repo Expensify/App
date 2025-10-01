@@ -98,6 +98,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         onboardingPolicyID,
                     });
 
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
                     });
