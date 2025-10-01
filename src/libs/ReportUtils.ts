@@ -8295,22 +8295,26 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Determine if we should exclude an ancestor report from being displayed in the thread.
- * @param parentReportAction - The report action of the parent report
- * @param ancestors - The list of ancestor reports
- * @returns boolean - true if the ancestor report should be excluded, false otherwise
+ * The <ReportActionsListItemRenderer> does not render some ancestor reports actions in a thread.
+ * So we exclude report-preview actions, a transaction-thread actions unless it is not a sent-money action and
+ * trip-preview actions if will be the first ancestor (youngest descendent) report action in the hierarchy.
+ *
+ * @param ancestorReportAction - The ancestor report action to determine whether it should be excluded
+ * @param isFirstAncestor - Whether it will be the first report action in the ancestery hierarchy
+ * @returns boolean - true if the ancestor report action should be excluded, false otherwise
  */
-function shouldExcludeAncestor(parentReportAction: OnyxEntry<ReportAction>, ancestors: Ancestor[]): boolean {
-    // We exclude trip preview actions as we don't want to display trip summary for threads,
-    if (isTripPreview(parentReportAction) && ancestors.length > 0) {
-        return true;
+function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {
+    // If there aren't any ancestors, we need to show the trip-preview action.
+    if (isTripPreview(ancestorReportAction)) {
+        return isFirstAncestor;
     }
 
-    // We exclude ancestor reports when their parent's ReportAction is a transaction-thread action,
-    // except for sent-money and report-preview actions. <ReportActionsListItemRenderer> does not render
-    // the <ReportActionItemParentAction> component when the parent action is a transaction-thread,
-    // unless it's a sent-money action, or a report-preview action. so we skip those ancestors to match the renderer's behavior.
-    return (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction);
+    // Exclude transaction threads except sent-money actions
+    if (isTransactionThread(ancestorReportAction)) {
+        return !isSentMoneyReportAction(ancestorReportAction);
+    }
+
+    return isReportPreviewAction(ancestorReportAction);
 }
 
 /**
@@ -12170,7 +12174,7 @@ export {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     shouldUnmaskChat,
-    shouldExcludeAncestor,
+    shouldExcludeAncestorReportAction,
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,

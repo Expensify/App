@@ -76,7 +76,7 @@ import {
     requiresManualSubmission,
     shouldDisableRename,
     shouldDisableThread,
-    shouldExcludeAncestor,
+    shouldExcludeAncestorReportAction,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
@@ -84,7 +84,7 @@ import {
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
-import type {Ancestor, OptionData} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -3312,7 +3312,7 @@ describe('ReportUtils', () => {
 
             const {
                 result: {current: ancestors},
-            } = renderHook(() => useAncestors(expenseReport, shouldExcludeAncestor));
+            } = renderHook(() => useAncestors(expenseReport, shouldExcludeAncestorReportAction));
 
             putOnHold(expenseTransaction.transactionID, 'hold', ancestors, transactionThreadReport.reportID);
             await waitForBatchedUpdates();
@@ -7288,22 +7288,14 @@ describe('ReportUtils', () => {
         });
     });
 
-<<<<<<< HEAD
-    describe('shouldExcludeAncestor', () => {
-        it('should return true for trip preview actions when ancestors exist', () => {
+    describe('shouldExcludeAncestorReportAction', () => {
+        it('should return true for trip preview actions when it is the youngest descendant', () => {
             const tripPreviewAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
             };
-            const ancestors = [
-                {
-                    report: LHNTestUtils.getFakeReport(),
-                    reportAction: createRandomReportAction(2),
-                    shouldDisplayNewMarker: false,
-                },
-            ];
 
-            const result = shouldExcludeAncestor(tripPreviewAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(tripPreviewAction, true);
             expect(result).toBe(true);
         });
 
@@ -7312,9 +7304,8 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(tripPreviewAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(tripPreviewAction, false);
             expect(result).toBe(false);
         });
 
@@ -7327,9 +7318,8 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(transactionThreadAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(transactionThreadAction, false);
             expect(result).toBe(true);
         });
 
@@ -7342,9 +7332,8 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 },
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(transactionThreadAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(transactionThreadAction, false);
             expect(result).toBe(true);
         });
 
@@ -7358,13 +7347,12 @@ describe('ReportUtils', () => {
                     IOUDetails: {
                         amount: 100,
                         currency: 'USD',
-                        comment: ''
+                        comment: '',
                     },
                 },
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(transactionThreadAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(transactionThreadAction, true);
             expect(result).toBe(true);
         });
 
@@ -7382,9 +7370,8 @@ describe('ReportUtils', () => {
                     },
                 },
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(sentMoneyAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(sentMoneyAction, true);
             expect(result).toBe(false);
         });
 
@@ -7393,9 +7380,8 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(reportPreviewAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(reportPreviewAction, true);
             expect(result).toBe(true);
         });
 
@@ -7404,9 +7390,8 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(commentAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(commentAction, true);
             expect(result).toBe(false);
         });
 
@@ -7419,9 +7404,8 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
                 },
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(iouAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(iouAction, true);
             expect(result).toBe(false);
         });
 
@@ -7434,9 +7418,8 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 },
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(payAction, ancestors);
+            const result = shouldExcludeAncestorReportAction(payAction, true);
             expect(result).toBe(false);
         });
 
@@ -7445,25 +7428,17 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
             };
-            const ancestors: Ancestor[] = [];
 
-            const result = shouldExcludeAncestor(nonMoneyRequestAction, ancestors);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when parent report action is undefined', () => {
-            const ancestors: Ancestor[] = [];
-
-            const result = shouldExcludeAncestor(undefined, ancestors);
+            const result = shouldExcludeAncestorReportAction(nonMoneyRequestAction, true);
             expect(result).toBe(false);
         });
 
         it('should handle empty object as parent report action', () => {
-            const ancestors: Ancestor[] = [];
-
-            const result = shouldExcludeAncestor({} as ReportAction, ancestors);
+            const result = shouldExcludeAncestorReportAction({} as ReportAction, true);
             expect(result).toBe(false);
-=======
+        });
+    });
+
     describe('getReportActionActorAccountID', () => {
         it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
             const reportAction: ReportAction = {
@@ -7610,7 +7585,6 @@ describe('ReportUtils', () => {
             };
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toEqual(123);
->>>>>>> fa5e06d96e9ddc29685207edecc738c9b9a2f259
         });
     });
 });

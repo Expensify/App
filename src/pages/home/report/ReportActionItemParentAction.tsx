@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
@@ -17,7 +16,6 @@ import {
     navigateToLinkedReportAction,
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
-import type {Ancestor} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -116,7 +114,7 @@ function ReportActionItemParentAction({
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const ancestors = useAncestors(report, shouldExcludeAncestor);
+    const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const [ancestorsReportNameValuePairs] = useOnyx(
