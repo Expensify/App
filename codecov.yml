@@ -11,9 +11,6 @@ coverage:
         target: auto
         threshold: 1%
 
-comment:
-  layout: "condensed_header, files, condensed_footer"
-
 flags:
   unit:
     paths:
