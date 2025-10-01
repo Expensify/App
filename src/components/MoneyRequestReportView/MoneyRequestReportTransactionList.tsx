@@ -277,18 +277,6 @@ function MoneyRequestReportTransactionList({
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
 
-    const [leftW, setLeftW] = useState(0);
-    const [rightW, setRightW] = useState(0);
-    const [parentW, setParentW] = useState(0);
-
-    const wrappedToTwoRows = useMemo(() => {
-        if (!shouldShowAddExpenseButton) {
-            return false;
-        }
-        const GAP = styles.gap6.gap;
-        return leftW + rightW + GAP > parentW;
-    }, [leftW, rightW, parentW, shouldShowAddExpenseButton, styles.gap6]);
-
     if (isEmptyTransactions) {
         return (
             <>
@@ -370,7 +358,6 @@ function MoneyRequestReportTransactionList({
                 })}
             </View>
             <View
-                onLayout={(e) => setParentW(e.nativeEvent.layout.width)}
                 style={[
                     styles.dFlex,
                     styles.flexRow,
@@ -380,36 +367,28 @@ function MoneyRequestReportTransactionList({
                     styles.mb2,
                     styles.alignItemsStart,
                     styles.minHeight7,
-                    styles.flexWrap,
+                    shouldUseNarrowLayout && styles.flexColumn,
                 ]}
             >
                 {shouldShowAddExpenseButton && (
-                    <View
-                        onLayout={(e) => setLeftW(e.nativeEvent.layout.width)}
-                        style={[styles.flexGrow100]}
-                    >
-                        <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
-                            <ButtonWithDropdownMenu
-                                onPress={() => {}}
-                                shouldAlwaysShowDropdownMenu
-                                customText={translate('iou.addExpense')}
-                                options={addExpenseDropdownOptions}
-                                isSplitButton={false}
-                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                                success={false}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                                style={[styles.mwFitContent]}
-                            />
-                        </OfflineWithFeedback>
-                    </View>
+                    <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText={translate('iou.addExpense')}
+                            options={addExpenseDropdownOptions}
+                            isSplitButton={false}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            success={false}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                            style={[styles.mwFitContent]}
+                        />
+                    </OfflineWithFeedback>
                 )}
-                <View
-                    style={[styles.flexGrow1]}
-                    onLayout={(e) => setRightW(e.nativeEvent.layout.width)}
-                >
+                <View style={[styles.flexShrink1, shouldUseNarrowLayout && styles.w100]}>
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
@@ -418,7 +397,14 @@ function MoneyRequestReportTransactionList({
                             ].map(({text, value}) => (
                                 <View
                                     key={text}
-                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3, wrappedToTwoRows && [styles.justifyContentBetween, styles.w100]]}
+                                    style={[
+                                        styles.dFlex,
+                                        styles.flexRow,
+                                        styles.alignItemsCenter,
+                                        styles.pr3,
+                                        styles.mw100,
+                                        shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
+                                    ]}
                                 >
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mr3]}
@@ -442,7 +428,6 @@ function MoneyRequestReportTransactionList({
                         totalDisplaySpend={totalDisplaySpend}
                         report={report}
                         hasPendingAction={hasPendingAction}
-                        textContainerStyle={wrappedToTwoRows && [styles.justifyContentBetween, styles.w100]}
                     />
                 </View>
             </View>
