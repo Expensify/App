@@ -703,7 +703,6 @@ const CONST = {
         TRACK_FLOWS: 'trackFlows',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
-        MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         PAYMENT_BUTTONS: 'paymentButtons',
@@ -1134,8 +1133,6 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
-            MARK_AS_RESOLVED: 'markAsResolved',
-            ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',

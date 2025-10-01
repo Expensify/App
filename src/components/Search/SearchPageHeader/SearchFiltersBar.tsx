@@ -1,5 +1,6 @@
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {searchResultsErrorSelector} from '@selectors/Snapshot';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -113,6 +114,8 @@ function SearchFiltersBar({
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => data?.errors});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
+
     const taxRates = getAllTaxRates();
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
