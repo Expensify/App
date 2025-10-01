@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
@@ -192,6 +193,12 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldResetSearchQuery: shouldReset,
         }));
     }, []);
+
+    const selectedItems = useMemo(() => {
+        return [...searchContextData.selectedTransactionIDs, ...searchContextData.selectedReports.map((item) => item.reportID)];
+    }, [searchContextData.selectedReports, searchContextData.selectedTransactionIDs]);
+
+    useHandleSelectionMode(selectedItems);
 
     const searchContext = useMemo<SearchContextProps>(
         () => ({
