@@ -80,7 +80,7 @@ function IOURequestEditReportCommon({
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
-    const shouldShowRemoveFromReport = isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
+    const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop

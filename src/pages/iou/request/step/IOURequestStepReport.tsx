@@ -153,6 +153,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 session?.email ?? '',
             );
+            removeTransaction(transaction.transactionID);
         });
     };
 
