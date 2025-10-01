@@ -46,10 +46,13 @@ describe('useAutoUpdateTimezone', () => {
 
         render(<TestComponent />);
 
-        expect(updateAutomaticTimezoneSpy).toHaveBeenCalledWith({
-            automatic: true,
-            selected: 'America/Los_Angeles',
-        }, 1);
+        expect(updateAutomaticTimezoneSpy).toHaveBeenCalledWith(
+            {
+                automatic: true,
+                selected: 'America/Los_Angeles',
+            },
+            1,
+        );
     });
 
     it('does not call update when selected matches system timezone', () => {
