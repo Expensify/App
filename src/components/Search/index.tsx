@@ -657,7 +657,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
-            if (!isTask) {
+            const isInvoice = item?.report?.type === CONST.REPORT.TYPE.INVOICE;
+
+            if (!isTask && !isInvoice) {
                 markReportIDAsExpense(reportID);
             }
 
