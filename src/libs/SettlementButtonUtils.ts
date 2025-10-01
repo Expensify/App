@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import Log from './Log';
 import Navigation from './Navigation/Navigation';
 
 type RouteMapping = {
@@ -10,7 +11,7 @@ type RouteMapping = {
     navigate: () => void;
 };
 
-const handleRouteVerification = (reportID: string, chatReportID: string): boolean => {
+const handleRouteVerification = (reportID: string, chatReportID: string) => {
     const routeMappings: RouteMapping[] = [
         {
             check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_ROOT.getRoute({query: ''})),
@@ -53,10 +54,9 @@ const handleRouteVerification = (reportID: string, chatReportID: string): boolea
 
     if (matchedRoute) {
         matchedRoute.navigate();
-        return true;
+    } else {
+        Log.warn('Failed to navigate to the correct path');
     }
-
-    return false;
 };
 
 export default handleRouteVerification;
