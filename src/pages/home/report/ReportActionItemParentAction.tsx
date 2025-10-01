@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
@@ -14,7 +15,7 @@ import {
     getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
-    shouldExcludeAncestor,
+    shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
