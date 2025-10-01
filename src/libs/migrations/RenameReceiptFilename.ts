@@ -7,7 +7,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
-// This migration changes the property name on a transaction from receiptFilename to filename so that it matches what is stored in the database
+// This migration moves filename from the transaction root to transaction.receipt.filename to match the database structure.
 export default function () {
     return new Promise<void>((resolve) => {
         // Connect to the TRANSACTION collection key in Onyx to get all of the stored transactions.
