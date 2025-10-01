@@ -18,7 +18,7 @@ import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
 import Performance from './Performance';
-import {getCleanedTagName, getPolicy, isPolicyAdmin} from './PolicyUtils';
+import {getCleanedTagName, getPolicy, isPolicyAdminByID} from './PolicyUtils';
 import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
@@ -524,11 +524,10 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     }
 
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
-        if (isLHNReport(report)) {
-            const allPolicyReports = getAllPolicyReports(report?.policyID ?? '');
+        if (isLHNReport(report) && report?.policyID) {
+            const allPolicyReports = getAllPolicyReports(report.policyID);
 
-            const policy = getPolicy(report.policyID);
-            const isAdmin = isPolicyAdmin(policy);
+            const isAdmin = isPolicyAdminByID(report.policyID);
 
             const expenseReportsForThisChat = allPolicyReports.filter(
                 (policyReport) => policyReport?.type === 'expense' && policyReport?.chatReportID === report.reportID && isCurrentUserSubmitter(policyReport),
