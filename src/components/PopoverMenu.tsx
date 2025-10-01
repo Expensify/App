@@ -172,7 +172,7 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <View style={contentContainerStyle}>{children}</View>;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
@@ -410,7 +410,7 @@ function BasePopoverMenu({
 
     const menuContainerStyle = useMemo(() => {
         const DEFAULT_MAX_HEIGHT_OFFSET = 250;
-        const SAFE_BOTTOM_SPACE = variables.h20;
+        const SAFE_BOTTOM_SPACE = variables.h40;
 
         if (!shouldEnableMaxHeight) {
             return isSmallScreenWidth ? [] : [styles.createMenuContainer];
@@ -426,7 +426,7 @@ function BasePopoverMenu({
         // Reserve space for footer actions when expanding downward.
         if (isTopAnchored && typeof top === 'number') {
             const computed = windowHeight - Math.round(top) - SAFE_BOTTOM_SPACE;
-            const maxHeight = Math.max(0, computed);
+            const maxHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, computed);
             return [styles.createMenuContainer, {maxHeight}];
         }
 
@@ -434,8 +434,7 @@ function BasePopoverMenu({
         return [styles.createMenuContainer, {maxHeight: windowHeight - DEFAULT_MAX_HEIGHT_OFFSET}];
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer, anchorAlignment, anchorPosition]);
 
-    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
-
+    const {...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -465,13 +464,12 @@ function BasePopoverMenu({
             testID={testID}
         >
             <FocusTrapForModal active={isVisible}>
-                <View
-                    onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles, {paddingTop, paddingBottom, paddingVertical, ...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}]}
-                >
-                    {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                <View onLayout={onLayout}>
+                    {renderWithConditionalWrapper(
+                        shouldUseScrollView,
+                        [restScrollContainerStyle, menuContainerStyle, containerStyles, {...(isWebOrDesktop ? styles.flex1 : styles.flexGrow1)}],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                    )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
