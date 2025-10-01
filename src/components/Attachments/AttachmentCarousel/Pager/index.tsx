@@ -49,12 +49,12 @@ type AttachmentCarouselPagerProps = {
 
     /** Callback for attachment errors */
     onAttachmentError?: (source: AttachmentSource) => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<AttachmentCarouselPagerHandle>;
 };
 
-function AttachmentCarouselPager(
-    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID, onAttachmentError}: AttachmentCarouselPagerProps,
-    ref: ForwardedRef<AttachmentCarouselPagerHandle>,
-) {
+function AttachmentCarouselPager({items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID, onAttachmentError, ref}: AttachmentCarouselPagerProps) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
     const styles = useThemeStyles();
     const pagerRef = useRef<PagerView>(null);
@@ -155,5 +155,5 @@ function AttachmentCarouselPager(
 }
 AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
-export default React.forwardRef(AttachmentCarouselPager);
+export default AttachmentCarouselPager;
 export type {AttachmentCarouselPagerHandle};

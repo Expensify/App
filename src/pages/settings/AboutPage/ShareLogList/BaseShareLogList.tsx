@@ -3,8 +3,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,6 +24,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const betas = useBetas();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -52,7 +53,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, countryCode, {
             preferChatRoomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });
@@ -64,7 +65,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         );
 
         return {...filteredOptions, headerMessage};
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
