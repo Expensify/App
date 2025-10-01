@@ -9,6 +9,10 @@ type AddressLineParams = {
     lineNumber: number;
 };
 
+type EmployeesSeeTagsAsParams = {
+    customTagName: string;
+};
+
 type CharacterLimitParams = {
     limit: number | string;
 };
@@ -1241,6 +1245,7 @@ export type {
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
+    EmployeesSeeTagsAsParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
 };
