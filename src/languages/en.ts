@@ -605,6 +605,7 @@ const translations = {
         disabled: 'Disabled',
         import: 'Import',
         offlinePrompt: "You can't take this action right now.",
+        // @context meaning "remaining to be paid, done, or dealt with", not "exceptionally good"
         outstanding: 'Outstanding',
         chats: 'Chats',
         tasks: 'Tasks',
