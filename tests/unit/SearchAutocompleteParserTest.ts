@@ -16,6 +16,7 @@ const tests = [
             autocomplete: {
                 key: 'reportID',
                 value: '1234',
+                negated: false,
                 start: 59,
                 length: 4,
             },
@@ -33,6 +34,7 @@ const tests = [
             autocomplete: {
                 key: 'reportID',
                 value: '1234',
+                negated: false,
                 start: 59,
                 length: 4,
             },
@@ -52,6 +54,7 @@ const tests = [
                 length: 22,
                 start: 102,
                 value: 'meal & entertainment',
+                negated: false,
             },
             ranges: [
                 {key: 'amount', length: 3, negated: false, start: 7, value: '200'},
@@ -73,6 +76,7 @@ const tests = [
                 length: 5,
                 start: 22,
                 value: 'a b',
+                negated: false,
             },
             ranges: [
                 {key: 'type', value: 'expense', negated: false, start: 5, length: 7},
@@ -117,6 +121,7 @@ const tests = [
                 value: 'USD',
                 start: 19,
                 length: 3,
+                negated: false,
             },
             ranges: [
                 {key: 'in', value: '123456', negated: false, start: 3, length: 6},
@@ -132,6 +137,7 @@ const tests = [
                 value: 'cccc',
                 start: 11,
                 length: 4,
+                negated: false,
             },
             ranges: [
                 {key: 'tag', value: 'aa', negated: false, start: 4, length: 2},
@@ -148,6 +154,7 @@ const tests = [
                 value: '',
                 start: 9,
                 length: 0,
+                negated: false,
             },
             ranges: [],
         },
@@ -160,6 +167,7 @@ const tests = [
                 value: '',
                 start: 21,
                 length: 0,
+                negated: false,
             },
             ranges: [{key: 'category', value: 'Advertising', negated: false, start: 9, length: 11}],
         },
@@ -172,6 +180,7 @@ const tests = [
                 value: 'small room',
                 start: 14,
                 length: 12,
+                negated: false,
             },
             ranges: [
                 {key: 'in', value: 'Big Room', negated: false, start: 3, length: 10},
@@ -187,6 +196,7 @@ const tests = [
                 value: 'Car',
                 start: 12,
                 length: 3,
+                negated: false,
             },
             ranges: [{key: 'category', value: 'Car', negated: false, start: 12, length: 3}],
         },
@@ -206,6 +216,7 @@ const tests = [
                 value: 'cash',
                 start: 70,
                 length: 4,
+                negated: false,
             },
             ranges: [
                 {key: 'in', value: 'Big Room', negated: false, start: 3, length: 10},
@@ -224,6 +235,7 @@ const tests = [
                 key: 'expenseType',
                 value: 'distance',
                 start: 110,
+                negated: false,
                 length: 8,
             },
             ranges: [
@@ -246,6 +258,7 @@ const tests = [
                 value: '"Mad" Dog',
                 start: 33,
                 length: 11,
+                negated: false,
             },
             ranges: [
                 {key: 'from', value: '"Big Dog', negated: false, start: 5, length: 10},
@@ -262,6 +275,7 @@ const tests = [
                 value: '""Unruly"" “““Glad””” """Dog""',
                 start: 32,
                 length: 32,
+                negated: false,
             },
             ranges: [
                 {key: 'from', value: '“Rag” Dog', negated: false, start: 5, length: 11},
@@ -278,6 +292,7 @@ const tests = [
                 value: 'per-diem',
                 start: 13,
                 length: 8,
+                negated: false,
             },
             ranges: [{key: 'expenseType', value: 'per-diem', negated: false, start: 13, length: 8}],
         },
@@ -381,6 +396,7 @@ const nameFieldContinuationTests = [
                 value: '100',
                 start: 32,
                 length: 3,
+                negated: false,
             },
             ranges: [
                 {key: 'type', value: 'expense', negated: false, start: 5, length: 7},
@@ -398,6 +414,7 @@ const nameFieldContinuationTests = [
                 value: 'Travel',
                 start: 22,
                 length: 6,
+                negated: false,
             },
             ranges: [
                 {key: 'from', value: 'Jane', negated: false, start: 5, length: 4},
@@ -414,6 +431,7 @@ const nameFieldContinuationTests = [
                 value: 'John',
                 start: 3,
                 length: 4,
+                negated: false,
             },
             ranges: [{key: 'to', value: 'John', negated: false, start: 3, length: 4}],
         },
@@ -427,6 +445,7 @@ const nameFieldContinuationTests = [
                 value: 'John Smith',
                 start: 3,
                 length: 12,
+                negated: false,
             },
             ranges: [{key: 'to', value: 'John Smith', negated: false, start: 3, length: 12}],
         },
@@ -635,13 +654,32 @@ const nameFieldContinuationTests = [
     {
         query: 'type:expense -from:me,jack@test.com',
         expected: {
+            autocomplete: {
+                key: 'from',
+                length: 13,
+                negated: true,
+                start: 22,
+                value: 'jack@test.com',
+            },
+            ranges: [
+                {key: 'type', value: 'expense', negated: false, start: 5, length: 7},
+                {key: 'from', value: 'me', negated: true, start: 19, length: 2},
+                {key: 'from', value: 'jack@test.com', negated: true, start: 22, length: 13},
+            ],
+        },
+        description: 'Negates multiple from values',
+    },
+    {
+        query: 'type:expense -from:me -has:receipt',
+        expected: {
             autocomplete: null,
             ranges: [
                 {key: 'type', value: 'expense', negated: false, start: 5, length: 7},
                 {key: 'from', value: 'me', negated: true, start: 11, length: 3},
-                {key: 'from', value: 'jack@test.com', negated: true, start: 15, length: 14},
+                {key: 'has', value: 'receipt', negated: true, start: 17, length: 8},
             ],
         },
+        description: 'Negates multiple from and has values',
     },
 ];
 
