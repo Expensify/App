@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -43,15 +43,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const report = getReportOrDraftReport(reportID);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
-
-    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
+    const splitExpenseDraftTransactionDetails: Partial<TransactionDetails> = getTransactionDetails(splitExpenseDraftTransaction) ?? {};
 
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction) ?? {};
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
     const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
@@ -63,25 +62,21 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
-    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const policyTagLists = getTagLists(policyTags);
 
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
     const isCategoryRequired = !!policy?.requiresCategory;
-    const childTransactions = useMemo(() => getChildTransactions(transactionID), [transactionID]);
+    const childTransactions = getChildTransactions(transactionID);
     const reportName = getReportName(report, policy);
 
     const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
-    const tagVisibility = useMemo(
-        () =>
-            getTagVisibility({
-                shouldShowTags,
-                policy,
-                policyTags,
-                transaction: splitExpenseDraftTransaction,
-            }),
-        [shouldShowTags, policy, policyTags, splitExpenseDraftTransaction],
-    );
+    const tagVisibility = getTagVisibility({
+        shouldShowTags,
+        policy,
+        policyTags,
+        transaction: splitExpenseDraftTransaction,
+    });
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 

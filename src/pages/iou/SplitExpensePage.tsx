@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -71,19 +71,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const policy = usePolicy(report?.policyID);
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction) ?? {};
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(item.amount ?? 0), 0), [draftTransaction]);
-    const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
+    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+    const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + Math.abs(item.amount ?? 0), 0);
 
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isCardTransaction(transaction);
 
-    const childTransactions = useMemo(() => getChildTransactions(transactionID), [transactionID]);
-    const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
-    const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
+    const childTransactions = getChildTransactions(transactionID);
+    const splitFieldDataFromChildTransactions = childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
+    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -97,14 +97,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         setErrorMessage('');
     }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
 
-    const onAddSplitExpense = useCallback(() => {
+    const onAddSplitExpense = () => {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
         addSplitExpenseField(transaction, draftTransaction);
-    }, [draftTransaction, transaction, transactionID]);
+    };
 
-    const onSaveSplitExpense = useCallback(() => {
+    const onSaveSplitExpense = () => {
         if (splitExpenses.length <= 1 && (!childTransactions.length || !isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS))) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
@@ -148,146 +148,106 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [
-        splitExpenses,
-        childTransactions.length,
-        isBetaEnabled,
-        draftTransaction,
-        sumOfSplitExpenses,
-        transactionDetailsAmount,
-        isPerDiem,
-        isCard,
-        splitFieldDataFromChildTransactions,
-        currentSearchHash,
-        splitFieldDataFromOriginalTransaction,
-        translate,
-        transactionID,
-        transactionDetails?.currency,
-    ]);
+    };
 
-    const onSplitExpenseAmountChange = useCallback(
-        (currentItemTransactionID: string, value: number) => {
-            const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, amountInCents);
-        },
-        [draftTransaction],
-    );
+    const onSplitExpenseAmountChange = (currentItemTransactionID: string, value: number) => {
+        const amountInCents = convertToBackendAmount(value);
+        updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, amountInCents);
+    };
 
-    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
+    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
-    const [sections] = useMemo(() => {
-        const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-        const isTransactionMadeWithCard = isCardTransaction(transaction);
-        const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
+    const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
 
-        const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
-            const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
-            const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
-            const currentReport = getReportOrDraftReport(currentTransaction?.reportID) as Report;
-            const isApproved = isReportApproved({report: currentReport});
-            const isSettled = isSettledReportUtils(currentReport?.reportID);
-            const isCancelled = currentReport && currentReport?.isCancelledIOU;
+    const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
+        const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+        const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
+        const currentReport = getReportOrDraftReport(currentTransaction?.reportID) as Report;
+        const isApproved = isReportApproved({report: currentReport});
+        const isSettled = isSettledReportUtils(currentReport?.reportID);
+        const isCancelled = currentReport && currentReport?.isCancelledIOU;
 
-            const date = DateUtils.formatWithUTCTimeZone(
-                item.created,
-                DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            );
-            previewHeaderText.unshift({text: date}, dotSeparator);
-
-            if (isCancelled) {
-                previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});
-            } else if (isApproved) {
-                previewHeaderText.push(dotSeparator, {text: translate('iou.approved')});
-            } else if (isSettled) {
-                previewHeaderText.push(dotSeparator, {text: translate('iou.settledExpensify')});
-            }
-
-            const headerText = previewHeaderText.reduce((text, currentKey) => {
-                return `${text}${getTranslatedText(currentKey)}`;
-            }, '');
-
-            return {
-                ...item,
-                headerText,
-                originalAmount: transactionDetailsAmount,
-                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
-                merchant: item?.merchant ?? '',
-                currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
-                transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                currencySymbol,
-                onSplitExpenseAmountChange,
-                isSelected: splitExpenseTransactionID === item.transactionID,
-                keyForList: item?.transactionID,
-                isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
-            };
-        });
-
-        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
-
-        return [newSections];
-    }, [
-        transaction,
-        draftTransaction?.comment?.splitExpenses,
-        draftTransaction?.currency,
-        allTransactions,
-        transactionDetailsAmount,
-        currencySymbol,
-        onSplitExpenseAmountChange,
-        splitExpenseTransactionID,
-        translate,
-        getTranslatedText,
-    ]);
-
-    const headerContent = useMemo(
-        () => (
-            <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                <Button
-                    success
-                    onPress={onAddSplitExpense}
-                    icon={Expensicons.Plus}
-                    text={translate('iou.addSplit')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
-                />
-            </View>
-        ),
-        [onAddSplitExpense, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
-    );
-
-    const footerContent = useMemo(() => {
-        const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
-        const warningMessage = shouldShowWarningMessage
-            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
-            : '';
-        return (
-            <View
-                ref={footerRef}
-                style={styles.pt3}
-            >
-                {(!!errorMessage || !!warningMessage) && (
-                    <FormHelpMessage
-                        style={[styles.ph1, styles.mb2]}
-                        isError={!!errorMessage}
-                        isInfo={!errorMessage && shouldShowWarningMessage}
-                        message={errorMessage || warningMessage}
-                    />
-                )}
-                <Button
-                    success
-                    large
-                    style={[styles.w100]}
-                    text={translate('common.save')}
-                    onPress={onSaveSplitExpense}
-                    pressOnEnter
-                    enterKeyEventListenerPriority={1}
-                />
-            </View>
+        const date = DateUtils.formatWithUTCTimeZone(
+            item.created,
+            DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, styles.pt3, footerRef]);
+        previewHeaderText.unshift({text: date}, dotSeparator);
 
-    const initiallyFocusedOptionKey = useMemo(
-        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
-        [sections, splitExpenseTransactionID],
+        if (isCancelled) {
+            previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});
+        } else if (isApproved) {
+            previewHeaderText.push(dotSeparator, {text: translate('iou.approved')});
+        } else if (isSettled) {
+            previewHeaderText.push(dotSeparator, {text: translate('iou.settledExpensify')});
+        }
+
+        const headerText = previewHeaderText.reduce((text, currentKey) => {
+            return `${text}${getTranslatedText(currentKey)}`;
+        }, '');
+
+        return {
+            ...item,
+            headerText,
+            originalAmount: transactionDetailsAmount,
+            amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
+            merchant: item?.merchant ?? '',
+            currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
+            transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            currencySymbol,
+            onSplitExpenseAmountChange,
+            isSelected: splitExpenseTransactionID === item.transactionID,
+            keyForList: item?.transactionID,
+            isEditable: (item.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.CLOSED,
+        };
+    });
+
+    const sections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
+
+    const headerContent = (
+        <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+            <Button
+                success
+                onPress={onAddSplitExpense}
+                icon={Expensicons.Plus}
+                text={translate('iou.addSplit')}
+                style={[shouldUseNarrowLayout && styles.flex1]}
+            />
+        </View>
     );
+
+    const shouldShowWarningMessage = sumOfSplitExpenses < Math.abs(transactionDetailsAmount);
+    const warningMessage = shouldShowWarningMessage
+        ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(Math.abs(transactionDetailsAmount) - sumOfSplitExpenses, transactionDetails.currency)})
+        : '';
+
+    const footerContent = (
+        <View
+            ref={footerRef}
+            style={styles.pt3}
+        >
+            {(!!errorMessage || !!warningMessage) && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError={!!errorMessage}
+                    isInfo={!errorMessage && shouldShowWarningMessage}
+                    message={errorMessage || warningMessage}
+                />
+            )}
+            <Button
+                success
+                large
+                style={[styles.w100]}
+                text={translate('common.save')}
+                onPress={onSaveSplitExpense}
+                pressOnEnter
+                enterKeyEventListenerPriority={1}
+            />
+        </View>
+    );
+
+    const initiallyFocusedOptionKey = sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList;
 
     return (
         <ScreenWrapper
