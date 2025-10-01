@@ -121,7 +121,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
-    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData({policyID: policy?.id});
+    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policy?.id);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
