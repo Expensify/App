@@ -15,8 +15,12 @@ import getPlatform from './getPlatform';
 import {post} from './Network';
 import requireParameters from './requireParameters';
 
-let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
+
+// Batch system for log transmission
+let logBatch: LogCommandParameters[] = [];
+let batchTimer: ReturnType<typeof setTimeout> | null = null;
+const BATCH_SEND_INTERVAL = 30 * 1000; // 30 seconds
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_STORE_LOGS,
@@ -43,6 +47,58 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
     return post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
 
+/**
+ * Send all batched logs to the server
+ */
+function sendBatchedLogs(): void {
+    if (logBatch.length === 0) {
+        return;
+    }
+
+
+    // Combine all log packets into one
+    const combinedLogPackets = logBatch.map(params => params.logPacket).join('\n');
+    const batchParameters: LogCommandParameters = {
+        logPacket: combinedLogPackets,
+        expensifyCashAppVersion: logBatch.at(0)?.expensifyCashAppVersion ?? `expensifyCash[${getPlatform()}]${pkg.version}`, // Use the first one's version info
+    };
+
+    // Clear the batch
+    logBatch = [];
+
+    // Send the combined logs
+    LogCommand(batchParameters).catch((error) => {
+        console.debug('Failed to send batched logs:', error);
+    });
+}
+
+/**
+ * Start the batch timer if not already running
+ */
+function startBatchTimer(): void {
+    if (batchTimer) {
+        return;
+    }
+
+    batchTimer = setTimeout(() => {
+        sendBatchedLogs();
+        batchTimer = null;
+        
+        // Restart timer if there are more logs in the batch
+        if (logBatch.length > 0) {
+            startBatchTimer();
+        }
+    }, BATCH_SEND_INTERVAL);
+}
+
+/**
+ * Add log parameters to the batch
+ */
+function addToBatch(parameters: LogCommandParameters): void {
+    logBatch.push(parameters);
+    startBatchTimer();
+}
+
 // eslint-disable-next-line
 type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
 type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string}>;
@@ -58,9 +114,17 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
-    clearTimeout(timeout);
-    timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-    return LogCommand(requestParams);
+    
+    // Add all logs to batch
+    const batchParams: LogCommandParameters = {
+        logPacket: params.logPacket,
+        expensifyCashAppVersion: requestParams.expensifyCashAppVersion,
+    };
+    
+    addToBatch(batchParams);
+    
+    // Return immediately with a generated request ID
+    return Promise.resolve({requestID: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`});
 }
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
@@ -82,7 +146,6 @@ const Log = new Logger({
     maxLogLinesBeforeFlush: 150,
     isDebug: true,
 });
-timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 AppLogs.configure({appGroupName: 'group.com.expensify.new', interval: -1});
 AppLogs.registerHandler({
