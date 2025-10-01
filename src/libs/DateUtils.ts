@@ -61,7 +61,7 @@ function getWeekStartsOn(preferredLocale: Locale = CONST.LOCALES.DEFAULT): Day {
     // `Intl.Locale.prototype.getWeekInfo` is not supported in all browsers (notably unavailable in Firefox and mWeb Chrome),
     // instead it implements the property `weekInfo`, we support both here
     const weekInfo = typeof locale.getWeekInfo === 'function' ? locale.getWeekInfo() : locale.weekInfo;
- 
+
     if (weekInfo) {
         return weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
     }
