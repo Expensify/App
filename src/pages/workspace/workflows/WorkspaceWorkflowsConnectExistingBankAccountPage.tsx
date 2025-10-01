@@ -10,50 +10,46 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
+type WorkspaceWorkflowsConnectExistingBankAccountPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT>;
 
-function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusinessBankAccountPageProps) {
+function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWorkflowsConnectExistingBankAccountPageProps) {
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const policyName = policy?.name ?? '';
-    const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute(policyID);
+        navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     };
 
     const handleItemPress = ({methodID}: PaymentMethodPressHandlerParams) => {
-        if (policyID === undefined) {
-            return;
-        }
-
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
         setWorkspaceReimbursement({
-            policyID,
+            policyID: route.params.policyID,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             reimburserEmail: newReimburserEmail,
         });
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.closeRHPFlow());
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
     };
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ConnectExistingBusinessBankAccountPage.displayName}
+            testID={WorkspaceWorkflowsConnectExistingBankAccountPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}
@@ -69,7 +65,6 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                     itemIconRight={Expensicons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
-                    filterCurrency={policyCurrency}
                     shouldHideDefaultBadge
                 />
             </ScrollView>
@@ -77,6 +72,6 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     );
 }
 
-ConnectExistingBusinessBankAccountPage.displayName = 'ConnectExistingBusinessBankAccountPage';
+WorkspaceWorkflowsConnectExistingBankAccountPage.displayName = 'WorkspaceWorkflowsConnectExistingBankAccountPage';
 
-export default ConnectExistingBusinessBankAccountPage;
+export default WorkspaceWorkflowsConnectExistingBankAccountPage;

@@ -23,7 +23,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
     const {translate} = useLocalize();
 
     return (
-        <View style={styles.anonymousRoomFooter(isSmallSizeLayout)}>
+        <View style={[styles.anonymousRoomFooter, styles.anonymousRoomFooterFlexDirection(isSmallSizeLayout)]}>
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <AvatarWithDisplayName
                     report={report}
@@ -31,7 +31,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
                     shouldEnableDetailPageNavigation
                 />
             </View>
-            <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(isSmallSizeLayout)}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.anonymousRoomFooterWordmarkAndLogoContainer(isSmallSizeLayout)]}>
                 <View style={[isSmallSizeLayout ? styles.mr1 : styles.mr4, styles.flexShrink1]}>
                     <View style={[isSmallSizeLayout ? styles.alignItemsStart : styles.alignItemsEnd]}>
                         <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />

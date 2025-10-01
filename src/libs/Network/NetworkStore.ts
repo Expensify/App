@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -109,41 +108,6 @@ function setLastShortAuthToken(newLastAuthToken: string | null) {
     lastShortAuthToken = newLastAuthToken;
 }
 
-function isSupportRequest(command: string): boolean {
-    return [
-        WRITE_COMMANDS.OPEN_APP,
-        READ_COMMANDS.SEARCH,
-        WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION,
-        WRITE_COMMANDS.OPEN_REPORT,
-        WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL,
-        WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL,
-        WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL,
-        SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
-        READ_COMMANDS.OPEN_CARD_DETAILS_PAGE,
-        READ_COMMANDS.GET_POLICY_CATEGORIES,
-        READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED,
-        READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE,
-        READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE,
-        READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE,
-        READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_TAGS_PAGE,
-        READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
-        READ_COMMANDS.OPEN_POLICY_TAXES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE,
-        READ_COMMANDS.OPEN_WORKSPACE_VIEW,
-        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE,
-        READ_COMMANDS.SEARCH_FOR_REPORTS,
-        READ_COMMANDS.OPEN_SEARCH_PAGE,
-    ].some((cmd) => cmd === command);
-}
-
 function isSupportAuthToken(): boolean {
     return authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
@@ -181,7 +145,6 @@ export {
     getCredentials,
     checkRequiredData,
     isSupportAuthToken,
-    isSupportRequest,
     getLastShortAuthToken,
     setLastShortAuthToken,
 };

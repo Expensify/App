@@ -327,14 +327,7 @@ function BaseTextInput({
                                 />
                             </>
                         ) : null}
-                        <View
-                            style={[
-                                styles.textInputAndIconContainer(isMarkdownEnabled),
-                                {flex: 1},
-                                isMultiline && hasLabel && styles.textInputMultilineContainer,
-                                styles.pointerEventsBoxNone,
-                            ]}
-                        >
+                        <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
