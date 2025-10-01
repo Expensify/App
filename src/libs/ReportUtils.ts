@@ -4253,7 +4253,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
     // Check if someone took control and should be the next approver
     const bypassApprover = getBypassApproverIfTakenControl(report);
     if (bypassApprover === currentUserAccountID) {
-        return null;
+        return undefined;
     }
 
     const approvalChain = getApprovalChain(policy, report);
@@ -4273,8 +4273,8 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
 
     const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain.at(approvalChain.indexOf(currentUserEmail ?? '') + 1);
     if (!nextApproverEmail) {
-        // If there's no next approver in the chain, return null to indicate the current user is the final approver
-        return null;
+        // If there's no next approver in the chain, return undefined to indicate the current user is the final approver
+        return undefined;
     }
 
     return getAccountIDsByLogins([nextApproverEmail]).at(0);
