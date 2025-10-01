@@ -3244,6 +3244,8 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
+
+    ENABLE_BIOMETRICS_FALLBACK: 'settings/troubleshoot/enable-biometrics-fallback',
 } as const;
 
 /**

@@ -104,6 +104,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
+        ENABLE_BIOMETRICS_FALLBACK: 'EnableBiometricsFallback',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
