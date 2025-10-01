@@ -154,6 +154,7 @@ module.exports = {
     },
     rules: {
         // TypeScript specific rules
+        '@lwc/lwc/no-async-await': 'off',
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-non-null-assertion': 'error',
