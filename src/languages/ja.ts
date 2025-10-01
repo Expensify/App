@@ -103,7 +103,6 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
@@ -674,7 +673,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
-        description: 'サポートがログインしているときにこの操作を行う権限がありません。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `サポートがログインしているときにこのアクションを実行する権限がありません（コマンド: ${command ?? ''}）。Successがこのアクションを実行できるべきだと思われる場合は、Slackで会話を開始してください。`,
     },
     lockedAccount: {
         title: 'アカウントがロックされました',
@@ -4851,8 +4855,7 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: 'タグは次で管理されています:',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>従業員にはタグが次のように表示されます: <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'タグルール',
