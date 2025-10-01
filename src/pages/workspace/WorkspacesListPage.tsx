@@ -23,7 +23,6 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,6 +39,7 @@ import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
+import getUberConnectionErrorDirectlyFromPolicy from '@libs/getUberConnectionErrorDirectlyFromPolicy';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
@@ -116,7 +116,6 @@ function WorkspacesListPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const {getUberConnectionErrorDirectlyFromPolicy} = useGetReceiptPartnersIntegrationData();
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -356,8 +355,7 @@ function WorkspacesListPage() {
         return Object.values(policies)
             .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
             .map((policy): WorkspaceItem => {
-                const receiptUberBrickRoadIndicator =
-                    policy?.id === '3F078B282C692DF9' && getUberConnectionErrorDirectlyFromPolicy(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+                const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
@@ -405,7 +403,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, getUberConnectionErrorDirectlyFromPolicy, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);

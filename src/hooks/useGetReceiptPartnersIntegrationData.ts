@@ -1,8 +1,6 @@
 import {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
 import useIsPolicyConnectedToUberReceiptPartner from './useIsPolicyConnectedToUberReceiptPartner';
 import useLocalize from './useLocalize';
 import usePolicy from './usePolicy';
@@ -34,12 +32,5 @@ export default function useGetReceiptPartnersIntegrationData(policyID?: string) 
         [translate, uber?.errorFields, uber?.errors, uber?.organizationName],
     );
 
-    const getUberConnectionErrorDirectlyFromPolicy = useCallback((currentPolicy: OnyxEntry<Policy>) => {
-        const receiptUber = currentPolicy?.receiptPartners?.uber;
-        const isReceiptUberConnected = !!currentPolicy?.receiptPartners?.uber?.enabled;
-
-        return isReceiptUberConnected && !!receiptUber?.error;
-    }, []);
-
-    return {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected, getUberConnectionErrorDirectlyFromPolicy};
+    return {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected};
 }

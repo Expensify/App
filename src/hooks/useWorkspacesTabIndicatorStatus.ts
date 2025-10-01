@@ -2,10 +2,10 @@ import {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
+import getUberConnectionErrorDirectlyFromPolicy from '@libs/getUberConnectionErrorDirectlyFromPolicy';
 import {shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useGetReceiptPartnersIntegrationData from './useGetReceiptPartnersIntegrationData';
 import useOnyx from './useOnyx';
 import useTheme from './useTheme';
 
@@ -24,7 +24,6 @@ function useWorkspacesTabIndicatorStatus(): WorkspacesTabIndicatorStatusResult {
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = useMemo(() => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id)), [policies]);
-    const {getUberConnectionErrorDirectlyFromPolicy} = useGetReceiptPartnersIntegrationData();
     const policyErrors = {
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: Object.values(cleanPolicies).find(shouldShowPolicyError),
         [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR]: Object.values(cleanPolicies).find(shouldShowCustomUnitsError),
