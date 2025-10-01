@@ -51,6 +51,7 @@ function acceptSpotnanaTerms(domain?: string) {
 
     const params: AcceptSpotnanaTermsParams = {domain};
 
+    // We need to call this API immediately to get the response and open the travel page
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, successData, failureData});
 }
