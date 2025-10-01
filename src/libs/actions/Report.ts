@@ -7,7 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
+import type {CurrentUserPersonalDetails} from '@components/CurrentUserPersonalDetailsProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -190,7 +190,6 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
-    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
