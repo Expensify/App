@@ -143,7 +143,6 @@ function AttachmentCarouselPager(
                     onPageSelected={onPageSelected}
                     style={styles.flex1}
                     initialPage={initialPage}
-                    useNext={shouldUseNewPager()}
                     animatedProps={animatedProps}
                     ref={pagerRef}
                 >
