@@ -7,9 +7,12 @@ import ROUTES from '@src/ROUTES';
 type EnableBiometricsVerificationProps = {
     /** Soft prompt visibility */
     isVisible: boolean;
+
+    /** A callback to call when the initial soft prompt has been closed */
+    onClose?: () => void;
 };
 
-function EnableBiometricsModal({isVisible}: EnableBiometricsVerificationProps) {
+function EnableBiometricsModal({isVisible, onClose = () => {}}: EnableBiometricsVerificationProps) {
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const navigateToFallbackPage = singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_FALLBACK)));
