@@ -101,7 +101,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './Error
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import localeCompareLibs from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
@@ -122,7 +121,6 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
-    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -148,7 +146,6 @@ import {
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyMember,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -3110,6 +3107,14 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 }
 
 /**
+ * @private
+ * This is a custom collator only for getGroupChatName function.
+ * The reason for this is that the computation of default group name should not depend on the locale.
+ * This is used to ensure that group name stays consistent across locales.
+ */
+const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+
+/**
  * Returns the report name if the report is a group chat
  */
 function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
@@ -3140,7 +3145,7 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
                 (participantAccountID, index) =>
                     getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport}) || formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
-            .sort((first, second) => localeCompareLibs(first ?? '', second ?? ''))
+            .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ')
             .slice(0, CONST.REPORT_NAME_LIMIT)
@@ -4146,27 +4151,6 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
         comment: Parser.htmlToMarkdown(transaction?.comment?.comment ?? ''),
         waypoints: getWaypoints(transaction),
     };
-}
-
-function isWorkspacePayer(memberLogin: string, policy: OnyxEntry<Policy>): boolean {
-    const isAdmin = policy?.employeeList?.[memberLogin]?.role === CONST.POLICY.ROLE.ADMIN;
-    if (isPaidGroupPolicyPolicyUtils(policy)) {
-        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only admin is the payer.
-            if (!policy?.achAccount?.reimburser) {
-                return isAdmin;
-            }
-
-            // If we are the reimburser then we are the payer.
-            const isReimburser = memberLogin === policy?.achAccount?.reimburser;
-            return isReimburser;
-        }
-        if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-            return isAdmin;
-        }
-        return false;
-    }
-    return false;
 }
 
 /**
@@ -9028,7 +9012,7 @@ function getMoneyRequestOptions(
         return [];
     }
 
-    const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
+    const otherParticipants = reportParticipants.filter((accountID) => currentUserAccountID !== accountID);
     const hasSingleParticipantInReport = otherParticipants.length === 1;
     let options: IOUType[] = [];
 
@@ -11356,23 +11340,12 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
 /**
  * Determines whether the report can be moved to the workspace.
  */
-function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
-    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const managerLogin = getLoginByAccountID(report?.managerID ?? CONST.DEFAULT_NUMBER_ID);
-    // We can't move the iou report to the workspace if both users from the iou report create the expense
-    if (doesReportContainRequestsFromMultipleUsers(report)) {
+function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, newPolicy: OnyxEntry<Policy>): boolean {
+    if (!submitterEmail || !newPolicy?.isPolicyExpenseChatEnabled) {
         return false;
     }
 
-    if (!newPolicy?.isPolicyExpenseChatEnabled) {
-        return false;
-    }
-
-    // We can only move the iou report to the workspace if the manager is the payer of the new policy
-    if (isIOUReport(report)) {
-        return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin ?? '', newPolicy);
-    }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(newPolicy, submitterEmail) || isPolicyAdmin(newPolicy?.id, policies));
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role;
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
@@ -12229,6 +12202,7 @@ export {
     getMovedActionMessage,
     excludeParticipantsForDisplay,
     getReportName,
+    doesReportContainRequestsFromMultipleUsers,
 };
 export type {
     Ancestor,

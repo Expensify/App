@@ -797,7 +797,7 @@
         "src/TIMEZONES.ts",
         "tests/unit/EmojiTest.ts",
         "tests/unit/FastSearchTest.ts",
-        "tests/unit/LocaleCompareTest.ts",
+        "tests/unit/useLocalizeTest.tsx",
         "tests/unit/removeInvisibleCharacters.ts",
         "tests/unit/searchCountryOptionsTest.ts",
         "tests/unit/currencyList.json",

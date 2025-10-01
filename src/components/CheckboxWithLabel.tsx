@@ -58,23 +58,12 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
 
     /** An accessibility label for the checkbox */
     accessibilityLabel?: string;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
 };
 
-function CheckboxWithLabel({
-    errorText = '',
-    isChecked: isCheckedProp = false,
-    defaultValue = false,
-    onInputChange = () => {},
-    LabelComponent,
-    label,
-    accessibilityLabel,
-    style,
-    value,
-    ref,
-}: CheckboxWithLabelProps) {
+function CheckboxWithLabel(
+    {errorText = '', isChecked: isCheckedProp = false, defaultValue = false, onInputChange = () => {}, LabelComponent, label, accessibilityLabel, style, value}: CheckboxWithLabelProps,
+    ref: ForwardedRef<View>,
+) {
     const styles = useThemeStyles();
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
@@ -117,6 +106,6 @@ function CheckboxWithLabel({
 
 CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
-export default CheckboxWithLabel;
+export default React.forwardRef(CheckboxWithLabel);
 
 export type {CheckboxWithLabelProps};
