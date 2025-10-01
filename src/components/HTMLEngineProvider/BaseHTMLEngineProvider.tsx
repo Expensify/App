@@ -211,7 +211,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textMicroSupporting,
             styles.textLabel,
             styles.link,
-            styles.textLineHeightNormal
+            styles.textLineHeightNormal,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
