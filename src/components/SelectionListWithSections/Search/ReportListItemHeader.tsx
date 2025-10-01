@@ -146,7 +146,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3, styles.gap1, styles.pr3]}>
+            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3, styles.gap1, !isLargeScreenWidth && styles.pr3]}>
                 <TotalCell
                     total={total}
                     currency={currency}
