@@ -79,9 +79,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const columns = Object.values(spreadsheet?.columns ?? {});
 
-        const isContainAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
+        const containsAdvanceApprovalColumns = columns.includes(CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO) || columns.includes(CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
 
-        if (isContainAdvanceApprovalColumns && !isControlPolicy(policy)) {
+        if (containsAdvanceApprovalColumns && !isControlPolicy(policy)) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
             return;
         }
