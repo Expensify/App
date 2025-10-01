@@ -1,10 +1,8 @@
-import CONST from '@src/CONST';
-import type {SimplifiedKeyboardEvent} from '@src/utils/keyboard';
+import type {SimplifiedKeyboardEvent} from '@src/utils/keyboard/index';
 
 const mockKeyboardListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
 const mockKeyboardControllerListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
 const mockDismissKeyboard = jest.fn();
-const mockGetPlatform = jest.fn();
 
 jest.mock('react-native', () => ({
     Keyboard: {
@@ -18,6 +16,9 @@ jest.mock('react-native', () => ({
                 }),
             };
         }),
+    },
+    Platform: {
+        Version: 15,
     },
 }));
 
@@ -36,20 +37,6 @@ jest.mock('react-native-keyboard-controller', () => ({
     },
 }));
 
-jest.mock('@libs/getPlatform', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: mockGetPlatform,
-}));
-
-jest.mock('@src/CONST', () => ({
-    PLATFORM: {
-        ANDROID: 'android',
-        IOS: 'ios',
-    },
-}));
-
-// Helper to trigger keyboard events
 const triggerKeyboardEvent = (event: string, data: SimplifiedKeyboardEvent = {}) => {
     (mockKeyboardListeners[event] || []).forEach((handler) => handler(data));
 };
@@ -58,7 +45,6 @@ const triggerKeyboardControllerEvent = (event: string, data: SimplifiedKeyboardE
     (mockKeyboardControllerListeners[event] || []).forEach((handler) => handler(data));
 };
 
-// Helper to clear listeners
 const clearListeners = () => {
     Object.keys(mockKeyboardListeners).forEach((key) => {
         mockKeyboardListeners[key] = [];
@@ -68,7 +54,7 @@ const clearListeners = () => {
     });
 };
 
-describe('Keyboard utils', () => {
+describe('Keyboard utils: Android', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let utils: {dismiss: () => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
 
@@ -80,7 +66,7 @@ describe('Keyboard utils', () => {
         jest.resetModules();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        utils = require('@src/utils/keyboard').default as {dismiss: () => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
+        utils = require('@src/utils/keyboard/index.android').default as {dismiss: () => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
     });
 
     describe('dismiss', () => {
@@ -138,19 +124,6 @@ describe('Keyboard utils', () => {
     describe('dismissKeyboardAndExecute', () => {
         it('should execute callback immediately when keyboard is not visible', async () => {
             const callback = jest.fn();
-            mockGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
-
-            await utils.dismissKeyboardAndExecute(callback);
-
-            expect(callback).toHaveBeenCalledTimes(1);
-            expect(mockDismissKeyboard).not.toHaveBeenCalled();
-        });
-
-        it('should execute callback immediately when platform is not Android', async () => {
-            triggerKeyboardEvent('keyboardDidShow');
-
-            const callback = jest.fn();
-            mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
 
             await utils.dismissKeyboardAndExecute(callback);
 
@@ -162,7 +135,6 @@ describe('Keyboard utils', () => {
             triggerKeyboardEvent('keyboardDidShow');
 
             const callback = jest.fn();
-            mockGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
 
             const executePromise = utils.dismissKeyboardAndExecute(callback);
 
@@ -180,7 +152,6 @@ describe('Keyboard utils', () => {
             triggerKeyboardEvent('keyboardDidShow');
 
             const callback = jest.fn();
-            mockGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
 
             const executePromise = utils.dismissKeyboardAndExecute(callback);
 
@@ -191,7 +162,6 @@ describe('Keyboard utils', () => {
 
             expect(callback).not.toHaveBeenCalled();
 
-            // Trigger hide with height = 0
             triggerKeyboardControllerEvent('keyboardDidHide', {height: 0});
 
             expect(callback).toHaveBeenCalledTimes(1);
@@ -201,7 +171,6 @@ describe('Keyboard utils', () => {
             triggerKeyboardEvent('keyboardDidShow');
 
             const callback = jest.fn();
-            mockGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
 
             const executePromise = utils.dismissKeyboardAndExecute(callback);
 
@@ -223,7 +192,6 @@ describe('Keyboard utils', () => {
             triggerKeyboardEvent('keyboardDidShow');
 
             const callback = jest.fn();
-            mockGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
 
             const executePromise = utils.dismissKeyboardAndExecute(callback);
 
@@ -235,7 +203,6 @@ describe('Keyboard utils', () => {
             await executePromise;
             expect(callback).not.toHaveBeenCalled();
 
-            // Finally trigger with height=0
             triggerKeyboardControllerEvent('keyboardDidHide', {height: 0});
 
             expect(callback).toHaveBeenCalledTimes(1);
@@ -244,22 +211,18 @@ describe('Keyboard utils', () => {
 
     describe('isVisible state management', () => {
         it('should track keyboard visibility across multiple show/hide events', async () => {
-            // Initially not visible
             await expect(utils.dismiss()).resolves.toBeUndefined();
 
-            // Show keyboard
             triggerKeyboardEvent('keyboardDidShow');
             const promise1 = utils.dismiss();
             triggerKeyboardEvent('keyboardDidHide');
             await promise1;
 
-            // Show again
             triggerKeyboardEvent('keyboardDidShow');
             const promise2 = utils.dismiss();
             triggerKeyboardEvent('keyboardDidHide');
             await promise2;
 
-            // Should be not visible now
             await expect(utils.dismiss()).resolves.toBeUndefined();
         });
 
@@ -268,12 +231,10 @@ describe('Keyboard utils', () => {
 
             const dismissPromise = utils.dismiss();
 
-            // While waiting, keyboard hides
             triggerKeyboardEvent('keyboardDidHide');
 
             await dismissPromise;
 
-            // Should be marked as not visible now
             await expect(utils.dismiss()).resolves.toBeUndefined();
         });
     });
