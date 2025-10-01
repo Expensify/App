@@ -30,6 +30,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -146,6 +147,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
@@ -413,7 +415,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector(iouTransactionID, actionReportID, CONST.IOU.ACTION.SUBMIT, actionableWhisperReportActionID);
+                    createDraftTransactionAndNavigateToParticipantSelector(
+                        iouTransactionID,
+                        actionReportID,
+                        CONST.IOU.ACTION.SUBMIT,
+                        actionableWhisperReportActionID,
+                        isRestrictedToPreferredPolicy,
+                        preferredPolicyID,
+                    );
                 },
             });
             if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
@@ -552,6 +561,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRootGroupChat,
         leaveChat,
         isSmallScreenWidth,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

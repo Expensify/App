@@ -71,12 +71,20 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType) {
 /**
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
-function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[]) {
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
+
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
+            return true;
+        }
         return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }

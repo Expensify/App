@@ -258,6 +258,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         )}
                         onSelectRow={(item) => {
                             Keyboard.dismiss();
+                            // eslint-disable-next-line deprecation/deprecation
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
                             });

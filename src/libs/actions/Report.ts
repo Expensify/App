@@ -1169,6 +1169,7 @@ function openReport(
             parameters.file = avatar;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             clearGroupChat();
         });
@@ -3071,6 +3072,7 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
         Navigation.goBack();
     }
     navigateToConciergeChat();
+    // eslint-disable-next-line deprecation/deprecation
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
@@ -3457,6 +3459,7 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
+    // eslint-disable-next-line deprecation/deprecation
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
@@ -5747,6 +5750,7 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
         return;
     }
 
+    // eslint-disable-next-line deprecation/deprecation
     InteractionManager.runAfterInteractions(() => {
         Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
     });
