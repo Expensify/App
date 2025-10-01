@@ -11,7 +11,7 @@ type RouteMapping = {
     navigate: () => void;
 };
 
-const handleRouteVerification = (reportID: string | undefined, chatReportID: string) => {
+const handleUnvalidatedUserNavigation = (reportID: string | undefined, chatReportID: string) => {
     const routeMappings: RouteMapping[] = [
         {
             check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_ROOT.getRoute({query: ''})),
@@ -74,4 +74,4 @@ const handleRouteVerification = (reportID: string | undefined, chatReportID: str
     }
 };
 
-export default handleRouteVerification;
+export default handleUnvalidatedUserNavigation;
