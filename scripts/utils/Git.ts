@@ -64,7 +64,7 @@ class Git {
      */
     static isValidRef(ref: string): boolean {
         try {
-            execSync(`git rev-parse --verify "${ref}^{commit}"`, {
+            execSync(`git rev-parse --verify "${ref}^{object}"`, {
                 encoding: 'utf8',
                 cwd: process.cwd(),
                 stdio: 'pipe', // Suppress output
