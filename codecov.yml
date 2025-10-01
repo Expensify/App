@@ -11,6 +11,8 @@ coverage:
         target: auto
         threshold: 1%
 
+comment: false
+
 flags:
   unit:
     paths:
