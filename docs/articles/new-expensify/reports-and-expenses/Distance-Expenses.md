@@ -31,7 +31,7 @@ To submit a distance-based expense by entering the distance manually:
 1. Click the green “+” sign and select **Track distance** from any page in the app or directly  
 from an expense chat
 2. Choose the **Manual** tab
-3. Enter the number of miles or kilometres you need to be reimbursed for
+3. Enter the number of miles or kilometers you need to be reimbursed for
 4. Review the calculated reimbursement amount
 5. Tap **Next** to continue
 6. Confirm the expense details, recipient, category, and add a receipt if needed
@@ -98,8 +98,8 @@ The distance unit and rate can only be updated at the workspace level, not at th
 
 Yes, you can do this before the expenses have been approved. However, be aware that doing so will automatically update the distance rate and unit based on the new workspace.
 
-## What if I enter 0 miles or kilometres?
+## What if I enter 0 miles or kilometers?
 
-You cannot create a distance expense for 0 miles or kilometres. If you do, you’ll see this error:  
+You cannot create a distance expense for 0 miles or kilometers. If you do, you’ll see this error:  
 **“Please enter a valid distance before continuing.”**
 
