@@ -166,7 +166,7 @@
     "react-native-advanced-input-mask": "1.4.4",
     "react-native-android-location-enabler": "^3.0.1",
     "react-native-app-logs": "0.3.1",
-    "react-native-blob-util": "0.19.4",
+    "react-native-blob-util": "^0.22.2",
     "react-native-collapsible": "^1.6.2",
     "react-native-config": "1.5.3",
     "react-native-device-info": "10.3.1",
