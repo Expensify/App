@@ -1953,7 +1953,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -2003,7 +2015,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                undefined,
+                mockSavedSearches,
+                false,
+                undefined,
+                true,
+                false,
+            );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2067,7 +2091,7 @@ describe('SearchUIUtils', () => {
                 mockSavedSearches,
                 false, // not offline
                 undefined,
-                true, 
+                true,
                 false,
             );
 
@@ -2095,7 +2119,7 @@ describe('SearchUIUtils', () => {
                 mockSavedSearches,
                 true, // offline
                 undefined,
-                true, 
+                true,
                 false,
             );
 
@@ -2147,7 +2171,7 @@ describe('SearchUIUtils', () => {
                 {},
                 false,
                 undefined,
-                true, 
+                true,
                 false,
             );
 
