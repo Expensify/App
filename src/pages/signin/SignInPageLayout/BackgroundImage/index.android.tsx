@@ -17,6 +17,7 @@ function BackgroundImage({pointerEvents, width, transitionDuration}: BackgroundI
             return;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });

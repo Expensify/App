@@ -306,6 +306,7 @@ function BaseModal({
                     style={[styles.pAbsolute, {zIndex: 1}]}
                 >
                     <ReanimatedModal
+                        dataSet={{dragArea: false}}
                         // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                         onClick={(e) => e.stopPropagation()}
                         onBackdropPress={handleBackdropPress}
