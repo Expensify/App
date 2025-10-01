@@ -15,15 +15,16 @@ jobs:
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
         with:
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
           filters: |
-            code:
-              - 'src/**'
-            docs:
-              - 'docs/**/*.md'
-              - 'docs/**/*.csv'
+            should_run:
+              - '**'
+              - '!docs/**/*.md'
+              - '!docs/**/*.csv'
 
       - name: reviewerChecklist.js
-        if: steps.filter.outputs.code == 'true'
+        if: steps.filter.outputs.should_run == 'true'
         uses: ./.github/actions/javascript/reviewerChecklist
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
