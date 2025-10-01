@@ -147,9 +147,13 @@ const INPUT_IDS = {
             SIGNER_JOB_TITLE: 'signerJobTitle',
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
-            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             ACH_AUTHORIZATION_FORM: 'achAuthorizationForm',
+            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+            SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
+            SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
+            SECOND_SIGNER_JOB_TITLE: 'secondSignerJobTitle',
+            SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'secondSignerCompleteResidentialAddress',
         },
     },
 } as const;
@@ -399,11 +403,23 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Signer email */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
 
+    /** Signer complete residential address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+
     /** Second signer email */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
 
-    /** Signer complete residential address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+    /** Second signer full name */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]: string;
+
+    /** Second signer date of birth */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH]: string;
+
+    /** Second signer job title */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]: string;
+
+    /** Second signer complete residential address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
 
     /** Provide truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
