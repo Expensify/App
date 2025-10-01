@@ -35,7 +35,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
@@ -50,11 +50,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
-            if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(reportID, policy?.id, formatPhoneNumber);
-                if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(reportID, policy?.id);
-                }
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
+            if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
+                moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID, formatPhoneNumber);
+            } else if (isIOUReport(reportID) && isPolicyMember(policy, session?.email)) {
+                moveIOUReportToPolicy(reportID, policyID);
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
@@ -64,7 +65,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 changeReportPolicy(report, policy, reportNextStep, isReportLastVisibleArchived);
             }
         },
-        [route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportLastVisibleArchived],
     );
 
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);

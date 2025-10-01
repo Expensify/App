@@ -5214,11 +5214,7 @@ function deleteAppReport(reportID: string | undefined) {
  * @param policyID - The ID of the policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(
-    reportID: string,
-    policyID: string,
-    isFromSettlementButton?: boolean,
-): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
+function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlementButton?: boolean) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -5240,8 +5236,10 @@ function moveIOUReportToPolicy(
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
     const expenseChatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
-    const useTemporaryOptimisticExpenseChatReportID = !expenseChatReportId;
-    const optimisticExpenseChatReportID = expenseChatReportId ?? generateReportID();
+
+    if (!expenseChatReportId) {
+        return;
+    }
 
     const optimisticData: OnyxUpdate[] = [];
 
@@ -5309,7 +5307,7 @@ function moveIOUReportToPolicy(
     });
 
     // We need to move the report preview action from the DM to the expense chat.
-    const parentReportActions = iouReport?.parentReportID ? allReportActions?.[iouReport.parentReportID] : undefined;
+    const parentReportActions = allReportActions?.[`${iouReport.parentReportID}`];
     const parentReportActionID = iouReport.parentReportActionID;
     const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
     const oldChatReportID = iouReport.chatReportID;
@@ -5329,18 +5327,18 @@ function moveIOUReportToPolicy(
         // Add the reportPreview action to expense chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
             value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
             value: {[reportPreview.reportActionID]: null},
         });
     }
 
     // Create MOVED report action and add it to the expense report which indicates to the user where the report has been moved
-    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId ?? '', iouReportID, policyName, true);
+    const movedExpenseReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId, iouReportID, policyName, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -5381,7 +5379,7 @@ function moveIOUReportToPolicy(
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticExpenseChatReportID, iouReportID, policyName);
+    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId, iouReportID, policyName);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -5398,11 +5396,10 @@ function moveIOUReportToPolicy(
         policyID,
         changePolicyReportActionID: movedExpenseReportAction.reportActionID,
         dmMovedReportActionID: movedReportAction.reportActionID,
-        optimisticReportID: optimisticExpenseChatReportID,
+        optimisticReportID: expenseChatReportId,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
-    return {policyExpenseChatReportID: optimisticExpenseChatReportID, useTemporaryOptimisticExpenseChatReportID};
 }
 
 /**
