@@ -22,7 +22,7 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteMoneyRequestReport,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
@@ -55,7 +55,6 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -66,7 +65,7 @@ import {
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report);
 
-    if (!isReportSubmitter || reportTransactions.length === 0) {
+    if (!isReportSubmitter) {
         return false;
     }
 
@@ -123,7 +122,8 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return isSubmitter || isAdmin;
     }
 
-    return isSubmitter || isAdmin || isManager;
+    // Hide split option for the submitter if the report is forwarded
+    return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
 }
 
 function isSubmitAction(
@@ -444,48 +444,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isIOUReport = isIOUReportUtils(report);
-    const isUnreported = isSelfDMReportUtils(report);
-    const transaction = reportTransactions.at(0);
-    const transactionID = transaction?.transactionID;
-    const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
-    const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
-    const isSingleTransaction = reportTransactions.length === 1;
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransaction(t))) {
-        return true;
-    }
-
-    const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
-    if (isUnreported) {
-        return isOwner && canCardTransactionBeDeleted;
-    }
-
-    if (isInvoiceReport) {
-        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    }
-
-    // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
-    // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
-    if (isIOUReport) {
-        return isSingleTransaction && isOwner && isReportOpenOrProcessing;
-    }
-
-    if (isExpenseReport) {
-        if (!canCardTransactionBeDeleted) {
-            return false;
-        }
-
-        const isReportSubmitter = isCurrentUserSubmitter(report);
-        const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-        const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
-
-        return isReportSubmitter && isReportOpenOrProcessing && !isForwarded;
-    }
-
-    return false;
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions, policy);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -698,13 +657,7 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(
-    report: Report,
-    policy?: Policy,
-    reportActions?: ReportAction[],
-    integrationsExportTemplates?: ExportTemplate[],
-    customInAppTemplates?: ExportTemplate[],
-): Array<ValueOf<string>> {
+function getSecondaryExportReportActions(report: Report, policy?: Policy, exportTemplates: ExportTemplate[] = []): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
@@ -714,20 +667,11 @@ function getSecondaryExportReportActions(
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT);
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     // Add any custom IS templates that have been added to the user's account as export options
-    if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-        for (const template of integrationsExportTemplates) {
-            options.push(template.name);
-        }
-    }
-
-    // Add any in-app export templates that the user has created as export options
-    if (customInAppTemplates && customInAppTemplates.length > 0) {
-        for (const template of customInAppTemplates) {
-            options.push(template.name);
-        }
+    for (const template of exportTemplates) {
+        options.push(template.name);
     }
 
     return options;

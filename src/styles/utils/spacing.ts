@@ -783,10 +783,6 @@ export default {
         minHeight: 20,
     },
 
-    minHeight7: {
-        minHeight: 28,
-    },
-
     minHeight22: {
         minHeight: 88,
     },
@@ -797,5 +793,8 @@ export default {
 
     maxHeight5: {
         maxHeight: 20,
+    },
+    maxHeight100Percentage: {
+        maxHeight: '100%',
     },
 } satisfies Record<string, ViewStyle>;
