@@ -24,7 +24,7 @@ function UserInfoAndActionButtonRow({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
@@ -50,7 +50,7 @@ function UserInfoAndActionButtonRow({
                     participantFromDisplayName={participantFromDisplayName}
                     participantToDisplayName={participantToDisplayName}
                     participantTo={item?.to}
-                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    avatarSize={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
                     infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
                     infoCellsAvatarStyle={styles.pr1}
