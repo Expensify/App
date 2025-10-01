@@ -1,7 +1,9 @@
+import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -22,8 +24,7 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
-import Text from './Text';
-import TextLink from './TextLink';
+import RenderHTML from './RenderHTML';
 
 type BookTravelButtonProps = {
     text: string;
@@ -42,13 +43,15 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
         return;
     }
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
+    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
 };
 
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated ?? false;
@@ -58,7 +61,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
@@ -88,18 +91,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            setErrorMessage(
-                <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
-                    <TextLink
-                        style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
-                    >
-                        {translate('travel.phoneError.link')}
-                    </TextLink>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
-                </Text>,
-            );
+            setErrorMessage(<RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />);
             return;
         }
 
@@ -152,11 +144,9 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         travelSettings?.hasAcceptedTerms,
         travelSettings?.lastTravelSignupRequestTime,
         isBetaEnabled,
-        styles.flexRow,
-        styles.link,
-        StyleUtils,
         translate,
         isUserValidated,
+        phoneErrorMethodsRoute,
     ]);
 
     return (

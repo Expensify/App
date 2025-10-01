@@ -17,8 +17,8 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -87,8 +87,11 @@ Onyx.connectWithoutView({
     },
 });
 
+// allReports is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -218,7 +221,10 @@ AppState.addEventListener('change', (nextAppState) => {
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
-            const connection = Onyx.connect({
+            // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
+            // and each time the getPolicyParamsForOpenOrReconnect function is called,
+            // connectWithoutView will fetch the latest data from Onyx.
+            const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (policies) => {
@@ -496,10 +502,6 @@ function savePolicyDraftByNewWorkspace(
 
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
- *
- * We subscribe to the session using withOnyx in the AuthScreens and
- * pass it in as a parameter. withOnyx guarantees that the value has been read
- * from Onyx because it will not render the AuthScreens until that point.
  */
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
@@ -654,6 +656,22 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     clearSoundAssetsCache();
 }
 
+/**
+ * Clears a top-level Onyx value key by setting it to null.
+ * This is used for ephemeral flags so they do not persist across reloads.
+ */
+function clearSupportalPermissionDenied() {
+    // We intentionally set to null to keep key present but empty
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
+}
+
+/**
+ * Shows a top-level modal informing that a supportal-auth user attempted an unauthorized command.
+ */
+function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDenied) {
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
@@ -674,6 +692,8 @@ export {
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
+    clearSupportalPermissionDenied,
+    showSupportalPermissionDenied,
     setPreservedUserSession,
     KEYS_TO_PRESERVE,
 };

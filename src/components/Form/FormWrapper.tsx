@@ -95,6 +95,7 @@ function FormWrapper({
     shouldSubmitButtonBlendOpacity = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    forwardedFSClass,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -227,6 +228,7 @@ function FormWrapper({
                     if (!shouldScrollToEnd) {
                         return;
                     }
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         requestAnimationFrame(() => {
                             formRef.current?.scrollToEnd({animated: true});
@@ -255,7 +257,10 @@ function FormWrapper({
     }
 
     return (
-        <View style={styles.flex1}>
+        <View
+            style={styles.flex1}
+            fsClass={forwardedFSClass}
+        >
             {scrollContextEnabled ? (
                 <ScrollViewWithContext
                     style={[styles.w100, styles.flex1]}

@@ -475,6 +475,10 @@ export default {
         paddingVertical: 16,
     },
 
+    pv4Half: {
+        paddingVertical: 18,
+    },
+
     pv5: {
         paddingVertical: 20,
     },
@@ -565,6 +569,10 @@ export default {
 
     pr5: {
         paddingRight: 20,
+    },
+
+    pr7: {
+        paddingRight: 28,
     },
 
     pr8: {
@@ -785,5 +793,8 @@ export default {
 
     maxHeight5: {
         maxHeight: 20,
+    },
+    maxHeight100Percentage: {
+        maxHeight: '100%',
     },
 } satisfies Record<string, ViewStyle>;
