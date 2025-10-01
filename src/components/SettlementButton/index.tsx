@@ -376,7 +376,7 @@ function SettlementButton({
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
         if (!isUserValidated) {
-            handleRouteVerification(reportID ?? '', chatReportID);
+            handleRouteVerification(reportID, chatReportID);
             return;
         }
 
