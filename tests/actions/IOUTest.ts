@@ -8984,7 +8984,7 @@ describe('actions/IOU', () => {
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
             expect(updatedReport?.managerID).toBe(adminAccountID); // Should be forwarded to admin
         });
-        
+
         it('should handle multi-step approval chain correctly', async () => {
             // First, manager approves
             await Onyx.set(ONYXKEYS.SESSION, {
