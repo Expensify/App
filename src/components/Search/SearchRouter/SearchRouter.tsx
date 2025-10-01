@@ -15,9 +15,9 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
-import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -314,6 +314,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             const setFocusAndScrollToRight = () => {
                 try {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         if (!textInputRef.current) {
                             Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
