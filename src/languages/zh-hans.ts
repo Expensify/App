@@ -673,7 +673,11 @@ const translations = {
     },
     supportalNoAccess: {
         title: '慢一点',
-        description: '当支持人员登录时，您无权执行此操作。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) => `当支持人员登录时，您无权执行此操作（命令：${command ?? ''}）。如果您认为 Success 应该能够执行此操作，请在 Slack 中开始对话。`,
     },
     lockedAccount: {
         title: '账户已锁定',
@@ -5458,11 +5462,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travel 是一个新的企业差旅预订和管理平台，允许会员预订住宿、航班、交通等。',
                 onlyAvailableOnPlan: '旅行功能在 Collect 计划中提供，起价为',
-            },
-            reports: {
-                title: '报告',
-                description: '创建有序的费用报告来跟踪您的商业开支，提交审批，并简化您的报销流程。',
-                onlyAvailableOnPlan: '报告功能在 Collect 计划中提供，起价为 ',
             },
             multiLevelTags: {
                 title: '多级标签',

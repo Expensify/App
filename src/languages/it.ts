@@ -674,7 +674,14 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
-        description: 'Non sei autorizzato a eseguire questa azione quando il supporto è connesso.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Non sei autorizzato a eseguire questa azione quando il supporto è connesso (comando: ${
+                command ?? ''
+            }). Se ritieni che Success debba essere in grado di eseguire questa azione, avvia una conversazione su Slack.`,
     },
     lockedAccount: {
         title: 'Account bloccato',
@@ -5569,11 +5576,6 @@ const translations = {
                 description:
                     'Expensify Travel è una nuova piattaforma aziendale per la prenotazione e la gestione dei viaggi che consente ai membri di prenotare alloggi, voli, trasporti e altro.',
                 onlyAvailableOnPlan: 'Il viaggio è disponibile nel piano Collect, a partire da',
-            },
-            reports: {
-                title: 'Report',
-                description: 'Crea report spese organizzati per tenere traccia delle tue spese aziendali, inviarli per approvazione e semplificare il processo di rimborso.',
-                onlyAvailableOnPlan: 'I report sono disponibili nel piano Collect, a partire da ',
             },
             multiLevelTags: {
                 title: 'Tag multi-livello',
