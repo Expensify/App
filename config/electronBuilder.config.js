@@ -27,15 +27,15 @@ if (!isCorrectElectronEnv) {
 }
 
 const getMacBundleIconName = () => {
-    if (process.env.ELECTRON_ENV === "adhoc") {
-        return "AppIcon-adhoc";
+    if (process.env.ELECTRON_ENV === 'adhoc') {
+        return 'AppIcon-adhoc';
     }
 
-    if (process.env.ELECTRON_ENV === "development") {
-        return "AppIcon-dev";
+    if (process.env.ELECTRON_ENV === 'development') {
+        return 'AppIcon-dev';
     }
 
-    return "AppIcon";
+    return 'AppIcon';
 };
 
 /**
@@ -61,7 +61,7 @@ module.exports = {
             },
         ],
         extendInfo: {
-            "CFBundleIconName": getMacBundleIconName(),
+            CFBundleIconName: getMacBundleIconName(),
         },
     },
     dmg: {
@@ -86,5 +86,5 @@ module.exports = {
         name: 'New Expensify',
         schemes: ['new-expensify'],
     },
-    afterPack: "desktop/afterPack.js"
+    afterPack: 'desktop/afterPack.js',
 };
