@@ -1,3 +1,4 @@
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import {
     buildMergedTransactionData,
@@ -5,13 +6,13 @@ import {
     getMergeableDataAndConflictFields,
     getMergeFieldTranslationKey,
     getMergeFieldValue,
-    getMergeTaxAmount,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import {calculateTaxAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -439,7 +440,7 @@ describe('MergeTransactionUtils', () => {
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
                 taxValue: '9%',
-                taxAmount: getMergeTaxAmount('9%', 2000, 'USD'),
+                taxAmount: convertToBackendAmount(calculateTaxAmount('9%', 2000, 'USD')),
                 taxCode: 'id_TAX_RATE_1',
             });
         });

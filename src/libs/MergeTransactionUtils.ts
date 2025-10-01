@@ -161,12 +161,6 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
     return MERGE_FIELD_TRANSLATION_KEYS[field];
 }
 
-function getMergeTaxAmount(taxPercentage: string | undefined, amount: number, currency: string) {
-    const taxAmount = calculateTaxAmount(taxPercentage, amount, currency);
-    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-    return taxAmountInSmallestCurrencyUnits;
-}
-
 /**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
@@ -311,7 +305,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
         taxValue: mergeTransaction.taxValue,
-        taxAmount: getMergeTaxAmount(mergeTransaction.taxValue, mergeTransaction.amount, mergeTransaction.currency),
+        taxAmount: convertToBackendAmount(calculateTaxAmount(mergeTransaction.taxValue, mergeTransaction.amount, mergeTransaction.currency)),
         taxCode: mergeTransaction.taxCode,
     };
 }
@@ -434,7 +428,6 @@ export {
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
-    getMergeTaxAmount,
 };
 
 export type {MergeFieldKey, MergeFieldData};
