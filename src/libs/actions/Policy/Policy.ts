@@ -2994,9 +2994,11 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
         return acc;
     }, {});
 
-    // Build map for resetting employees on failure
-    const resetEmployeesOnFailure = emails.reduce<Record<string, null>>((acc, email) => {
-        acc[email] = null;
+    // Build map for resetting employees on failure with individual errors
+    const resetEmployeesOnFailure = emails.reduce<Record<string, {status?: string; errors: Errors}>>((acc, email) => {
+        acc[email] = {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
+        };
         return acc;
     }, {});
 
@@ -3033,7 +3035,6 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
             value: {
                 receiptPartners: {
                     uber: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
                         employees: resetEmployeesOnFailure,
                     },
                 },
@@ -3042,6 +3043,21 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
     ];
 
     API.write(WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears an error for a specific Uber employee
+ */
+function clearUberEmployeeError(policyID: string, email: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        receiptPartners: {
+            uber: {
+                employees: {
+                    [email]: {errors: null, pendingAction: null},
+                },
+            },
+        },
+    });
 }
 
 /**
@@ -6324,6 +6340,7 @@ export {
     removeWorkspace,
     createWorkspaceFromIOUPayment,
     clearErrors,
+    clearUberEmployeeError,
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
