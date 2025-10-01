@@ -423,7 +423,7 @@ function peg$parse(input, options) {
       if (neg && !nonNegatableKeys.has(key)) {
         if (operator === "eq") {
           operator = "neq";
-          }
+        }
       }
 
       return buildFilter(operator, key, values);
