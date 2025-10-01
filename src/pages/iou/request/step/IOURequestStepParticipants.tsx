@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
@@ -82,13 +82,12 @@ function IOURequestStepParticipants({
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const transactions = useMemo(() => {
+    const getTransactions = () => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, optimisticTransactions]);
-    // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
+    };
+    const transactions = getTransactions();
+    const transactionIDs = transactions?.map((transaction) => transaction.transactionID);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
@@ -96,7 +95,7 @@ function IOURequestStepParticipants({
     const iouRequestType = getRequestType(initialTransaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
-    const headerTitle = useMemo(() => {
+    const headerTitle = () => {
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
@@ -113,9 +112,9 @@ function IOURequestStepParticipants({
             return translate('workspace.invoices.sendInvoice');
         }
         return translate('iou.chooseRecipient');
-    }, [iouType, translate, isSplitRequest, action]);
+    };
 
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
+    const selfDMReportID = findSelfDMReportID();
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -348,7 +347,7 @@ function IOURequestStepParticipants({
 
     return (
         <StepScreenWrapper
-            headerTitle={headerTitle}
+            headerTitle={headerTitle()}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}

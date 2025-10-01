@@ -3,7 +3,7 @@ import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
@@ -129,15 +129,15 @@ function MoneyRequestParticipantsSelector({
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
-    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
+    const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
+    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]);
+    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT;
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -149,7 +149,7 @@ function MoneyRequestParticipantsSelector({
         initializeOptions();
     }, [initializeOptions]);
 
-    const defaultOptions = useMemo(() => {
+    const getDefaultOptions = () => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return {
                 userToInvite: null,
@@ -196,23 +196,9 @@ function MoneyRequestParticipantsSelector({
             ...optionList,
             ...orderedOptions,
         };
-    }, [
-        action,
-        contacts,
-        areOptionsInitialized,
-        betas,
-        didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
-        options.reports,
-        participants,
-        isPerDiemRequest,
-        canShowManagerMcTest,
-        isCorporateCardTransaction,
-    ]);
+    };
 
-    const chatOptions = useMemo(() => {
+    const getChatOptions = () => {
         if (!areOptionsInitialized) {
             return {
                 userToInvite: null,
@@ -224,6 +210,7 @@ function MoneyRequestParticipantsSelector({
                 selfDMChat: null,
             };
         }
+        const defaultOptions = getDefaultOptions();
 
         const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {
             canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
@@ -234,36 +221,28 @@ function MoneyRequestParticipantsSelector({
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, countryCode]);
+    };
 
-    const inputHelperText = useMemo(
-        () =>
-            getHeaderMessage(
-                (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 ||
-                    !isEmptyObject(chatOptions.selfDMChat),
-                !!chatOptions?.userToInvite,
-                debouncedSearchTerm.trim(),
-                participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
-            ),
-        [
-            chatOptions.personalDetails,
-            chatOptions.recentReports,
-            chatOptions.selfDMChat,
-            chatOptions?.userToInvite,
-            chatOptions.workspaceChats,
-            cleanSearchTerm,
-            debouncedSearchTerm,
-            participants,
-        ],
+    const chatOptions = getChatOptions();
+
+    const hasPersonalDetails = (chatOptions.personalDetails ?? []).length > 0;
+    const hasRecentReports = (chatOptions.recentReports ?? []).length > 0;
+    const hasWorkspaceChats = (chatOptions.workspaceChats ?? []).length > 0;
+    const hasSelfDMChat = !isEmptyObject(chatOptions.selfDMChat);
+    const hasResults = hasPersonalDetails || hasRecentReports || hasWorkspaceChats || hasSelfDMChat;
+    const inputHelperText = getHeaderMessage(
+        hasResults,
+        !!chatOptions?.userToInvite,
+        debouncedSearchTerm.trim(),
+        participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
     );
     /**
      * Returns the sections needed for the OptionsSelector
-     * @returns {Array}
      */
-    const [sections, header] = useMemo(() => {
+    const getSectionsAndHeader = () => {
         const newSections: Section[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, ''];
+            return [newSections, ''] as const;
         }
 
         const formatResults = formatSectionsFromSearchTerm(
@@ -327,102 +306,79 @@ function MoneyRequestParticipantsSelector({
             headerMessage = inputHelperText;
         }
 
-        return [newSections, headerMessage];
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        debouncedSearchTerm,
-        participants,
-        chatOptions.recentReports,
-        chatOptions.personalDetails,
-        chatOptions.workspaceChats,
-        chatOptions.selfDMChat,
-        chatOptions.userToInvite,
-        personalDetails,
-        translate,
-        isPerDiemRequest,
-        showImportContacts,
-        reportAttributesDerived,
-        inputHelperText,
-    ]);
+        return [newSections, headerMessage] as const;
+    };
+    const [sections, header] = getSectionsAndHeader();
 
     /**
      * Adds a single participant to the expense
      *
-     * @param {Object} option
+     * @param option
      */
-    const addSingleParticipant = useCallback(
-        (option: Participant & Option) => {
-            const newParticipants: Participant[] = [
-                {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
-                    selected: true,
-                    iouType,
-                },
-            ];
+    const addSingleParticipant = (option: Participant & Option) => {
+        const newParticipants: Participant[] = [
+            {
+                ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
+                selected: true,
+                iouType,
+            },
+        ];
 
-            if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(currentUserLogin)?.id;
-                newParticipants.push({
-                    policyID,
-                    isSender: true,
-                    selected: false,
-                    iouType,
-                });
-            }
+        if (iouType === CONST.IOU.TYPE.INVOICE) {
+            const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(currentUserLogin)?.id;
+            newParticipants.push({
+                policyID,
+                isSender: true,
+                selected: false,
+                iouType,
+            });
+        }
 
-            onParticipantsAdded(newParticipants);
+        onParticipantsAdded(newParticipants);
 
-            if (!option.isSelfDM) {
-                onFinish();
-            }
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
-        [onFinish, onParticipantsAdded, currentUserLogin],
-    );
+        if (!option.isSelfDM) {
+            onFinish();
+        }
+    };
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     * @param {Object} option
+     * @param option
      */
-    const addParticipantToSelection = useCallback(
-        (option: Participant) => {
-            const isOptionSelected = (selectedOption: Participant) => {
-                if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
-                    return true;
-                }
-
-                if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
-                    return true;
-                }
-
-                return false;
-            };
-            const isOptionInList = participants.some(isOptionSelected);
-            let newSelectedOptions: Participant[];
-
-            if (isOptionInList) {
-                newSelectedOptions = lodashReject(participants, isOptionSelected);
-            } else {
-                newSelectedOptions = [
-                    ...participants,
-                    {
-                        accountID: option.accountID,
-                        login: option.login,
-                        isPolicyExpenseChat: option.isPolicyExpenseChat,
-                        reportID: option.reportID,
-                        selected: true,
-                        searchText: option.searchText,
-                        iouType,
-                    },
-                ];
+    const addParticipantToSelection = (option: Participant) => {
+        const isOptionSelected = (selectedOption: Participant) => {
+            if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
+                return true;
             }
 
-            onParticipantsAdded(newSelectedOptions);
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
-        [participants, onParticipantsAdded],
-    );
+            if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
+                return true;
+            }
+
+            return false;
+        };
+        const isOptionInList = participants.some(isOptionSelected);
+        let newSelectedOptions: Participant[];
+
+        if (isOptionInList) {
+            newSelectedOptions = lodashReject(participants, isOptionSelected);
+        } else {
+            newSelectedOptions = [
+                ...participants,
+                {
+                    accountID: option.accountID,
+                    login: option.login,
+                    isPolicyExpenseChat: option.isPolicyExpenseChat,
+                    reportID: option.reportID,
+                    selected: true,
+                    searchText: option.searchText,
+                    iouType,
+                },
+            ];
+        }
+
+        onParticipantsAdded(newSelectedOptions);
+    };
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
@@ -434,26 +390,23 @@ function MoneyRequestParticipantsSelector({
         ![CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE].some((option) => option === iouType) &&
         ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].some((option) => option === action);
 
-    const handleConfirmSelection = useCallback(
-        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
-            const shouldAddSingleParticipant = option && !participants.length;
-            if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
-                return;
-            }
+    const handleConfirmSelection = (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
+        const shouldAddSingleParticipant = option && !participants.length;
+        if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
+            return;
+        }
 
-            if (shouldAddSingleParticipant) {
-                addSingleParticipant(option);
-                return;
-            }
+        if (shouldAddSingleParticipant) {
+            addSingleParticipant(option);
+            return;
+        }
 
-            onFinish(CONST.IOU.TYPE.SPLIT);
-        },
-        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
-    );
+        onFinish(CONST.IOU.TYPE.SPLIT);
+    };
 
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
-    const optionLength = useMemo(() => {
+    const getOptionLength = () => {
         if (!areOptionsInitialized) {
             return 0;
         }
@@ -462,19 +415,20 @@ function MoneyRequestParticipantsSelector({
             length += section.data.length;
         });
         return length;
-    }, [areOptionsInitialized, sections]);
+    };
+    const optionLength = getOptionLength();
 
-    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
+    const shouldShowListEmptyContent = optionLength === 0 && !showLoadingPlaceholder;
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
-    const initiateContactImportAndSetState = useCallback(() => {
+    const initiateContactImportAndSetState = () => {
         setContactPermissionState(RESULTS.GRANTED);
         // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-    }, [importAndSaveContacts, setContactPermissionState]);
+    };
 
-    const footerContent = useMemo(() => {
+    const getFooterContent = () => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
         }
@@ -517,37 +471,24 @@ function MoneyRequestParticipantsSelector({
                 )}
             </>
         );
-    }, [
-        handleConfirmSelection,
-        participants.length,
-        isDismissed,
-        referralContentType,
-        shouldShowSplitBillErrorMessage,
-        styles,
-        translate,
-        shouldShowReferralBanner,
-        isCategorizeOrShareAction,
-        onFinish,
-    ]);
+    };
+    const footerContent = getFooterContent();
 
-    const onSelectRow = useCallback(
-        (option: Participant) => {
-            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
-                return;
-            }
+    const onSelectRow = (option: Participant) => {
+        if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
+            return;
+        }
 
-            if (isIOUSplit) {
-                addParticipantToSelection(option);
-                return;
-            }
+        if (isIOUSplit) {
+            addParticipantToSelection(option);
+            return;
+        }
 
-            addSingleParticipant(option);
-        },
-        [isIOUSplit, addParticipantToSelection, addSingleParticipant],
-    );
+        addSingleParticipant(option);
+    };
 
-    const footerContentAbovePaginationComponent = useMemo(() => {
+    const getFooterContentAbovePaginationComponent = () => {
         if (!showImportContacts) {
             return null;
         }
@@ -560,9 +501,10 @@ function MoneyRequestParticipantsSelector({
                 style={styles.mb3}
             />
         );
-    }, [showImportContacts, styles.mb3, translate]);
+    };
+    const footerContentAbovePaginationComponent = getFooterContentAbovePaginationComponent();
 
-    const ClickableImportContactTextComponent = useMemo(() => {
+    const getClickableImportContactTextComponent = () => {
         if (debouncedSearchTerm.length || isSearchingForReports) {
             return;
         }
@@ -573,15 +515,14 @@ function MoneyRequestParticipantsSelector({
                 isInSearch={false}
             />
         );
-    }, [debouncedSearchTerm, isSearchingForReports, showImportContacts, translate]);
-    const EmptySelectionListContentWithPermission = useMemo(() => {
-        return (
-            <>
-                {ClickableImportContactTextComponent}
-                <EmptySelectionListContent contentType={iouType} />
-            </>
-        );
-    }, [iouType, ClickableImportContactTextComponent]);
+    };
+    const ClickableImportContactTextComponent = getClickableImportContactTextComponent();
+    const EmptySelectionListContentWithPermission = (
+        <>
+            {ClickableImportContactTextComponent}
+            <EmptySelectionListContent contentType={iouType} />
+        </>
+    );
 
     useImperativeHandle(ref, () => ({
         focus: () => {
