@@ -126,12 +126,10 @@ function ReportActionItemParentAction({
                     return {};
                 }
                 const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
-                for (const {
-                    report: {reportID: ancestorReportID},
-                } of ancestors) {
-                    ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`] =
-                        allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReportID}`];
-                }
+                ancestors.forEach((ancestor) => {
+                    ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`] =
+                        allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
+                });
                 return ancestorReportNameValuePairs;
             },
         },

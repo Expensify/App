@@ -8300,7 +8300,7 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
  * trip-preview actions if will be the first ancestor (youngest descendent) report action in the hierarchy.
  *
  * @param ancestorReportAction - The ancestor report action to determine whether it should be excluded
- * @param isFirstAncestor - Whether it will be the first report action in the ancestery hierarchy
+ * @param isFirstAncestor - Whether it will be the first report action in the hierarchy
  * @returns boolean - true if the ancestor report action should be excluded, false otherwise
  */
 function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, isFirstAncestor: boolean): boolean {

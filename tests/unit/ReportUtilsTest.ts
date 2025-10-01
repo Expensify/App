@@ -7337,25 +7337,6 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('should return true for transaction thread PAY actions with IOUDetails', () => {
-            const transactionThreadAction: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    created: DateUtils.getDBTime(),
-                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                    IOUDetails: {
-                        amount: 100,
-                        currency: 'USD',
-                        comment: '',
-                    },
-                },
-            };
-
-            const result = shouldExcludeAncestorReportAction(transactionThreadAction, true);
-            expect(result).toBe(true);
-        });
-
         it('should return false for sent money report actions (PAY with IOUDetails)', () => {
             const sentMoneyAction: ReportAction = {
                 ...createRandomReportAction(1),
