@@ -180,6 +180,7 @@ function IOURequestStepCategory({
                                     if (!policy.areCategoriesEnabled) {
                                         enablePolicyCategories(policy.id, true, policyTagLists, allTransactionViolations, false);
                                     }
+                                    // eslint-disable-next-line deprecation/deprecation
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
                                             ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(

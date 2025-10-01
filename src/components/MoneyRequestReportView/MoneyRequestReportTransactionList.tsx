@@ -50,13 +50,17 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
+    /** The money request report containing the transactions */
     report: OnyxTypes.Report;
 
-    /** Policy that the report belongs to */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    /** The workspace to which the report belongs */
+    policy?: OnyxTypes.Policy;
 
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
+
+    /** Whether there is a pending delete transaction */
+    hasPendingDeletionTransaction?: boolean;
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -115,7 +119,16 @@ const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableCo
     }
 };
 
-function MoneyRequestReportTransactionList({report, transactions, newTransactions, reportActions, violations, scrollToNewTransaction, policy}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({
+    report,
+    transactions,
+    newTransactions,
+    reportActions,
+    violations,
+    hasPendingDeletionTransaction = false,
+    scrollToNewTransaction,
+    policy,
+}: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -136,8 +149,8 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
     const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(report?.reportID, policy), [report?.reportID, policy]);
 
     const hasPendingAction = useMemo(() => {
-        return transactions.some(getTransactionPendingAction);
-    }, [transactions]);
+        return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
+    }, [hasPendingDeletionTransaction, transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -280,7 +293,10 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
     if (isEmptyTransactions) {
         return (
             <>
-                <SearchMoneyRequestReportEmptyState />
+                <SearchMoneyRequestReportEmptyState
+                    report={report}
+                    policy={policy}
+                />
                 <MoneyRequestReportTotalSpend
                     isEmptyTransactions={isEmptyTransactions}
                     totalDisplaySpend={totalDisplaySpend}
