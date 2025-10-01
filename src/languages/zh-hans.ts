@@ -611,7 +611,7 @@ const translations = {
         disabled: '禁用',
         import: '导入',
         offlinePrompt: '您现在无法执行此操作。',
-        outstanding: '优秀',
+        outstanding: '未完成的',
         chats: '聊天',
         tasks: '任务',
         unread: '未读',
