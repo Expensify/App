@@ -4293,6 +4293,8 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    // temporary check for Search Page only
+    isSearchPageOption?: boolean,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -4376,6 +4378,14 @@ function canEditFieldOfMoneyRequest(
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        const isUserWorkspaceMember = Object.values(allPolicies ?? {}).find(
+            (policyItem) => policyItem?.employeeList?.[currentUserEmail ?? ''] && policyItem?.type !== CONST.POLICY.TYPE.PERSONAL,
+        );
+
+        if (isUnreportedExpense && isSearchPageOption && isUserWorkspaceMember) {
+            return true;
+        }
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
             return false;

@@ -3,7 +3,9 @@ import {InteractionManager} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -22,9 +24,15 @@ function SearchTransactionsChangeReport() {
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
+        canBeMissing: true,
+        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
+    });
 
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -32,6 +40,25 @@ function SearchTransactionsChangeReport() {
         Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) && firstTransactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
             ? firstTransactionReportID
             : undefined;
+
+    // Get the policy ID from the first transaction
+    const policyID = activePolicy ? activePolicyID : selectedTransactions[firstTransactionKey ?? '']?.policyID;
+
+    const createReport = () => {
+        const createdReportID = createNewReport(currentUserPersonalDetails, policyID);
+        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${createdReportID}`];
+        changeTransactionsReport(
+            selectedTransactionsKeys,
+            createdReportID,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined,
+            reportNextStep,
+        );
+        clearSelectedTransactions();
+        Navigation.goBack();
+    };
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionsKeys.length === 0) {
@@ -72,6 +99,7 @@ function SearchTransactionsChangeReport() {
             selectedReportID={selectedReportID}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
+            createReport={activePolicy ? createReport : undefined}
             isEditing
         />
     );
