@@ -1152,28 +1152,47 @@ function changeTransactionsReport(
         }
     });
 
-    // 9. Update next step for report
-    const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
-    const optimisticNextStep = buildNextStepNew(
-        nextStepReport,
-        policy,
-        accountID,
-        email,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-        shouldFixViolations,
-    );
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: optimisticNextStep,
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: reportNextStep,
+    // 9. Update next step for all affected reports
+    const allAffectedReportIDs = new Set([...Object.keys(updatedReportTotals), reportID]);
+
+    allAffectedReportIDs.forEach((affectedReportID) => {
+        const affectedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`];
+        if (!affectedReport) {
+            return;
+        }
+
+        const updatedReport = {
+            ...affectedReport,
+            total: updatedReportTotals[affectedReportID] ?? affectedReport.total,
+            reportID: affectedReport.reportID ?? affectedReportID,
+        };
+
+        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation);
+        const optimisticNextStep = buildNextStepNew(
+            updatedReport,
+            policy,
+            accountID,
+            email,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations,
+        );
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`,
+            value: optimisticNextStep,
+        });
+
+        // Only add failure data for the main report to avoid conflicts
+        if (affectedReportID === reportID) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+                value: reportNextStep,
+            });
+        }
     });
 
     const parameters: ChangeTransactionsReportParams = {
