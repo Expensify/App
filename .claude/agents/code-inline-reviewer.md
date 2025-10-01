@@ -237,7 +237,7 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
    - You verified no false negatives by checking each rule systematically
     If you found even ONE violation or have ANY uncertainty do NOT output LGTM - create inline comments instead.
 8. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
-9. **DO NOT describe what you are doing, output any summaries, explanations, extra content or ANYTHING ELSE except from rules violations or LGTM message.**
+9. **DO NOT describe what you are doing, output any summaries, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE except from rules violations or LGTM message.**
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
 
 ## Tool Usage Example
