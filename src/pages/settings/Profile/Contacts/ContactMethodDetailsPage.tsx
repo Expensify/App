@@ -19,7 +19,6 @@ import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/V
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
@@ -62,7 +61,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {formatPhoneNumber, translate} = useLocalize();
-    const theme = useTheme();
     const themeStyles = useThemeStyles();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -135,6 +133,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      */
     const toggleDeleteModal = useCallback((isOpen: boolean) => {
         if (canUseTouchScreen() && isOpen) {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 setIsDeleteModalOpen(isOpen);
             });
@@ -219,6 +218,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             onConfirm={confirmDeleteAndHideModal}
             onCancel={() => toggleDeleteModal(false)}
             onModalHide={() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focusLastSelected?.();
                 });
@@ -265,7 +265,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('common.remove')}
                         icon={Trashcan}
-                        iconFill={theme.danger}
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 showDelegateNoAccessModal();
@@ -283,6 +282,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focus?.();
                 });

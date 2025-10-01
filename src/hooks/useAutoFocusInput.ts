@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import useOnyx from './useOnyx';
+import usePrevious from './usePrevious';
 import useSidePanel from './useSidePanel';
 
 type UseAutoFocusInput = {
@@ -32,6 +33,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
+        // eslint-disable-next-line deprecation/deprecation
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
@@ -62,13 +64,14 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     // Trigger focus when Side Panel transition ends
     const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanel();
+    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
     useEffect(() => {
-        if (!shouldHideSidePanel) {
+        if (!shouldHideSidePanel || prevShouldHideSidePanel) {
             return;
         }
 
         Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
-    }, [isSidePanelTransitionEnded, shouldHideSidePanel]);
+    }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
