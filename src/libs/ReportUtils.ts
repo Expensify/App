@@ -85,7 +85,8 @@ import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
-import {getEnvironment, getEnvironmentURL} from './Environment/Environment';
+import {getEnvironmentURL} from './Environment/Environment';
+import getEnvironment from './Environment/getEnvironment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
@@ -100,7 +101,6 @@ import {isEmailPublicDomain} from './LoginUtils';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
-import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
@@ -120,7 +120,6 @@ import {
     getShortMentionIfFound,
 } from './PersonalDetailsUtils';
 import {
-    arePaymentsEnabled,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getCleanedTagName,
@@ -2490,7 +2489,8 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(moneyRequestReport?.policyID);
 
-    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy) && !isOpenReport(moneyRequestReport)) {
+    // Adding or deleting transactions is not allowed on a closed report
+    if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isOpenReport(moneyRequestReport)) {
         return false;
     }
 
@@ -4391,7 +4391,11 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
+        if (isUnreportedExpense) {
+            return true;
+        }
+
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return false;
         }
 
@@ -4401,7 +4405,7 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+        if (isInvoiceReport(moneyRequestReport)) {
             return (
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
@@ -4414,18 +4418,16 @@ function canEditFieldOfMoneyRequest(
 
         // If the report is Open, then only submitters, admins can move expenses
         const isOpen = isOpenExpenseReport(moneyRequestReport);
-        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+        if (isOpen && !isSubmitter && !isAdmin) {
             return false;
         }
 
-        return isUnreportedExpense
-            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 0
-            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 1 ||
-                  (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
+        return (
+            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
+            ).length > 1 ||
+            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
+        );
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -6397,8 +6399,12 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>) {
     const reportName = getReportName(report) ?? report?.reportName ?? '';
-    const reportUrl = getReportURLForCurrentContext(report?.reportID);
-    return translateLocal('iou.movedTransaction', {reportUrl, reportName});
+    const reportUrl = `${environmentURL}/r/${report?.reportID}`;
+    const message = translateLocal('iou.movedTransaction', {
+        reportUrl,
+        reportName,
+    });
+    return message;
 }
 
 function getUnreportedTransactionMessage() {
@@ -6423,8 +6429,8 @@ function getMovedActionMessage(action: ReportAction, report: OnyxEntry<Report>) 
     const toPolicyName = getPolicyNameByID(toPolicyID);
     return translateLocal('iou.movedAction', {
         shouldHideMovedReportUrl: !isDM(report),
-        movedReportUrl: getReportURLForCurrentContext(movedReportID),
-        newParentReportUrl: getReportURLForCurrentContext(newParentReportID),
+        movedReportUrl: `${environmentURL}/r/${movedReportID}`,
+        newParentReportUrl: `${environmentURL}/r/${newParentReportID}`,
         toPolicyName,
     });
 }
@@ -6748,8 +6754,8 @@ function buildOptimisticMovedReportAction(
     const movedActionMessage = [
         {
             html: shouldHideMovedReportUrl
-                ? `moved this <a href='${getReportURLForCurrentContext(movedReportID)}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
-                : `moved this report to the <a href='${getReportURLForCurrentContext(newParentReportID)}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+                ? `moved this <a href='${CONST.NEW_EXPENSIFY_URL}r/${movedReportID}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
+                : `moved this report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
             text: `moved this report to the ${policyName} workspace`,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
@@ -6836,8 +6842,11 @@ function buildOptimisticTransactionAction(
     targetReportID: string,
 ): ReportAction {
     const reportName = allReports?.[targetReportID]?.reportName ?? '';
-    const url = getReportURLForCurrentContext(targetReportID);
-    const [actionText, messageHtml] = [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
+    const url = `${environmentURL}/r/${targetReportID}`;
+    const [actionText, messageHtml] =
+        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
+            ? [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
+            : ['moved this expense to your personal space', 'moved this expense to your personal space'];
 
     return {
         actionName: type,
@@ -9667,10 +9676,6 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
-function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdminPolicyUtils(policy);
-}
-
 function getReportActionWithSmartscanError(reportActions: ReportAction[]): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
@@ -10155,6 +10160,7 @@ function getReportActionActorAccountID(
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
 
         default:
@@ -10918,7 +10924,7 @@ function prepareOnboardingOnyxData(
     guidedSetupData.push({type: 'message', ...textMessage});
 
     let selfDMParameters: SelfDMParameters = {};
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         let createdAction: ReportAction;
@@ -11538,18 +11544,6 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function findReportIDForAction(action?: ReportAction): string | undefined {
-    if (!allReportActions || !action?.reportActionID) {
-        return undefined;
-    }
-
-    return Object.keys(allReportActions)
-        .find((reportActionsKey) => {
-            const reportActions = allReportActions?.[reportActionsKey];
-            return !!reportActions && !isEmptyObject(reportActions[action.reportActionID]);
-        })
-        ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
-}
 function canRejectReportAction(report: Report, policy?: Policy): boolean {
     if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
         return false;
@@ -11791,15 +11785,6 @@ function getReportStatusTranslation(stateNum?: number, statusNum?: number): stri
     return '';
 }
 
-function getReportURLForCurrentContext(reportID: string | undefined): string {
-    if (!reportID) {
-        return `${environmentURL}/r/`;
-    }
-    const isInSearchContext = isSearchTopmostFullScreenRoute();
-    const relativePath = isInSearchContext ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}) : ROUTES.REPORT_WITH_ID.getRoute(reportID);
-    return `${environmentURL}/${relativePath}`;
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -11859,7 +11844,6 @@ export {
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canEditPolicyDescription,
     canEditReportAction,
     canEditReportDescription,
     canEditRoomVisibility,
@@ -12177,7 +12161,6 @@ export {
     generateReportAttributes,
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
-    findReportIDForAction,
     isWorkspaceEligibleForReportChange,
     pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
@@ -12190,7 +12173,6 @@ export {
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
-    getReportURLForCurrentContext,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
     getReportName,

@@ -348,6 +348,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
     const shouldShowEnableGlobalReimbursementsButton =
         isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
+        paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
 
@@ -501,7 +502,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         icon={Expensicons.Transfer}
                                                         onPress={triggerKYCFlow}
                                                         shouldShowRightIcon
-                                                        disabled={network.isOffline}
                                                         wrapperStyle={[
                                                             styles.transferBalance,
                                                             shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
@@ -554,7 +554,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
                                                     }}
-                                                    disabled={network.isOffline}
                                                     wrapperStyle={[
                                                         styles.transferBalance,
                                                         shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,

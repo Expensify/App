@@ -5,6 +5,7 @@ import type {WorkingUpdates} from '@libs/OptimisticReportNamesCache';
 import {applyUpdateToCache} from '@libs/OptimisticReportNamesCache';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 
@@ -37,7 +38,7 @@ describe('OptimisticReportNames', () => {
     } as Report;
 
     const mockContext: UpdateContext = {
-        betas: ['authAutoReportTitle'],
+        betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
         betaConfiguration: {},
         allReports: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
