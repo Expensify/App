@@ -5,17 +5,17 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
 
 type UserTypingEventListenerProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {selector: (path) => path ?? ''});
+    const [lastVisitedPath = ''] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();

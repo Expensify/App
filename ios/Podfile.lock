@@ -259,7 +259,7 @@ PODS:
   - FirebaseSharedSwift (11.15.0)
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
-  - FullStory (1.61.0)
+  - FullStory (1.64.2)
   - fullstory_react-native (1.7.6):
     - boost
     - DoubleConversion
@@ -524,8 +524,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -550,8 +548,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -575,8 +571,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -602,8 +596,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -628,8 +620,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -654,8 +644,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -680,8 +668,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -706,8 +692,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -732,8 +716,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -758,8 +740,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -784,8 +764,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -810,8 +788,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -836,8 +812,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -862,8 +836,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
-    - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
     - SocketRocket
@@ -4063,7 +4035,7 @@ DEPENDENCIES:
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
-  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - group-ib-fp (from `../node_modules/group-ib-fp`)
@@ -4276,7 +4248,7 @@ EXTERNAL SOURCES:
   fmt:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz
   fullstory_react-native:
     :path: "../node_modules/@fullstory/react-native"
   glog:
@@ -4519,7 +4491,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz
 
 SPEC CHECKSUMS:
   Airship: dd7941c14b71dd34dd0bcd408ad389db252d1264
@@ -4527,7 +4499,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXConstants: 59d46d25b89f88cc38291a56dbce4d550758f72d
@@ -4558,7 +4530,7 @@ SPEC CHECKSUMS:
   FirebaseSharedSwift: e17c654ef1f1a616b0b33054e663ad1035c8fd40
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
-  FullStory: 3bf0840584001b8fba01e90f9f660db43025521d
+  FullStory: c381e701f709f5185471800bbb626f079d93fc0d
   fullstory_react-native: 873018e02846d547b395c8c4b21c9665f59acc71
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
@@ -4648,7 +4620,7 @@ SPEC CHECKSUMS:
   react-native-webview: ad7fa7e61a503d924714c5a5523869528179d349
   React-NativeModulesApple: 8700c27bb8df3fcd50f7ff4acee32010b2d35e4d
   React-oscompat: b12c633e9c00f1f99467b1e0e0b8038895dae436
-  React-perflogger: e9171f174532715df835caa036828e8940ae70e5
+  React-perflogger: 6fd2f6811533e9c19a61e855c3033eecbf4ad2a0
   React-performancetimeline: 6a80cf576b1d3c7415c07418038f5b279e17e75a
   React-RCTActionSheet: 3f741a3712653611a6bfc5abceb8260af9d0b218
   React-RCTAnimation: 2edeebfba175cc2e937e2752209ab605d3c48f21
@@ -4663,7 +4635,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: fee112652ac7569ea9abe910206e1685f5f9adba
   React-RCTText: 7ee9d0bc16b3a8149f8df6d70c48e724d0db1d89
   React-RCTVibration: 619d613abaeb05f6fbc2b2e5e33f724f05df8eb8
-  React-rendererconsistency: d675334fad349da36e70264ac02ab9789066ff49
+  React-rendererconsistency: 68db5a64f0c42b0337e25ba7b0e9513caae1389d
   React-renderercss: 15fb7d4d47ad853f7a75c549a64a055edb7da7d2
   React-rendererdebug: cd1f688babdf457f60d4afc2ccb4fb5d4ccc36df
   React-RuntimeApple: 0d0c3a50b8fd5e54dcc3a9f34cda2e82703438bf
@@ -4709,6 +4681,6 @@ SPEC CHECKSUMS:
   VisionCamera: 2230ecfd78a1f6cddd8be0fe4e6589f21a6385e1
   Yoga: f95f7e60346fa6828def95fbe5017346ccc8940e
 
-PODFILE CHECKSUM: 94a51eec89bb8279467c6b11f974ad6af2e4b74c
+PODFILE CHECKSUM: 0ec3e492ca9e978556a039fa0ab1537bf3d8541f
 
 COCOAPODS: 1.15.2

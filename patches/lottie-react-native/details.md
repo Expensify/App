@@ -5,11 +5,11 @@
 - Reason:
 
     ```
-    Fix wrong animation when navigating between settings screens
+    This patch fixes wrong animation when navigating between settings screens.
     ```
-
-- Upstream PR/issue: 🛑
-- E/App issue: <Please create an E/App issue ([template](./../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)) for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
+  
+- Upstream PR/issue: 🛑, commented in the App PR https://github.com/Expensify/App/pull/13767#issuecomment-3346316243
+- E/App issue: https://github.com/Expensify/App/issues/8503
 - PR introducing patch: https://github.com/Expensify/App/pull/13767
 
 ### [lottie-react-native+6.5.1+002+bridgeless.patch](lottie-react-native+6.5.1+002+bridgeless.patch)
@@ -29,7 +29,7 @@
 - Reason:
 
     ```
-    React Native v0.77.0 support
+    This patch supports RN 77 upgrade.
     ```
 
 - Upstream PR/issue: https://github.com/lottie-react-native/lottie-react-native/pull/1306

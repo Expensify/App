@@ -71,7 +71,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && <Overlay onPress={handleOverlayPress} />}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                <Animated.View style={styles.animatedRHPNavigatorContainer(shouldUseNarrowLayout, expandedRHPProgress)}>
+                <Animated.View style={[styles.animatedRHPNavigatorContainer, styles.animatedRHPNavigatorContainerWidth(shouldUseNarrowLayout, expandedRHPProgress)]}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         screenListeners={screenListeners}
