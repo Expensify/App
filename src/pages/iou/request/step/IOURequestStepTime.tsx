@@ -5,6 +5,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import TimeModalPicker from '@components/TimeModalPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,7 +53,8 @@ function IOURequestStepTime({
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
+    const shouldShowLoading = isEmptyObject(transaction?.comment?.customUnit);
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
 
     const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
@@ -120,6 +122,10 @@ function IOURequestStepTime({
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
+
+    if (shouldShowLoading) {
+        return <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />;
+    }
 
     return (
         <StepScreenWrapper
