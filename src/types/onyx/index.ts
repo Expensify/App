@@ -108,6 +108,7 @@ import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -234,6 +235,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    SupportalPermissionDenied,
     PurchaseList,
     ReportUserIsTyping,
     PolicyReportField,
