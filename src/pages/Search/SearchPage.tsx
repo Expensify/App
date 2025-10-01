@@ -15,7 +15,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -649,17 +648,9 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = lastNonEmptySearchResults.current;
     }
 
-    const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
-    const shouldShowFooter = !!metadata?.count || selectedTransactionsKeys.length > 0;
 
-    const offlineIndicatorStyle = useMemo(() => {
-        if (shouldShowFooter) {
-            return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
-        }
-
-        return [styles.mtAuto];
-    }, [shouldShowFooter, styles]);
+    const offlineIndicatorStyle = [styles.mtAuto];
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -698,16 +689,6 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const footerData = useMemo(() => {
-        const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
-        const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.convertedCurrency;
-        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
-
-        return {count, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
-
     if (shouldUseNarrowLayout) {
         return (
             <>
@@ -715,11 +696,9 @@ function SearchPage({route}: SearchPageProps) {
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
-                        metadata={metadata}
                         headerButtonsOptions={headerButtonsOptions}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
                         currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
                         currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
                         confirmPayment={onBulkPaySelected}
@@ -840,13 +819,6 @@ function SearchPage({route}: SearchPageProps) {
                                         setIsSorting(true);
                                     }}
                                 />
-                                {shouldShowFooter && (
-                                    <SearchPageFooter
-                                        count={footerData.count}
-                                        total={footerData.total}
-                                        currency={footerData.currency}
-                                    />
-                                )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
                                         icon={Expensicons.SmartScan}

@@ -2838,4 +2838,108 @@ describe('SearchUIUtils', () => {
             expect(transactionThread).toBeTruthy();
         });
     });
+
+    describe('calculateSearchPageFooterData', () => {
+        const mockTransaction = (amount: number, currency = 'USD') => ({
+            isSelected: true,
+            canDelete: true,
+            canHold: false,
+            isHeld: false,
+            canUnhold: false,
+            canChangeReport: true,
+            action: CONST.SEARCH.ACTION_TYPES.VIEW,
+            reportID,
+            policyID,
+            amount,
+            convertedAmount: amount,
+            convertedCurrency: currency,
+        });
+
+        it('should return null when no data provided', () => {
+            expect(SearchUIUtils.calculateSearchPageFooterData({}, [], undefined, 'USD')).toBeNull();
+        });
+
+        it('should calculate footer data for selected transactions and use first transaction currency', () => {
+            const selectedTransactions = {
+                txn1: mockTransaction(5000, 'EUR'),
+                txn2: mockTransaction(3000, 'EUR'),
+            };
+
+            const result = SearchUIUtils.calculateSearchPageFooterData(selectedTransactions, [], undefined, 'USD');
+
+            expect(result).toEqual({
+                count: 2,
+                total: 8000,
+                currency: 'EUR', // Uses first transaction currency, not metadata currency
+            });
+        });
+
+        it('should calculate footer data for visible transactions (ungrouped and grouped)', () => {
+            // Ungrouped transactions
+            const visibleData = [
+                {...transactionsListItems[0], convertedAmount: 10000, convertedCurrency: 'USD'},
+                {...transactionsListItems[0], convertedAmount: 15000, convertedCurrency: 'USD'},
+            ];
+
+            const ungroupedResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
+            expect(ungroupedResult).toEqual({
+                count: 2,
+                total: 25000,
+                currency: 'USD',
+            });
+
+            // Grouped transactions
+            const groupedData: TransactionGroupListItemType[] = [
+                {
+                    transactions: [
+                        {...transactionsListItems[0], convertedAmount: 10000},
+                        {...transactionsListItems[0], convertedAmount: 5000},
+                    ],
+                    keyForList: 'group1',
+                } as TransactionGroupListItemType,
+                {
+                    transactions: [{...transactionsListItems[0], convertedAmount: 8000}],
+                    keyForList: 'group2',
+                } as TransactionGroupListItemType,
+            ];
+
+            const groupedResult = SearchUIUtils.calculateSearchPageFooterData({}, groupedData, CONST.SEARCH.GROUP_BY.REPORTS, 'USD');
+            expect(groupedResult).toEqual({
+                count: 3,
+                total: 23000,
+                currency: 'USD',
+            });
+        });
+
+        it('should use Math.abs for negative amounts and prioritize selected transactions', () => {
+            // Test negative amounts with visible data
+            const visibleData = [
+                {...transactionsListItems[0], convertedAmount: -10000},
+                {...transactionsListItems[0], convertedAmount: -5000},
+            ];
+
+            const visibleResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
+            expect(visibleResult).toEqual({
+                count: 2,
+                total: 15000, // abs(-10000) + abs(-5000)
+                currency: 'USD',
+            });
+
+            // Test that selected transactions are prioritized over visible data
+            const selectedTransactions = {txn1: mockTransaction(5000)};
+            const priorityResult = SearchUIUtils.calculateSearchPageFooterData(selectedTransactions, visibleData, undefined, 'USD');
+            expect(priorityResult).toEqual({
+                count: 1,
+                total: 5000, // Only selected transaction
+                currency: 'USD',
+            });
+        });
+
+        it('should fallback to metadata currency when convertedCurrency is empty', () => {
+            const selectedTransactions = {txn1: {...mockTransaction(5000), convertedCurrency: ''}};
+            const result = SearchUIUtils.calculateSearchPageFooterData(selectedTransactions, [], undefined, 'EUR');
+
+            expect(result?.currency).toBe('EUR');
+        });
+    });
 });
