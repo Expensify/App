@@ -228,7 +228,7 @@ We use Reassure for monitoring performance regression. More detailed information
 
 ## CodeCov
 
-[CodeCov](https://about.codecov.io/) is the service we use to measure and track [code coverage](https://about.codecov.io/resource/what-is-code-coverage/).  It comments on PRs with metrics that authors and reviewers can use to judge the relative safety of the code. It's one metric and shouldn't be used in isolation, but it can provide valuable insight into how risky a PR might be. If you find an issue with the generated coverage report please reach out to an Expensify engineer in our [open-source Slack channel](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q).
+[CodeCov](https://about.codecov.io/) is the service we use to measure and track [code coverage](https://about.codecov.io/resource/what-is-code-coverage/). It comments on PRs with metrics that authors and reviewers can use to judge the relative safety of the code. It's one metric and shouldn't be used in isolation, but it can provide valuable insight into how risky a PR might be. If you find an issue with the generated coverage report please reach out to an Expensify engineer in our [open-source Slack channel](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q).
 
 ----
 
