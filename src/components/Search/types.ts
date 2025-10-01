@@ -121,6 +121,10 @@ type ASTNode = {
     right: string | ASTNode | string[];
 };
 
+/**
+ * Metadata describing where each filter originated in the raw input so the
+ * consumer can restore the author’s ordering (e.g., for rebuilding the query).
+ */
 type SearchQueryPositionEntry = {
     key: string;
     position: number;
