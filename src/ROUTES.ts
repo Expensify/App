@@ -274,9 +274,11 @@ const ROUTES = {
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/report-virtual-fraud`, backTo),
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
+    },
+    SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT: {
+        route: `settings/wallet/card/:cardID/report-virtual-fraud/${VERIFY_ACCOUNT}`,
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud/${VERIFY_ACCOUNT}` as const,
     },
     SETTINGS_REPORT_FRAUD_CONFIRMATION: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',

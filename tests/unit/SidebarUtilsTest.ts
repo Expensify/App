@@ -1526,6 +1526,76 @@ describe('SidebarUtils', () => {
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
             });
+
+            it('uses adminAccountID as actor if last action is an admin-submit report action', async () => {
+                const report: Report = {
+                    ...createRandomReport(0),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                };
+                const lastAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED> = {
+                    ...createRandomReportAction(0),
+                    person: [
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: 'Email One (on behalf of ',
+                        },
+                        {
+                            type: 'TEXT',
+                            style: 'strong',
+                            text: 'Email Two',
+                        },
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: ' via admin-submit)',
+                        },
+                    ],
+                    actorAccountID: 2,
+                    message: [
+                        {
+                            type: 'TEXT',
+                            style: 'normal',
+                            text: 'submitted $5.00',
+                        },
+                    ],
+                    originalMessage: {
+                        admin: 'email1@test.com',
+                        adminAccountID: 1,
+                        amount: 500,
+                        cc: '',
+                        currency: 'USD',
+                        message: '',
+                        to: 'email1@test.com',
+                    },
+                    previousMessage: undefined,
+                    automatic: false,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                    shouldShow: true,
+                    reportActionID: '6582129439308627259',
+                    adminAccountID: 1,
+                    whisperedToAccountIDs: [],
+                };
+                const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: undefined,
+                    reportNameValuePairs: {},
+                    personalDetails: LHNTestUtils.fakePersonalDetails,
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    oneTransactionThreadReport: undefined,
+                    card: undefined,
+                    localeCompare,
+                    lastAction,
+                    lastActionReport: undefined,
+                });
+
+                expect(result?.alternateText).toBe(`One: submitted`);
+            });
         });
     });
 

@@ -34,6 +34,7 @@ function TestDriveDemo() {
     });
 
     useEffect(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
             completeTestDriveTask();
@@ -46,6 +47,7 @@ function TestDriveDemo() {
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             Navigation.goBack();
 

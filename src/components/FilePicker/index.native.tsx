@@ -81,7 +81,6 @@ function FilePicker({children}: FilePickerProps) {
      *
      * @param files The array of DocumentPickerResponse
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const pickFile = async (): Promise<LocalCopy> => {
         const [file] = await pick({
             type: [types.allFiles],
@@ -115,7 +114,6 @@ function FilePicker({children}: FilePickerProps) {
      * @param onPickedHandler A callback that will be called with the selected file
      * @param onCanceledHandler A callback that will be called if the file is canceled
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const open = (onPickedHandler: (file: FileObject) => void, onCanceledHandler: () => void = () => {}) => {
         completeFileSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
