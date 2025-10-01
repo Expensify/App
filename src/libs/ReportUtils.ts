@@ -4273,7 +4273,8 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = fals
 
     const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain.at(approvalChain.indexOf(currentUserEmail ?? '') + 1);
     if (!nextApproverEmail) {
-        return submitToAccountID;
+        // If there's no next approver in the chain, return null to indicate the current user is the final approver
+        return null;
     }
 
     return getAccountIDsByLogins([nextApproverEmail]).at(0);

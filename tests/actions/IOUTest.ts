@@ -8881,4 +8881,139 @@ describe('actions/IOU', () => {
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
     });
+
+    describe('approveMoneyRequest with normal approval chain', () => {
+        const adminAccountID = 1;
+        const managerAccountID = 2;
+        const employeeAccountID = 3;
+        const adminEmail = 'admin@test.com';
+        const managerEmail = 'manager@test.com';
+        const employeeEmail = 'employee@test.com';
+
+        let expenseReport: Report;
+        let policy: Policy;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+
+            // Set up personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [managerAccountID]: {
+                    accountID: managerAccountID,
+                    login: managerEmail,
+                    displayName: 'Manager User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Create policy with approval hierarchy
+            policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: 'user',
+                        submitsTo: managerEmail,
+                    },
+                    [managerEmail]: {
+                        email: managerEmail,
+                        role: 'user',
+                        submitsTo: adminEmail,
+                        forwardsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: 'admin',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: managerAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should follow normal approval chain when manager approves without take control', async () => {
+            // Set session as manager (first approver in the chain)
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: managerEmail,
+                accountID: managerAccountID,
+            });
+
+            // Manager approves the report (no take control actions)
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be submitted to admin (next in approval chain) since manager is not the final approver
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(updatedReport?.managerID).toBe(adminAccountID); // Should be forwarded to admin
+        });
+        
+        it('should handle multi-step approval chain correctly', async () => {
+            // First, manager approves
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: managerEmail,
+                accountID: managerAccountID,
+            });
+
+            approveMoneyRequest(expenseReport);
+            await waitForBatchedUpdates();
+
+            // Should be submitted to admin
+            let updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+            expect(updatedReport?.managerID).toBe(adminAccountID);
+
+            // Then, admin approves
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            approveMoneyRequest(updatedReport);
+            await waitForBatchedUpdates();
+
+            // Should be fully approved
+            updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+    });
 });
