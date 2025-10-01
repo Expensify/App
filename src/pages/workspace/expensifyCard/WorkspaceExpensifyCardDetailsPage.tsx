@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
@@ -72,6 +72,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
+    const shouldGoBack = useRef(false);
+
     const fetchCardDetails = useCallback(() => {
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
@@ -82,7 +84,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
-        Navigation.goBack();
+        shouldGoBack.current = true;
         InteractionManager.runAfterInteractions(() => {
             deactivateCardAction(defaultFundID, card);
         });
@@ -218,6 +220,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         confirmText={translate('workspace.card.deactivateCardModal.deactivate')}
                         cancelText={translate('common.cancel')}
                         danger
+                        onModalHide={() => shouldGoBack.current && Navigation.goBack()}
                     />
                     <DecisionModal
                         title={translate('common.youAppearToBeOffline')}
