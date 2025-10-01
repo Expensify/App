@@ -3728,6 +3728,18 @@ const translations = {
                 createEntitiesDescription: 'Expensify creerà automaticamente i fornitori in QuickBooks Desktop se non esistono già.',
             },
             itemsDescription: 'Scegli come gestire gli elementi di QuickBooks Desktop in Expensify.',
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         qbo: {
             connectedTo: 'Connesso a',

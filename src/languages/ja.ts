@@ -3710,6 +3710,18 @@ const translations = {
                 createEntitiesDescription: 'Expensifyは、QuickBooks Desktopに既に存在しない場合、自動的にベンダーを作成します。',
             },
             itemsDescription: 'ExpensifyでQuickBooks Desktopの項目をどのように処理するか選択します。',
+            accountingMethods: {
+                label: 'エクスポートのタイミング',
+                description: '経費をエクスポートするタイミングを選択:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                },
+            },
         },
         qbo: {
             connectedTo: '接続済み',
