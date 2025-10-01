@@ -808,6 +808,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 duplicateTransactionViolations,
                 isSingleTransactionView,
                 undefined,
+                undefined,
                 isChatIOUReportArchived,
             );
             removeTransaction(iouTransactionID);

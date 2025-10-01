@@ -310,7 +310,16 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             if (isTrackExpenseAction(reportAction)) {
                 deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, isReportArchived);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, undefined, undefined, isChatIOUReportArchived);
+                deleteMoneyRequest(
+                    originalMessage?.IOUTransactionID,
+                    reportAction,
+                    duplicateTransactions,
+                    duplicateTransactionViolations,
+                    undefined,
+                    undefined,
+                    undefined,
+                    isChatIOUReportArchived,
+                );
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport(reportAction.childReportID);
