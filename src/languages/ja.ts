@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -142,6 +143,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -407,7 +409,7 @@ const translations = {
         download: 'ダウンロード',
         downloading: 'ダウンロード中',
         uploading: 'アップロード中',
-        pin: 'ピン',
+        pin: 'ピン留めする',
         unPin: 'ピン留めを解除',
         back: '戻る',
         saveAndContinue: '保存して続行',
@@ -671,7 +673,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
-        description: 'サポートがログインしているときにこの操作を行う権限がありません。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `サポートがログインしているときにこのアクションを実行する権限がありません（コマンド: ${command ?? ''}）。Successがこのアクションを実行できるべきだと思われる場合は、Slackで会話を開始してください。`,
     },
     lockedAccount: {
         title: 'アカウントがロックされました',
@@ -1711,13 +1718,13 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'アカウントを統合する',
         accountDetails: {
-            accountToMergeInto: 'マージしたいアカウントを入力してください',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `マージしたいアカウントを<strong>${login}</strong>に入力する。`,
             notReversibleConsent: 'これは元に戻せないことを理解しています。',
         },
         accountValidate: {
             confirmMerge: 'アカウントをマージしてもよろしいですか？',
-            lossOfUnsubmittedData: `アカウントの統合は元に戻せず、未提出の経費が失われる結果になります。`,
-            enterMagicCode: `続行するには、に送信されたマジックコードを入力してください。`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) => `アカウントの統合は不可逆的であり、<strong>${login}</strong>の未提出の経費は失われます。`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `続行するには、<strong>${login}</strong>に送られたマジックコードを入力してください。`,
             errors: {
                 incorrectMagicCode: '無効または不正なマジックコードです。もう一度お試しいただくか、新しいコードをリクエストしてください。',
                 fallback: '問題が発生しました。後でもう一度お試しください。',
@@ -2214,7 +2221,7 @@ const translations = {
         enterAuthenticatorCode: '認証コードを入力してください',
         enterRecoveryCode: 'リカバリーコードを入力してください',
         requiredWhen2FAEnabled: '2FAが有効になっている場合に必要',
-        requestNewCode: '新しいコードをリクエスト',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `<a>${timeRemaining}</a>後に新しいコードをリクエストしてください`,
         requestNewCodeAfterErrorOccurred: '新しいコードをリクエストする',
         error: {
             pleaseFillMagicCode: 'マジックコードを入力してください',
@@ -2615,13 +2622,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `私たちのメールプロバイダーは、配信の問題により${login}へのメールを一時的に停止しました。ログインを解除するには、次の手順に従ってください。`,
-        confirmThat: ({login}: ConfirmThatParams) => `${login}が正しく綴られており、実際に配信可能なメールアドレスであることを確認してください。`,
-        emailAliases: '「expenses@domain.com」のようなメールエイリアスは、有効なExpensifyログインとするために、自分のメール受信箱にアクセスできる必要があります。',
-        ensureYourEmailClient: 'メールクライアントがexpensify.comからのメールを許可していることを確認してください。',
-        youCanFindDirections: 'このステップを完了する方法についての指示を見つけることができます。',
-        helpConfigure: 'ただし、メール設定の構成にはIT部門の支援が必要な場合があります。',
-        onceTheAbove: '上記の手順が完了したら、に連絡してください。',
-        toUnblock: 'ログインを解除するために。',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>${login}が正しく綴られており、実際に配信可能なメールアドレスであることを確認してください。</strong>「expenses@domain.com」のようなメールエイリアスは、有効なExpensifyログインとするために、自分のメール受信箱にアクセスできる必要があります。`,
+        ensureYourEmailClient: `<strong>メールクライアントがexpensify.comからのメールを許可していることを確認してください。</strong>このステップを完了する方法は<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>を参照してください。`,
+        onceTheAbove: `上記の手順が完了したら、<a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a>までご連絡いただき、ログインブロックを解除してください。`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) => `${login}にSMSメッセージを送信できなかったため、一時的に停止しました。番号を確認してください。`,
@@ -3270,6 +3274,9 @@ const translations = {
         thisStep: 'このステップは完了しました',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
+        error: {
+            emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
+        },
     },
     agreementsStep: {
         agreements: '契約書',
@@ -3615,7 +3622,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: '日当料金を設定して、従業員の1日の支出を管理します。',
+            subtitle: `<muted-text>日当料金を設定して、従業員の1日の支出を管理します。<a href="${CONST.DEEP_DIVE_PER_DIEM}">詳しくはこちら</a>。</muted-text>`,
             amount: '金額',
             deleteRates: () => ({
                 one: 'レートを削除',
@@ -4378,10 +4385,7 @@ const translations = {
                 whoIsYourBankAccount: 'あなたの銀行はどこですか？',
                 whereIsYourBankLocated: 'あなたの銀行はどこにありますか？',
                 howDoYouWantToConnect: 'どのように銀行に接続したいですか？',
-                learnMoreAboutOptions: {
-                    text: 'これらについて詳しく学ぶ',
-                    linkText: 'オプション。',
-                },
+                learnMoreAboutOptions: `<muted-text>これらの<a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">オプション</a>の詳細については、こちらをご覧ください。</muted-text>`,
                 commercialFeedDetails: '銀行との設定が必要です。これは通常、大企業によって使用され、資格がある場合には最良のオプションであることが多いです。',
                 commercialFeedPlaidDetails: `銀行との設定が必要ですが、私たちが案内します。これは通常、大企業に限定されています。`,
                 directFeedDetails: '最も簡単な方法です。マスター資格情報を使用してすぐに接続します。この方法が最も一般的です。',
@@ -5400,8 +5404,8 @@ const translations = {
             updateDetails: '詳細を更新',
             yesDisconnectMyBankAccount: 'はい、私の銀行口座を切断してください。',
             yesStartOver: 'はい、最初からやり直してください。',
-            disconnectYour: '切断する',
-            bankAccountAnyTransactions: '銀行口座。この口座の未処理の取引は引き続き完了します。',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `<strong>${bankName}</strong>銀行口座を切断してください。この口座の未処理の取引は引き続き完了します。`,
             clearProgress: 'やり直すと、これまでの進捗がクリアされます。',
             areYouSure: 'よろしいですか？',
             workspaceCurrency: 'ワークスペース通貨',
@@ -5521,11 +5525,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
-            },
-            reports: {
-                title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',
@@ -5658,8 +5657,7 @@ const translations = {
                 nonBillable: '非請求対象',
                 nonBillableDescription: '経費は時々クライアントに再請求されます。',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceiptsは自動作成されます',
-                eReceiptsHintLink: 'ほとんどのUSDクレジット取引の場合',
+                eReceiptsHint: `eレシートは[ほとんどのUSDクレジット取引で](${CONST.DEEP_DIVE_ERECEIPTS})自動作成されます。`,
                 attendeeTracking: '出席者の追跡',
                 attendeeTrackingHint: '各経費の一人当たりの費用を追跡します。',
                 prohibitedDefaultDescription:
