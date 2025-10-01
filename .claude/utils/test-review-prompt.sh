@@ -121,7 +121,7 @@ REVIEW_REQUEST="$REVIEW_OUTPUT_DIR/review-request-${TIMESTAMP}.txt"
     echo "- Analyze the provided diff and file contents directly"
     echo "- The files are ready for your review - proceed with the analysis"
     echo ""
-    cat "$PROMPT_FILE" | sed 's/Read each changed file carefully using the Read tool/Carefully analyze each changed file from the complete content provided below/g' | sed 's/using the available GitHub inline comment tool/as console output in GitHub comment format/g'
+    sed 's/Read each changed file carefully using the Read tool/Carefully analyze each changed file from the complete content provided below/g; s/using the available GitHub inline comment tool/as console output in GitHub comment format/g' "$PROMPT_FILE"
     echo ""
     echo "---"
     echo ""
@@ -180,7 +180,7 @@ if [ "$MANUAL_MODE" = true ]; then
 
     if [[ "$RESPONSE" =~ ^[Yy]$ ]]; then
         if command -v pbcopy &> /dev/null; then
-            cat "$REVIEW_REQUEST" | pbcopy
+            pbcopy < "$REVIEW_REQUEST"
             echo -e "${GREEN}✓ Copied to clipboard!${NC}"
             echo -e "${YELLOW}Now run 'claude' and paste (Cmd+V)${NC}"
         else
@@ -213,19 +213,19 @@ echo ""
 
 # Copy to clipboard
 if command -v pbcopy &> /dev/null; then
-    cat "$REVIEW_REQUEST" | pbcopy
+    pbcopy < "$REVIEW_REQUEST"
     echo -e "${GREEN}✓ Copied to clipboard${NC}"
 else
     echo -e "${YELLOW}⚠ pbcopy not found, skipping clipboard copy${NC}"
 fi
 
 # Pipe to claude
-echo -e "${YELLOW}Running: cat \"${REVIEW_REQUEST}\" | claude -p ${NC}"
+echo -e "${YELLOW}Running: claude -p  < \"${REVIEW_REQUEST}\" ${NC}"
 echo ""
 echo -e "${BLUE}════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-cat "$REVIEW_REQUEST" | claude -p
+claude -p < "$REVIEW_REQUEST"
 
 echo ""
 echo -e "${BLUE}════════════════════════════════════════════════════════════${NC}"
