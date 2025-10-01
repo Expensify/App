@@ -630,6 +630,7 @@ const translations = {
         downloadAsCSV: 'Download as CSV',
         help: 'Help',
         expenseReports: 'Expense Reports',
+        // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
