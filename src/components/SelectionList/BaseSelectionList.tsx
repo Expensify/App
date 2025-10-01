@@ -1,27 +1,26 @@
-import { useIsFocused } from '@react-navigation/native';
-import { FlashList } from '@shopify/flash-list';
-import type { FlashListRef, ListRenderItem, ListRenderItemInfo } from '@shopify/flash-list';
-import { deepEqual } from 'fast-equals';
-import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import {deepEqual} from 'fast-equals';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent, ViewStyle} from 'react-native';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import type { BaseTextInputRef } from '@components/TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
-import { focusedItemRef } from '@hooks/useSyncFocus/useSyncFocusImplementation';
+import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import TextInput from './components/TextInput';
 import ListItemRenderer from './ListItem/ListItemRenderer';
-import type { ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps } from './types';
-
+import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +

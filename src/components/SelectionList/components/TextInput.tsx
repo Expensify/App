@@ -1,14 +1,13 @@
 import React from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import { View } from 'react-native';
-import type { TextInputOptions } from '@components/SelectionList/types';
+import {View} from 'react-native';
+import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
-import type { BaseTextInputRef } from '@components/TextInput/BaseTextInput/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
 
 type TextInputProps = {
     /** Reference to the BaseTextInput component */
