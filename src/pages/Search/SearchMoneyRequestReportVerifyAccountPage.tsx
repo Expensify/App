@@ -5,9 +5,9 @@ import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type SearchMoneyRequestReportVerifyAccountPageParamList = PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT>;
+type SearchMoneyRequestReportVerifyAccountPageProps = PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT>;
 
-function SearchMoneyRequestReportVerifyAccountPage({route}: SearchMoneyRequestReportVerifyAccountPageParamList) {
+function SearchMoneyRequestReportVerifyAccountPage({route}: SearchMoneyRequestReportVerifyAccountPageProps) {
     return <VerifyAccountPageBase navigateBackTo={ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: route.params.reportID})} />;
 }
 
