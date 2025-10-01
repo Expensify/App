@@ -12685,6 +12685,10 @@ class Git {
                         content,
                     });
                 }
+                else if (firstChar === ' ') {
+                    // Context line - skip it (we only care about added/removed lines)
+                    continue;
+                }
                 else {
                     throw new Error(`Unknown line type! First character of line is ${firstChar}`);
                 }
