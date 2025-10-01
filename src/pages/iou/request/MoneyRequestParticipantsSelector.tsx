@@ -1,8 +1,9 @@
+import reportsSelector from '@selectors/Attributes';
 import {emailSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
@@ -16,9 +17,9 @@ import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
@@ -80,24 +81,29 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Whether this is a corporate card transaction */
+    isCorporateCardTransaction?: boolean;
+
+    /** Reference to the outer element */
+    ref?: Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {
     focus?: () => void;
 };
 
-function MoneyRequestParticipantsSelector(
-    {
-        participants = CONST.EMPTY_ARRAY,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        onFinish = (_value?: string) => {},
-        onParticipantsAdded,
-        iouType,
-        action,
-        isPerDiemRequest = false,
-    }: MoneyRequestParticipantsSelectorProps,
-    ref: Ref<InputFocusRef>,
-) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onFinish = (_value?: string) => {},
+    onParticipantsAdded,
+    iouType,
+    action,
+    isPerDiemRequest = false,
+    isCorporateCardTransaction = false,
+    ref,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -119,7 +125,7 @@ function MoneyRequestParticipantsSelector(
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -171,8 +177,8 @@ function MoneyRequestParticipantsSelector(
                 // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
                 excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
 
-                // Per diem expenses should only be submitted to workspaces, not individual users
-                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest,
+                // Per diem expenses and corporate card transactions should only be submitted to workspaces, not individual users
+                includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -203,6 +209,7 @@ function MoneyRequestParticipantsSelector(
         participants,
         isPerDiemRequest,
         canShowManagerMcTest,
+        isCorporateCardTransaction,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -463,6 +470,7 @@ function MoneyRequestParticipantsSelector(
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
@@ -591,7 +599,6 @@ function MoneyRequestParticipantsSelector(
                 onDeny={setContactPermissionState}
                 onFocusTextInput={() => {
                     setTextInputAutoFocus(true);
-                    selectionListRef.current?.focusTextInput?.();
                 }}
             />
             <SelectionList
@@ -621,16 +628,13 @@ function MoneyRequestParticipantsSelector(
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={!isNative}
+                textInputAutoFocus={textInputAutoFocus}
                 ref={selectionListRef}
             />
         </>
     );
 }
 
-MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
+MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
-export default memo(
-    forwardRef(MoneyRequestParticipantsSelector),
-    (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
-);
+export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);

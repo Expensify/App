@@ -7,8 +7,8 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import RenderHTML from '@components/RenderHTML';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -147,7 +147,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                     textInputLabel={translate('common.search')}
                     textInputValue={searchText}
                     onChangeText={setSearchText}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={({value}) => handleSelectCard(value)}
                     initiallyFocusedOptionKey={cardSelected}
                     listHeaderContent={

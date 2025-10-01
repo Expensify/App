@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,16 +13,17 @@ type SingleChoiceQuestionProps = {
     possibleAnswers: Choice[];
     currentQuestionIndex: number;
     onInputChange: (value: string) => void;
+    ref?: ForwardedRef<RNText>;
 };
 
-function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange}: SingleChoiceQuestionProps, ref: ForwardedRef<RNText>) {
+function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange, ref}: SingleChoiceQuestionProps) {
     const styles = useThemeStyles();
 
     return (
         <>
             <Text
                 ref={ref}
-                style={[styles.mt3, styles.ph5]}
+                style={[styles.mt3]}
             >
                 {prompt}
             </Text>
@@ -38,4 +39,4 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
 
 SingleChoiceQuestion.displayName = 'SingleChoiceQuestion';
 
-export default forwardRef(SingleChoiceQuestion);
+export default SingleChoiceQuestion;
