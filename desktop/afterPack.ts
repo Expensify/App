@@ -14,7 +14,7 @@ const getAssetSourceFilename = () => {
     return 'Assets.car';
 };
 
-const assetSource = path.resolve(__dirname, `./${getAssetSourceFilename()}`);
+const assetSource = path.resolve(__dirname, `../${getAssetSourceFilename()}`);
 
 // This will copy Assets.car with MacOS Liquid Glass icon
 // and will be removed after Electron builder supports this natively
