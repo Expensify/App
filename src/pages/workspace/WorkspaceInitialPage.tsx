@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -33,6 +34,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -112,13 +114,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
     const cardsDomainIDs = Object.values(getCompanyFeeds(cardFeeds))
         .map((data) => data.domainID)
         .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData({policyID: policy?.id});
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -149,7 +152,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.areReceiptPartnersEnabled ?? false),
+            [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
         }),
         [policy, isUberForBusinessEnabled],
     ) as PolicyFeatureStates;
@@ -208,6 +211,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.receiptPartners',
+                brickRoadIndicator: shouldShowEnterCredentialsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 icon: Receipt,
                 action: singleExecution(
                     waitForNavigate(() => {
@@ -354,20 +358,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         return menuItems;
     }, [
+        singleExecution,
+        waitForNavigate,
         featureStates,
         hasGeneralSettingsError,
         hasMembersError,
-        hasPolicyCategoryError,
+        policy,
+        shouldShowProtectedItems,
+        policyID,
         hasSyncError,
         highlightedFeature,
-        policy,
-        policyID,
-        shouldShowProtectedItems,
-        singleExecution,
-        waitForNavigate,
+        shouldShowEnterCredentialsError,
+        hasPolicyCategoryError,
         allFeedsCards,
-        cardsDomainIDs,
         workspaceAccountID,
+        cardsDomainIDs,
     ]);
 
     // We only update feature states if they aren't pending.
@@ -482,6 +487,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}
                         shouldHideOnDelete={false}
+                        shouldShowErrorMessages={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
@@ -509,7 +515,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback pendingAction={reportPendingAction}>
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                shouldShowErrorMessages={false}
+                            >
                                 <MenuItem
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}

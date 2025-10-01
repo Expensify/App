@@ -46,10 +46,17 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
+    /** The money request report containing the transactions */
     report: OnyxTypes.Report;
+
+    /** The workspace to which the report belongs */
+    policy?: OnyxTypes.Policy;
 
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
+
+    /** Whether there is a pending delete transaction */
+    hasPendingDeletionTransaction?: boolean;
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -113,6 +120,7 @@ const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableCo
             return transaction[key];
     }
 };
+
 function MoneyRequestReportTransactionList({
     report,
     transactions,
@@ -121,7 +129,9 @@ function MoneyRequestReportTransactionList({
     violations,
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
+    hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
+    policy,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -140,8 +150,8 @@ function MoneyRequestReportTransactionList({
     const session = useSession();
 
     const hasPendingAction = useMemo(() => {
-        return transactions.some(getTransactionPendingAction);
-    }, [transactions]);
+        return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
+    }, [hasPendingDeletionTransaction, transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -272,7 +282,10 @@ function MoneyRequestReportTransactionList({
     if (isEmptyTransactions) {
         return (
             <>
-                <SearchMoneyRequestReportEmptyState />
+                <SearchMoneyRequestReportEmptyState
+                    report={report}
+                    policy={policy}
+                />
                 <MoneyRequestReportTotalSpend
                     hasComments={hasComments}
                     isLoadingReportActions={!!isLoadingReportActions}
@@ -369,7 +382,7 @@ function MoneyRequestReportTransactionList({
                                 style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
                             >
                                 {value}
-                            </Text>
+                            </Text>{' '}
                         </View>
                     ))}
                 </View>

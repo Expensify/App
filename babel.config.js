@@ -7,7 +7,6 @@ const ReactCompilerConfig = {
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
-    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 
@@ -46,6 +45,7 @@ const defaultPluginsForWebpack = [
 
     // Keep it last
     'react-native-reanimated/plugin',
+    '@babel/plugin-transform-export-namespace-from',
 ];
 
 // The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
@@ -129,9 +129,11 @@ const metro = {
                     '@userActions': './src/libs/actions',
                     '@desktop': './desktop',
                     '@github': './.github',
+                    '@selectors': './src/selectors',
                 },
             },
         ],
+        '@babel/plugin-transform-export-namespace-from',
     ],
     env: {
         production: {
