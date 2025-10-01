@@ -56,7 +56,8 @@ function restoreOriginalTransactionFromBackup(transactionID: string | undefined,
         return;
     }
 
-    connection = Onyx.connect({
+    // We need to use connectWithoutView as this action is called during unmount and we need to read latest value from Onyx before we can restore it
+    connection = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
             Onyx.disconnect(connection);
