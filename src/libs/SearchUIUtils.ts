@@ -19,10 +19,10 @@ import type {
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
-import ChatListItem from '@components/SelectionList/ChatListItem';
-import TaskListItem from '@components/SelectionList/Search/TaskListItem';
-import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
+import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
+import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
     ListItem,
     ReportActionListItemType,
@@ -34,13 +34,14 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
-} from '@components/SelectionList/types';
+} from '@components/SelectionListWithSections/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -58,6 +59,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport, openReport} from './actions/Report';
 import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
@@ -502,10 +504,40 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
     };
 }
 
+/**
+ * Check if a user has any expense reports assigned to them for approval
+ */
+function hasPendingApprovalTasks(reports: OnyxCollection<OnyxTypes.Report>, currentUserAccountID?: number): boolean {
+    if (!reports || !currentUserAccountID) {
+        return false;
+    }
+
+    const hasPending = Object.values(reports).some((report) => {
+        if (!report) {
+            return false;
+        }
+
+        const isExpenseReport = report.type === CONST.REPORT.TYPE.EXPENSE;
+        const isSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
+        const isAssignedToUser = report.managerID === currentUserAccountID;
+
+        if (isExpenseReport && isSubmitted && isAssignedToUser) {
+            return true;
+        }
+
+        return false;
+    });
+
+    return hasPending;
+}
+
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    defaultExpensifyCard: CardFeedForDisplay | undefined,
+    reports?: OnyxCollection<OnyxTypes.Report>,
+    currentUserAccountID?: number,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean> {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
@@ -527,6 +559,10 @@ function getSuggestedSearchesVisibility(
         const isExporter = policy.exporter === currentUserEmail;
         const isApprover = policy.approver === currentUserEmail;
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+
+        const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {
+            return hasSynchronizationErrorMessage(policy, connection, false);
+        });
         const isPaymentEnabled = arePaymentsEnabled(policy);
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
@@ -538,11 +574,14 @@ function getSuggestedSearchesVisibility(
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo);
-        const isEligibleForExportSuggestion = isExporter;
+
+        const hasPendingApprovals = hasPendingApprovalTasks(reports, currentUserAccountID);
+        const isEligibleForApproveSuggestion = isPaidPolicy && isApprovalEnabled && (isApprover || isSubmittedTo || hasPendingApprovals);
+
+        const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || isECardEnabled);
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
@@ -928,6 +967,10 @@ function getTransactionsSections(
                     shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
                 }
             }
+        }
+
+        if (!transactionItem.transactionID) {
+            shouldShow = false;
         }
 
         if (shouldShow) {
@@ -1821,11 +1864,13 @@ function createTypeMenuSections(
     activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
+    defaultExpensifyCard: CardFeedForDisplay | undefined,
+    reports?: OnyxCollection<OnyxTypes.Report>,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id);
-    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies);
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, reports, currentUserAccountID);
 
     // Todo section
     {
@@ -2251,6 +2296,7 @@ export {
     getSuggestedSearches,
     getListItem,
     getSections,
+    getSuggestedSearchesVisibility,
     getShouldShowMerchant,
     getSortedSections,
     isTransactionGroupListItemType,
