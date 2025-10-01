@@ -132,6 +132,7 @@ function useSearchHighlightAndScroll({
             triggeredByHookRef.current = true;
 
             // Trigger the search
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 search({queryJSON, searchKey, offset, shouldCalculateTotals});
             });

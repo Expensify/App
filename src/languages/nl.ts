@@ -103,6 +103,7 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
+    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
@@ -409,7 +410,7 @@ const translations = {
         download: 'Downloaden',
         downloading: 'Downloaden',
         uploading: 'Uploaden',
-        pin: 'Pincode',
+        pin: 'Vastpinnen',
         unPin: 'Losmaken van vastzetten',
         back: 'Terug',
         saveAndContinue: 'Opslaan & doorgaan',
@@ -672,7 +673,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
-        description: 'U bent niet gemachtigd om deze actie uit te voeren wanneer de ondersteuning is ingelogd.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `U bent niet gemachtigd om deze actie uit te voeren wanneer ondersteuning is ingelogd (opdracht: ${command ?? ''}). Als u denkt dat Success deze actie zou moeten kunnen uitvoeren, start dan een gesprek in Slack.`,
     },
     lockedAccount: {
         title: 'Geblokkeerd account',
@@ -4883,7 +4889,8 @@ const translations = {
             existingTagError: 'Er bestaat al een tag met deze naam.',
             invalidTagNameError: 'Tagnaam kan niet 0 zijn. Kies een andere waarde.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de tag, probeer het alstublieft opnieuw.',
-            importedFromAccountingSoftware: 'De onderstaande labels zijn geïmporteerd uit uw',
+            importedFromAccountingSoftware: 'Tags worden beheerd in je',
+            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `<muted-text>Werknemers zien tags als <strong>${customTagName}</strong>.</muted-text>`,
             glCode: 'GL-code',
             updateGLCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de GL-code, probeer het alstublieft opnieuw.',
             tagRules: 'Tagregels',
@@ -5559,11 +5566,6 @@ const translations = {
                 title: 'Reis',
                 description: 'Expensify Travel is een nieuw platform voor het boeken en beheren van zakelijke reizen waarmee leden accommodaties, vluchten, vervoer en meer kunnen boeken.',
                 onlyAvailableOnPlan: 'Reizen is beschikbaar op het Collect-plan, beginnend bij',
-            },
-            reports: {
-                title: 'Rapporten',
-                description: 'Maak georganiseerde onkostenrapporten om uw zakelijke uitgaven bij te houden, in te dienen voor goedkeuring en uw vergoedingsproces te stroomlijnen.',
-                onlyAvailableOnPlan: 'Rapporten zijn beschikbaar op het Collect-plan, beginnend bij ',
             },
             multiLevelTags: {
                 title: 'Meerniveautags',
