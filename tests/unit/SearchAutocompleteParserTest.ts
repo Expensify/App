@@ -572,6 +572,7 @@ const nameFieldContinuationTests = [
                 value: 'pinned',
                 start: 13,
                 length: 6,
+                negated: false,
             },
             ranges: [
                 {key: 'type', value: 'chat', negated: false, start: 5, length: 4},
@@ -672,11 +673,17 @@ const nameFieldContinuationTests = [
     {
         query: 'type:expense -from:me -has:receipt',
         expected: {
-            autocomplete: null,
+            autocomplete: {
+                key: 'has',
+                length: 7,
+                negated: true,
+                start: 27,
+                value: 'receipt',
+            },
             ranges: [
                 {key: 'type', value: 'expense', negated: false, start: 5, length: 7},
-                {key: 'from', value: 'me', negated: true, start: 11, length: 3},
-                {key: 'has', value: 'receipt', negated: true, start: 17, length: 8},
+                {key: 'from', value: 'me', negated: true, start: 19, length: 2},
+                {key: 'has', value: 'receipt', negated: true, start: 27, length: 7},
             ],
         },
         description: 'Negates multiple from and has values',
