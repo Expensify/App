@@ -378,6 +378,13 @@ function normalizeValue<T>(value: T | T[]): T {
     return value;
 }
 
+/**
+ * Converts a top-level field back into `key:value` format while omitting empty entries.
+ *
+ * @param key Search syntax identifier for the root field being serialized.
+ * @param value Raw value pulled from the query JSON or defaults.
+ * @return Serialized `key:value` segment or `undefined` when the value should be skipped.
+ */
 function serializeRootEntry(key: string, value: unknown) {
     if (value === undefined || value === null) {
         return;
@@ -398,6 +405,12 @@ function serializeRootEntry(key: string, value: unknown) {
     return `${key}:${String(value)}`;
 }
 
+/**
+ * Normalizes an AST node into the flat filter array shape we use elsewhere.
+ *
+ * @param node AST node captured when the parser first encountered the filter.
+ * @return Array of operator/value pairs ready for display or serialization.
+ */
 function getQueryFiltersFromNode(node?: ASTNode) {
     if (!node) {
         return [] as QueryFilter[];
@@ -423,6 +436,13 @@ function getQueryFiltersFromNode(node?: ASTNode) {
     return filters;
 }
 
+/**
+ * Builds the printable segment (e.g., `merchant:Coffee`) from a stored AST node.
+ *
+ * @param key Search syntax identifier for the filter being rehydrated.
+ * @param node AST node to translate back into a string representation.
+ * @return Serialized filter segment or `undefined` when no values are present.
+ */
 function buildFilterStringFromNode(key: string, node?: ASTNode) {
     const queryFilters = getQueryFiltersFromNode(node);
     if (!queryFilters.length) {
@@ -486,6 +506,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON): string {
     const queryParts: string[] = [];
     const processedRootKeys = new Set<string>();
     const processedFilterKeys = new Set<string>();
+    // Ensure items are in the order in which they appeared in the original query string.
     const sortedPositionInfo = [...(queryJSON.positionInfo ?? [])].sort((a, b) => a.position - b.position);
 
     for (const entry of sortedPositionInfo) {
@@ -510,6 +531,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON): string {
         }
     }
 
+    // Fall back to defaults for any root fields that were not present in the position metadata.
     const fallbackRootEntries: string[] = [];
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         if (processedRootKeys.has(key)) {
@@ -524,6 +546,8 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON): string {
         }
     }
 
+    // Workspace IDs are modeled as filters in the constants, but the UI renders them next to root fields,
+    // so we fall back here to keep the order consistent when no positional metadata exists.
     if (!processedRootKeys.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)) {
         const policyValue = queryJSON.policyID ?? defaultQueryJSON?.policyID;
         const serializedPolicy = serializeRootEntry(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, policyValue);
@@ -535,6 +559,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON): string {
 
     queryParts.push(...fallbackRootEntries);
 
+    // Emit remaining filters in a stable order when no positional metadata is present.
     for (const filter of queryJSON.flatFilters) {
         if (processedFilterKeys.has(filter.key)) {
             continue;
@@ -1081,6 +1106,7 @@ function buildUserReadableQueryString(
             }
         }
 
+        // Seed the title with any root fields that were missing from position data.
         const fallbackParts: string[] = [];
         if (!processedRootKeys.has(CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE)) {
             fallbackParts.push(`type:${getUserFriendlyValue(type)}`);
@@ -1097,6 +1123,7 @@ function buildUserReadableQueryString(
 
         const titleParts = [...fallbackParts, ...queryParts];
 
+        // Append human-readable filters that were not already emitted via position metadata.
         for (const filter of queryJSON.flatFilters) {
             if (processedFilterKeys.has(filter.key)) {
                 continue;
