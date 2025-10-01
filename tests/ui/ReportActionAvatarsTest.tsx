@@ -54,14 +54,13 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
 };
 
 jest.mock('@src/components/Avatar', () => {
-    return ({source, name, avatarID, testID = 'Avatar'}: AvatarProps) => {
+    return ({source, testID = 'Avatar', ...rest}: AvatarProps) => {
         return (
             <MockedAvatarData
                 dataSet={{
-                    name,
-                    avatarID,
                     uri: parseSource(source ?? '') || 'No Source',
                     parent: testID,
+                    ...rest,
                 }}
                 testID="MockedAvatarData"
             />
