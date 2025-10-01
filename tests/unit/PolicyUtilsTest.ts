@@ -350,21 +350,6 @@ describe('PolicyUtils', () => {
             expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
         });
 
-        it('should return false if Uber connection is not enabled', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                receiptPartners: {
-                    uber: {
-                        enabled: false,
-                        error: 'Some error',
-                        connectFormData: 'Some data',
-                    },
-                },
-            };
-
-            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
-        });
-
         it('should return false if Uber connection does not exist', () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),

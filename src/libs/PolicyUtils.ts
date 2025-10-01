@@ -304,9 +304,8 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
 
 function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
     const receiptUber = policy?.receiptPartners?.uber;
-    const isReceiptUberConnected = !!receiptUber?.enabled;
 
-    return isReceiptUberConnected && !!receiptUber?.error;
+    return !!receiptUber?.error;
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {

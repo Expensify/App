@@ -11,7 +11,7 @@ export default function useGetReceiptPartnersIntegrationData(policyID?: string) 
 
     const uber = policy?.receiptPartners?.uber;
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
-    const shouldShowEnterCredentialsError = isUberConnected && !!uber?.error;
+    const shouldShowEnterCredentialsError = !!uber?.error;
 
     const getReceiptPartnersIntegrationData = useCallback(
         (receiptPartnerName: string) => {
