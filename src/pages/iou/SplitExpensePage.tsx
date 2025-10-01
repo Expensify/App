@@ -329,6 +329,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                 return;
                             }
                             Keyboard.dismiss();
+                            // eslint-disable-next-line deprecation/deprecation
                             InteractionManager.runAfterInteractions(() => {
                                 initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
                             });
