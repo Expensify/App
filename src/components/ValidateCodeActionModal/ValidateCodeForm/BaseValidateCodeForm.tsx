@@ -9,6 +9,7 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -125,6 +126,7 @@ function BaseValidateCodeForm({
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
+    const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useImperativeHandle(innerRef, () => ({
@@ -271,8 +273,11 @@ function BaseValidateCodeForm({
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
-                    {translate('validateCodeForm.requestNewCode')}
-                    <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
+                    <RenderHTML
+                        html={translate('validateCodeForm.requestNewCode', {
+                            timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                        })}
+                    />
                 </Text>
             )}
             <OfflineWithFeedback
@@ -309,7 +314,7 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
-                errors={canShowError ? finalValidateError : undefined}
+                errors={canShowError ? (finalValidateError ?? defaultValidateCodeError) : defaultValidateCodeError}
                 errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => {
                     clearError();

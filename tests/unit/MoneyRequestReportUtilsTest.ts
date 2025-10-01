@@ -1,4 +1,4 @@
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import CONST from '@src/CONST';
 

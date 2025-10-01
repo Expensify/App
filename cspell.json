@@ -140,6 +140,7 @@
         "debitamount",
         "deburr",
         "deburred",
+        "REJECTEDTRANSACTION",
         "Deel",
         "deeplink",
         "deeplinked",
@@ -356,6 +357,7 @@
         "marcaaron",
         "Marcin",
         "margelo",
+        "MARKASRESOLVED",
         "Marqeta",
         "mateusz",
         "McAfee",
@@ -467,6 +469,7 @@
         "passplus",
         "passwordless",
         "Passwordless",
+        "pathspec",
         "payrollcode",
         "pbxproj",
         "pdfreport",
@@ -542,6 +545,7 @@
         "Reimbursments",
         "remotedesktop",
         "remotesync",
+        "REPORTPREVIEW",
         "requestee",
         "Resawing",
         "resizeable",
@@ -609,6 +613,8 @@
         "sublicensees",
         "sublocality",
         "subpremise",
+        "subprocessors",
+        "Subprocessors",
         "subrates",
         "substep",
         "substeps",
@@ -642,6 +648,7 @@
         "tnode",
         "tobe",
         "togglefullscreen",
+        "tosorted",
         "TOTP",
         "touchables",
         "Touchless",
@@ -664,6 +671,7 @@
         "unapproves",
         "unassigning",
         "Unassigning",
+        "unassignment",
         "unassigns",
         "uncategorized",
         "Undelete",
@@ -745,7 +753,10 @@
         "zxldvw",
         "inputmethod",
         "copyable",
-        "مثال"
+        "مثال",
+        "moveElemsAttrsToGroup",
+        "removeHiddenElems",
+        "moveGroupAttrsToElems"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -793,7 +804,8 @@
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
-        "modules/group-ib-fp"
+        "modules/group-ib-fp",
+        "web/snippets/gib.js"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
