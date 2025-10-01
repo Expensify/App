@@ -35,6 +35,7 @@ function AutoSubmitModal() {
     const StyleUtils = useStyleUtils();
 
     const onClose = useCallback((willShowAgain: boolean) => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             if (!willShowAgain) {
                 dismissASAPSubmitExplanation(true);

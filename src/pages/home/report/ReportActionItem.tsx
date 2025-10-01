@@ -17,7 +17,6 @@ import {
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant,
-    isSelfDM,
 } from '@libs/ReportUtils';
 import {
     deleteReportActionDraft,
@@ -98,7 +97,6 @@ function ReportActionItem({
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
     const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
@@ -150,7 +148,7 @@ function ReportActionItem({
             )}
             modifiedExpenseMessage={getForReportAction({
                 reportAction: action,
-                policyID: isSelfDM(parentReport) ? activePolicyID : report?.policyID,
+                policyID: report?.policyID,
                 movedFromReport,
                 movedToReport,
             })}
