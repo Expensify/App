@@ -4633,6 +4633,25 @@ const translations = {
                 title: 'Tagegeld',
                 subtitle: 'Legen Sie Tagessätze fest, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren.',
             },
+            travel: {
+                title: '',
+                subtitle: '',
+                getStarted: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                reviewingRequest: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                bookOrManageYourTrip: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Erhalten Sie Einblicke und Kontrolle über Ausgaben.',

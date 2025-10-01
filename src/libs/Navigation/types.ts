@@ -1861,7 +1861,9 @@ type RightModalNavigatorParamList = {
 };
 
 type TravelNavigatorParamList = {
-    [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.MY_TRIPS]: {
+        policyID: string;
+    };
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
         token: string;
         isTestAccount?: string;
@@ -1887,6 +1889,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
         backTo?: Routes;
+        policyID?: string;
     };
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
         backTo?: Routes;
@@ -1895,10 +1898,12 @@ type TravelNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
+        policyID?: string;
         backTo?: Routes;
     };
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
         domain: string;
+        policyID?: string;
     };
 };
 
@@ -2030,6 +2035,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {

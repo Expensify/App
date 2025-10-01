@@ -4608,6 +4608,25 @@ const translations = {
                 title: '日当',
                 subtitle: '日当料金を設定して、従業員の日々の支出を管理します。',
             },
+            travel: {
+                title: '',
+                subtitle: '',
+                getStarted: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                reviewingRequest: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                bookOrManageYourTrip: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: '支出に関する洞察と管理を得る。',

@@ -8,7 +8,6 @@ import TravelDomainListItem from '@components/SelectionListWithSections/TravelDo
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
@@ -16,7 +15,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -32,8 +30,8 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const policy = usePolicy(activePolicyID);
+    const {policyID} = route.params;
+    const policy = usePolicy(policyID);
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
     const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
@@ -55,7 +53,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
         const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
         if (isEmptyObject(policy?.address)) {
             // Spotnana requires an address anytime an entity is created for a policy
-            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         } else {
             cleanupTravelProvisioningSession();
             Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));

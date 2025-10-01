@@ -8,7 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {Alert, PiggyBank} from '@components/Icon/Illustrations';
+import {PiggyBank, TravelAlerts} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -83,7 +83,7 @@ const tripsFeatures: FeatureListItem[] = [
         translationKey: 'travel.features.saveMoney',
     },
     {
-        icon: Alert,
+        icon: TravelAlerts,
         translationKey: 'travel.features.alerts',
     },
 ];
@@ -233,7 +233,10 @@ function EmptySearchViewContent({
                         </View>
                     ))}
                 </View>
-                <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                <BookTravelButton
+                    text={translate('search.searchResults.emptyTripResults.buttonText')}
+                    activePolicyID={activePolicyID}
+                />
             </>
         );
     }, [styles, translate]);

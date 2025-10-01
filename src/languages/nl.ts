@@ -4642,6 +4642,25 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
             },
+            travel: {
+                title: '',
+                subtitle: '',
+                getStarted: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                reviewingRequest: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                bookOrManageYourTrip: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Krijg inzicht en controle over uitgaven.',

@@ -4550,6 +4550,25 @@ const translations = {
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工的日常开支。',
             },
+            travel: {
+                title: '',
+                subtitle: '',
+                getStarted: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                reviewingRequest: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                bookOrManageYourTrip: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: '获取支出洞察和控制权。',

@@ -4642,6 +4642,25 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
             },
+            travel: {
+                title: '',
+                subtitle: '',
+                getStarted: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                reviewingRequest: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                bookOrManageYourTrip: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Obtenez des informations et contrôlez les dépenses.',

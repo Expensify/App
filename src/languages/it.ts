@@ -4644,6 +4644,25 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Imposta le tariffe diarie per controllare le spese giornaliere dei dipendenti.',
             },
+            travel: {
+                title: '',
+                subtitle: '',
+                getStarted: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                reviewingRequest: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                bookOrManageYourTrip: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Ottieni informazioni e controllo sulle spese.',

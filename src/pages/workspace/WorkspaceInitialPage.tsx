@@ -19,6 +19,7 @@ import {
     Folder,
     Gear,
     InvoiceGeneric,
+    Luggage,
     Receipt,
     Sync,
     Tag,
@@ -153,6 +154,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
+            [CONST.POLICY.MORE_FEATURES.ARE_TRAVEL_ENABLED]: policy?.areTravelEnabled,
         }),
         [policy, isUberForBusinessEnabled],
     ) as PolicyFeatureStates;
@@ -283,6 +285,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.DISTANCE_RATES,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+            });
+        }
+
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TRAVEL_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'workspace.common.travel',
+                icon: Luggage,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.TRAVEL,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_TRAVEL_ENABLED,
             });
         }
 

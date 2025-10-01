@@ -21,12 +21,16 @@ const tripsFeatures: FeatureListItem[] = [
         translationKey: 'travel.features.saveMoney',
     },
     {
-        icon: Illustrations.Alert,
+        icon: Illustrations.TravelAlerts,
         translationKey: 'travel.features.alerts',
     },
 ];
 
-function ManageTrips() {
+type ManageTripsProps = {
+    policyID: string;
+};
+
+function ManageTrips({policyID}: ManageTripsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -80,6 +84,7 @@ function ManageTrips() {
                                 text={translate('travel.bookTravel')}
                                 shouldRenderErrorMessageBelowButton
                                 setShouldScrollToBottom={setShouldScrollToBottom}
+                                activePolicyID={policyID}
                             />
                         </>
                     }

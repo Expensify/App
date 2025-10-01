@@ -4630,6 +4630,25 @@ const translations = {
                 title: 'Dieta',
                 subtitle: 'Ustaw stawki diet, aby kontrolować dzienne wydatki pracowników.',
             },
+            travel: {
+                title: '',
+                subtitle: '',
+                getStarted: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                reviewingRequest: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+                bookOrManageYourTrip: {
+                    title: '',
+                    subtitle: '',
+                    ctaText: '',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Uzyskaj wgląd i kontrolę nad wydatkami.',
