@@ -1,6 +1,6 @@
 import {differenceInCalendarDays} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -18,7 +18,6 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -44,7 +43,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const popoverAnchor = useRef<View>(null);
 
     const reservationIcon = getTripReservationIcon(reservation.type);
 
@@ -131,7 +129,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
 
     return (
         <MenuItemWithTopDescription
-            ref={popoverAnchor}
             description={formattedDate}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent()}
@@ -144,20 +141,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             numberOfLinesTitle={0}
             interactive
             shouldStackHorizontally={false}
-            copyable={!!reservation.confirmations?.at(0)?.value?.length}
-            copyValue={reservation.confirmations?.at(0)?.value ?? ''}
-            onSecondaryInteraction={(event) => {
-                const confirmationCode = reservation.confirmations?.at(0)?.value;
-                if (!confirmationCode) {
-                    return;
-                }
-                showContextMenu({
-                    type: CONST.CONTEXT_MENU_TYPES.TEXT,
-                    event,
-                    selection: confirmationCode,
-                    contextMenuAnchor: popoverAnchor.current,
-                });
-            }}
+            onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
