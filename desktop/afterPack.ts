@@ -1,6 +1,6 @@
+import type {AfterPackContext} from 'electron-builder';
 import {promises as fs} from 'node:fs';
 import path from 'node:path';
-import type {AfterPackContext} from 'electron-builder';
 
 const getAssetSourceFilename = () => {
     if (process.env.ELECTRON_ENV === 'adhoc') {
