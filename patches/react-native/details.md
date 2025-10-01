@@ -107,70 +107,63 @@
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+015+redactAppParameters.patch](react-native+0.81.4+015+redactAppParameters.patch)
-
-- Reason: Adds redaction of sensitive app parameters
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: 🛑
-
-### [react-native+0.81.4+016+android-keyboard-avoiding-view.patch](react-native+0.81.4+016+android-keyboard-avoiding-view.patch)
+### [react-native+0.81.4+015+android-keyboard-avoiding-view.patch](react-native+0.81.4+015+android-keyboard-avoiding-view.patch)
 
 - Reason: Fixes keyboard avoiding view behavior on Android
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+017+fix-mask-persisting-recycling.patch](react-native+0.81.4+017+fix-mask-persisting-recycling.patch)
+### [react-native+0.81.4+016+fix-mask-persisting-recycling.patch](react-native+0.81.4+016+fix-mask-persisting-recycling.patch)
 
 - Reason: Fixes mask persisting and recycling issues
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+018+fix-text-selecting-on-change.patch](react-native+0.81.4+018+fix-text-selecting-on-change.patch)
+### [react-native+0.81.4+017+fix-text-selecting-on-change.patch](react-native+0.81.4+017+fix-text-selecting-on-change.patch)
 
 - Reason: Fixes text selection issues during onChange events
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+019+fix-dropping-mutations-in-transactions.patch](react-native+0.81.4+019+fix-dropping-mutations-in-transactions.patch)
+### [react-native+0.81.4+018+fix-dropping-mutations-in-transactions.patch](react-native+0.81.4+018+fix-dropping-mutations-in-transactions.patch)
 
 - Reason: Fixes issues with dropping mutations in transactions
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+020+fix-crash-when-deleting-expense.patch](react-native+0.81.4+020+fix-crash-when-deleting-expense.patch)
+### [react-native+0.81.4+019+fix-crash-when-deleting-expense.patch](react-native+0.81.4+019+fix-crash-when-deleting-expense.patch)
 
 - Reason: Fixes crash when deleting expenses
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+021+fix-surface-stopped-before-started.patch](react-native+0.81.4+021+fix-surface-stopped-before-started.patch)
+### [react-native+0.81.4+020+fix-surface-stopped-before-started.patch](react-native+0.81.4+020+fix-surface-stopped-before-started.patch)
 
 - Reason: Fixes surface lifecycle issues where surface is stopped before being started
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.81.4+022+publish-gradle.patch](react-native+0.81.4+022+publish-gradle.patch)
+### [react-native+0.81.4+021+publish-gradle.patch](react-native+0.81.4+021+publish-gradle.patch)
 
 - Reason: This patch customizes the Gradle publishing script to allow publishing our custom React Native artifacts to GitHub Packages.
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738
 
-### [react-native+0.81.4+023+fix-display-contents-not-updating-nodes.patch](react-native+0.81.4+023+fix-display-contents-not-updating-nodes.patch)
+### [react-native+0.81.4+022+fix-display-contents-not-updating-nodes.patch](react-native+0.81.4+022+fix-display-contents-not-updating-nodes.patch)
 
 - Reason: This patch updates Yoga to correctly update the subtrees of `display: contents` nodes so that they are in sync with their React Native counterparts.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/52530
 - E/App issue: https://github.com/Expensify/App/issues/65268
 - PR introducing patch: [#65925](https://github.com/Expensify/App/pull/65925)
 
-### [react-native+0.81.4+024+fix-modal-transparent-navigation-bar.patch](react-native+0.81.4+024+fix-modal-transparent-navigation-bar.patch)
+### [react-native+0.81.4+023+fix-modal-transparent-navigation-bar.patch](react-native+0.81.4+023+fix-modal-transparent-navigation-bar.patch)
 
 - Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
 - Upstream PR/issue: 🛑
