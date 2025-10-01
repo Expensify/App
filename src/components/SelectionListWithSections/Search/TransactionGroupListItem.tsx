@@ -374,7 +374,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             styles.groupSearchListTableContainerStyle,
                                             styles.bgTransparent,
                                             styles.pl9,
-                                            isGroupByReports ? styles.pr10 : styles.pr3,
+                                            isGroupByReports && isLargeScreenWidth ? styles.pr10 : styles.pr3,
                                         ]}
                                     >
                                         <SearchTableHeader
@@ -414,7 +414,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             onButtonPress={() => {
                                                 openReportInRHP(transaction);
                                             }}
-                                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
+                                            style={[
+                                                styles.noBorderRadius,
+                                                shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half],
+                                                isGroupByReports && isLargeScreenWidth && styles.pr10,
+                                            ]}
                                             isReportItemChild
                                             isInSingleTransactionReport={groupItem.transactions.length === 1}
                                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
