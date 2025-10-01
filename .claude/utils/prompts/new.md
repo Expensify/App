@@ -14,8 +14,21 @@ Each rule includes:
 
 ### [PERF-1] No spread in list item's renderItem
 
-- **Condition**: When passing data to components in renderItem functions, avoid using spread operators to extend objects. Instead, pass the base object and additional properties as separate props to prevent unnecessary object creation on each render.
-- **Reasoning**: `renderItem` functions execute for every visible list item on each render. Creating new objects with spread operators forces React to treat each item as changed, preventing reconciliation optimizations and causing unnecessary re-renders of child components.
+**Conditions**: Flag ONLY when ALL of these are true:
+
+- Code is inside a renderItem function (function passed to FlatList, SectionList, etc.)
+- A spread operator (...) is used on an object
+- That object is being passed as a prop to a component
+- The spread creates a NEW object literal inline
+
+**DO NOT flag if:**
+
+- Spread is used outside renderItem
+- Spread is on an array
+- Object is created once outside renderItem and reused
+- Spread is used to clone for local manipulation (not passed as prop)
+
+**Reasoning**: `renderItem` functions execute for every visible list item on each render. Creating new objects with spread operators forces React to treat each item as changed, preventing reconciliation optimizations and causing unnecessary re-renders of child components.
 
 Good:
 
@@ -43,8 +56,34 @@ Bad:
 
 ### [PERF-2] Use early returns in array iteration methods
 
-- **Condition**: When using `.every()`, `.some()`, or similar methods, perform simple checks first with early returns before expensive operations.
-- **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
+**Conditions**: Flag ONLY when ALL of these are true:
+
+- Using .every(), .some(), .find(), .filter() or similar function
+- Function contains an "expensive operation" (defined below)
+- There exists a simple property check that could eliminate items earlier
+- The simple check is performed AFTER the expensive operation
+
+**Expensive operations are**:
+
+- Function calls (except simple getters/property access)
+- Regular expressions
+- Object/array iterations
+- Math calculations beyond basic arithmetic
+
+**Simple checks are**:
+
+- Property existence (!obj.prop, obj.prop === undefined)
+- Boolean checks (obj.isActive)
+- Primitive comparisons (obj.id === 5)
+- Type checks (typeof, Array.isArray)
+
+**DO NOT flag if**:
+
+- No expensive operations exist
+- Simple checks are already done first
+- The expensive operation MUST run for all items (e.g., for side effects)
+
+**Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
 
 Good:
 
@@ -182,8 +221,13 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 5. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
 6. **If no violations are found, output exactly** (with no quotes, markdown, or additional text):
    LGTM :feelsgood:. Thank you for your hard work!
-7. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
-8. **DO NOT describe what you are doing, output any summaries, explanations, extra content or ANYTHING ELSE except from rules violations or LGTM message or millions of puppies will die.**
+7. Output LGTM if and only if:
+   - You have examined ALL changed files
+   - You found ZERO violations matching the exact rule criteria
+   - You verified no false negatives by checking each rule systematically
+    If you found even ONE violation, do NOT output LGTM - create inline comments instead.
+8. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
+9. **DO NOT describe what you are doing, output any summaries, explanations, extra content or ANYTHING ELSE except from rules violations or LGTM message or millions of puppies will die.**
 
 ## Tool Usage Example
 
