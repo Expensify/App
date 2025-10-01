@@ -1055,9 +1055,7 @@ function getQueryWithUpdatedValues(query: string) {
         return;
     }
 
-    // JACK
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
-    console.log(buildSearchQueryString(standardizedQuery));
     return buildSearchQueryString(standardizedQuery);
 }
 
