@@ -75,7 +75,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             'label-text': HTMLElementModel.fromCustomModel({
                 tagName: 'label-text',
-                mixedUAStyles: {...styles.textLabel, ...styles.mb0},
+                mixedUAStyles: {...styles.textLabel, ...styles.mb0, ...styles.textLineHeightNormal},
                 contentModel: HTMLContentModel.block,
             }),
             'muted-text-xs': HTMLElementModel.fromCustomModel({
