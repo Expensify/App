@@ -167,6 +167,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
             }),
+
             ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
 
             // This allows us to interactively inspect JS bundle contents
