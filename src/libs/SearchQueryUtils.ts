@@ -169,9 +169,10 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
  */
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
+    const allowedOps: string[] = [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO];
+
     let filterValueString = '';
     queryFilters.forEach((queryFilter, index) => {
-        const allowedOps: string[] = [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO];
         const previousValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
         const nextValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
