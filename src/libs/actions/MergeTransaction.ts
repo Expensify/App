@@ -7,7 +7,7 @@ import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isExpenseReport, isIOUReport, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import type {TransactionChanges} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
@@ -51,6 +51,11 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
     // Temporary exclude IOU reports from eligible list
     // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
     if (isIOUReport(transaction1.reportID) || isIOUReport(transaction2.reportID)) {
+        return false;
+    }
+
+    // Do not allow merging of distance request with other non-distance request
+    if (isDistanceRequest(transaction1) !== isDistanceRequest(transaction2)) {
         return false;
     }
 
