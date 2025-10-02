@@ -9,6 +9,7 @@ function hide(): Promise<void> {
     Log.info('[BootSplash] hiding splash screen', false);
 
     return BootSplash.hide().finally(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             Timing.end(CONST.TIMING.SPLASH_SCREEN);
         });

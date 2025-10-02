@@ -144,19 +144,29 @@ type UberReceiptPartner = {
      * organization id for connected uber
      */
     organizationID?: string;
+    /**
+     * name of the organization in uber
+     */
+    organizationName?: string;
 
     /**
      * Mapping of workspace member email to Uber employee status
      */
     employees?: Record<
         string,
-        {
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
             /**
              * status of the employee
              */
             status?: string;
-        }
+            /** A list of errors keyed by microtime */
+            errors?: OnyxCommon.Errors | null;
+        }>
     >;
+    /**
+     * Whether credentials are invalid
+     */
+    error?: string;
     /**
      * Collection of errors coming from BE
      */
@@ -2025,6 +2035,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    ReceiptPartners,
     UberReceiptPartner,
     AllConnectionName,
     Tenant,
