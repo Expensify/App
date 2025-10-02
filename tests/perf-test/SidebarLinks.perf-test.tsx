@@ -100,6 +100,7 @@ describe('SidebarLinks', () => {
             });
 
             // Then wait for the specific list item to be available
+            // eslint-disable-next-line testing-library/prefer-find-by
             await waitFor(async () => {
                 const button = await screen.findByTestId('1');
                 await wrapInAct(() => {
