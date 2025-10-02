@@ -147,8 +147,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Luggage,
             titleTranslationKey: 'workspace.moreFeatures.travel.title',
             subtitleTranslationKey: 'workspace.moreFeatures.travel.subtitle',
-            isActive: policy?.areTravelEnabled ?? false,
-            pendingAction: policy?.pendingFields?.areTravelEnabled,
+            isActive: policy?.isTravelEnabled ?? false,
+            pendingAction: policy?.pendingFields?.isTravelEnabled,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
                     return;

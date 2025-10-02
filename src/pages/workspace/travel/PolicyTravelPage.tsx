@@ -41,7 +41,8 @@ function WorkspaceTravelPage({
     const mainContent = useMemo(() => {
         if (hasAcceptedTerms) {
             return <BookOrManageYourTrip policyID={policyID} />;
-        } if (!isPolicyProvisioned && !isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
+        }
+        if (!isPolicyProvisioned && !isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             return <ReviewingRequest />;
         }
         return <GetStartedTravel policyID={policyID} />;

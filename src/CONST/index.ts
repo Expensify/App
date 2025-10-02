@@ -2986,7 +2986,7 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
-            ARE_TRAVEL_ENABLED: 'areTravelEnabled',
+            IS_TRAVEL_ENABLED: 'isTravelEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',

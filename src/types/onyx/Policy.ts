@@ -1899,7 +1899,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         areDistanceRatesEnabled?: boolean;
 
         /** Whether the Travel feature is enabled */
-        areTravelEnabled?: boolean;
+        isTravelEnabled?: boolean;
 
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
