@@ -16,7 +16,6 @@ function useHandleSelectionMode<TItem extends ListItem>(selectedItems: string[] 
     // Keep track of the number of selected items to determine if we should turn off selection mode
     const selectionRef = useRef(0);
 
-    console.log(selectedItems);
     useEffect(() => {
         selectionRef.current = selectedItems.length;
 
