@@ -1,5 +1,6 @@
 import type {NavigationRoute} from '@react-navigation/native';
-import {findFocusedRoute, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {useCallback, useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -7,12 +8,12 @@ import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import {isAnonymousUser} from '@libs/actions/Session';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {getSettingsTabStateFromSessionStorage, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
+import {getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {TAB_TO_FULLSCREEN} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, FullScreenName, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, FullScreenName, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -55,27 +56,8 @@ function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensPa
 }
 
 function preloadAccountTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
-    if (!getIsNarrowLayout()) {
-        const settingsTabState = getSettingsTabStateFromSessionStorage();
-
-        if (!settingsTabState) {
-            navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}});
-            return;
-        }
-
-        const screenName = findFocusedRoute(settingsTabState)?.name as keyof SettingsSplitNavigatorParamList | undefined;
-
-        if ((!subscriptionPlan && screenName === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) || !screenName) {
-            navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}});
-            return;
-        }
-
-        navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {
-            screen: screenName,
-        });
-        return;
-    }
-    navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {screen: SCREENS.SETTINGS.ROOT});
+    const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
+    navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload);
 }
 
 function preloadInboxTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
@@ -121,7 +103,7 @@ function usePreloadFullScreenNavigators() {
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
-    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
 
     const hasSubscriptionPlanTurnedOff = useMemo(() => {
         return !subscriptionPlan && preloadedRoutes.some(isPreloadedRouteSubscriptionScreen);

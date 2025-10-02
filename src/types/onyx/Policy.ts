@@ -127,36 +127,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: {
-        /**
-         * fname for uber partner
-         */
-        fname?: string;
-        /**
-         * hash for uber partner
-         */
-        hash: string;
-        /**
-         * id for uber partner
-         */
-        id: string;
-        /**
-         * lname for uber partner
-         */
-        lname?: string;
-        /**
-         * name for uber partner
-         */
-        name: string;
-        /**
-         * query for uber partner
-         */
-        query: string;
-        /**
-         * requestID for uber partner
-         */
-        requestID?: string;
-    };
+    connectFormData: string;
     /**
      * auto invite for uber connection
      */
@@ -173,19 +144,29 @@ type UberReceiptPartner = {
      * organization id for connected uber
      */
     organizationID?: string;
+    /**
+     * name of the organization in uber
+     */
+    organizationName?: string;
 
     /**
      * Mapping of workspace member email to Uber employee status
      */
     employees?: Record<
         string,
-        {
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
             /**
              * status of the employee
              */
             status?: string;
-        }
+            /** A list of errors keyed by microtime */
+            errors?: OnyxCommon.Errors | null;
+        }>
     >;
+    /**
+     * Whether credentials are invalid
+     */
+    error?: string;
     /**
      * Collection of errors coming from BE
      */
@@ -197,7 +178,12 @@ type UberReceiptPartner = {
 };
 
 /** Policy Receipt partners */
-type ReceiptPartners = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>;
+type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether receipt partners are enabled */
+        enabled?: boolean;
+    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+>;
 
 /** Policy disabled fields */
 type DisabledFields = {
@@ -1927,9 +1913,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
-        /** Whether the Receipt Partners feature is enabled */
-        areReceiptPartnersEnabled?: boolean;
-
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
@@ -2049,6 +2032,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    ReceiptPartners,
     UberReceiptPartner,
     AllConnectionName,
     Tenant,

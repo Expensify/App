@@ -48,6 +48,8 @@ describe('mergeTransactionRequest', () => {
         // - Merge transaction containing the final values to keep
         const targetTransaction = {
             ...createRandomTransaction(1),
+            amount: 100,
+            currency: 'USD',
             transactionID: 'target123',
             merchant: 'Original Merchant',
             category: 'Original Category',
@@ -64,6 +66,8 @@ describe('mergeTransactionRequest', () => {
         };
         const mergeTransaction = {
             ...createRandomMergeTransaction(1),
+            amount: 200,
+            currency: 'USD',
             targetTransactionID: 'target123',
             sourceTransactionID: 'source456',
             merchant: 'Updated Merchant',
@@ -82,7 +86,15 @@ describe('mergeTransactionRequest', () => {
 
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -129,7 +141,8 @@ describe('mergeTransactionRequest', () => {
         });
 
         // Verify target transaction is updated with merged values
-        expect(updatedTargetTransaction?.merchant).toBe(mergeTransaction.merchant);
+        expect(updatedTargetTransaction?.modifiedAmount).toBe(mergeTransaction.amount);
+        expect(updatedTargetTransaction?.modifiedMerchant).toBe(mergeTransaction.merchant);
         expect(updatedTargetTransaction?.category).toBe(mergeTransaction.category);
         expect(updatedTargetTransaction?.tag).toBe(mergeTransaction.tag);
         expect(updatedTargetTransaction?.comment?.comment).toBe(mergeTransaction.description);
@@ -192,7 +205,15 @@ describe('mergeTransactionRequest', () => {
         // When: The merge request is executed but the API will return an error
         mockFetch?.fail?.();
 
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -278,7 +299,15 @@ describe('mergeTransactionRequest', () => {
         // When: The merge request is executed, which should handle violation updates
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
-        mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+        mergeTransactionRequest({
+            mergeTransactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy: undefined,
+            policyTags: undefined,
+            policyCategories: undefined,
+        });
 
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
@@ -346,7 +375,15 @@ describe('mergeTransactionRequest', () => {
             mockFetch?.pause?.();
 
             // When: The merge request is executed
-            mergeTransactionRequest(mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction);
+            mergeTransactionRequest({
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                sourceTransaction,
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+            });
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
