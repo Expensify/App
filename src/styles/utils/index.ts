@@ -310,7 +310,8 @@ function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): 
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = hashText(text.trim(), workspaceColorOptions.length);
-    return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return (workspaceColorOptions.at(colorHash) ?? workspaceColorOptions.at(0))!;
 }
 
 /**
