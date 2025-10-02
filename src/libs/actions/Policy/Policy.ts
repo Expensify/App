@@ -2312,13 +2312,10 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
-    const selectedFeaturesMap = featuresMap?.reduce(
-        (acc, feature) => ({
-            ...acc,
-            [feature.id]: feature.enabled,
-        }),
-        {},
-    );
+    const selectedFeaturesMap = featuresMap?.reduce<Record<string, boolean>>((acc, feature) => {
+        acc[feature.id] = !!feature.enabled;
+        return acc;
+    }, {});
 
     const params: CreateWorkspaceParams = {
         policyID,
