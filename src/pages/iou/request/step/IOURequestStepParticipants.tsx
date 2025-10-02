@@ -1,10 +1,11 @@
 import {useIsFocused} from '@react-navigation/core';
+import {createPoliciesSelector} from '@selectors/Policy';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -19,7 +20,7 @@ import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getRequestType, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -40,7 +41,6 @@ import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import KeyboardUtils from '@src/utils/keyboard';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -59,6 +59,8 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         customUnits: policy.customUnits,
     };
 
+const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
+
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
@@ -72,13 +74,12 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {isBetaEnabled} = usePermissions();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}),
+        selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
@@ -91,7 +92,7 @@ function IOURequestStepParticipants({
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
-    const iouRequestType = getRequestType(initialTransaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
+    const iouRequestType = getRequestType(initialTransaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const headerTitle = useMemo(() => {
@@ -226,7 +227,7 @@ function IOURequestStepParticipants({
             // So we are resetting selectedReportID ref to the reportID coming from params.
             // For invoices, a valid participant must have a login.
 
-            const hasOneValidParticipant = iouType === CONST.IOU.TYPE.INVOICE ? val.filter((item) => !!item.login).length !== 1 : val.length !== 1;
+            const hasOneValidParticipant = iouType === CONST.IOU.TYPE.INVOICE && selectedReportID.current !== reportID ? val.filter((item) => !!item.login).length !== 1 : val.length !== 1;
 
             if (hasOneValidParticipant && !isInvoice) {
                 selectedReportID.current = reportID;
@@ -351,6 +352,7 @@ function IOURequestStepParticipants({
                     iouType={iouType}
                     action={action}
                     isPerDiemRequest={isPerDiemRequest(initialTransaction)}
+                    isCorporateCardTransaction={isCorporateCardTransaction(initialTransaction)}
                 />
             )}
         </StepScreenWrapper>

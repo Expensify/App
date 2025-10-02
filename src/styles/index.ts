@@ -1215,8 +1215,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: variables.inputPaddingTop,
         },
 
-        textInputDesktop: addOutlineWidth(theme, {}, 0),
-
         textInputLeftIconContainer: {
             justifyContent: 'center',
             paddingRight: 8,
@@ -1305,8 +1303,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             color: theme.icon,
         },
-
-        noOutline: addOutlineWidth(theme, {}, 0),
 
         labelStrong: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -3281,6 +3277,10 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
+        height4: {
+            height: 16,
+        },
+
         searchListContentContainerStyles: {
             paddingTop: variables.searchListContentMarginTop,
         },
@@ -3379,6 +3379,10 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             bottom: 0,
+        },
+
+        overlayBackground: {
+            backgroundColor: theme.overlay,
         },
 
         invisibleOverlay: {
@@ -5192,6 +5196,114 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
         },
+        uploadFileView: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderColor: theme.borderFocus,
+            borderStyle: 'dotted',
+            marginBottom: variables.uploadViewMargin,
+            marginLeft: variables.uploadViewMargin,
+            marginRight: variables.uploadViewMargin,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 40,
+            gap: 4,
+            flex: 1,
+        },
+
+        textInputAndIconContainer: {
+            zIndex: -1,
+            flexDirection: 'row',
+        },
+        statusIndicator: {
+            borderColor: theme.sidebar,
+            borderRadius: 8,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -4,
+            top: -3,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
+        navigationTabBarStatusIndicator: {
+            borderColor: theme.sidebar,
+            borderRadius: 8,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -2,
+            top: -3,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
+        modalStackNavigatorContainer: {
+            height: '100%',
+            right: 0,
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+        },
+        animatedRHPNavigatorContainer: {
+            height: '100%',
+            right: 0,
+            position: 'absolute',
+            overflow: 'hidden',
+        },
+        twoFactorAuthCodesBox: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+        },
+        anonymousRoomFooter: {
+            padding: 20,
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            overflow: 'hidden',
+        },
+        dropzoneArea: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
+        },
+        easeInOpacityTransition: {
+            transition: 'opacity 0.2s ease-in',
+        },
+        overscrollSpacerPosition: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+        },
+        emptyStateHeader: {
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            minHeight: 200,
+        },
+        sidePanelOverlay: {
+            ...positioning.pFixed,
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: -variables.sideBarWidth,
+            backgroundColor: theme.overlay,
+        },
+        sidePanelContent: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            bottom: 0,
+            right: 0,
+            height: '100%',
+            backgroundColor: theme.modalBackground,
+            borderLeftColor: theme.border,
+        },
+        searchBarMargin: {
+            marginHorizontal: 20,
+            marginBottom: 20,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -5204,26 +5316,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
             paddingBottom: bottomSafeAreaOffset,
-
-            // There is a missing border right on the wide layout
-            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
-            borderColor: theme.border,
         }),
 
-        uploadFileView: (isSmallScreenWidth: boolean) =>
+        uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
-                borderRadius: variables.componentBorderRadiusLarge,
                 borderWidth: isSmallScreenWidth ? 0 : 2,
-                borderColor: theme.borderFocus,
-                borderStyle: 'dotted',
-                marginBottom: variables.uploadViewMargin,
-                marginLeft: variables.uploadViewMargin,
-                marginRight: variables.uploadViewMargin,
-                justifyContent: 'center',
-                alignItems: 'center',
-                paddingVertical: 40,
-                gap: 4,
-                flex: 1,
             }) satisfies ViewStyle,
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
@@ -5254,74 +5351,31 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies TextStyle;
         },
 
-        textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
-            if (isMarkdownEnabled) {
-                return {zIndex: -1, flexDirection: 'row'};
-            }
-            return {
-                flex: 1,
-                zIndex: -1,
-                flexDirection: 'row',
-            };
-        },
-
-        statusIndicator: (backgroundColor: string = theme.danger) =>
+        statusIndicatorColor: (backgroundColor: string = theme.danger) =>
             ({
-                borderColor: theme.sidebar,
                 backgroundColor,
-                borderRadius: 8,
-                borderWidth: 2,
-                position: 'absolute',
-                right: -4,
-                top: -3,
-                height: 12,
-                width: 12,
-                zIndex: 10,
             }) satisfies ViewStyle,
-
-        navigationTabBarStatusIndicator: (backgroundColor: string = theme.danger) => ({
-            borderColor: theme.sidebar,
-            backgroundColor,
-            borderRadius: 8,
-            borderWidth: 2,
-            position: 'absolute',
-            right: -2,
-            top: -3,
-            height: 12,
-            width: 12,
-            zIndex: 10,
-        }),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
-                right: 0,
             }) satisfies ViewStyle,
 
-        modalStackNavigatorContainer: (isSmallScreenWidth: boolean) =>
+        modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                height: '100%',
-                right: 0,
-                position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             }) satisfies ViewStyle,
 
-        animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
+        animatedRHPNavigatorContainerWidth: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
             ({
-                height: '100%',
                 width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, receiptPaneRHPWidth)),
-                right: 0,
-                position: 'absolute',
-                overflow: 'hidden',
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
                 width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
                 height: shouldUseNarrowLayout ? 732 : '100%',
-                maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
-                overflow: 'hidden',
             }) satisfies ViewStyle,
 
         createMenuPositionSidebar: (windowHeight: number) =>
@@ -5347,13 +5401,9 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         overlayStyles: ({progress, hasMarginRight = false, hasMarginLeft = false}: {progress: OverlayStylesParams; hasMarginRight?: boolean; hasMarginLeft?: boolean}) =>
             ({
-                ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
-                top: 0,
-                bottom: 0,
                 right: hasMarginRight ? variables.sideBarWidth : 0,
-                backgroundColor: theme.overlay,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -5375,7 +5425,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 marginHorizontal: isSmallScreenWidth ? 0 : 20,
             }) satisfies ViewStyle,
 
-        twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
+        twoFactorAuthCodesBoxPadding: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
             let paddingHorizontal = spacing.ph9;
 
             if (isSmallScreenWidth) {
@@ -5387,32 +5437,20 @@ const dynamicStyles = (theme: ThemeColors) =>
             }
 
             return {
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: theme.highlightBG,
-                paddingVertical: 28,
-                borderRadius: 16,
-                marginTop: 32,
                 ...paddingHorizontal,
             } satisfies ViewStyle;
         },
 
-        anonymousRoomFooter: (isSmallSizeLayout: boolean) =>
+        anonymousRoomFooterFlexDirection: (isSmallSizeLayout: boolean) =>
             ({
                 flexDirection: isSmallSizeLayout ? 'column' : 'row',
                 ...(!isSmallSizeLayout && {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                 }),
-                padding: 20,
-                backgroundColor: theme.cardBG,
-                borderRadius: variables.componentBorderRadiusLarge,
-                overflow: 'hidden',
             }) satisfies ViewStyle & TextStyle,
         anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout: boolean) =>
             ({
-                flexDirection: 'row',
-                alignItems: 'center',
                 ...(isSmallSizeLayout && {
                     justifyContent: 'space-between',
                     marginTop: 16,
@@ -5429,8 +5467,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             }
 
             return {
-                backgroundColor: theme.highlightBG,
-                borderRadius: 16,
                 ...paddingVertical,
                 ...paddingHorizontal,
             } satisfies ViewStyle;
@@ -5454,15 +5490,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
 
             return {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                width: '100%',
-                height: '100%',
                 opacity: isActive ? 1 : 0,
-                transition: 'opacity 0.2s ease-in',
                 ...(isSafariOrChromeBrowser && {
                     backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
                     backgroundSize: '100% 100%',
@@ -5490,7 +5518,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         fileUploadImageWrapper: (fileTopPosition: number) =>
             ({
-                position: 'absolute',
                 top: fileTopPosition,
             }) satisfies ViewStyle,
 
@@ -5520,31 +5547,22 @@ const dynamicStyles = (theme: ThemeColors) =>
             ({
                 backgroundColor,
                 height,
-                width: '100%',
-                position: 'absolute',
                 top: -height,
-                left: 0,
-                right: 0,
             }) satisfies ViewStyle,
 
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
 
-        screenWrapperContainer: (minHeight: number | undefined) => ({
-            flex: 1,
+        screenWrapperContainerMinHeight: (minHeight: number | undefined) => ({
             minHeight,
-            backgroundColor: theme.appBG,
         }),
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
-        emptyStateHeader: (isIllustration: boolean) => ({
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-            minHeight: 200,
+        emptyStateHeaderPosition: (isIllustration: boolean) => ({
             alignItems: isIllustration ? 'center' : undefined,
             justifyContent: isIllustration ? 'center' : undefined,
         }),
@@ -5554,31 +5572,18 @@ const dynamicStyles = (theme: ThemeColors) =>
                 width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
             }) satisfies ViewStyle,
 
-        sidePanelOverlay: (isOverlayVisible: boolean) => ({
-            ...positioning.pFixed,
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: -variables.sideBarWidth,
-            backgroundColor: theme.overlay,
+        sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
             opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
         }),
-        sidePanelContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            top: 0,
-            bottom: 0,
-            right: 0,
+        sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
-            height: '100%',
-            backgroundColor: theme.modalBackground,
+        }),
+        sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
-            borderLeftColor: theme.border,
         }),
 
-        getSearchBarStyle: (shouldUseNarrowLayout: boolean) => ({
+        searchBarWidth: (shouldUseNarrowLayout: boolean) => ({
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
-            marginHorizontal: 20,
-            marginBottom: 20,
         }),
 
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
@@ -5622,9 +5627,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         }),
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
-            flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
-            alignItems: 'center',
         }),
 
         getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
@@ -5808,6 +5811,8 @@ const nestedStyles = (theme: ThemeColors) =>
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
         },
+        textInputDesktop: addOutlineWidth(theme, {}, 0),
+        noOutline: addOutlineWidth(theme, {}, 0),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

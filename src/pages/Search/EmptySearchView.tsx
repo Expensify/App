@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -20,6 +20,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -93,10 +94,7 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
     const {typeMenuSections} = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
-    });
+
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
@@ -107,6 +105,22 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
+
+    const isUserPaidPolicyMemberSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
+        },
+        [currentUserPersonalDetails.login],
+    );
+
+    const [isUserPaidPolicyMember = false] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY,
+        {
+            canBeMissing: true,
+            selector: isUserPaidPolicyMemberSelector,
+        },
+        [isUserPaidPolicyMemberSelector],
+    );
 
     return (
         <SearchScopeProvider>
@@ -159,6 +173,8 @@ function EmptySearchViewContent({
         selector: hasTransactionsSelector,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+
+    const isViewTourParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -256,7 +272,7 @@ function EmptySearchViewContent({
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
+            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember, isViewTourParentReportArchived);
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
@@ -426,6 +442,9 @@ function EmptySearchViewContent({
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected,
+        tryNewDot?.hasBeenAddedToNudgeMigration,
+        isUserPaidPolicyMember,
+        isViewTourParentReportArchived,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
@@ -434,10 +453,8 @@ function EmptySearchViewContent({
         activePolicyID,
         currentUserPersonalDetails,
         tripViewChildren,
-        shouldRedirectToExpensifyClassic,
         hasTransactions,
-        tryNewDot?.hasBeenAddedToNudgeMigration,
-        isUserPaidPolicyMember,
+        shouldRedirectToExpensifyClassic,
     ]);
 
     return (
