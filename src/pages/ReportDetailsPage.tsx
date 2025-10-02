@@ -308,10 +308,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 leaveGroupChat(report.reportID);
                 return;
             }
-            const isWorkspaceMemberLeavingWorkspaceRoom = report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyEmployee;
+            const isWorkspaceMemberLeavingWorkspaceRoom =
+                (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || (isPolicyExpenseChat && (report?.isOwnPolicyExpenseChat || isPolicyAdmin))) && isPolicyEmployee;
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isPolicyEmployee, isRootGroupChat, report.reportID, report.visibility]);
+    }, [isPolicyEmployee, isRootGroupChat, report.reportID, report.visibility, isPolicyExpenseChat, report?.isOwnPolicyExpenseChat, isPolicyAdmin]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
