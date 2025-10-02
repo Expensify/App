@@ -2588,6 +2588,7 @@ export {
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createOptionList,
+    createOption,
     filterAndOrderOptions,
     filterOptions,
     filterReports,
