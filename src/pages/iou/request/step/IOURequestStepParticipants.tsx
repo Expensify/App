@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import {createPoliciesSelector} from '@selectors/Policy';
+import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -75,7 +76,7 @@ function IOURequestStepParticipants({
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}),
+        selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
@@ -211,22 +212,14 @@ function IOURequestStepParticipants({
                 setMoneyRequestParticipants(transaction.transactionID, val);
             });
 
-            const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
-            const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
-
             if (!isMovingTransactionFromTrackExpense) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
+                const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
+                const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
                 transactions.forEach((transaction) => {
                     setCustomUnitRateID(transaction.transactionID, rateID);
-                });
-            }
-
-            if (isMovingTransactionFromTrackExpense && isPolicyExpenseChat && policy?.id !== activePolicy?.id) {
-                transactions.forEach((transaction) => {
-                    setMoneyRequestTag(transaction.transactionID, '');
-                    setMoneyRequestCategory(transaction.transactionID, '');
                 });
             }
 
@@ -246,7 +239,7 @@ function IOURequestStepParticipants({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         },
-        [iouType, transactions, activePolicy, allPolicies, isMovingTransactionFromTrackExpense, reportID, trackExpense, lastSelectedDistanceRates],
+        [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, allPolicies, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(() => {
@@ -261,10 +254,8 @@ function IOURequestStepParticipants({
 
         const newReportID = selectedReportID.current;
         transactions.forEach((transaction) => {
-            if (!isMovingTransactionFromTrackExpense) {
-                setMoneyRequestTag(transaction.transactionID, '');
-                setMoneyRequestCategory(transaction.transactionID, '');
-            }
+            setMoneyRequestTag(transaction.transactionID, '');
+            setMoneyRequestCategory(transaction.transactionID, '');
             if (participants?.at(0)?.reportID !== newReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: newReportID}, true);
             }
@@ -315,7 +306,7 @@ function IOURequestStepParticipants({
                 Navigation.navigate(route);
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, backTo]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
