@@ -257,7 +257,7 @@ jobs:
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
     outputs:
-      S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
+      ROCK_APK_PATH: ${{ steps.rock-remote-build-android.outputs.artifact-url }}
     steps:
       - name: Checkout
         # v4
@@ -334,35 +334,22 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
-      - name: Build Android app
-        id: build
+      - name: Rock Remote Build - Android
+        id: rock-remote-build-android
+        uses: callstackincubator/android@8c2cb70c209cc7f832130b6e49bcbcaa7ad62613 # v3
         env:
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
-          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-        run: bundle exec fastlane android build_adhoc_hybrid
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
+          IS_HYBRID_APP: true
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Upload Android AdHoc build to S3
-        run: bundle exec fastlane android upload_s3
-        env:
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
-
-      - name: Export S3 path
-        id: exportAndroidS3Path
-        run: |
-          # $s3APKPath is set from within the Fastfile, android upload_s3 lane
-          echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
+          variant: 'Adhoc'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          re-sign: true
+          keystore-file: './upload-key.keystore'
+          keystore-store-file: 'upload-key.keystore'
+          keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          comment-bot: false
+          rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
 
   iosHybrid:
     name: Build and deploy iOS for testing
@@ -372,7 +359,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
     runs-on: macos-15-xlarge
     outputs:
-      IOS_PATH: ${{ steps.export-ios-path.outputs.IOS_PATH }}
+      ROCK_IOS_PATH: ${{ steps.rock-remote-build-ios.outputs.artifact-url }}
     steps:
       - name: Checkout
         # v4
@@ -438,6 +425,7 @@ jobs:
         # v1
         uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
+
       - name: Load files from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
@@ -447,34 +435,38 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
-      - name: Build AdHoc app
-        run: bundle exec fastlane ios build_adhoc_hybrid
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Upload AdHoc build to S3
-        run: bundle exec fastlane ios upload_s3
+      - name: Rock Remote Build - iOS
+        id: rock-remote-build-ios
+        uses: callstackincubator/ios@0b4a5a6e4d6865d697bd5f277460088501982a5e # v3
         env:
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
-
-      - name: Export iOS path
-        id: export-ios-path
-        run: |
-          content_ios="$(cat ./ios_paths.json)"
-          content_ios="${content_ios//'%'/'%25'}"
-          content_ios="${content_ios//$'\n'/'%0A'}"
-          content_ios="${content_ios//$'\r'/'%0D'}"
-          ios_path=$(echo "$content_ios" | jq -r '.html_path')
-          echo "IOS_PATH=$ios_path" >> "$GITHUB_OUTPUT"
+          GITHUB_TOKEN: ${{ github.token }}
+          IS_HYBRID_APP: true
+        with:
+          destination: device
+          github-token: ${{ github.token }}
+          re-sign: true
+          ad-hoc: true
+          scheme: 'Expensify AdHoc'
+          configuration: 'DebugAdHoc'
+          certificate-file: './Certificates.p12'
+          certificate-password: ${{ secrets.CERTIFICATE_PASSWORD || '' }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD || '' }}
+          provisioning-profiles: |
+            [
+              {
+                "name": "OldApp_AdHoc",
+                "file": "./OldApp_AdHoc.mobileprovision"
+              },
+              {
+                "name": "OldApp_AdHoc_Share_Extension",
+                "file": "./OldApp_AdHoc_Share_Extension.mobileprovision"
+              },
+              {
+                "name": "OldApp_AdHoc_Notification_Service",
+                "file": "./OldApp_AdHoc_Notification_Service.mobileprovision"
+              }
+            ]
+          comment-bot: false
 
   postGithubComment:
     runs-on: ubuntu-latest
@@ -504,9 +496,9 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iosHybrid.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_APK_PATH }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ inputs.APP_PULL_REQUEST_NUMBER }}/NewExpensify.dmg
-          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_PATH }}
           WEB_LINK: https://${{ inputs.APP_PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
 
       - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
@@ -518,5 +510,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
-          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_APK_PATH }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_PATH }}
