@@ -3454,7 +3454,6 @@ PODS:
     - SocketRocket
     - Yoga
   - RNCPicker (2.11.2):
-    - boost
     - DoubleConversion
     - fast_float
     - fmt
@@ -4665,7 +4664,7 @@ SPEC CHECKSUMS:
   ReactNativeHybridApp: 8f634cb8b3d6f02f6de744f3b2a0231d28e8a800
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: 8b0b9e969b84bc3d9ad2c86d7595f8f233c81ab4
-  RNCPicker: 21020d225714361ecd34535c5d9b6b8103adbdb9
+  RNCPicker: c4e7ce9d70bfffb1f4b9e210af64af9160c571bb
   RNDeviceInfo: 86ea0ee9bc72ef44d1cfff1bc28ccfca745b3199
   RNFBAnalytics: 921718282c3326adb23f1eb732898e31804be5a3
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
