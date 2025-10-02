@@ -12845,7 +12845,7 @@ async function run() {
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
-    function getDeployMessage(deployer, deployVerb, prTitle) {
+    function getDeployMessage(deployer, deployVerb) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} `;
         if (date) {
@@ -12855,11 +12855,6 @@ async function run() {
         message += `\n\nplatform | result\n---|---\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🕸 web 🕸|${webResult}`;
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
-        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
-            // eslint-disable-next-line max-len
-            message +=
-                '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
-        }
         if (note) {
             message += `\n\n_Note:_ ${note}`;
         }
@@ -13632,6 +13627,15 @@ class GithubUtils {
         }
         return Buffer.from(data.content, 'base64').toString('utf8');
     }
+    static async getPullRequestChangedSVGFileNames(pullRequestNumber) {
+        const files = this.paginate(this.octokit.pulls.listFiles, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, (response) => response.data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename));
+        return files;
+    }
     /**
      * Get commits between two tags via the GitHub API
      */
@@ -13691,6 +13695,21 @@ class GithubUtils {
             console.log('');
             throw error;
         }
+    }
+    static async getPullRequestDiff(pullRequestNumber) {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const response = await this.internalOctokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data;
     }
 }
 exports["default"] = GithubUtils;
