@@ -671,6 +671,7 @@ const translations = {
         link: 'Link',
         pinned: 'Vastgezet',
         read: 'Gelezen',
+        expensifyCard: 'Expensify-kaart',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1778,8 +1779,9 @@ const translations = {
         reportSuspiciousActivity: 'Verdachte activiteit melden',
         lockAccount: 'Account vergrendelen',
         unlockAccount: 'Account ontgrendelen',
-        compromisedDescription: 'Merk je iets vreemds op aan je account? Meld het en je account wordt meteen vergrendeld, kaarttransacties geblokkeerd en wijzigingen voorkomen.',
-        domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Card-activiteiten en beheerdersacties in je domein(en).',
+        compromisedDescription:
+            'Merk je iets vreemds op met je account? Het melden zal je account onmiddellijk vergrendelen, nieuwe Expensify Card-transacties blokkeren en alle wijzigingen aan je account voorkomen.',
+        domainAdminsDescription: 'Voor domeinbeheerders: Dit pauzeert ook alle Expensify Card-activiteiten en beheerdersacties binnen uw domein(en).',
         areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
         onceLocked: 'Zodra vergrendeld, wordt uw account beperkt in afwachting van een ontgrendelingsverzoek en een beveiligingscontrole.',
     },
@@ -1946,7 +1948,6 @@ const translations = {
         addDebitOrCreditCard: 'Debet- of creditcard toevoegen',
         assignedCards: 'Toegewezen kaarten',
         assignedCardsDescription: 'Dit zijn kaarten die door een werkruimtebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
-        expensifyCard: 'Expensify Card',
         walletActivationPending: 'We zijn uw informatie aan het beoordelen. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan uw portemonnee op dit moment niet worden geactiveerd. Neem contact op met Concierge voor verdere hulp.',
         addYourBankAccount: 'Voeg je bankrekening toe',
@@ -1958,7 +1959,6 @@ const translations = {
         businessBankAccounts: 'Zakelijke bankrekeningen',
     },
     cardPage: {
-        expensifyCard: 'Expensify Card',
         expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: 'Resterende limiet',
         smartLimit: {
@@ -2815,7 +2815,7 @@ const translations = {
             fullName: 'Voer een geldige volledige naam in alstublieft',
             ownershipPercentage: 'Voer een geldig percentage in.',
             deletePaymentBankAccount:
-                'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
+                'Deze bankrekening kan niet worden verwijderd omdat deze wordt gebruikt voor Expensify Card-betalingen. Als je deze rekening toch wilt verwijderen, neem dan contact op met Concierge.',
         },
     },
     addPersonalBankAccount: {
@@ -3477,7 +3477,6 @@ const translations = {
     workspace: {
         common: {
             card: 'Kaarten',
-            expensifyCard: 'Expensify Card',
             companyCards: 'Bedrijfskaarten',
             workflows: 'Werkstromen',
             workspace: 'Werkruimte',
@@ -3595,7 +3594,7 @@ const translations = {
             defaultCategory: 'Standaardcategorie',
             viewTransactions: 'Transacties bekijken',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Uitgaven van ${displayName}`,
-            deepDiveExpensifyCard: `<muted-text-label>Expensify Card transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” die is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
+            deepDiveExpensifyCard: `<muted-text-label>Expensify Card-transacties worden automatisch geëxporteerd naar een "Expensify Card Liability Account" die is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
         },
         receiptPartners: {
             connect: 'Maak nu verbinding',
@@ -4492,10 +4491,10 @@ const translations = {
                 'Expensify, Inc. is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
         },
         expensifyCard: {
-            issueAndManageCards: 'Uitgeven en beheren van uw Expensify-kaarten',
+            issueAndManageCards: 'Geef uw Expensify-kaarten uit en beheer ze',
             getStartedIssuing: 'Begin met het aanvragen van je eerste virtuele of fysieke kaart.',
             verificationInProgress: 'Verificatie bezig...',
-            verifyingTheDetails: 'We controleren een paar details. Concierge laat je weten wanneer Expensify Cards klaar zijn om uit te geven.',
+            verifyingTheDetails: 'We verifiëren een paar details. Concierge laat je weten wanneer Expensify-kaarten klaar zijn om uit te geven.',
             disclaimer:
                 'De Expensify Visa® Commercial Card wordt uitgegeven door The Bancorp Bank, N.A., lid FDIC, krachtens een licentie van Visa U.S.A. Inc. en kan niet worden gebruikt bij alle handelaren die Visa-kaarten accepteren. Apple® en het Apple-logo® zijn handelsmerken van Apple Inc., geregistreerd in de VS en andere landen. App Store is een servicemerk van Apple Inc. Google Play en het Google Play-logo zijn handelsmerken van Google LLC.',
             euUkDisclaimer:
@@ -4507,7 +4506,7 @@ const translations = {
             lastFour: 'Laatste 4',
             limit: 'Limiet',
             currentBalance: 'Huidig saldo',
-            currentBalanceDescription: 'Huidig saldo is de som van alle geboekte Expensify Card-transacties die hebben plaatsgevonden sinds de laatste afwikkelingsdatum.',
+            currentBalanceDescription: 'Het huidige saldo is de som van alle geboekte Expensify Card-transacties die hebben plaatsgevonden sinds de laatste afwikkelingsdatum.',
             balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `Saldo wordt vereffend op ${settlementDate}`,
             settleBalance: 'Saldo vereffenen',
             cardLimit: 'Kaartlimiet',
@@ -4516,11 +4515,11 @@ const translations = {
             remainingLimitDescription:
                 'We houden rekening met een aantal factoren bij het berekenen van uw resterende limiet: uw dienstverband als klant, de zakelijke informatie die u tijdens de aanmelding heeft verstrekt, en het beschikbare geld op uw zakelijke bankrekening. Uw resterende limiet kan dagelijks fluctueren.',
             earnedCashback: 'Geld terug',
-            earnedCashbackDescription: 'Cashback saldo is gebaseerd op de maandelijks verrekende uitgaven met de Expensify Card binnen uw werkruimte.',
+            earnedCashbackDescription: 'Cashbacksaldo is gebaseerd op de maandelijks vereffende uitgaven met de Expensify Card binnen uw werkruimte.',
             issueNewCard: 'Nieuwe kaart uitgeven',
             finishSetup: 'Voltooi de installatie',
             chooseBankAccount: 'Kies bankrekening',
-            chooseExistingBank: 'Kies een bestaande zakelijke bankrekening om uw Expensify Card-saldo te betalen, of voeg een nieuwe bankrekening toe.',
+            chooseExistingBank: 'Kies een bestaande zakelijke bankrekening om uw saldo van de Expensify Card te betalen, of voeg een nieuwe bankrekening toe.',
             accountEndingIn: 'Account eindigend op',
             addNewBankAccount: 'Een nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
@@ -4554,13 +4553,13 @@ const translations = {
             addShippingDetails: 'Verzendgegevens toevoegen',
             issuedCard: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart zal binnen 2-3 werkdagen arriveren.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `heeft ${assignee} een Expensify Card uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn toegevoegd.`,
+                `heeft ${assignee} een Expensify-kaart uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn toegevoegd.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `heeft ${assignee} een virtuele ${link} uitgegeven! De kaart kan direct worden gebruikt.`,
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Card zal binnen 2-3 werkdagen arriveren.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify-kaart zal binnen 2-3 werkdagen arriveren.`,
             verifyingHeader: 'Verifiëren',
             bankAccountVerifiedHeader: 'Bankrekening geverifieerd',
             verifyingBankAccount: 'Bankrekening verifiëren...',
-            verifyingBankAccountDescription: 'Even geduld terwijl we bevestigen dat dit account kan worden gebruikt om Expensify Cards uit te geven.',
+            verifyingBankAccountDescription: 'Even geduld terwijl we bevestigen dat deze account kan worden gebruikt om Expensify-kaarten uit te geven.',
             bankAccountVerified: 'Bankrekening geverifieerd!',
             bankAccountVerifiedDescription: 'Je kunt nu Expensify-kaarten uitgeven aan de leden van je werkruimte.',
             oneMoreStep: 'Nog één stap...',
@@ -4642,13 +4641,12 @@ const translations = {
                 subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',
             },
             expensifyCard: {
-                title: 'Expensify Card',
                 subtitle: 'Krijg inzicht en controle over uitgaven.',
-                disableCardTitle: 'Expensify Card uitschakelen',
+                disableCardTitle: 'Deactiveer Expensify-kaart',
                 disableCardPrompt: 'Je kunt de Expensify Card niet uitschakelen omdat deze al in gebruik is. Neem contact op met Concierge voor de volgende stappen.',
                 disableCardButton: 'Chat met Concierge',
                 feed: {
-                    title: 'Verkrijg de Expensify Card',
+                    title: 'Verkrijg de Expensify-kaart',
                     subTitle: 'Vereenvoudig uw zakelijke uitgaven en bespaar tot 50% op uw Expensify-rekening, plus:',
                     features: {
                         cashBack: 'Geld terug bij elke aankoop in de VS',
@@ -4716,11 +4714,12 @@ const translations = {
                 noAccountsFound: 'Geen accounts gevonden',
                 defaultCard: 'Standaardkaart',
                 downgradeTitle: `Kan werkruimte niet downgraden`,
-                downgradeSubTitleFirstPart: `Deze werkruimte kan niet worden gedowngraded omdat er meerdere kaartfeeds zijn verbonden (met uitzondering van Expensify Cards). Alstublieft`,
+                downgradeSubTitleFirstPart: `Deze werkruimte kan niet worden gedowngraded omdat er meerdere kaartfeeds zijn verbonden (met uitzondering van Expensify Cards). Alstublieft`, //_/\__/_/  \_,_/\__/\__/\_,_/
+                //_/\__/_/  \_,_/\__/\__/\_,_/
                 downgradeSubTitleMiddlePart: `houd slechts één kaartfeed`,
                 downgradeSubTitleLastPart: 'om door te gaan.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Voeg het account toe in ${connection} en synchroniseer de verbinding opnieuw.`,
-                expensifyCardBannerTitle: 'Verkrijg de Expensify Card',
+                expensifyCardBannerTitle: 'Verkrijg de Expensify-kaart',
                 expensifyCardBannerSubtitle: 'Geniet van cashback op elke aankoop in de VS, tot 50% korting op je Expensify-rekening, onbeperkte virtuele kaarten en nog veel meer.',
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
                 statementCloseDateTitle: 'Datum waarop rekeningafschrift wordt gesloten',
@@ -4775,8 +4774,8 @@ const translations = {
             workflowWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
                 featureEnabledText:
-                    'Expensify-kaarten in deze werkruimte zijn afhankelijk van goedkeuringsworkflows om hun Smart Limits te definiëren.\n\nWijzig de limiettypen van alle kaarten met Smart Limits voordat u workflows uitschakelt.',
-                confirmText: 'Ga naar Expensify Cards',
+                    'Expensify-kaarten in deze werkruimte vertrouwen op goedkeuringsworkflows om hun slimme limieten te definiëren.\n\nWijzig de limiettypen van alle kaarten met slimme limieten voordat u workflows uitschakelt.',
+                confirmText: 'Ga naar Expensify-kaarten',
             },
             rules: {
                 title: 'Regels',
@@ -4997,7 +4996,7 @@ const translations = {
         },
         new: {
             newWorkspace: 'Nieuwe werkruimte',
-            getTheExpensifyCardAndMore: 'Krijg de Expensify Card en meer',
+            getTheExpensifyCardAndMore: 'Krijg de Expensify-kaart en meer',
             confirmWorkspace: 'Werkruimte bevestigen',
             myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Mijn Groepswerkruimte${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}'s Werkruimte${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
@@ -5311,13 +5310,13 @@ const translations = {
             reconciliationAccount: 'Rekening voor afstemming',
             continuousReconciliation: 'Continue Reconciliatie',
             saveHoursOnReconciliation:
-                'Bespaar uren op reconciliatie elke boekhoudperiode door Expensify continu Expensify Card-afschriften en afrekeningen namens u te laten reconciliëren.',
+                'Bespaar uren op reconciliatie elke boekhoudperiode door Expensify continu Expensify Card-afschriften en -afrekeningen namens u te laten reconciliëren.',
             enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
                 `<muted-text-label>Om continue afstemming mogelijk te maken, moet u <a href="${accountingAdvancedSettingsLink}">automatische synchronisatie</a> voor ${connectionName} inschakelen.</muted-text-label>`,
             chooseReconciliationAccount: {
-                chooseBankAccount: 'Kies de bankrekening waarmee uw Expensify Card-betalingen worden verrekend.',
+                chooseBankAccount: 'Kies de bankrekening waarmee uw betalingen met de Expensify Card worden verrekend.',
                 accountMatches: 'Zorg ervoor dat dit account overeenkomt met uw',
-                settlementAccount: 'Expensify Card afwikkelingsrekening',
+                settlementAccount: 'Expensify Card-vereffeningsrekening',
                 reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(eindigend op ${lastFourPAN}) zodat Continue Reconciliation goed werkt.`,
             },
         },
@@ -6190,7 +6189,7 @@ const translations = {
             },
             feed: 'Feed',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify-kaart',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
             },
             is: 'Is',

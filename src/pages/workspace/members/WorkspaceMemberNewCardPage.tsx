@@ -163,7 +163,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
               ...companyCardFeeds,
               {
                   value: CONST.EXPENSIFY_CARD.NAME,
-                  text: translate('workspace.common.expensifyCard'),
+                  text: translate('common.expensifyCard'),
                   keyForList: CONST.EXPENSIFY_CARD.NAME,
                   isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
                   leftElement: (
