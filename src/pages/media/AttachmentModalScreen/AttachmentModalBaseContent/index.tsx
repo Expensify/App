@@ -234,6 +234,7 @@ function AttachmentModalBaseContent({
                 text: translate('common.replace'),
                 onSelected: () => {
                     const goToScanScreen = () => {
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(

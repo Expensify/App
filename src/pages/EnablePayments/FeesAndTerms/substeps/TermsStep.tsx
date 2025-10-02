@@ -2,44 +2,31 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function HaveReadAndAgreeLabel() {
     const {translate} = useLocalize();
-
-    return (
-        <Text>
-            {`${translate('termsStep.haveReadAndAgree')}`}
-            <TextLink href={CONST.ELECTRONIC_DISCLOSURES_URL}>{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={`${translate('termsStep.haveReadAndAgree')}`} />;
 }
 
 function AgreeToTheLabel() {
     const {translate} = useLocalize();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
 
     const walletAgreementUrl =
         userWallet?.walletProgramID && userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
             ? CONST.OLD_DOT_PUBLIC_URLS.BANCORP_WALLET_AGREEMENT_URL
             : CONST.OLD_DOT_PUBLIC_URLS.WALLET_AGREEMENT_URL;
 
-    return (
-        <Text>
-            {`${translate('termsStep.agreeToThe')} `}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
-            {`${translate('common.and')} `}
-            <TextLink href={walletAgreementUrl}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={`${translate('termsStep.agreeToThe', {walletAgreementUrl})}`} />;
 }
 
 function TermsStep({onNext}: SubStepProps) {
@@ -49,9 +36,9 @@ function TermsStep({onNext}: SubStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
 
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
 
-    const errorMessage = error ? translate('common.error.acceptTerms') : (ErrorUtils.getLatestErrorMessage(walletTerms ?? {}) ?? '');
+    const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -85,13 +72,13 @@ function TermsStep({onNext}: SubStepProps) {
             <Text style={[styles.mt3, styles.mb3, styles.textSupporting]}>{translate('termsStep.agreeToTerms')}</Text>
             <View style={styles.flex1}>
                 <CheckboxWithLabel
-                    accessibilityLabel={translate('termsStep.haveReadAndAgree')}
+                    accessibilityLabel={translate('termsStep.haveReadAndAgreePlain')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
                     LabelComponent={HaveReadAndAgreeLabel}
                 />
                 <CheckboxWithLabel
-                    accessibilityLabel={translate('termsStep.agreeToThe')}
+                    accessibilityLabel={translate('termsStep.agreeToThePlain')}
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={AgreeToTheLabel}
                 />

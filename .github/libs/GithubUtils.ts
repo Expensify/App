@@ -674,6 +674,21 @@ class GithubUtils {
         return Buffer.from(data.content, 'base64').toString('utf8');
     }
 
+    static async getPullRequestChangedSVGFileNames(pullRequestNumber: number): Promise<string[]> {
+        const files = this.paginate(
+            this.octokit.pulls.listFiles,
+            {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                pull_number: pullRequestNumber,
+                per_page: 100,
+            },
+            (response) => response.data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename),
+        );
+
+        return files;
+    }
+
     /**
      * Get commits between two tags via the GitHub API
      */
@@ -741,6 +756,22 @@ class GithubUtils {
             console.log('');
             throw error;
         }
+    }
+
+    static async getPullRequestDiff(pullRequestNumber: number): Promise<string> {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const response = await (this.internalOctokit as InternalOctokit).request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: pullRequestNumber,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data as unknown as string;
     }
 }
 

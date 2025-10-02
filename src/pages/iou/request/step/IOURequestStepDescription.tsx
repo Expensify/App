@@ -171,6 +171,7 @@ function IOURequestStepDescription({
             </FormProvider>
             <DiscardChangesConfirmation
                 onCancel={() => {
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         inputRef.current?.focus();
                     });
