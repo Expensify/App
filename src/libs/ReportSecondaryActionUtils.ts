@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -26,6 +27,7 @@ import {
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
+    doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -438,7 +440,13 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
 }
 
 function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, reportActions?: ReportAction[]): boolean {
-    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies));
+    // We can't move the iou report to the workspace if both users from the iou report create the expense
+    if (isIOUReportUtils(report) && doesReportContainRequestsFromMultipleUsers(report)) {
+        return false;
+    }
+
+    const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;

@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -4860,8 +4860,7 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: 'タグは次で管理されています:',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>従業員にはタグが次のように表示されます: <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'タグルール',
@@ -5084,8 +5083,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Expensify Classicで設定された接続にエラーがあります。',
-            goToODToFix: 'この問題を解決するには、Expensify Classicに移動してください。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Expensify Classicで設定された接続にエラーがあります。[この問題を解決するには、Expensify Classicに移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classicに移動してください。',
             setup: '接続する',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期日時: ${relativeDate}`,

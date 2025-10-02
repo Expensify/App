@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,6 +33,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -71,6 +73,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
+    const {environment} = useEnvironment();
+    const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -492,6 +496,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
     }, [account?.accountManagerAccountID, account?.accountManagerReportID, conciergeReportID, policy?.chatReportIDAdmins, translate]);
 
+    const oldDotPolicyConnectionsURL = policyID ? `${oldDotEnvironmentURL}/${CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL_ENCODED(policyID)}` : '';
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -541,19 +547,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 <FormHelpMessage
                                     isError
                                     style={styles.menuItemError}
-                                >
-                                    <Text style={[{color: theme.textError}]}>
-                                        {translate('workspace.accounting.errorODIntegration')}
-                                        <TextLink
-                                            onPress={() => {
-                                                // Go to Expensify Classic.
-                                                openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
-                                            }}
-                                        >
-                                            {translate('workspace.accounting.goToODToFix')}
-                                        </TextLink>
-                                    </Text>
-                                </FormHelpMessage>
+                                    message={translate('workspace.accounting.errorODIntegration', {oldDotPolicyConnectionsURL})}
+                                    shouldRenderMessageAsHTML
+                                />
                             )}
                             {hasUnsupportedNDIntegration && !hasSyncError && !!policyID && (
                                 <FormHelpMessage shouldShowRedDotIndicator={false}>

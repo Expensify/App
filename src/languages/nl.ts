@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -4893,8 +4893,7 @@ const translations = {
             existingTagError: 'Er bestaat al een tag met deze naam.',
             invalidTagNameError: 'Tagnaam kan niet 0 zijn. Kies een andere waarde.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de tag, probeer het alstublieft opnieuw.',
-            importedFromAccountingSoftware: 'Tags worden beheerd in je',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `<muted-text>Werknemers zien tags als <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'De onderstaande labels zijn geïmporteerd uit uw',
             glCode: 'GL-code',
             updateGLCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de GL-code, probeer het alstublieft opnieuw.',
             tagRules: 'Tagregels',
@@ -5117,8 +5116,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic.',
-            goToODToFix: 'Ga naar Expensify Classic om dit probleem op te lossen.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic. [Ga naar Expensify Classic om dit probleem op te lossen.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ga naar Expensify Classic om je instellingen te beheren.',
             setup: 'Verbind',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Laatst gesynchroniseerd ${relativeDate}`,

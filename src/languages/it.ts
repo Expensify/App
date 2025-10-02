@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -4900,8 +4900,7 @@ const translations = {
             existingTagError: 'Un tag con questo nome esiste già',
             invalidTagNameError: 'Il nome del tag non può essere 0. Si prega di scegliere un valore diverso.',
             genericFailureMessage: "Si è verificato un errore durante l'aggiornamento del tag, riprova.",
-            importedFromAccountingSoftware: 'I tag sono gestiti nel tuo',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>I dipendenti vedono i tag come <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'I tag qui sotto sono importati dal tuo',
             glCode: 'Codice GL',
             updateGLCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice GL, riprova.",
             tagRules: 'Regole dei tag',
@@ -5125,8 +5124,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: "C'è un errore con una connessione che è stata impostata in Expensify Classic.",
-            goToODToFix: 'Vai su Expensify Classic per risolvere questo problema.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `C'è un errore con una connessione che è stata impostata in Expensify Classic. [Vai su Expensify Classic per risolvere questo problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vai su Expensify Classic per gestire le tue impostazioni.',
             setup: 'Connetti',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Ultima sincronizzazione ${relativeDate}`,
