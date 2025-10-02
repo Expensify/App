@@ -64,7 +64,7 @@ function SearchFiltersTagPage() {
             <HeaderWithBackButton
                 title={translate('common.tag')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>

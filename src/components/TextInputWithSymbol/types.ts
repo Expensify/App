@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
@@ -37,11 +37,6 @@ type BaseTextInputWithSymbolProps = {
 
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
-
-    /**
-     * Callback that is called when the text input is blurred
-     */
-    onBlur?: ((e: NativeSyntheticEvent<TextInputFocusEventData>) => void) | undefined;
 
     /**
      * Callback that is called when the text input is pressed down
@@ -88,7 +83,20 @@ type BaseTextInputWithSymbolProps = {
 
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'contentWidth' | 'onPress' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
+} & Pick<
+    BaseTextInputProps,
+    | 'autoFocus'
+    | 'autoGrow'
+    | 'autoGrowExtraSpace'
+    | 'autoGrowMarginSide'
+    | 'contentWidth'
+    | 'onPress'
+    | 'submitBehavior'
+    | 'shouldUseDefaultLineHeightForPrefix'
+    | 'onFocus'
+    | 'onBlur'
+    | 'ref'
+>;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {
     onSelectionChange?: (start: number, end: number) => void;

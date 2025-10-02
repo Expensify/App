@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-// eslint-disable-next-line no-restricted-syntax
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import type {Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
@@ -24,7 +23,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
     const {translate} = useLocalize();
 
     return (
-        <View style={styles.anonymousRoomFooter(isSmallSizeLayout)}>
+        <View style={[styles.anonymousRoomFooter, styles.anonymousRoomFooterFlexDirection(isSmallSizeLayout)]}>
             <View style={[styles.flexRow, styles.flexShrink1]}>
                 <AvatarWithDisplayName
                     report={report}
@@ -32,7 +31,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
                     shouldEnableDetailPageNavigation
                 />
             </View>
-            <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(isSmallSizeLayout)}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.anonymousRoomFooterWordmarkAndLogoContainer(isSmallSizeLayout)]}>
                 <View style={[isSmallSizeLayout ? styles.mr1 : styles.mr4, styles.flexShrink1]}>
                     <View style={[isSmallSizeLayout ? styles.alignItemsStart : styles.alignItemsEnd]}>
                         <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
@@ -43,7 +42,9 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
                     <Button
                         success
                         text={translate('common.signIn')}
-                        onPress={signOutAndRedirectToSignIn as () => void}
+                        onPress={() => {
+                            signOutAndRedirectToSignIn();
+                        }}
                     />
                 </View>
             </View>

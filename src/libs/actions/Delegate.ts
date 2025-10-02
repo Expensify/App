@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
+import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -55,58 +55,71 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.HAS_LOADED_APP,
     ONYXKEYS.STASHED_CREDENTIALS,
+    ONYXKEYS.HYBRID_APP,
 
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
+    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 ];
 
-type ClearDelegatorErrorsParams = {
+type WithDelegatedAccess = {
+    // Optional keeps call sites clean, but still encourages passing `account?.delegatedAccess`.
     delegatedAccess: DelegatedAccess | undefined;
 };
 
-type AddDelegateProps = {
+type WithEmail = {
     email: string;
+};
+
+type WithRole = {
     role: DelegateRole;
+};
+
+type WithValidateCode = {
     validateCode: string;
-    delegatedAccess: DelegatedAccess | undefined;
 };
 
-type RemoveDelegateProps = {
-    email: string;
-    delegatedAccess: DelegatedAccess | undefined;
+type WithFieldName = {
+    // Constrain to known keys to avoid misspells at call sites
+    fieldName: 'addDelegate' | 'updateDelegateRole'; // but string could work as well
 };
 
-type ClearDelegateErrorsByFieldProps = {
-    email: string;
-    fieldName: string;
-    delegatedAccess: DelegatedAccess | undefined;
-};
-
-type UpdateDelegateRoleProps = {
-    email: string;
-    role: DelegateRole;
-    validateCode: string;
-    delegatedAccess: DelegatedAccess | undefined;
-};
-
-type IsConnectedAsDelegateProps = {
-    delegatedAccess: DelegatedAccess | undefined;
-};
-
-type ConnectProps = {
-    email: string;
-    delegatedAccess: DelegatedAccess | undefined;
-    credentials: Credentials | undefined;
+type WithOldDotFlag = {
     isFromOldDot?: boolean;
 };
+
+// Clear delegator-level errors
+type ClearDelegatorErrorsParams = WithDelegatedAccess;
+
+// Add a delegate (requires code)
+type AddDelegateParams = WithEmail & WithRole & WithValidateCode & WithDelegatedAccess;
+
+// Remove a delegate
+type RemoveDelegateParams = WithEmail & WithDelegatedAccess;
+
+// Clear delegate errors scoped by field
+type ClearDelegateErrorsByFieldParams = WithEmail & WithFieldName & WithDelegatedAccess;
+
+// Update existing delegate role (requires code)
+type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDelegatedAccess;
+
+// Is connected as delegate?
+type IsConnectedAsDelegateParams = WithDelegatedAccess;
+
+// Connect as delegate
+type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag;
+
+// Clear pending action for role update
+type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
 
 /**
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, isFromOldDot = false}: ConnectProps) {
+function connect({email, delegatedAccess, credentials, isFromOldDot = false}: ConnectParams) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
@@ -314,7 +327,7 @@ function requestValidationCode() {
     API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
 }
 
-function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateProps) {
+function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateParams) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -463,12 +476,12 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePr
     };
     optimisticData.push(optimisticResetActionCode);
 
-    const parameters: AddDelegateParams = {delegateEmail: email, validateCode, role};
+    const parameters: APIAddDelegateParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function removeDelegate({email, delegatedAccess}: RemoveDelegateProps) {
+function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
     if (!email || !delegatedAccess?.delegates) {
         return;
     }
@@ -535,12 +548,12 @@ function removeDelegate({email, delegatedAccess}: RemoveDelegateProps) {
         },
     ];
 
-    const parameters: RemoveDelegateParams = {delegateEmail: email};
+    const parameters: APIRemoveDelegateParams = {delegateEmail: email};
 
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldProps) {
+function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -556,11 +569,11 @@ function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDe
     });
 }
 
-function isConnectedAsDelegate({delegatedAccess}: IsConnectedAsDelegateProps) {
+function isConnectedAsDelegate({delegatedAccess}: IsConnectedAsDelegateParams) {
     return !!delegatedAccess?.delegate;
 }
 
-function updateDelegateRole({email, role, validateCode, delegatedAccess}: UpdateDelegateRoleProps) {
+function updateDelegateRole({email, role, validateCode, delegatedAccess}: UpdateDelegateRoleParams) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -570,6 +583,7 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: true,
                 delegatedAccess: {
                     errorFields: {
                         updateDelegateRole: {
@@ -596,6 +610,7 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: false,
                 delegatedAccess: {
                     errorFields: {
                         updateDelegateRole: {
@@ -623,6 +638,7 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: false,
                 delegatedAccess: {
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
@@ -639,46 +655,12 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
         },
     ];
 
-    const parameters: UpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
+    const parameters: APIUpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateDelegateRoleOptimistically({email, role, delegatedAccess}: UpdateDelegateRoleOptimisticallyProps) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                delegatedAccess: {
-                    errorFields: {
-                        updateDelegateRole: {
-                            [email]: null,
-                        },
-                    },
-                    delegates: delegatedAccess.delegates.map((delegate) =>
-                        delegate.email === email
-                            ? {
-                                  ...delegate,
-                                  role,
-                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                              }
-                            : delegate,
-                    ),
-                },
-            },
-        },
-    ];
-
-    Onyx.update(optimisticData);
-}
-
-function clearDelegateRolePendingAction({email, delegatedAccess}: ClearDelegateRolePendingActionProps) {
+function clearDelegateRolePendingAction({email, delegatedAccess}: ClearDelegateRolePendingActionParams) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -723,17 +705,6 @@ function openSecuritySettingsPage() {
     API.read(READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE, null);
 }
 
-type UpdateDelegateRoleOptimisticallyProps = {
-    email: string;
-    role: DelegateRole;
-    delegatedAccess: DelegatedAccess | undefined;
-};
-
-type ClearDelegateRolePendingActionProps = {
-    email: string;
-    delegatedAccess: DelegatedAccess | undefined;
-};
-
 export {
     connect,
     disconnect,
@@ -743,7 +714,6 @@ export {
     clearDelegateErrorsByField,
     restoreDelegateSession,
     isConnectedAsDelegate,
-    updateDelegateRoleOptimistically,
     clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,

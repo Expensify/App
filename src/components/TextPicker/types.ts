@@ -28,7 +28,7 @@ type TextSelectorModalProps = {
     /** Whether the field is required */
     required?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
-    TextProps;
+    Omit<TextProps, 'ref'>;
 
 type TextPickerProps = {
     /** Item to display */

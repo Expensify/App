@@ -1,14 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
-import type Policy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
+import type {Beta, BetaConfiguration, Policy, Report, Transaction} from '@src/types/onyx';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
 type UpdateContext = {
     betas: OnyxEntry<Beta[]>;
+    betaConfiguration: OnyxEntry<BetaConfiguration>;
     allReports: Record<string, Report>;
     allPolicies: Record<string, Policy>;
     allReportNameValuePairs: Record<string, ReportNameValuePairs>;
@@ -16,13 +14,14 @@ type UpdateContext = {
 };
 
 let betas: OnyxEntry<Beta[]>;
+let betaConfiguration: OnyxEntry<BetaConfiguration>;
 let allReports: Record<string, Report>;
 let allPolicies: Record<string, Policy>;
 let allReportNameValuePairs: Record<string, ReportNameValuePairs>;
 let allTransactions: Record<string, Transaction>;
 let isInitialized = false;
 let connectionsInitializedCount = 0;
-const totalConnections = 5;
+const totalConnections = 6;
 let initializationPromise: Promise<void> | null = null;
 
 /**
@@ -30,7 +29,7 @@ let initializationPromise: Promise<void> | null = null;
  * This is called lazily when OptimisticReportNames functionality is first used
  * Returns a Promise that resolves when all connections have received their initial data
  *
- * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied to the UI.
+ * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied directly to the UI.
  * This is a centralized system that needs access to all objects of several types, so that when any updates affect
  * the computed report names, we can compute the new names according to the formula and add the necessary updates.
  * It wouldn't be possible to do this without connecting to all the data.
@@ -46,7 +45,7 @@ function initialize(): Promise<void> {
     }
 
     initializationPromise = new Promise<void>((resolve) => {
-        const checkAndMarkInitialized = () => {
+        const incrementInitialization = () => {
             connectionsInitializedCount++;
             if (connectionsInitializedCount === totalConnections) {
                 isInitialized = true;
@@ -59,7 +58,16 @@ function initialize(): Promise<void> {
             key: ONYXKEYS.BETAS,
             callback: (val) => {
                 betas = val;
-                checkAndMarkInitialized();
+                incrementInitialization();
+            },
+        });
+
+        // Connect to BETA_CONFIGURATION
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.BETA_CONFIGURATION,
+            callback: (val) => {
+                betaConfiguration = val;
+                incrementInitialization();
             },
         });
 
@@ -69,7 +77,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allReports = (val as Record<string, Report>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -79,7 +87,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allPolicies = (val as Record<string, Policy>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -89,7 +97,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allReportNameValuePairs = (val as Record<string, ReportNameValuePairs>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -99,7 +107,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allTransactions = (val as Record<string, Transaction>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
     });
@@ -118,20 +126,12 @@ function getUpdateContext(): UpdateContext {
 
     return {
         betas,
+        betaConfiguration,
         allReports: allReports ?? {},
         allPolicies: allPolicies ?? {},
         allReportNameValuePairs: allReportNameValuePairs ?? {},
         allTransactions: allTransactions ?? {},
     };
 }
-
-/**
- * Get the current update context as a promise for backward compatibility
- * Initializes connections lazily on first use
- */
-function getUpdateContextAsync(): Promise<UpdateContext> {
-    return initialize().then(() => getUpdateContext());
-}
-
-export {initialize, getUpdateContext, getUpdateContextAsync};
+export {initialize, getUpdateContext};
 export type {UpdateContext};

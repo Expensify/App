@@ -2,24 +2,19 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {openPolicyCategoriesPage} from '@userActions/Policy/Category';
-import {openPolicyDistanceRatesPage} from '@userActions/Policy/DistanceRate';
-import {openWorkspaceMembersPage} from '@userActions/Policy/Member';
-import {openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
-import {duplicateWorkspace as duplicateWorkspaceAction, openPolicyTaxesPage, openPolicyWorkflowsPage} from '@userActions/Policy/Policy';
-import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
-import {openPolicyTagsPage} from '@userActions/Policy/Tag';
+import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,12 +31,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
-    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
+    const isCollect = isCollectPolicy(policy);
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
+    const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const totalMembers = Object.keys(allIds).length;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
-    const totalTags = Object.keys(policyTags ?? {}).length ?? 0;
     const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const categoriesCount = Object.keys(policyCategories ?? {}).length;
@@ -62,10 +58,17 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             ? `${policy?.invoice?.companyName}, ${policy?.invoice?.companyWebsite}`
             : (policy?.invoice?.companyName ?? policy?.invoice?.companyWebsite ?? '');
 
+    const totalTags = useMemo(() => {
+        if (!policyTags) {
+            return 0;
+        }
+        return Object.values(policyTags).reduce((sum, tagGroup) => sum + Number(Object.values(tagGroup.tags)?.length ?? 0), 0);
+    }, [policyTags]);
+
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
         !isEmptyObject(policy) && !isEmptyObject(policy.address)
-            ? `, ${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
+            ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
             : '';
 
     const items = useMemo(() => {
@@ -131,7 +134,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: workflows?.join(', '),
                   }
                 : undefined,
-            rules && rules.length > 0
+            rules && rules.length > 0 && !isCollect
                 ? {
                       translation: translate('workspace.common.rules'),
                       value: 'rules',
@@ -176,6 +179,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         categoriesCount,
         taxesLength,
         ratesCount,
+        isCollect,
         allRates,
         bankAccountList,
         invoiceCompany,
@@ -197,25 +201,20 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         if (!policyID) {
             return;
         }
-        openWorkspaceMembersPage(policyID, Object.keys(allIds ?? {}));
-        openPolicyCategoriesPage(policyID);
-        openPolicyDistanceRatesPage(policyID);
-        openPolicyPerDiemPage(policyID);
-        openPolicyReportFieldsPage(policyID);
-        openPolicyTagsPage(policyID);
-        openPolicyTaxesPage(policyID);
-        openPolicyWorkflowsPage(policyID);
-    }, [policyID, allIds]);
+        openDuplicatePolicyPage(policyID);
+    }, [policyID]);
 
     const confirmDuplicate = useCallback(() => {
         if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
             return;
         }
+
         duplicateWorkspaceAction(policy, {
             policyName: duplicateWorkspace.name,
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
+            policyCategories: selectedItems.includes('categories') ? policyCategories : undefined,
             parts: {
                 people: selectedItems.includes('members'),
                 reports: selectedItems.includes('reports'),
@@ -223,16 +222,17 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 categories: selectedItems.includes('categories'),
                 tags: selectedItems.includes('tags'),
                 taxes: selectedItems.includes('taxes'),
+                perDiem: selectedItems.includes('perDiem'),
                 reimbursements: selectedItems.includes('invoices'),
                 expenses: selectedItems.includes('rules'),
                 customUnits: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
             },
-            file: duplicateWorkspace?.file,
+            file: duplicatedWorkspaceAvatar,
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, selectedItems, translate]);
+    }, [duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate, duplicatedWorkspaceAvatar]);
 
     const confirmDuplicateAndHideModal = useCallback(() => {
         setIsDuplicateModalOpen(false);
@@ -282,6 +282,25 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         [items, selectedItems],
     );
 
+    // When the component mounts, if there is a new avatar, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
+    // This is because until the request is saved, the avatar file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the duplication process.
+    useEffect(() => {
+        if (!duplicateWorkspace?.fileURI || !policyID) {
+            return;
+        }
+        readFileAsync(
+            duplicateWorkspace.fileURI,
+            'tmpFile',
+            (file) => {
+                setDuplicatedWorkspaceAvatar(file);
+            },
+            () => {
+                Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID));
+            },
+        );
+    }, [duplicateWorkspace?.fileURI, policyID]);
+
     useEffect(() => {
         if (!items.length) {
             return;
@@ -300,7 +319,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     return (
         <>
             <HeaderWithBackButton
-                onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID, ROUTES.WORKSPACES_LIST.route)) : undefined}
+                onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID)) : undefined}
                 title={translate('workspace.common.duplicateWorkspace')}
             />
             <>

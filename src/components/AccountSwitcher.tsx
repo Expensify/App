@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -44,8 +45,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => onyxSession?.accountID});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
@@ -225,7 +228,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             >
                                 {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                             </Text>
-                            {!!account?.isDebugModeEnabled && (
+                            {!!isDebugModeEnabled && (
                                 <Text
                                     style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
                                     numberOfLines={1}

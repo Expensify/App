@@ -3,7 +3,6 @@ title: Unlock a Business Bank Account
 description: Learn how to resolve issues with a locked business bank account in Expensify.
 keywords: [New Expensify, unlock bank account, reimbursements, direct debit, ACH, bank rejected withdrawal]
 ---
-<div id="new-expensify" markdown="1">
 
 When you reimburse a report, Expensify initiates a withdrawal from your connected business bank account. If your bank rejects this withdrawal—due to **insufficient funds**, **missing authorization**, or **direct debit restrictions**—your account will be **locked** until the issue is resolved.
 
@@ -61,4 +60,3 @@ To ensure your bank allows direct debit from Expensify, share the following ACH 
 
 Once your bank has approved these IDs and your account is reviewed, Concierge will notify you when it is unlocked and reimbursements can resume.
 
-</div>
