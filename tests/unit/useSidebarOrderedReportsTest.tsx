@@ -129,7 +129,7 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
-        currentReportIDForTestsValue = '2';
+
         // Then sortReportsToDisplayInLHN should not be called again since deep comparison shows no change
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
     });
