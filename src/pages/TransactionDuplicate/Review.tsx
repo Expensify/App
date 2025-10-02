@@ -60,7 +60,7 @@ function TransactionDuplicateReview() {
     );
 
     const keepAll = () => {
-        dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails, report?.reportID);
+        dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails, report?.parentReportID);
         Navigation.goBack();
     };
 
