@@ -69,9 +69,6 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
     handleOnButtonPress?: () => void;
 
-    /** Whether the action button should be displayed */
-    shouldShowAction?: boolean;
-
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
 
@@ -94,7 +91,6 @@ function HeaderFirstRow<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     handleOnButtonPress = () => {},
-    shouldShowAction = false,
     avatarBorderColor,
     isSelectAllChecked,
     isIndeterminate,
@@ -146,7 +142,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3, styles.gap1, !isLargeScreenWidth && styles.pr3]}>
+            <View style={[styles.flexShrink0, styles.gap1, styles.pr3]}>
                 <TotalCell
                     total={total}
                     currency={currency}
@@ -171,7 +167,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                     </View>
                 )}
             </View>
-            {shouldShowAction && (
+            {isLargeScreenWidth && (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={reportItem.action}
@@ -259,7 +255,6 @@ function ReportListItemHeader<TItem extends ListItem>({
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
-                shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
                 isSelectAllChecked={isSelectAllChecked}

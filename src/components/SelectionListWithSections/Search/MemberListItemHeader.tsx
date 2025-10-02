@@ -2,10 +2,15 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, TransactionMemberGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -29,6 +34,12 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
 };
 
 function MemberListItemHeader<TItem extends ListItem>({
@@ -38,8 +49,12 @@ function MemberListItemHeader<TItem extends ListItem>({
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
+    isExpanded,
+    onDownArrowClick,
 }: MemberListItemHeaderProps<TItem>) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
     const [formattedDisplayName, formattedLogin] = useMemo(
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
@@ -82,11 +97,30 @@ function MemberListItemHeader<TItem extends ListItem>({
                         </View>
                     </View>
                 </View>
-                <View style={[styles.flexShrink0, styles.mr3]}>
+                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
                     <TotalCell
                         total={memberItem.total}
                         currency={memberItem.currency}
                     />
+                    {!isLargeScreenWidth && !!onDownArrowClick && (
+                        <View>
+                            <PressableWithFeedback
+                                onPress={onDownArrowClick}
+                                disabled={!!isDisabled}
+                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+                            >
+                                {({hovered}) => (
+                                    <Icon
+                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                        fill={hovered ? theme.textSupporting : theme.icon}
+                                        small
+                                    />
+                                )}
+                            </PressableWithFeedback>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>

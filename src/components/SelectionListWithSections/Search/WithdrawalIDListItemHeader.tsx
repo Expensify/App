@@ -3,9 +3,13 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -29,6 +33,12 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
 };
 
 function WithdrawalIDListItemHeader<TItem extends ListItem>({
@@ -38,7 +48,11 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     canSelectMultiple,
     isIndeterminate,
     isSelectAllChecked,
+    onDownArrowClick,
+    isExpanded,
 }: WithdrawalIDListItemHeaderProps<TItem>) {
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
@@ -80,11 +94,30 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         </View>
                     </View>
                 </View>
-                <View style={[styles.flexShrink0, styles.mr3]}>
+                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
                     <TotalCell
                         total={withdrawalIDItem.total}
                         currency={withdrawalIDItem.currency}
                     />
+                    {!isLargeScreenWidth && !!onDownArrowClick && (
+                        <View>
+                            <PressableWithFeedback
+                                onPress={onDownArrowClick}
+                                disabled={!!isDisabled}
+                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
+                            >
+                                {({hovered}) => (
+                                    <Icon
+                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                        fill={hovered ? theme.textSupporting : theme.icon}
+                                        small
+                                    />
+                                )}
+                            </PressableWithFeedback>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>

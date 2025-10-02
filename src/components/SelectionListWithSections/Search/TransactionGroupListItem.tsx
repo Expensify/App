@@ -256,12 +256,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
-                    onDownArrowClick={() => {
-                        if (isEmpty && !shouldDisplayEmptyView) {
-                            onPress();
-                        }
-                        handleToggle();
-                    }}
+                    onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
                 />
             ),
@@ -273,6 +268,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
@@ -284,6 +281,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
@@ -294,6 +293,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     isSelectAllChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
                 />
             ),
         };
@@ -303,22 +304,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [
-        groupItem,
-        onSelectRow,
-        onCheckboxPress,
-        isDisabledOrEmpty,
-        isFocused,
-        canSelectMultiple,
-        isSelectAllChecked,
-        isIndeterminate,
-        groupBy,
-        handleToggle,
-        isExpanded,
-        onPress,
-        shouldDisplayEmptyView,
-        isEmpty,
-    ]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy, isExpanded, onExpandIconPress]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -354,7 +340,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         header={getHeader}
                         onPress={onExpandIconPress}
                         expandButtonStyle={[styles.pv4Half]}
-                        shouldShowToggleButton={isLargeScreenWidth && isGroupByReports}
+                        shouldShowToggleButton={isLargeScreenWidth}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
