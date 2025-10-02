@@ -136,6 +136,7 @@ function MoneyRequestParticipantsSelector(
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
     });
+    
     // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
     const hasMultipleTransactions = (optimisticTransactions ?? []).length > 1;
     const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
