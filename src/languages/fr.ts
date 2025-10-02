@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -4894,8 +4894,7 @@ const translations = {
             existingTagError: 'Un tag avec ce nom existe déjà',
             invalidTagNameError: 'Le nom de la balise ne peut pas être 0. Veuillez choisir une autre valeur.',
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour du tag, veuillez réessayer.",
-            importedFromAccountingSoftware: 'Les étiquettes sont gérées dans votre',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>Les employés voient les étiquettes comme <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'Les balises ci-dessous sont importées de votre',
             glCode: 'Code GL',
             updateGLCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code GL, veuillez réessayer.",
             tagRules: 'Règles de balise',
@@ -5120,8 +5119,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Il y a une erreur avec une connexion qui a été configurée dans Expensify Classic.',
-            goToODToFix: 'Allez sur Expensify Classic pour résoudre ce problème.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Il y a une erreur avec une connexion qui a été configurée dans Expensify Classic. [Allez sur Expensify Classic pour résoudre ce problème.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Accédez à Expensify Classic pour gérer vos paramètres.',
             setup: 'Connecter',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Dernière synchronisation ${relativeDate}`,
