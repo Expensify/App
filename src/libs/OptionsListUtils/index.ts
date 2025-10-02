@@ -867,8 +867,8 @@ function createOption(
 /**
  * Get the option for a given report.
  */
-function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
-    const report = getReportOrDraftReport(participant.reportID);
+function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], reportParam?: Report): OptionData {
+    const report = reportParam ?? getReportOrDraftReport(participant.reportID);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(

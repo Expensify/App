@@ -186,7 +186,8 @@ function IOURequestStepConfirmation({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const requestType = getRequestType(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -263,9 +264,10 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                const participantReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, participantReport);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reports, reportDrafts],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
