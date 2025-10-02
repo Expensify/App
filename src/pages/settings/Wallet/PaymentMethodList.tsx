@@ -10,11 +10,12 @@ import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSugges
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
@@ -97,6 +98,9 @@ type PaymentMethodListProps = {
 
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
+
+    /** Optional array of menu items to be displayed in the three dots menu */
+    threeDotsMenuItems?: PopoverMenuItem[];
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -190,9 +194,9 @@ function PaymentMethodList({
     itemIconRight,
     filterType,
     shouldHideDefaultBadge = false,
+    threeDotsMenuItems,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
@@ -351,7 +355,6 @@ function PaymentMethodList({
                         methodID: paymentMethod.methodID,
                         description: paymentMethod.description,
                     }),
-                wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: itemIconRight ?? Expensicons.ThreeDots,
@@ -359,24 +362,7 @@ function PaymentMethodList({
             };
         });
         return combinedPaymentMethods;
-    }, [
-        shouldShowAssignedCards,
-        isLoadingBankAccountList,
-        bankAccountList,
-        styles,
-        isOffline,
-        filterType,
-        isLoadingCardList,
-        cardList,
-        illustrations,
-        translate,
-        onPress,
-        shouldShowRightIcon,
-        itemIconRight,
-        activePaymentMethodID,
-        actionPaymentMethodType,
-        StyleUtils,
-    ]);
+    }, [shouldShowAssignedCards, isLoadingBankAccountList, bankAccountList, styles, isOffline, filterType, isLoadingCardList, cardList, illustrations, translate, onPress, shouldShowRightIcon, itemIconRight, activePaymentMethodID, actionPaymentMethodType]);
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
@@ -430,12 +416,12 @@ function PaymentMethodList({
             return shouldShowDefaultBadge(
                 filteredPaymentMethods,
                 invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
-                shouldHideDefaultBadge
+                shouldHideDefaultBadge,
             )
                 ? translate('paymentMethodList.defaultPaymentMethod')
                 : undefined;
         },
-        [filteredPaymentMethods, invoiceTransferBankAccountID, translate, userWallet?.walletLinkedAccountID],
+        [filteredPaymentMethods, invoiceTransferBankAccountID, shouldHideDefaultBadge, translate, userWallet?.walletLinkedAccountID],
     );
 
     /**
@@ -475,8 +461,21 @@ function PaymentMethodList({
                         badgeSuccess={isAccountInSetupState(item) ? true : undefined}
                         wrapperStyle={[styles.paymentMethod, listItemStyle]}
                         iconRight={item.iconRight}
+                        shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
+                        shouldShowRightComponent={!!threeDotsMenuItems}
+                        rightComponent={
+                            threeDotsMenuItems ? (
+                                <ThreeDotsMenu
+                                    shouldSelfPosition
+                                    onIconPress={item.onPress}
+                                    menuItems={threeDotsMenuItems}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    shouldOverlay
+                                    isNested
+                                />
+                            ) : undefined
+                        }
                         badgeStyle={styles.badgeBordered}
-                        shouldShowRightIcon={item.shouldShowRightIcon}
                         shouldShowSelectedState={shouldShowSelectedState}
                         isSelected={selectedMethodID.toString() === item.methodID?.toString()}
                         interactive={item.interactive}
@@ -486,24 +485,7 @@ function PaymentMethodList({
                 </OfflineWithFeedback>
             );
         },
-        [
-            styles.ph6,
-            styles.paymentMethod,
-            styles.badgeBordered,
-            styles.mt4,
-            styles.mt6,
-            styles.mb1,
-            styles.textLabel,
-            styles.colorMuted,
-            filteredPaymentMethods,
-            invoiceTransferBankAccountID,
-            userWallet?.walletLinkedAccountID,
-            translate,
-            listItemStyle,
-            shouldShowSelectedState,
-            selectedMethodID,
-            shouldHideDefaultBadge,
-        ],
+        [styles.ph6, styles.paymentMethod, styles.badgeBordered, styles.mt4, styles.mt6, styles.mb1, styles.textLabel, styles.colorMuted, getBadgeText, listItemStyle, threeDotsMenuItems, shouldShowSelectedState, selectedMethodID],
     );
 
     return (

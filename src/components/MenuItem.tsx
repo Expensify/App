@@ -402,12 +402,13 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
+
 function MenuItem({
     interactive = true,
     onPress,
     badgeText,
-                      badgeIcon,
-                      badgeSuccess,
+    badgeIcon,
+    badgeSuccess,
     style,
     wrapperStyle,
     titleWrapperStyle,
