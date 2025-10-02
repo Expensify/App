@@ -18,9 +18,10 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
                 customDisplayNameStyle={styles.fontWeightNormal}
+                parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1]}
             />
         );
-    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal]);
+    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1]);
 
     return (
         <View
