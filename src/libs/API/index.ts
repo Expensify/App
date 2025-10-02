@@ -25,30 +25,39 @@ import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 // e.g. an error thrown in Logging or Reauthenticate logic will be caught by the next middleware or the SequentialQueue which retries failing requests.
 
 // Logging - Logs request details and errors.
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(Logging);
 
 // RecheckConnection - Sets a timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(RecheckConnection);
 
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(Reauthentication);
 
 // Handles the case when the copilot has been deleted. The response contains jsonCode 408 and a message indicating account deletion
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(handleDeletedAccount);
 
 // Handle supportal permission denial centrally
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(SupportalPermission);
 
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(HandleUnusedOptimisticID);
 
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(Pagination);
 
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(SaveResponseInOnyx);
 
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
+// eslint-disable-next-line react-hooks/rules-of-hooks
 use(FraudMonitoring);
 
 // Initialize OptimisticReportNames context on module load
