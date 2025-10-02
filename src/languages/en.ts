@@ -4867,6 +4867,7 @@ const translations = {
                 firstRowTitle: 'The first row is the title for each tag list',
                 independentTags: 'These are independent tags',
                 glAdjacentColumn: 'There is a GL code in the adjacent column',
+                enabledAdjacentColumn: 'There is a Enabled state in the adjacent column',
             },
             tagLevel: {
                 singleLevel: 'Single level of tags',
