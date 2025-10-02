@@ -660,7 +660,7 @@ const translations = {
         workspacesTabTitle: 'Espaces de travail',
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
-        headsUp: 'Attention !',
+        headsUp: 'Attention!',
         submitTo: 'Envoyer à',
         forwardTo: 'Transférer à',
         merge: 'Fusionner',
@@ -671,6 +671,8 @@ const translations = {
         link: 'Lien',
         pinned: 'Épinglé',
         read: 'Lu',
+        actionRequired: 'Action requise',
+        locked: 'Verrouillé',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -2770,6 +2772,10 @@ const translations = {
         hasBeenThrottledError: "Une erreur s'est produite lors de l'ajout de votre compte bancaire. Veuillez attendre quelques minutes et réessayer.",
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur <a href="${workspaceRoute}">vos paramètres d'espace de travail</a> pour le régler sur USD et réessayer.`,
+        lockedBankAccount: 'Compte bancaire verrouillé',
+        unlockBankAccount: 'Déverrouiller le compte bancaire',
+        youCantPayThis: 'Vous ne pouvez pas payer ce rapport car vous avez un',
+        tapBelow: 'Appuyez ci-dessous et le Concierge vous aidera à le déverrouiller.',
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: "Désolé, aucun compte bancaire n'est disponible.",

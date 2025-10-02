@@ -670,6 +670,8 @@ const translations = {
         link: '链接',
         pinned: '已固定',
         read: '已读',
+        actionRequired: '需要操作',
+        locked: '已锁定',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -2742,6 +2744,10 @@ const translations = {
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a href="${workspaceRoute}">您的工作区设置</a> 将其设置为美元，然后重试。`,
+        lockedBankAccount: '已锁定的银行账户',
+        unlockBankAccount: '解锁银行账户',
+        youCantPayThis: '您无法支付此报告，因为您有一个',
+        tapBelow: '请点击下方，礼宾服务将协助您完成解锁步骤。',
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',
