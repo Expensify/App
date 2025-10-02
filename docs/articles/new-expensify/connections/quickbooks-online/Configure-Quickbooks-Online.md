@@ -21,7 +21,7 @@ To choose how data is imported from QuickBooks Online to Expensify:
 - **Classes**: Import as tags to allow expense-level coding.
 - **Customers/Projects**: Import as tags for expense-level coding.
 - **Locations**: Import as tags.
-  - Note: If you import locations, these must be configured as report fields, which is available on the [**Control** plan](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan).
+  - Note: If you export using the Vendor Bill or Check options, then locations must be configured as report fields, which are only available on the [**Control** plan](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Billing-Overview#control-plan).
 - **Taxes**: Import tax rates and defaults.
 
 ## How to Turn Imported Accounts and Tags Off
