@@ -3,10 +3,10 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ConnectPolicyToQuickBooksDesktopParams,
+    UpdateQuickbooksDesktopAccountingMethodParams,
     UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams,
     UpdateQuickbooksDesktopExpensesExportDestinationTypeParams,
     UpdateQuickbooksDesktopGenericTypeParams,
-    UpdateQuickbooksDesktopAccountingMethodParams,
 } from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -542,10 +542,10 @@ function updateQuickbooksDesktopAutoSync<TSettingValue extends Connections['quic
 function updateQuickbooksDesktopAccountingMethod<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['accountingMethod']>(
     policyID: string,
     settingValue: TSettingValue,
-    oldSettingValue?: TSettingValue
+    oldSettingValue?: TSettingValue,
 ) {
     const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD, settingValue, oldSettingValue);
-    
+
     const parameters: UpdateQuickbooksDesktopAccountingMethodParams = {
         policyID,
         accountingMethod: settingValue,

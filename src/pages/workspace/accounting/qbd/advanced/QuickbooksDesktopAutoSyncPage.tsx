@@ -24,7 +24,8 @@ function QuickbooksDesktopAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const config = policy?.connections?.quickbooksDesktop?.config;
     const {autoSync, pendingFields} = config ?? {};
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
-    const pendingAction = settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
+    const pendingAction =
+        settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID));

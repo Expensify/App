@@ -1,7 +1,9 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
 import {useRoute} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
@@ -15,11 +17,9 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import type {TranslationPaths} from '@src/languages/types';
 
 function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
