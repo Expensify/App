@@ -70,7 +70,7 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachment(reportID, fileData, CONST.DEFAULT_TIME_ZONE);
+        addAttachment(reportID, reportID, fileData, CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
@@ -102,7 +102,7 @@ describe('AttachmentStorage', () => {
         const markdownTextLinkAttachment = `![](${sourceURL})`;
 
         // Then send the comment
-        addComment(reportID, markdownTextLinkAttachment, CONST.DEFAULT_TIME_ZONE);
+        addComment(reportID, reportID, markdownTextLinkAttachment, CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
@@ -219,7 +219,7 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then send the comment
-        addComment(reportID, markdownTextLinkAttachment, CONST.DEFAULT_TIME_ZONE);
+        addComment(reportID, reportID, markdownTextLinkAttachment, CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
@@ -283,7 +283,7 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachment(reportID, fileData, CONST.DEFAULT_TIME_ZONE);
+        addAttachment(reportID, reportID, fileData, CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
@@ -338,7 +338,7 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then send the comment
-        addComment(reportID, markdownTextLinkAttachment, CONST.DEFAULT_TIME_ZONE);
+        addComment(reportID, reportID, markdownTextLinkAttachment, CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
