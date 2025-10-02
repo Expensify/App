@@ -114,7 +114,7 @@ function ActionCell({
             <Button
                 text={text}
                 onPress={goToItem}
-                small
+                small={!extraSmall}
                 extraSmall={extraSmall}
                 style={[styles.w100]}
                 innerStyles={buttonInnerStyles}
@@ -154,7 +154,7 @@ function ActionCell({
         <Button
             text={text}
             onPress={goToItem}
-            small
+            small={!extraSmall}
             extraSmall={extraSmall}
             style={[styles.w100]}
             isLoading={isLoading}
