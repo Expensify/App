@@ -172,7 +172,6 @@ type BuildPolicyDataOptions = {
     lastUsedPaymentMethod?: LastPaymentMethodType;
     areDistanceRatesEnabled?: boolean;
     adminParticipant?: Participant;
-    selectedFeatures?: string[];
 };
 
 type DuplicatePolicyDataOptions = {
@@ -1967,7 +1966,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         lastUsedPaymentMethod,
         areDistanceRatesEnabled,
         adminParticipant,
-        selectedFeatures,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2314,6 +2312,14 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
+    const selectedFeaturesMap = featuresMap?.reduce(
+        (acc, feature) => ({
+            ...acc,
+            [feature.id]: feature.enabled,
+        }),
+        {},
+    );
+
     const params: CreateWorkspaceParams = {
         policyID,
         adminsChatReportID,
@@ -2332,7 +2338,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
         areDistanceRatesEnabled,
-        selectedFeatures: selectedFeatures ? JSON.stringify(selectedFeatures) : undefined,
+        selectedFeatures: selectedFeaturesMap ? JSON.stringify(selectedFeaturesMap) : undefined,
     };
 
     if (
