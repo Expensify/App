@@ -6183,7 +6183,6 @@ const translations = {
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Verslag',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',

@@ -6055,7 +6055,6 @@ const translations = {
             reimbursable: '可报销的',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: '报告',
                 [CONST.SEARCH.GROUP_BY.FROM]: '从',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现ID',

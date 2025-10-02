@@ -6185,7 +6185,6 @@ const translations = {
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Bericht',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',

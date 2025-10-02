@@ -440,7 +440,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const filters = useMemo<FilterItem[]>(() => {
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
-        const shouldDisplayGroupByFilter = !!groupBy?.value && groupBy?.value !== CONST.SEARCH.GROUP_BY.REPORTS;
+        const shouldDisplayGroupByFilter = !!groupBy?.value;
         const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);

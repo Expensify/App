@@ -6198,7 +6198,6 @@ const translations = {
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapporto',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID di prelievo',

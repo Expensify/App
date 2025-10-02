@@ -6136,7 +6136,6 @@ const translations = {
             reimbursable: '払い戻し可能',
             purchaseCurrency: '購入通貨',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.REPORTS]: '報告',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'から',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',

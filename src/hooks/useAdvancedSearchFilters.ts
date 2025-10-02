@@ -232,7 +232,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
-    const shouldDisplayGroupByFilter = !!groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
+    const shouldDisplayGroupByFilter = !!groupBy;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
