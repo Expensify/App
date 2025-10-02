@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -106,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -408,7 +410,7 @@ const translations = {
         download: 'ダウンロード',
         downloading: 'ダウンロード中',
         uploading: 'アップロード中',
-        pin: 'ピン',
+        pin: 'ピン留めする',
         unPin: 'ピン留めを解除',
         back: '戻る',
         saveAndContinue: '保存して続行',
@@ -672,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
-        description: 'サポートがログインしているときにこの操作を行う権限がありません。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `サポートがログインしているときにこのアクションを実行する権限がありません（コマンド: ${command ?? ''}）。Successがこのアクションを実行できるべきだと思われる場合は、Slackで会話を開始してください。`,
     },
     lockedAccount: {
         title: 'アカウントがロックされました',
@@ -2215,7 +2222,7 @@ const translations = {
         enterAuthenticatorCode: '認証コードを入力してください',
         enterRecoveryCode: 'リカバリーコードを入力してください',
         requiredWhen2FAEnabled: '2FAが有効になっている場合に必要',
-        requestNewCode: '新しいコードをリクエスト',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `<a>${timeRemaining}</a>後に新しいコードをリクエストしてください`,
         requestNewCodeAfterErrorOccurred: '新しいコードをリクエストする',
         error: {
             pleaseFillMagicCode: 'マジックコードを入力してください',
@@ -5072,8 +5079,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Expensify Classicで設定された接続にエラーがあります。',
-            goToODToFix: 'この問題を解決するには、Expensify Classicに移動してください。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Expensify Classicで設定された接続にエラーがあります。[この問題を解決するには、Expensify Classicに移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classicに移動してください。',
             setup: '接続する',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期日時: ${relativeDate}`,
@@ -5398,8 +5405,8 @@ const translations = {
             updateDetails: '詳細を更新',
             yesDisconnectMyBankAccount: 'はい、私の銀行口座を切断してください。',
             yesStartOver: 'はい、最初からやり直してください。',
-            disconnectYour: '切断する',
-            bankAccountAnyTransactions: '銀行口座。この口座の未処理の取引は引き続き完了します。',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `<strong>${bankName}</strong>銀行口座を切断してください。この口座の未処理の取引は引き続き完了します。`,
             clearProgress: 'やり直すと、これまでの進捗がクリアされます。',
             areYouSure: 'よろしいですか？',
             workspaceCurrency: 'ワークスペース通貨',
@@ -5519,11 +5526,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
-            },
-            reports: {
-                title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',

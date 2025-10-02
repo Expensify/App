@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -106,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -408,7 +410,7 @@ const translations = {
         download: 'Downloaden',
         downloading: 'Downloaden',
         uploading: 'Uploaden',
-        pin: 'Pincode',
+        pin: 'Vastpinnen',
         unPin: 'Losmaken van vastzetten',
         back: 'Terug',
         saveAndContinue: 'Opslaan & doorgaan',
@@ -671,7 +673,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
-        description: 'U bent niet gemachtigd om deze actie uit te voeren wanneer de ondersteuning is ingelogd.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `U bent niet gemachtigd om deze actie uit te voeren wanneer ondersteuning is ingelogd (opdracht: ${command ?? ''}). Als u denkt dat Success deze actie zou moeten kunnen uitvoeren, start dan een gesprek in Slack.`,
     },
     lockedAccount: {
         title: 'Geblokkeerd account',
@@ -2222,7 +2229,7 @@ const translations = {
         enterAuthenticatorCode: 'Voer uw authenticatiecode in alstublieft',
         enterRecoveryCode: 'Voer uw herstelcode in alstublieft',
         requiredWhen2FAEnabled: 'Vereist wanneer 2FA is ingeschakeld',
-        requestNewCode: 'Vraag een nieuwe code aan in',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Vraag een nieuwe code aan over <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Vraag een nieuwe code aan',
         error: {
             pleaseFillMagicCode: 'Voer uw magische code in alstublieft',
@@ -5105,8 +5112,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic.',
-            goToODToFix: 'Ga naar Expensify Classic om dit probleem op te lossen.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic. [Ga naar Expensify Classic om dit probleem op te lossen.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ga naar Expensify Classic om je instellingen te beheren.',
             setup: 'Verbind',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Laatst gesynchroniseerd ${relativeDate}`,
@@ -5436,8 +5443,8 @@ const translations = {
             updateDetails: 'Details bijwerken',
             yesDisconnectMyBankAccount: 'Ja, koppel mijn bankrekening los.',
             yesStartOver: 'Ja, begin opnieuw.',
-            disconnectYour: 'Verbreek de verbinding met uw',
-            bankAccountAnyTransactions: 'bankrekening. Eventuele openstaande transacties voor deze rekening zullen nog steeds worden voltooid.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Koppel uw <strong>${bankName}</strong> bankrekening los. Eventuele openstaande transacties voor deze rekening zullen nog steeds worden voltooid.`,
             clearProgress: 'Opnieuw beginnen zal de voortgang die je tot nu toe hebt gemaakt wissen.',
             areYouSure: 'Weet je het zeker?',
             workspaceCurrency: 'Werkruimte valuta',
@@ -5557,11 +5564,6 @@ const translations = {
                 title: 'Reis',
                 description: 'Expensify Travel is een nieuw platform voor het boeken en beheren van zakelijke reizen waarmee leden accommodaties, vluchten, vervoer en meer kunnen boeken.',
                 onlyAvailableOnPlan: 'Reizen is beschikbaar op het Collect-plan, beginnend bij',
-            },
-            reports: {
-                title: 'Rapporten',
-                description: 'Maak georganiseerde onkostenrapporten om uw zakelijke uitgaven bij te houden, in te dienen voor goedkeuring en uw vergoedingsproces te stroomlijnen.',
-                onlyAvailableOnPlan: 'Rapporten zijn beschikbaar op het Collect-plan, beginnend bij ',
             },
             multiLevelTags: {
                 title: 'Meerniveautags',
