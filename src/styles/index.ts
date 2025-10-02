@@ -2349,7 +2349,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             display: 'flex',
             width: '100%',
-            height: 52,
+            height: 40,
         },
 
         searchResultsHeaderBar: {
