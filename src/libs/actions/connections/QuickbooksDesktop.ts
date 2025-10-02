@@ -542,7 +542,7 @@ function updateQuickbooksDesktopAutoSync<TSettingValue extends Connections['quic
 function updateQuickbooksDesktopAccountingMethod<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['accountingMethod']>(
     policyID: string,
     settingValue: TSettingValue,
-    oldSettingValue: TSettingValue
+    oldSettingValue?: TSettingValue
 ) {
     const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD, settingValue, oldSettingValue);
     
