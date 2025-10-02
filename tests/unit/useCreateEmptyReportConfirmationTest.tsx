@@ -1,360 +1,313 @@
-import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
+import {act, render, renderHook} from '@testing-library/react-native';
+import type {ReactElement, ReactNode} from 'react';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
-// Mock Navigation
-jest.mock('@libs/Navigation/Navigation');
+type MockConfirmModalProps = {
+    prompt: ReactNode;
+    confirmText?: string;
+    cancelText?: string;
+    isVisible?: boolean;
+    onConfirm?: () => void | Promise<void>;
+    onCancel?: () => void;
+    title?: string;
+    isConfirmLoading?: boolean;
+};
+
+type MockTextLinkProps = {
+    children?: ReactNode;
+    onPress?: () => void;
+    onLongPress?: (event: unknown) => void;
+};
+
+type MockReactModule = {
+    createElement: (...args: unknown[]) => ReactElement;
+};
+
+const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => (params?.workspaceName ? `${key}:${params.workspaceName}` : key));
+
+let mockTextLinkProps: MockTextLinkProps | undefined;
+
+jest.mock('@hooks/useLocalize', () => () => ({
+    translate: mockTranslate,
+}));
+
+jest.mock('@components/ConfirmModal', () => {
+    const mockReact: MockReactModule = jest.requireActual('react');
+    return ({prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title, isConfirmLoading}: MockConfirmModalProps) =>
+        mockReact.createElement('mock-confirm-modal', {prompt, confirmText, cancelText, isVisible, onConfirm, onCancel, title, isConfirmLoading}, null);
+});
+
+jest.mock('@components/Text', () => {
+    const mockReact: MockReactModule = jest.requireActual('react');
+    return ({children}: {children?: ReactNode}) => mockReact.createElement('mock-text', null, children);
+});
+
+jest.mock('@components/TextLink', () => {
+    const mockReact: MockReactModule = jest.requireActual('react');
+    return (props: MockTextLinkProps) => {
+        mockTextLinkProps = props;
+        const {children, onPress, onLongPress} = props;
+        return mockReact.createElement('mock-text-link', {onPress, onLongPress}, children);
+    };
+});
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+}));
+
+function createDeferredPromise<T>() {
+    let resolve!: (value: T | PromiseLike<T>) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+
+    return {promise, resolve, reject};
+}
+
+type HookValue = ReturnType<typeof useCreateEmptyReportConfirmation>;
+
+type MockConfirmModalElement = ReactElement<MockConfirmModalProps>;
+
+function getModal(hookValue: HookValue): MockConfirmModalElement {
+    return hookValue.CreateReportConfirmationModal as MockConfirmModalElement;
+}
+
+function getRequiredHandler<T extends (...args: never[]) => unknown>(handler: T | undefined, name: string): T {
+    if (!handler) {
+        throw new Error(`${name} handler was not provided`);
+    }
+    return handler;
+}
+
+const policyID = 'policy-123';
+const policyName = 'Engineering Team';
+
+const expectedSearchRoute = ROUTES.SEARCH_ROOT.getRoute({
+    query: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS}),
+});
 
 describe('useCreateEmptyReportConfirmation', () => {
-    const mockOnConfirm = jest.fn();
-    const mockNavigate = jest.fn();
-
     beforeEach(() => {
         jest.clearAllMocks();
-        (Navigation.navigate as jest.Mock) = mockNavigate;
+        mockTranslate.mockClear();
+        mockTextLinkProps = undefined;
     });
 
-    describe('openCreateReportConfirmation', () => {
-        it('should call onConfirm directly when shouldShowWarning is false', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: false,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
+    it('renders hidden modal by default and opens on demand', () => {
+        const onConfirm = jest.fn();
+        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName,
+                onConfirm,
+            }),
+        );
 
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
+        let modal = getModal(result.current);
+        expect(modal.props.isVisible).toBe(false);
 
-            expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+        act(() => {
+            result.current.openCreateReportConfirmation();
         });
 
-        it('should call onConfirm directly when policyID is undefined', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: undefined,
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
-
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-
-            expect(mockOnConfirm).toHaveBeenCalledTimes(1);
-        });
-
-        it('should not throw when onConfirm returns a Promise that rejects', () => {
-            const mockOnConfirmAsync = jest.fn().mockRejectedValue(new Error('Test error'));
-
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: undefined,
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirmAsync,
-                }),
-            );
-
-            expect(() => {
-                act(() => {
-                    result.current.openCreateReportConfirmation();
-                });
-            }).not.toThrow();
-        });
-
-        it('should render modal when shouldShowWarning is true and policyID is provided', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
-
-            // Modal should not be called yet
-            expect(mockOnConfirm).not.toHaveBeenCalled();
-
-            // The modal component should be available
-            expect(result.current.CreateReportConfirmationModal).toBeDefined();
-            expect(React.isValidElement(result.current.CreateReportConfirmationModal)).toBe(true);
-        });
+        modal = getModal(result.current);
+        expect(modal.props.isVisible).toBe(true);
     });
 
-    describe('Modal behavior', () => {
-        it('should provide a valid React element for CreateReportConfirmationModal', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
+    it('invokes synchronous onConfirm and resets state after completion', async () => {
+        const onConfirm = jest.fn();
+        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName,
+                onConfirm,
+            }),
+        );
 
-            const modal = result.current.CreateReportConfirmationModal;
-
-            expect(React.isValidElement(modal)).toBe(true);
-            expect(modal).not.toBeNull();
+        act(() => {
+            result.current.openCreateReportConfirmation();
         });
 
-        it('should use generic workspace name when policyName is empty', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: '',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
+        let modal = getModal(result.current);
+        const confirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
 
-            expect(result.current.CreateReportConfirmationModal).toBeDefined();
+        act(() => {
+            confirmHandler();
         });
 
-        it('should use generic workspace name when policyName is whitespace', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: '   ',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
+        expect(onConfirm).toHaveBeenCalledTimes(1);
 
-            expect(result.current.CreateReportConfirmationModal).toBeDefined();
+        await act(async () => {
+            await Promise.resolve();
         });
 
-        it('should use provided policyName when it is not empty', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: 'Engineering Team',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
-
-            expect(result.current.CreateReportConfirmationModal).toBeDefined();
-        });
+        modal = getModal(result.current);
+        expect(modal.props.isConfirmLoading).toBe(false);
+        expect(modal.props.isVisible).toBe(false);
     });
 
-    describe('Async callback handling', () => {
-        it('should handle async onConfirm callback that resolves', () => {
-            const mockOnConfirmAsync = jest.fn().mockResolvedValue(undefined);
+    it('handles asynchronous onConfirm and prevents duplicate submissions while loading', async () => {
+        const {promise, resolve} = createDeferredPromise<void>();
+        const onConfirm = jest.fn().mockReturnValue(promise);
 
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: undefined,
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: false,
-                    onConfirm: mockOnConfirmAsync,
-                }),
-            );
+        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName,
+                onConfirm,
+            }),
+        );
 
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-
-            expect(mockOnConfirmAsync).toHaveBeenCalledTimes(1);
+        act(() => {
+            result.current.openCreateReportConfirmation();
         });
 
-        it('should handle async onConfirm callback that rejects without throwing', () => {
-            const mockOnConfirmAsync = jest.fn().mockRejectedValue(new Error('Test error'));
+        let modal = getModal(result.current);
+        const confirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
 
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: undefined,
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: false,
-                    onConfirm: mockOnConfirmAsync,
-                }),
-            );
-
-            // Should not throw even though the promise rejects
-            expect(() => {
-                act(() => {
-                    result.current.openCreateReportConfirmation();
-                });
-            }).not.toThrow();
-
-            expect(mockOnConfirmAsync).toHaveBeenCalledTimes(1);
+        await act(async () => {
+            await confirmHandler();
         });
+
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+
+        modal = getModal(result.current);
+        expect(modal.props.isConfirmLoading).toBe(true);
+
+        const loadingConfirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
+
+        await act(async () => {
+            await loadingConfirmHandler();
+        });
+
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            resolve();
+            await Promise.resolve();
+        });
+
+        modal = getModal(result.current);
+        expect(modal.props.isConfirmLoading).toBe(false);
+        expect(modal.props.isVisible).toBe(false);
     });
 
-    describe('Sync callback handling', () => {
-        it('should handle synchronous onConfirm callback', () => {
-            const mockOnConfirmSync = jest.fn();
+    it('calls onCancel when cancellation occurs and not loading', () => {
+        const onConfirm = jest.fn();
+        const onCancel = jest.fn();
 
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: undefined,
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: false,
-                    onConfirm: mockOnConfirmSync,
-                }),
-            );
+        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName,
+                onConfirm,
+                onCancel,
+            }),
+        );
 
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-
-            expect(mockOnConfirmSync).toHaveBeenCalledTimes(1);
+        act(() => {
+            result.current.openCreateReportConfirmation();
         });
+
+        const modal = getModal(result.current);
+        const cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
+
+        act(() => {
+            cancelHandler();
+        });
+
+        expect(onConfirm).not.toHaveBeenCalled();
+        expect(onCancel).toHaveBeenCalledTimes(1);
+
+        const updatedModal = getModal(result.current);
+        expect(updatedModal.props.isVisible).toBe(false);
     });
 
-    describe('Hook re-rendering', () => {
-        it('should update when policyID changes', () => {
-            const {result, rerender} = renderHook(
-                ({policyID}) =>
-                    useCreateEmptyReportConfirmation({
-                        policyID,
-                        policyName: 'Test Workspace',
-                        shouldShowWarning: true,
-                        onConfirm: mockOnConfirm,
-                    }),
-                {
-                    initialProps: {policyID: 'policy-123'},
-                },
-            );
+    it('ignores cancel attempts while confirmation is loading', async () => {
+        const {promise, resolve} = createDeferredPromise<void>();
+        const onConfirm = jest.fn().mockReturnValue(promise);
+        const onCancel = jest.fn();
 
-            rerender({policyID: 'policy-456'});
+        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName,
+                onConfirm,
+                onCancel,
+            }),
+        );
 
-            const updatedModal = result.current.CreateReportConfirmationModal;
-
-            // The modal should be available after policyID change
-            expect(updatedModal).toBeDefined();
-            expect(React.isValidElement(updatedModal)).toBe(true);
+        act(() => {
+            result.current.openCreateReportConfirmation();
         });
 
-        it('should update when shouldShowWarning changes', () => {
-            const {result, rerender} = renderHook(
-                ({shouldShowWarning}) =>
-                    useCreateEmptyReportConfirmation({
-                        policyID: 'policy-123',
-                        policyName: 'Test Workspace',
-                        shouldShowWarning,
-                        onConfirm: mockOnConfirm,
-                    }),
-                {
-                    initialProps: {shouldShowWarning: true},
-                },
-            );
+        let modal = getModal(result.current);
+        const confirmHandler = getRequiredHandler(modal.props.onConfirm, 'onConfirm');
 
-            // When shouldShowWarning is true, modal should not call onConfirm immediately
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-            expect(mockOnConfirm).not.toHaveBeenCalled();
-
-            mockOnConfirm.mockClear();
-
-            // When shouldShowWarning changes to false, it should call onConfirm immediately
-            rerender({shouldShowWarning: false});
-
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-            expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+        await act(async () => {
+            await confirmHandler();
         });
 
-        it('should call the latest onConfirm callback', () => {
-            const mockOnConfirm1 = jest.fn();
-            const mockOnConfirm2 = jest.fn();
+        modal = getModal(result.current);
+        expect(modal.props.isConfirmLoading).toBe(true);
 
-            const {result, rerender} = renderHook(
-                ({onConfirm}) =>
-                    useCreateEmptyReportConfirmation({
-                        policyID: undefined,
-                        policyName: 'Test Workspace',
-                        shouldShowWarning: false,
-                        onConfirm,
-                    }),
-                {
-                    initialProps: {onConfirm: mockOnConfirm1},
-                },
-            );
+        const cancelHandler = getRequiredHandler(modal.props.onCancel, 'onCancel');
 
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-            expect(mockOnConfirm1).toHaveBeenCalledTimes(1);
-            expect(mockOnConfirm2).not.toHaveBeenCalled();
-
-            mockOnConfirm1.mockClear();
-
-            // Update to a new callback
-            rerender({onConfirm: mockOnConfirm2});
-
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-            expect(mockOnConfirm1).not.toHaveBeenCalled();
-            expect(mockOnConfirm2).toHaveBeenCalledTimes(1);
+        act(() => {
+            cancelHandler();
         });
+
+        expect(onCancel).not.toHaveBeenCalled();
+
+        await act(async () => {
+            resolve();
+            await Promise.resolve();
+        });
+
+        modal = getModal(result.current);
+        expect(modal.props.isConfirmLoading).toBe(false);
     });
 
-    describe('Return value structure', () => {
-        it('should return an object with openCreateReportConfirmation and CreateReportConfirmationModal', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
+    it('navigates to reports search when link in prompt is pressed', () => {
+        const onConfirm = jest.fn();
+        const {result} = renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName: '',
+                onConfirm,
+            }),
+        );
 
-            expect(result.current).toHaveProperty('openCreateReportConfirmation');
-            expect(result.current).toHaveProperty('CreateReportConfirmationModal');
-            expect(typeof result.current.openCreateReportConfirmation).toBe('function');
-            expect(React.isValidElement(result.current.CreateReportConfirmationModal)).toBe(true);
+        const modal = getModal(result.current);
+        const {unmount} = render(modal.props.prompt as ReactElement);
+        const onPress = mockTextLinkProps?.onPress;
+
+        expect(onPress).toBeDefined();
+
+        act(() => {
+            onPress?.();
         });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(expectedSearchRoute);
+        unmount();
     });
 
-    describe('Edge cases', () => {
-        it('should handle undefined policyName gracefully', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: 'policy-123',
-                    policyName: undefined as unknown as string,
-                    shouldShowWarning: true,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
+    it('falls back to generic workspace name in translations when necessary', () => {
+        const onConfirm = jest.fn();
+        renderHook<HookValue, MockConfirmModalProps>(() =>
+            useCreateEmptyReportConfirmation({
+                policyID,
+                policyName: '   ',
+                onConfirm,
+            }),
+        );
 
-            expect(result.current.CreateReportConfirmationModal).toBeDefined();
-        });
-
-        it('should handle being called multiple times', () => {
-            const {result} = renderHook(() =>
-                useCreateEmptyReportConfirmation({
-                    policyID: undefined,
-                    policyName: 'Test Workspace',
-                    shouldShowWarning: false,
-                    onConfirm: mockOnConfirm,
-                }),
-            );
-
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-
-            act(() => {
-                result.current.openCreateReportConfirmation();
-            });
-
-            expect(mockOnConfirm).toHaveBeenCalledTimes(3);
-        });
+        expect(mockTranslate).toHaveBeenCalledWith('report.newReport.genericWorkspaceName');
     });
 });

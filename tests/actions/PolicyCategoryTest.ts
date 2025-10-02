@@ -212,7 +212,7 @@ describe('actions/PolicyCategory', () => {
             fakePolicy.requiresCategory = false;
 
             const fakeCategories = createRandomPolicyCategories(2);
-            
+
             // Set all categories to enabled without mutating the original objects
             const enabledCategories = Object.keys(fakeCategories).reduce<PolicyCategories>((acc, categoryName) => {
                 acc[categoryName] = {

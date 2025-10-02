@@ -109,7 +109,7 @@ function NewReportWorkspaceSelectionPage() {
         if (!shouldShowEmptyReportConfirmation) {
             // No empty report confirmation needed - create report directly and clear pending selection
             // policyID is guaranteed to be defined by the check above
-            createReport(policyID as string);
+            createReport(policyID);
             setPendingPolicySelection(null);
             return;
         }

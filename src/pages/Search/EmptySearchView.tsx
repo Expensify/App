@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -163,7 +163,10 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const contextMenuAnchor = useRef<RNText>(null);
+    const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
+    const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
+        setContextMenuAnchor(node);
+    }, []);
     const [modalVisible, setModalVisible] = useState(false);
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -213,19 +216,16 @@ function EmptySearchViewContent({
         onConfirm: handleCreateWorkspaceReport,
     });
 
-    const openCreateReportFromSearchRef = useRef(openCreateReportFromSearch);
-    openCreateReportFromSearchRef.current = openCreateReportFromSearch;
-
     const handleCreateReportClick = useCallback(() => {
         // Check CURRENT state at click time using the centralized utility
         const hasEmptyReport = ReportUtils.hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, currentAccountID);
 
         if (hasEmptyReport) {
-            openCreateReportFromSearchRef.current();
+            openCreateReportFromSearch();
         } else {
             handleCreateWorkspaceReport();
         }
-    }, [allReports, currentAccountID, inferredWorkspaceID, handleCreateWorkspaceReport]);
+    }, [allReports, currentAccountID, inferredWorkspaceID, handleCreateWorkspaceReport, openCreateReportFromSearch]);
 
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();
@@ -233,11 +233,15 @@ function EmptySearchViewContent({
 
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
+            if (!contextMenuAnchor) {
+                return;
+            }
+
             showContextMenu({
                 type: CONST.CONTEXT_MENU_TYPES.LINK,
                 event,
                 selection: CONST.BOOK_TRAVEL_DEMO_URL,
-                contextMenuAnchor: contextMenuAnchor.current,
+                contextMenuAnchor,
             });
         };
 
@@ -256,7 +260,7 @@ function EmptySearchViewContent({
                             onPress={() => {
                                 Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
                             }}
-                            ref={contextMenuAnchor}
+                            ref={handleContextMenuAnchorRef}
                         >
                             {translate('travel.bookADemo')}
                         </TextLink>
@@ -286,7 +290,7 @@ function EmptySearchViewContent({
                 <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
             </>
         );
-    }, [styles, translate]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
