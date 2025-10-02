@@ -217,7 +217,7 @@ function MoneyRequestView({
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
-    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
+    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction, preferredLocale) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
