@@ -18,6 +18,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -402,10 +403,7 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 /**
  * Determine if we should show the attendee selector for a given expense on a give policy.
  */
-function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>, isUnreportedExpense?: boolean): boolean {
-    if (isUnreportedExpense) {
-        return !!policy?.isAttendeeTrackingEnabled;
-    }
+function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
     if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
         return false;
     }
@@ -837,12 +835,19 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
 }
 
 /**
+ * Return the list of attendees as a string of display names/logins.
+ */
+function getAttendeesListDisplayString(attendees: Attendee[]): string {
+    return attendees.map((item) => item.displayName ?? item.login).join(', ');
+}
+
+/**
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
 function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [oldAttendees.map((item) => item.displayName ?? item.login).join(', '), newAttendees.map((item) => item.displayName ?? item.login).join(', ')];
+    return [getAttendeesListDisplayString(oldAttendees), getAttendeesListDisplayString(newAttendees)];
 }
 
 /**
@@ -1952,7 +1957,12 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
     ];
 }
 
+// Temporarily only for use in the Unreported Expense project
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
+    // TODO: added for development purposes, should be removed once the feature are fully implemented
+    if (!Permissions.canUseUnreportedExpense()) {
+        return false;
+    }
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
@@ -2066,6 +2076,7 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
+    getAttendeesListDisplayString,
     isCorporateCardTransaction,
     isExpenseUnreported,
 };

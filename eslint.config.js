@@ -194,6 +194,7 @@ const config = defineConfig([
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs'],
         rules: {
             // TypeScript specific rules
+            '@lwc/lwc/no-async-await': 'off',
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-non-null-assertion': 'error',
@@ -497,8 +498,6 @@ const config = defineConfig([
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
-
-            '@lwc/lwc/no-async-await': 'off',
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
             'no-continue': 'off',
@@ -523,7 +522,6 @@ const config = defineConfig([
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
             'no-continue': 'off',
-            '@lwc/lwc/no-async-await': 'off',
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
         },
@@ -533,7 +531,6 @@ const config = defineConfig([
         files: ['tests/**/*'],
         rules: {
             'no-import-assign': 'off',
-            '@lwc/lwc/no-async-await': 'off',
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
 
