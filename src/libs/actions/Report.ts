@@ -842,12 +842,43 @@ function addActions(reportID: string, notifyReportID: string, timezoneParam: Tim
     notifyNewAction(notifyReportID, lastAction?.actorAccountID, lastAction);
 }
 
-/** Add an attachment and optional comment. */
-function addAttachment(reportID: string, notifyReportID: string, file: FileObject, timezoneParam: Timezone, text = '', shouldPlaySound?: boolean) {
-    if (shouldPlaySound) {
-        playSound(SOUNDS.DONE);
+/** Add an attachment with an optional comment to a report */
+function addAttachmentWithComment(
+    reportID: string,
+    notifyReportID: string,
+    attachments: FileObject | FileObject[],
+    text = '',
+    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
+    shouldPlaySound = false,
+) {
+    if (!reportID) {
+        return;
     }
-    addActions(reportID, notifyReportID, timezoneParam, text, file);
+
+    const handlePlaySound = () => {
+        if (!shouldPlaySound) {
+            return;
+        }
+        playSound(SOUNDS.DONE);
+    };
+
+    // Single attachment
+    if (!Array.isArray(attachments)) {
+        addActions(reportID, notifyReportID, timezone, text, attachments);
+        handlePlaySound();
+        return;
+    }
+
+    // Multiple attachments - first: combine text + first attachment as a single action
+    addActions(reportID, notifyReportID, timezone, text, attachments?.at(0));
+
+    // Remaining: attachment-only actions (no text duplication)
+    for (let i = 1; i < attachments?.length; i += 1) {
+        addActions(reportID, notifyReportID, timezone, '', attachments?.at(i));
+    }
+
+    // Play sound once
+    handlePlaySound();
 }
 
 /** Add a single comment to a report */
@@ -5992,7 +6023,7 @@ function resolveConciergeCategoryOptions(
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
-    addAttachment,
+    addAttachmentWithComment,
     addComment,
     addPolicyReport,
     broadcastUserIsLeavingRoom,
