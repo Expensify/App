@@ -6385,11 +6385,10 @@ function getMovedTransactionMessage(toReport: OnyxEntry<Report>, fromReport?: On
     const report: OnyxEntry<Report> = fromReport ?? toReport;
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     const reportUrl = `${environmentURL}/r/${report?.reportID}`;
-    const message = translateLocal(fromReport ? 'iou.movedTransactionFrom' : 'iou.movedTransactionTo', {
+    return translateLocal(fromReport ? 'iou.movedTransactionFrom' : 'iou.movedTransactionTo', {
         reportUrl,
         reportName,
     });
-    return message;
 }
 
 function getUnreportedTransactionMessage() {
