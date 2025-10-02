@@ -634,9 +634,7 @@ type XeroConnectionData = {
 type XeroMappingType = {
     /** TODO: Will be handled in another issue */
     customer: string;
-} & {
-    [key in `trackingCategory_${string}`]: string;
-};
+} & Record<`trackingCategory_${string}`, string>;
 
 /** Xero auto synchronization configs */
 type XeroAutoSyncConfig = {

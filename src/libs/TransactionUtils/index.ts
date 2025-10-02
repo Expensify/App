@@ -93,7 +93,7 @@ type TransactionParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
-    pendingFields?: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+    pendingFields?: Partial<Record<TransactionPendingFieldsKey, ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>>>;
     reimbursable?: boolean;
     source?: string;
     filename?: string;

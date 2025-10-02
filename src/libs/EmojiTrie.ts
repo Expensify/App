@@ -14,9 +14,7 @@ type EmojiMetaData = {
     name?: string;
 };
 
-type EmojiTrieForLocale = {
-    [key in FullySupportedLocale]?: Trie<EmojiMetaData>;
-};
+type EmojiTrieForLocale = Partial<Record<FullySupportedLocale, Trie<EmojiMetaData>>>;
 
 /**
  *
