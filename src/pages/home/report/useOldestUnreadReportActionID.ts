@@ -8,6 +8,13 @@ type UseOldestUnreadReportActionIDProps = {
     reportID: string | undefined;
 };
 
+/**
+ * This hook is used to get the oldest unread report action ID for a given report. When a report is opened,
+ * we first have to fetch the value from Onyx, after which it will get reset, so that it's not used again.
+ * This hook also provides a reset function and a loading state.
+ * @param reportID - The ID of the report to get the oldest unread report action ID for.
+ * @returns The oldest unread report action ID for the given report.
+ */
 function useOldestUnreadReportActionID({reportID}: UseOldestUnreadReportActionIDProps) {
     const [oldestUnreadReportActionIDValueFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
     const [oldestUnreadReportActionIDState, setOldestUnreadReportActionIDState] = useState<string | undefined>(oldestUnreadReportActionIDValueFromOnyx);
@@ -16,8 +23,7 @@ function useOldestUnreadReportActionID({reportID}: UseOldestUnreadReportActionID
         [oldestUnreadReportActionIDState],
     );
 
-    // When we open a report, we have to wait for the oldest unread report action ID to be set and
-    // retrieved from Onyx, in order to get the correct initial report action page from store.
+    // Whether the oldest unread report action ID is still loading from Onyx.
     const isLoading = useMemo(() => !oldestUnreadReportActionIDState, [oldestUnreadReportActionIDState]);
 
     const reset = useCallback(() => {
@@ -37,7 +43,11 @@ function useOldestUnreadReportActionID({reportID}: UseOldestUnreadReportActionID
         resetOldestUnreadReportActionID(reportID);
     }, [oldestUnreadReportActionIDState, oldestUnreadReportActionIDValueFromOnyx, reportID]);
 
-    return {oldestUnreadReportActionID, isLoading, reset};
+    return {
+        oldestUnreadReportActionID,
+        isLoading,
+        reset,
+    };
 }
 
 export default useOldestUnreadReportActionID;

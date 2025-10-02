@@ -280,6 +280,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
+    // When opening a report we receive the oldestUnreadReportActionID from the backend,
+    // which is needed to initially open the correct report action page from store.
     const {oldestUnreadReportActionID, isLoading: isLoadingOldestUnreadReportActionID, reset: resetOldestUnreadReportActionID} = useOldestUnreadReportActionID({reportID});
 
     const {
