@@ -548,6 +548,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.member')}
                 rightHeaderText={translate('common.role')}
+                shouldShowRightIcon
             />
         );
     };
@@ -820,6 +821,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightIcon
                     />
                 </>
             )}
