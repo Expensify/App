@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -106,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -672,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Pas si vite',
-        description: "Vous n'êtes pas autorisé à effectuer cette action lorsque le support est connecté.",
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Vous n'êtes pas autorisé à effectuer cette action lorsque le support est connecté (commande : ${command ?? ''}). Si vous pensez que Success devrait pouvoir effectuer cette action, veuillez entamer une conversation sur Slack.`,
     },
     lockedAccount: {
         title: 'Compte verrouillé',
@@ -2233,7 +2240,7 @@ const translations = {
         enterAuthenticatorCode: "Veuillez entrer votre code d'authentification",
         enterRecoveryCode: 'Veuillez entrer votre code de récupération',
         requiredWhen2FAEnabled: "Requis lorsque l'authentification à deux facteurs est activée",
-        requestNewCode: 'Demander un nouveau code dans',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Demander un nouveau code dans <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Demander un nouveau code',
         error: {
             pleaseFillMagicCode: 'Veuillez entrer votre code magique',
@@ -5131,8 +5138,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Il y a une erreur avec une connexion qui a été configurée dans Expensify Classic.',
-            goToODToFix: 'Allez sur Expensify Classic pour résoudre ce problème.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Il y a une erreur avec une connexion qui a été configurée dans Expensify Classic. [Allez sur Expensify Classic pour résoudre ce problème.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Accédez à Expensify Classic pour gérer vos paramètres.',
             setup: 'Connecter',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Dernière synchronisation ${relativeDate}`,
@@ -5463,8 +5470,8 @@ const translations = {
             updateDetails: 'Mettre à jour les détails',
             yesDisconnectMyBankAccount: 'Oui, déconnectez mon compte bancaire.',
             yesStartOver: 'Oui, recommencez',
-            disconnectYour: 'Déconnectez votre',
-            bankAccountAnyTransactions: 'compte bancaire. Toutes les transactions en cours pour ce compte seront toujours effectuées.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Déconnectez votre <strong>${bankName}</strong> compte bancaire. Toutes les transactions en cours pour ce compte seront toujours effectuées.`,
             clearProgress: "Recommencer effacera les progrès que vous avez réalisés jusqu'à présent.",
             areYouSure: 'Êtes-vous sûr ?',
             workspaceCurrency: "Devise de l'espace de travail",
@@ -5586,12 +5593,6 @@ const translations = {
                 description:
                     "Expensify Travel est une nouvelle plateforme de réservation et de gestion de voyages d'affaires qui permet aux membres de réserver des hébergements, des vols, des transports, et plus encore.",
                 onlyAvailableOnPlan: 'Le voyage est disponible sur le plan Collect, à partir de',
-            },
-            reports: {
-                title: 'Rapports',
-                description:
-                    'Créez des rapports de dépenses organisés pour suivre vos dépenses professionnelles, les soumettre pour approbation et rationaliser votre processus de remboursement.',
-                onlyAvailableOnPlan: 'Les rapports sont disponibles sur le plan Collect, à partir de ',
             },
             multiLevelTags: {
                 title: 'Tags multi-niveaux',

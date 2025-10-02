@@ -4,6 +4,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -30,6 +31,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
+    getInternalNewExpensifyPath: jest.fn(() => '/mock-path'),
+    getInternalExpensifyPath: jest.fn(() => '/mock-path'),
 }));
 
 jest.mock('@rnmapbox/maps', () => {
@@ -49,6 +52,10 @@ TestHelper.setupGlobalFetchMock();
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 const workEmail = 'testprivateemail@privateEmail.com';
 
+function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
+    return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
+}
+
 const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -64,6 +71,7 @@ const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDI
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
+        {wrapper: HTMLProviderWrapper},
     );
 };
 
@@ -85,6 +93,7 @@ const renderOnboardingWorkEmailValidationPage = (
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
+        {wrapper: HTMLProviderWrapper},
     );
 };
 
@@ -567,6 +576,61 @@ describe('OnboardingWorkEmailValidation Page', () => {
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const specificErrorMessage = 'some extraordinarily specific error has occurred!';
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: 'test@company.com',
+            });
+            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, specificErrorMessage);
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(specificErrorMessage)).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should fallback to generic error message when ONBOARDING_ERROR_MESSAGE is not set', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: true,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
         });
 
         unmount();
