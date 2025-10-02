@@ -1914,7 +1914,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-    const optimisticLastReportData = optimisticReportLastData(reportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isReportArchived);
+    const optimisticLastReportData = optimisticReportLastData(originalReportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isReportArchived);
 
     const optimisticReport: Partial<Report> = {
         ...optimisticLastReportData,
