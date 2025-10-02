@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -295,6 +295,7 @@ import type {
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
+    WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
@@ -613,7 +614,7 @@ const translations = {
         disabled: 'Desativado',
         import: 'Importar',
         offlinePrompt: 'Você não pode realizar esta ação no momento.',
-        outstanding: 'Excelente',
+        outstanding: 'Pendente',
         chats: 'Chats',
         tasks: 'Tarefas',
         unread: 'Não lido',
@@ -2895,10 +2896,11 @@ const translations = {
     termsStep: {
         headerTitle: 'Termos e taxas',
         headerTitleRefactor: 'Taxas e termos',
-        haveReadAndAgree: 'Li e concordo em receber',
-        electronicDisclosures: 'divulgações eletrônicas',
-        agreeToThe: 'Eu concordo com o/a/as/os',
-        walletAgreement: 'Acordo da Wallet',
+        haveReadAndAgreePlain: 'Eu li e concordo em receber divulgações eletrônicas.',
+        haveReadAndAgree: `Eu li e concordo em receber <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">divulgações eletrônicas</a>.`,
+        agreeToThePlain: 'Concordo com o Acordo de Privacidade e Carteira.',
+        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+            `Concordo com o Acordo de <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidade</a> e <a href="${walletAgreementUrl}">Carteira</a>.`,
         enablePayments: 'Habilitar pagamentos',
         monthlyFee: 'Taxa mensal',
         inactivity: 'Inatividade',
@@ -2915,17 +2917,14 @@ const translations = {
             cashReload: 'Recarga de dinheiro',
             inNetwork: 'na rede',
             outOfNetwork: 'fora da rede',
-            atmBalanceInquiry: 'Consulta de saldo no caixa eletrônico',
-            inOrOutOfNetwork: '(dentro da rede ou fora da rede)',
-            customerService: 'Atendimento ao cliente',
-            automatedOrLive: '(automated or live agent)',
-            afterTwelveMonths: '(após 12 meses sem transações)',
+            atmBalanceInquiry: 'Consulta de saldo no caixa eletrônico (dentro da rede ou fora da rede)',
+            customerService: 'Atendimento ao cliente (agente automatizado ou ao vivo)',
+            inactivityAfterTwelveMonths: 'Inatividade (após 12 meses sem transações)',
             weChargeOneFee: 'Cobramos 1 outro tipo de taxa. É:',
             fdicInsurance: 'Seus fundos são elegíveis para seguro FDIC.',
-            generalInfo: 'Para informações gerais sobre contas pré-pagas, visite',
-            conditionsDetails: 'Para detalhes e condições de todas as taxas e serviços, visite',
-            conditionsPhone: 'ou ligando para +1 833-400-0904.',
-            instant: '(instant)',
+            generalInfo: `Para obter informações gerais sobre contas pré-pagas, visite <a href="${CONST.CFPB_PREPAID_URL}">${CONST.TERMS.CFPB_PREPAID}</a>.`,
+            conditionsDetails: `Para obter detalhes e condições de todas as taxas e serviços, acesse <a href="${CONST.FEES_URL}">${CONST.FEES_URL}</a> ou ligue para +1 833-400-0904.`,
+            electronicFundsWithdrawalInstant: 'Retirada eletrônica de fundos (instantâneo)',
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(min ${amount})`,
         },
         longTermsForm: {
@@ -2942,23 +2941,16 @@ const translations = {
             sendingFundsTitle: 'Enviando fundos para outro titular de conta',
             sendingFundsDetails: 'Não há taxa para enviar fundos para outro titular de conta usando seu saldo, conta bancária ou cartão de débito.',
             electronicFundsStandardDetails:
-                "There's no fee to transfer funds from your Expensify Wallet " +
-                'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
-                ' days.',
+                'Não há nenhuma taxa para transferir fundos de sua Carteira Expensify para sua conta bancária usando a opção padrão. Essa transferência geralmente é concluída dentro de 1 a 3 dias úteis.',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                "There's a fee to transfer funds from your Expensify Wallet to " +
-                'your linked debit card using the instant transfer option. This transfer usually completes within ' +
-                `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
+                'Há uma taxa para transferir fundos de sua Carteira Expensify para seu cartão de débito vinculado usando a opção de transferência instantânea.' +
+                ` Essa transferência geralmente é concluída em alguns minutos. A taxa é de ${percentage}% do valor da transferência (com uma taxa mínima de ${amount}).`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
-                'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
-                `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
-                `are met and your card is registered. See`,
-            fdicInsuranceBancorp2: 'para detalhes.',
-            contactExpensifyPayments: `Entre em contato com ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} ligando para +1 833-400-0904, ou por e-mail em`,
-            contactExpensifyPayments2: 'ou faça login em',
-            generalInformation: 'Para informações gerais sobre contas pré-pagas, visite',
-            generalInformation2: 'Se você tiver uma reclamação sobre uma conta pré-paga, ligue para o Bureau de Proteção Financeira do Consumidor pelo 1-855-411-2372 ou visite',
+                `Seus fundos são elegíveis para o seguro FDIC. Seus fundos serão mantidos ou transferidos para o ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, uma instituição segurada pelo FDIC.` +
+                ` Uma vez lá, seus fundos são segurados em até ${amount} pelo FDIC no caso de falência do ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, se os requisitos específicos de seguro de depósito forem atendidos e seu cartão estiver registrado. ` +
+                ` Consulte ${CONST.TERMS.FDIC_PREPAID} para obter detalhes.`,
+            contactExpensifyPayments: `Entre em contato com a ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} pelo telefone +1 833-400-0904, por e-mail em ${CONST.EMAIL.CONCIERGE} ou faça login em ${CONST.NEW_EXPENSIFY_URL}.`,
+            generalInformation: `Para obter informações gerais sobre contas pré-pagas, acesse ${CONST.TERMS.CFPB_PREPAID}. Se você tiver uma reclamação sobre uma conta pré-paga, ligue para o Consumer Financial Protection Bureau (Departamento de Proteção Financeira do Consumidor) no número 1-855-411-2372 ou acesse ${CONST.TERMS.CFPB_COMPLAINT}.`,
             printerFriendlyView: 'Ver versão para impressão',
             automated: 'Automatizado',
             liveAgent: 'Agente ao vivo',
@@ -4884,8 +4876,7 @@ const translations = {
             existingTagError: 'Uma tag com este nome já existe',
             invalidTagNameError: 'O nome da tag não pode ser 0. Por favor, escolha um valor diferente.',
             genericFailureMessage: 'Ocorreu um erro ao atualizar a tag, por favor, tente novamente.',
-            importedFromAccountingSoftware: 'As tags são gerenciadas no seu',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `<muted-text>Os funcionários veem as tags como <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'As tags abaixo são importadas do seu',
             glCode: 'Código GL',
             updateGLCodeFailureMessage: 'Ocorreu um erro ao atualizar o código GL, por favor, tente novamente.',
             tagRules: 'Regras de tag',
@@ -5110,8 +5101,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Há um erro com uma conexão que foi configurada no Expensify Classic.',
-            goToODToFix: 'Vá para o Expensify Classic para resolver este problema.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Há um erro com uma conexão que foi configurada no Expensify Classic. [Vá para o Expensify Classic para resolver este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vá para o Expensify Classic para gerenciar suas configurações.',
             setup: 'Conectar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Última sincronização ${relativeDate}`,
