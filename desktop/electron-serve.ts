@@ -4,8 +4,6 @@
 
 /* eslint-disable rulesdir/no-negated-variables */
 
-/* eslint-disable @lwc/lwc/no-async-await */
-
 /**
  * This file is a modified version of the electron-serve package.
  * We keep the same interface, but instead of file protocol we use buffer protocol (with support of JS self profiling).
