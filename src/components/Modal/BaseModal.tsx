@@ -117,6 +117,7 @@ function BaseModal({
                 onModalHide();
             }
             onModalDidClose();
+            ComposerFocusManager.setReadyToFocus(uniqueModalId);
             ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
         [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
@@ -173,10 +174,6 @@ function BaseModal({
         } else {
             onClose?.();
         }
-    };
-
-    const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
@@ -326,7 +323,6 @@ function BaseModal({
                             }
                             onModalWillHide?.();
                         }}
-                        onDismiss={handleDismissModal}
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
                         shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}

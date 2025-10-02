@@ -34,7 +34,6 @@ function ReanimatedModal({
     onModalShow = noop,
     onModalWillHide = noop,
     onModalHide = noop,
-    onDismiss,
     onBackdropPress = noop,
     onBackButtonPress = noop,
     style,
@@ -150,12 +149,7 @@ function ReanimatedModal({
             // eslint-disable-next-line deprecation/deprecation
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
-        // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
-        // Therefore, we manually call onModalHide() here for Android.
-        if (getPlatform() === CONST.PLATFORM.ANDROID) {
-            onModalHide();
-        }
+        onModalHide();
     }, [onModalHide]);
 
     const containerView = (
@@ -213,12 +207,6 @@ function ReanimatedModal({
                 onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
-                onDismiss={() => {
-                    onDismiss?.();
-                    if (getPlatform() !== CONST.PLATFORM.ANDROID) {
-                        onModalHide();
-                    }
-                }}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
