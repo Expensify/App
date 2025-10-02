@@ -189,6 +189,7 @@ function OptionRow({
                                 result = Promise.resolve();
                             }
 
+                            // eslint-disable-next-line deprecation/deprecation
                             InteractionManager.runAfterInteractions(() => {
                                 result?.finally(() => setIsDisabled(isOptionDisabled));
                             });
