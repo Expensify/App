@@ -61,6 +61,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
+                // eslint-disable-next-line deprecation/deprecation
                 InteractionManager.runAfterInteractions(() => {
                     blurActiveElement();
                 });

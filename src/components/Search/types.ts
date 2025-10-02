@@ -41,6 +41,9 @@ type SelectedTransactionInfo = {
 
     /** The currency that the converted amount is in */
     convertedCurrency: string;
+
+    /** Whether it is the only expense of the parent expense report */
+    isFromOneTransactionReport?: boolean;
 };
 
 /** Model of selected transactions */

@@ -244,6 +244,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
         setRemoveMembersConfirmModalVisible(false);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
@@ -431,6 +432,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     onModalHide={() => {
+                        // eslint-disable-next-line deprecation/deprecation
                         InteractionManager.runAfterInteractions(() => {
                             if (!textInputRef.current) {
                                 return;

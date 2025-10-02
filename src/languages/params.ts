@@ -926,6 +926,10 @@ type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
 };
 
+type ErrorODIntegrationParams = {
+    oldDotPolicyConnectionsURL: string;
+};
+
 type DisconnectYourBankAccountParams = {
     bankName: string;
 };
@@ -1241,6 +1245,7 @@ export type {
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
+    ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
 };
