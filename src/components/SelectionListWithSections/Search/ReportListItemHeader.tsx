@@ -119,7 +119,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     }, [reportItem.type, reportItem.total, reportItem.currency]);
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3, styles.mt2]}>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
@@ -229,12 +229,12 @@ function ReportListItemHeader<TItem extends ListItem>({
         );
     };
     return !isLargeScreenWidth ? (
-        <View>
+        <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow
                 item={reportItem}
                 handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
-                containerStyles={[styles.pr3, styles.pt1half]}
+                containerStyles={[styles.pr3, styles.mb2]}
             />
             <HeaderFirstRow
                 report={reportItem}

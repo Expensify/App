@@ -2345,7 +2345,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportSearchHeaderBar: {
-            overflow: 'hidden',
             justifyContent: 'center',
             display: 'flex',
             width: '100%',
