@@ -4097,7 +4097,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
-    const optimistiLastReportData = optimisticReportLastData(
+    const optimisticLastReportData = optimisticReportLastData(
         originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
         {
             [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -4107,7 +4107,7 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
     );
 
     const optimisticReport: Partial<Report> = {
-        ...optimistiLastReportData,
+        ...optimisticLastReportData,
     };
 
     if (shouldHideMessage) {

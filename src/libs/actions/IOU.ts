@@ -8348,8 +8348,8 @@ function deleteMoneyRequest(
             canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
         }
 
-        const optimicticReportActions = reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {};
-        const optimisticLastReportData = optimisticReportLastData(chatReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimicticReportActions, canUserPerformWriteAction);
+        const optimisticReportActions = reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {};
+        const optimisticLastReportData = optimisticReportLastData(chatReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions, canUserPerformWriteAction);
 
         if (chatReport) {
             optimisticData.push({
