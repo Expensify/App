@@ -33,7 +33,7 @@ type TransactionItemRowRBRProps = {
     missingFieldError?: string;
 };
 
-function TransactionItemRowRBRWithOnyx({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -59,7 +59,7 @@ function TransactionItemRowRBRWithOnyx({transaction, violations, report, contain
         RBRMessages.length > 0 && (
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}
-                testID="TransactionItemRowRBRWithOnyx"
+                testID="TransactionItemRowRBR"
             >
                 <Icon
                     src={DotIndicator}
@@ -75,5 +75,5 @@ function TransactionItemRowRBRWithOnyx({transaction, violations, report, contain
     );
 }
 
-TransactionItemRowRBRWithOnyx.displayName = 'TransactionItemRowRBRWithOnyx';
-export default TransactionItemRowRBRWithOnyx;
+TransactionItemRowRBR.displayName = 'TransactionItemRowRBR';
+export default TransactionItemRowRBR;
