@@ -1005,7 +1005,7 @@ function IOURequestStepScan({
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [alternativeMethodsHeight, setAlternativeMethodsHeight] = useState(0);
     // We use isMobile() here to explicitly hide the alternative methods component on both mobile web and native apps
-    const chooseFilesPaddingVertical = Number(styles.chooseFilesView(isSmallScreenWidth).paddingVertical ?? 20);
+    const chooseFilesPaddingVertical = Number(styles.chooseFilesView(isSmallScreenWidth).paddingVertical);
     const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + chooseFilesPaddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
