@@ -85,7 +85,7 @@ type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 
     listValues: string[];
     disabledListValues: boolean[];
     policyID: string;
-    policyExpenseReports: Array<OnyxEntry<Report>> | undefined;
+    policyExpenseReportIDs: Array<string | undefined> | undefined;
 };
 
 function openPolicyReportFieldsPage(policyID: string) {
@@ -170,7 +170,7 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyID, policyExpenseReports}: CreateReportFieldParams) {
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyID, policyExpenseReportIDs}: CreateReportFieldParams) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
@@ -200,8 +200,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyExpenseReports ?? []).map((report) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
@@ -224,8 +224,8 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyExpenseReports ?? []).map((report) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {

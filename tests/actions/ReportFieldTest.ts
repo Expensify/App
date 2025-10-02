@@ -79,7 +79,7 @@ describe('actions/ReportField', () => {
                 initialValue: 'Default Value',
                 listValues: [],
                 disabledListValues: [],
-                policyExpenseReports: [],
+                policyExpenseReportIDs: [],
             };
 
             ReportField.createReportField(createReportFieldArguments);
@@ -134,7 +134,7 @@ describe('actions/ReportField', () => {
                 initialValue: defaultDate,
                 listValues: [],
                 disabledListValues: [],
-                policyExpenseReports: [],
+                policyExpenseReportIDs: [],
             };
 
             ReportField.createReportField(createReportFieldArguments);
@@ -191,7 +191,7 @@ describe('actions/ReportField', () => {
                 initialValue: '',
                 listValues: ['Value 1', 'Value 2'],
                 disabledListValues: [false, true],
-                policyExpenseReports: [],
+                policyExpenseReportIDs: [],
             };
 
             ReportField.createReportField(createReportFieldArguments);
