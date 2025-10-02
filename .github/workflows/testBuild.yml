@@ -339,9 +339,9 @@ jobs:
         uses: callstackincubator/android@8c2cb70c209cc7f832130b6e49bcbcaa7ad62613 # v3
         env:
           IS_HYBRID_APP: true
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           variant: 'Adhoc'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           re-sign: true
           keystore-file: './upload-key.keystore'
           keystore-store-file: 'upload-key.keystore'
@@ -443,7 +443,6 @@ jobs:
           IS_HYBRID_APP: true
         with:
           destination: device
-          github-token: ${{ github.token }}
           re-sign: true
           ad-hoc: true
           scheme: 'Expensify AdHoc'
