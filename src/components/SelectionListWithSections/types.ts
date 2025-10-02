@@ -798,7 +798,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
     /** Styles for the section title */

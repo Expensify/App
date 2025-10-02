@@ -65,7 +65,7 @@ function DebugReportActionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting an action,
                     // otherwise the user will see a not found page briefly.
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                     });

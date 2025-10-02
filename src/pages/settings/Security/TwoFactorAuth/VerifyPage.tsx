@@ -75,7 +75,7 @@ function VerifyPage({route}: VerifyPageProps) {
 
     const scrollViewRef = useRef<RNScrollView>(null);
     const handleInputFocus = useCallback(() => {
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 scrollViewRef.current?.scrollToEnd({animated: true});

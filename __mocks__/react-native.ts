@@ -2,6 +2,7 @@
 import * as ReactNative from 'react-native';
 import type StartupTimer from '@libs/StartupTimer/types';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const {BootSplash} = ReactNative.NativeModules;
 
 jest.doMock('react-native', () => {

@@ -65,7 +65,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 

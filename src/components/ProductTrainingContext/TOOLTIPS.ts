@@ -12,6 +12,7 @@ const {
     OUTSTANDING_FILTER,
     ACCOUNT_SWITCHER,
     SCAN_TEST_DRIVE_CONFIRMATION,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     MULTI_SCAN_EDUCATIONAL_MODAL,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 

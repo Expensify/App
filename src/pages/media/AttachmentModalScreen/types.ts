@@ -28,6 +28,7 @@ type AttachmentModalContainerModalProps = {
     shouldHandleNavigationBack?: boolean;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ATTACHMENT_MODAL_SCREENS = [
     SCREENS.ATTACHMENTS,
     SCREENS.REPORT_AVATAR,
