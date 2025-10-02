@@ -373,6 +373,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         deletePolicyTags(policyData, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
             if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {

@@ -214,6 +214,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         deletePolicyTags(policyData, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
         });

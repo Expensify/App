@@ -81,6 +81,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -93,6 +94,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -129,6 +131,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -652,7 +655,8 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'No tan rápido',
-        description: 'No estás autorizado para realizar esta acción mientras estás conectado como soporte.',
+        descriptionWithCommand: ({command}: {command?: string} = {}) =>
+            `No estás autorizado para realizar esta acción cuando el soporte ha iniciado sesión (comando: ${command ?? ''}). Si crees que Success debería poder realizar esta acción, inicia una conversación en Slack.`,
     },
     lockedAccount: {
         title: 'Cuenta Bloqueada',
@@ -1691,13 +1695,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Fusionar cuentas',
         accountDetails: {
-            accountToMergeInto: `Introduce la cuenta en la que deseas fusionar `,
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Introduce la cuenta en la que deseas fusionar <strong>${login}</strong>.`,
             notReversibleConsent: 'Entiendo que esto no es reversible',
         },
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
-            lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
-            enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Para continuar, por favor introduce el código mágico enviado a <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
                 fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
@@ -2200,7 +2205,7 @@ const translations = {
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         enterRecoveryCode: 'Por favor, introduce tu código de recuperación',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
-        requestNewCode: 'Pedir un código nuevo en ',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Pedir un código nuevo en <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico.',
@@ -2577,14 +2582,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
-        emailAliases:
-            'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a tu propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
-        ensureYourEmailClient: 'Asegúrese de que tu cliente de correo electrónico permita correos electrónicos de expensify.com. ',
-        youCanFindDirections: 'Puedes encontrar instrucciones sobre cómo completar este paso ',
-        helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
-        onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
-        toUnblock: ' para desbloquear el inicio de sesión.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos.</strong> Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a tu propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.`,
+        ensureYourEmailClient: `<strong>Asegúrese de que tu cliente de correo electrónico permita correos electrónicos de expensify.com.</strong> Puedes encontrar instrucciones sobre cómo completar este paso <a href="${CONST.SET_NOTIFICATION_LINK}">here</a>, pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.`,
+        onceTheAbove: `Una vez completados los pasos anteriores, ponte en contacto con <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> para desbloquear el inicio de sesión.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -3252,6 +3253,9 @@ const translations = {
         thisStep: 'Este paso ha sido completado',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `está conectando una cuenta bancaria comercial en ${currency} que termina en ${bankAccountLastFour} a Expensify para pagar a los empleados en ${currency}. El siguiente paso requiere la información del firmante de un director o alto ejecutivo.`,
+        error: {
+            emailsMustBeDifferent: 'Los correos electrónicos deben ser diferentes',
+        },
     },
     agreementsStep: {
         agreements: 'Acuerdos',
@@ -3600,7 +3604,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
+            subtitle: `<muted-text>Establece las tasas per diem para controlar los gastos diarios de los empleados. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Más información</a>.</muted-text>`,
             amount: 'Cantidad',
             deleteRates: () => ({
                 one: 'Eliminar tasa',
@@ -4384,10 +4388,7 @@ const translations = {
                 whoIsYourBankAccount: '¿Cuál es tu banco?',
                 whereIsYourBankLocated: '¿Dónde está ubicado tu banco?',
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
-                learnMoreAboutOptions: {
-                    text: 'Obtén más información sobre estas ',
-                    linkText: 'opciones.',
-                },
+                learnMoreAboutOptions: `<muted-text>Obtén más información sobre estas <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">opciones</a>.</muted-text>`,
                 commercialFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
                 commercialFeedPlaidDetails: 'Requiere configurarlo con tu banco, pero te guiaremos. Esto suele estar limitado a empresas más grandes.',
                 directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
@@ -5047,8 +5048,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
-            goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Hay un error con una conexión que se ha configurado en Expensify Classic. [Ve a Expensify Classic para solucionar este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
@@ -5418,8 +5419,8 @@ const translations = {
             updateDetails: 'Actualizar detalles',
             yesDisconnectMyBankAccount: 'Sí, desconecta mi cuenta bancaria',
             yesStartOver: 'Sí, empezar de nuevo',
-            disconnectYour: 'Desconecta tu cuenta bancaria de ',
-            bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Desconecta tu cuenta bancaria de <strong>${bankName}</strong>. Los reembolsos pendientes serán completados sin problemas.`,
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
             areYouSure: '¿Estás seguro?',
             workspaceCurrency: 'Moneda del espacio de trabajo',
@@ -5562,11 +5563,6 @@ const translations = {
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
             },
-            reports: {
-                title: 'Informes',
-                description: 'Crea informes de gastos organizados para hacer seguimiento de tus gastos comerciales, enviarlos para aprobación y optimizar tu proceso de reembolso.',
-                onlyAvailableOnPlan: 'Los informes están disponibles en el plan Recopilar, a partir de ',
-            },
             multiLevelTags: {
                 title: 'Etiquetas multinivel',
                 description:
@@ -5700,8 +5696,7 @@ const translations = {
                 nonBillable: 'No facturable',
                 nonBillableDescription: 'Los gastos se vuelven a facturar a los clientes en ocasiones',
                 eReceipts: 'Recibos electrónicos',
-                eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
-                eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
+                eReceiptsHint: `Los recibos electrónicos se crean automáticamente [para la mayoría de las transacciones en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Seguimiento de asistentes',
                 attendeeTrackingHint: 'Haz un seguimiento del coste por persona para cada gasto.',
                 prohibitedDefaultDescription:

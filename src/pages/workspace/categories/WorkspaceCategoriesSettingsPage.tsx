@@ -88,6 +88,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         }
 
         Keyboard.dismiss();
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setIsSelectorModalVisible(false);
         });

@@ -92,6 +92,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions belonging to this report */
     transactions?: OnyxTypes.Transaction[];
 
+    /** Whether there is a pending delete transaction */
+    hasPendingDeletionTransaction?: boolean;
+
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
@@ -117,6 +120,7 @@ function MoneyRequestReportActionsList({
     violations,
     hasNewerActions,
     hasOlderActions,
+    hasPendingDeletionTransaction,
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
@@ -255,6 +259,7 @@ function MoneyRequestReportActionsList({
             return;
         }
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
     }, [loadOlderChats]);
 
@@ -476,6 +481,7 @@ function MoneyRequestReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
@@ -741,6 +747,7 @@ function MoneyRequestReportActionsList({
                                     report={report}
                                     transactions={transactions}
                                     newTransactions={newTransactions}
+                                    hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                     reportActions={reportActions}
                                     violations={violations}
                                     hasComments={reportHasComments}

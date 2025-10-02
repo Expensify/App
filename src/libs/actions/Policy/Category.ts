@@ -53,8 +53,8 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
-function appendSetupCategoriesOnboardingData(onyxData: OnyxData) {
-    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+function appendSetupCategoriesOnboardingData(onyxData: OnyxData, isSetupCategoriesTaskParentReportArchived: boolean) {
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories', isSetupCategoriesTaskParentReportArchived);
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
@@ -327,7 +327,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function setWorkspaceCategoryEnabled(policyData: PolicyData, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
+function setWorkspaceCategoryEnabled(policyData: PolicyData, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>, isSetupCategoriesTaskParentReportArchived: boolean) {
     const policyID = policyData.policy.id;
     const policyCategoriesOptimisticData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
@@ -394,7 +394,7 @@ function setWorkspaceCategoryEnabled(policyData: PolicyData, categoriesToUpdate:
     };
 
     pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
-    appendSetupCategoriesOnboardingData(onyxData);
+    appendSetupCategoriesOnboardingData(onyxData, isSetupCategoriesTaskParentReportArchived);
 
     const parameters = {
         policyID,
@@ -602,9 +602,9 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function createPolicyCategory(policyID: string, categoryName: string) {
+function createPolicyCategory(policyID: string, categoryName: string, isSetupCategoriesTaskParentReportArchived: boolean) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
-    appendSetupCategoriesOnboardingData(onyxData);
+    appendSetupCategoriesOnboardingData(onyxData, isSetupCategoriesTaskParentReportArchived);
     const parameters = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
@@ -989,7 +989,7 @@ function clearCategoryErrors(policyID: string, categoryName: string) {
     });
 }
 
-function deleteWorkspaceCategories(policyData: PolicyData, categoryNamesToDelete: string[]) {
+function deleteWorkspaceCategories(policyData: PolicyData, categoryNamesToDelete: string[], isSetupCategoriesTaskParentReportArchived: boolean) {
     const policyID = policyData.policy.id;
     const policyCategoriesOptimisticData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
@@ -999,6 +999,10 @@ function deleteWorkspaceCategories(policyData: PolicyData, categoryNamesToDelete
     const shouldDisableRequiresCategory = !hasEnabledOptions(
         Object.values(policyData.categories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
+    const optimisticPolicyData: Partial<Policy> = shouldDisableRequiresCategory
+        ? {
+              requiresCategory: false,
+        } : {}
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -1034,9 +1038,8 @@ function deleteWorkspaceCategories(policyData: PolicyData, categoryNamesToDelete
         ],
     };
 
-    const optimisticPolicyData: Partial<Policy> = shouldDisableRequiresCategory ? {requiresCategory: false} : {};
     pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, policyCategoriesOptimisticData);
-    appendSetupCategoriesOnboardingData(onyxData);
+    appendSetupCategoriesOnboardingData(onyxData, isSetupCategoriesTaskParentReportArchived);
 
     const parameters = {
         policyID,

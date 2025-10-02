@@ -83,6 +83,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -95,6 +96,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -131,6 +133,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -399,6 +402,7 @@ const translations = {
         download: 'Download',
         downloading: 'Downloading',
         uploading: 'Uploading',
+        // @context as a verb, not a noun
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
@@ -662,7 +666,8 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Not so fast',
-        description: 'You are not authorized to take this action when support logged in.',
+        descriptionWithCommand: ({command}: {command?: string} = {}) =>
+            `You are not authorized to take this action when support logged in (command: ${command ?? ''}). If you think that Success should be able to take this action, please start a conversation in Slack.`,
     },
     lockedAccount: {
         title: 'Locked Account',
@@ -1697,13 +1702,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Merge accounts',
         accountDetails: {
-            accountToMergeInto: 'Enter the account you want to merge into ',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Enter the account you want to merge into <strong>${login}</strong>.`,
             notReversibleConsent: 'I understand this is not reversible',
         },
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
-            lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
-            enterMagicCode: `To continue, please enter the magic code sent to `,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `To continue, please enter the magic code sent to <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
                 fallback: 'Something went wrong. Please try again later.',
@@ -2202,7 +2208,7 @@ const translations = {
         enterAuthenticatorCode: 'Please enter your authenticator code',
         enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
-        requestNewCode: 'Request a new code in ',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Request a new code in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
@@ -2608,13 +2614,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
-        emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
-        ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
-        youCanFindDirections: 'You can find directions on how to complete this step ',
-        helpConfigure: ' but you may need your IT department to help configure your email settings.',
-        onceTheAbove: 'Once the above steps are completed, please reach out to ',
-        toUnblock: ' to unblock your login.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirm that ${login} is spelled correctly and is a real, deliverable email address.</strong> Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.`,
+        ensureYourEmailClient: `<strong>Ensure your email client allows expensify.com emails.</strong> You can find directions on how to complete this step <a href="${CONST.SET_NOTIFICATION_LINK}">here</a> but you may need your IT department to help configure your email settings.`,
+        onceTheAbove: `Once the above steps are completed, please reach out to <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> to unblock your login.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -3263,6 +3266,9 @@ const translations = {
         thisStep: 'This step has been completed',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director or senior officer.`,
+        error: {
+            emailsMustBeDifferent: 'Emails must be different',
+        },
     },
     agreementsStep: {
         agreements: 'Agreements',
@@ -3610,7 +3616,7 @@ const translations = {
             },
         },
         perDiem: {
-            subtitle: 'Set per diem rates to control daily employee spend. ',
+            subtitle: `<muted-text>Set per diem rates to control daily employee spend. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Learn more</a>.</muted-text>`,
             amount: 'Amount',
             deleteRates: () => ({
                 one: 'Delete rate',
@@ -4379,10 +4385,7 @@ const translations = {
                 whoIsYourBankAccount: 'Who’s your bank?',
                 whereIsYourBankLocated: 'Where’s your bank located?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
-                learnMoreAboutOptions: {
-                    text: 'Learn more about these ',
-                    linkText: 'options.',
-                },
+                learnMoreAboutOptions: `<muted-text>Learn more about these <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">options</a>.</muted-text>`,
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
                 commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
@@ -5075,8 +5078,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: "There's an error with a connection that's been set up in Expensify Classic. ",
-            goToODToFix: 'Go to Expensify Classic to fix this issue.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
             setup: 'Connect',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Last synced ${relativeDate}`,
@@ -5407,8 +5410,8 @@ const translations = {
             updateDetails: 'Update details',
             yesDisconnectMyBankAccount: 'Yes, disconnect my bank account',
             yesStartOver: 'Yes, start over',
-            disconnectYour: 'Disconnect your ',
-            bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Disconnect your <strong>${bankName}</strong> bank account. Any outstanding transactions for this account will still complete.`,
             clearProgress: "Starting over will clear the progress you've made so far.",
             areYouSure: 'Are you sure?',
             workspaceCurrency: 'Workspace currency',
@@ -5528,11 +5531,6 @@ const translations = {
                 title: 'Travel',
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
-            },
-            reports: {
-                title: 'Reports',
-                description: 'Create organized expense reports to track your business spending, submit for approvals, and streamline your reimbursement process.',
-                onlyAvailableOnPlan: 'Reports are available on the Collect plan, starting at ',
             },
             multiLevelTags: {
                 title: 'Multi-level tags',
@@ -5665,8 +5663,7 @@ const translations = {
                 nonBillable: 'Non-billable',
                 nonBillableDescription: 'Expenses are occasionally re-billed to clients',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceipts are auto-created',
-                eReceiptsHintLink: 'for most USD credit transactions',
+                eReceiptsHint: `eReceipts are auto-created [for most USD credit transactions](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Attendee tracking',
                 attendeeTrackingHint: 'Track the per-person cost for every expense.',
                 prohibitedDefaultDescription:
