@@ -356,12 +356,12 @@ PODS:
   - libwebp/sharpyuv (1.3.2)
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
-  - lottie-ios (4.3.4)
-  - lottie-react-native (6.5.1):
+  - lottie-ios (4.5.0)
+  - lottie-react-native (7.3.3):
     - DoubleConversion
     - glog
     - hermes-engine
-    - lottie-ios (~> 4.3.3)
+    - lottie-ios (= 4.5.0)
     - RCT-Folly (= 2024.11.18.00)
     - RCTRequired
     - RCTTypeSafety
@@ -3773,8 +3773,8 @@ SPEC CHECKSUMS:
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
-  lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
-  lottie-react-native: 539be2007394ec90451fd09ee7eeacbb61da4153
+  lottie-ios: a881093fab623c467d3bce374367755c272bdd59
+  lottie-react-native: 56923b267e4d0037443bf4b26a29cb06c6358f2f
   MapboxCommon: 873b75dd0e8c5d7029e0c849437eba365f4887e5
   MapboxCoreMaps: 35685edba03e44468aed57c3dfd7f8795edafda8
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116

@@ -52,6 +52,7 @@ import './setup/backgroundTask';
 import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
+import {setWasmUrl} from '@lottiefiles/dotlottie-react';
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -67,6 +68,8 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App() {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
+    setWasmUrl("https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm");
 
     return (
         <StrictModeWrapper>
