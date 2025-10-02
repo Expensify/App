@@ -2089,7 +2089,7 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     return isDataLoaded;
 }
 
-function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
+function getStatusOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getInvoiceStatusOptions();
@@ -2097,9 +2097,11 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return getTripStatusOptions();
         case CONST.SEARCH.DATA_TYPES.TASK:
             return getTaskStatusOptions();
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return getExpenseReportedStatusOptions();
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? getExpenseReportedStatusOptions() : getExpenseStatusOptions();
+            return getExpenseStatusOptions();
     }
 }
 

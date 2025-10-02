@@ -15,7 +15,6 @@ import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
-import type {SearchGroupBy} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -48,7 +47,6 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
-    groupBy?: SearchGroupBy | undefined;
     type: SearchDataTypes;
     hasResults: boolean;
 };
@@ -89,7 +87,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections} = useSearchTypeMenuSections();
 
@@ -127,7 +125,6 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
             <EmptySearchViewContent
                 similarSearchHash={similarSearchHash}
                 type={type}
-                groupBy={groupBy}
                 hasResults={hasResults}
                 currentUserPersonalDetails={currentUserPersonalDetails}
                 typeMenuSections={typeMenuSections}
@@ -149,7 +146,6 @@ const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
 function EmptySearchViewContent({
     similarSearchHash,
     type,
-    groupBy,
     hasResults,
     currentUserPersonalDetails,
     typeMenuSections,
@@ -276,7 +272,7 @@ function EmptySearchViewContent({
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
-        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (hasResults) {
                 return {
                     ...defaultViewItemHeader,
@@ -429,7 +425,6 @@ function EmptySearchViewContent({
                 };
         }
     }, [
-        groupBy,
         type,
         typeMenuItems,
         similarSearchHash,

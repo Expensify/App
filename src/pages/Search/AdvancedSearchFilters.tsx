@@ -430,8 +430,8 @@ function getFilterDisplayTitle(
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
-function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, groupBy: SearchGroupBy | undefined, translate: LocaleContextProps['translate']) {
-    const statusOptions = getStatusOptions(type, groupBy).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
+function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextProps['translate']) {
+    const statusOptions = getStatusOptions(type).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
     let filterValue = filters?.status;
 
     if (!filterValue?.length) {

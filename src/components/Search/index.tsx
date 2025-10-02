@@ -828,7 +828,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
-                    groupBy={groupBy}
                     hasResults={searchResults?.search?.hasResults}
                 />
             </View>
