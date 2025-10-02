@@ -281,16 +281,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            return (<ReportListItemHeader
-                report={groupItem as TransactionReportGroupListItemType}
-                onSelectRow={onSelectRow}
-                onCheckboxPress={onCheckboxPress}
-                isDisabled={isDisabledOrEmpty}
-                isFocused={isFocused}
-                canSelectMultiple={canSelectMultiple}
-                isSelectAllChecked={isSelectAllChecked}
-                isIndeterminate={isIndeterminate}
-            />);
+            return (
+                <ReportListItemHeader
+                    report={groupItem as TransactionReportGroupListItemType}
+                    onSelectRow={onSelectRow}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    isFocused={isFocused}
+                    canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
+                />
+            );
         }
 
         if (!groupBy) {

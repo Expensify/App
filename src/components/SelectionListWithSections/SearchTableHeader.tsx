@@ -77,7 +77,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy, type?: SearchDataTypes): Sea
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: groupBy ?? type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? 'common.total' : 'iou.amount',
+        translationKey: (groupBy ?? type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) ? 'common.total' : 'iou.amount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
