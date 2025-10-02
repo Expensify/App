@@ -79,6 +79,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type { PaymentMethod } from '@components/KYCWall/types';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
@@ -205,7 +206,7 @@ function MoneyRequestReportPreviewContent({
     }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
             if (!type) {
                 return;
             }
@@ -218,7 +219,7 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, payAsBusiness, existingB2BInvoiceReport);
+                    payInvoice(type, chatReport, iouReport, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod);
                 } else {
                     payMoneyRequest(type, chatReport, iouReport);
                 }

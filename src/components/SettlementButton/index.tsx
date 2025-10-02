@@ -25,6 +25,7 @@ import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
+    isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
@@ -195,19 +196,16 @@ function SettlementButton({
                 text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
                 icon: Expensicons.User,
                 value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                shouldUpdateSelectedIndex: false,
             },
             [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
                 text: translate('iou.settleBusiness', {formattedAmount: ''}),
                 icon: Expensicons.Building,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                shouldUpdateSelectedIndex: false,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount: ''}),
                 icon: Expensicons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                shouldUpdateSelectedIndex: false,
             },
         };
 
@@ -376,7 +374,35 @@ function SettlementButton({
             return;
         }
 
-        onPress(iouPaymentType, false);
+        if (isInvoiceReport) {
+            // if user has intent to pay, we should get the only bank account information to pay the invoice.
+            if (hasIntentToPay) {
+                const currentBankInformation = formattedPaymentMethods.at(0) as BankAccount;
+                onPress(
+                    CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    currentBankInformation.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                    currentBankInformation.methodID,
+                    currentBankInformation.accountType,
+                    undefined,
+                );
+                return;
+            }
+
+            const isBusinessInvoice = isBusinessInvoiceRoom(iouReport);
+            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                onPress(iouPaymentType, isBusinessInvoice);
+                return;
+            }
+            onPress(
+                iouPaymentType,
+                isBusinessInvoice,
+                lastBankAccountID,
+                isBusinessInvoice ? CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                policyIDKey,
+            );
+        } else {
+            onPress(iouPaymentType, false);
+        }
     };
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
