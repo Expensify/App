@@ -13,7 +13,7 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
+import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -37,6 +37,9 @@ type ParentNavigationSubtitleProps = {
 
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
+
+    /** The status text of the expense report */
+    statusText?: string;
 };
 
 function ParentNavigationSubtitle({
@@ -45,6 +48,7 @@ function ParentNavigationSubtitle({
     parentReportID = '',
     pressableStyles,
     openParentReportInCurrentTab = false,
+    statusText,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -63,8 +67,8 @@ function ParentNavigationSubtitle({
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
-    // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
-    if (!reportName) {
+    // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty or user lacks access)
+    if (!reportName || !canCurrentUserOpenReport(report, isReportArchived)) {
         return;
     }
 
@@ -108,6 +112,7 @@ function ParentNavigationSubtitle({
             style={[styles.optionAlternateText, styles.textLabelSupporting]}
             numberOfLines={1}
         >
+            {!!statusText && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${statusText} ${CONST.DOT_SEPARATOR} `}</Text>}
             {!!reportName && (
                 <>
                     <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>

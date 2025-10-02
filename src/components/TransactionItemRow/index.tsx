@@ -6,9 +6,9 @@ import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import ActionCell from '@components/SelectionList/Search/ActionCell';
-import DateCell from '@components/SelectionList/Search/DateCell';
-import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
+import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
+import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -104,6 +104,7 @@ type TransactionItemRowProps = {
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     areAllOptionalColumnsHidden?: boolean;
+    violations?: TransactionViolation[];
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -142,6 +143,7 @@ function TransactionItemRow({
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
     areAllOptionalColumnsHidden = false,
+    violations,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -479,6 +481,7 @@ function TransactionItemRow({
                         {shouldShowErrors && (
                             <TransactionItemRowRBRWithOnyx
                                 transaction={transactionItem}
+                                violations={violations}
                                 report={report}
                                 containerStyles={[styles.mt2, styles.minHeight4]}
                                 missingFieldError={missingFieldError}
@@ -528,6 +531,7 @@ function TransactionItemRow({
             {shouldShowErrors && (
                 <TransactionItemRowRBRWithOnyx
                     transaction={transactionItem}
+                    violations={violations}
                     report={report}
                     missingFieldError={missingFieldError}
                 />
