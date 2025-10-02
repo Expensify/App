@@ -1930,7 +1930,7 @@ function getSearchOptions(
     includeUserToInvite?: boolean,
     includeRecentReports = true,
     includeCurrentUser = false,
-    countryCode = CONST.DEFAULT_COUNTRY_CODE,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
