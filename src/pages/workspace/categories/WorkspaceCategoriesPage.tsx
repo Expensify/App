@@ -144,7 +144,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}}, isSetupCategoryTaskParentReportArchived, policyCategories, policyTagLists, allTransactionViolations);
+            setWorkspaceCategoryEnabled(
+                policyId,
+                {[categoryName]: {name: categoryName, enabled: value}},
+                isSetupCategoryTaskParentReportArchived,
+                policyCategories,
+                policyTagLists,
+                allTransactionViolations,
+            );
         },
         [policyId, isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations],
     );
