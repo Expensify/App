@@ -12,6 +12,7 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
@@ -47,6 +48,7 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
@@ -170,6 +172,46 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
     const shouldShowCreateReportOption = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
+
+    const inferredWorkspacePolicy = useMemo(() => {
+        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+            return activePolicy;
+        }
+
+        if (groupPoliciesWithChatEnabled.length === 1) {
+            return groupPoliciesWithChatEnabled.at(0);
+        }
+
+        return undefined;
+    }, [activePolicy, groupPoliciesWithChatEnabled]);
+
+    const inferredWorkspaceID = inferredWorkspacePolicy?.id;
+
+    const handleCreateWorkspaceReport = useCallback(() => {
+        if (!inferredWorkspaceID) {
+            return;
+        }
+
+        if (isReportInSearch) {
+            clearLastSearchParams();
+        }
+
+        const createdReportID = createNewReport(currentUserPersonalDetails, inferredWorkspaceID);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(
+                isSearchTopmostFullScreenRoute()
+                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                {forceReplace: isReportInSearch},
+            );
+        });
+    }, [currentUserPersonalDetails, inferredWorkspaceID, isReportInSearch]);
+
+    const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: inferredWorkspaceID,
+        policyName: inferredWorkspacePolicy?.name ?? '',
+        onConfirm: handleCreateWorkspaceReport,
+    });
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -476,19 +518,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   return;
                               }
 
-                              let workspaceIDForReportCreation: string | undefined;
-
-                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                  // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                  workspaceIDForReportCreation = activePolicyID;
-                              } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                  // If the user has only one paid group workspace with chat enabled, we create a report with it
-                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                              }
-
-                              if (isReportInSearch) {
-                                  clearLastSearchParams();
-                              }
+                              const workspaceIDForReportCreation = inferredWorkspaceID;
 
                               if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -497,18 +527,19 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                               }
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
-                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                      Navigation.navigate(
-                                          isSearchTopmostFullScreenRoute()
-                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                                              : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                                          {forceReplace: isReportInSearch},
-                                      );
-                                  });
-                              } else {
-                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                  // Check if empty report confirmation should be shown based on CURRENT state (at click time)
+                                  const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
+                                  const hasEmptyReports = ReportUtils.hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, currentAccountID);
+
+                                  if (hasEmptyReports) {
+                                      openFabCreateReportConfirmation();
+                                  } else {
+                                      handleCreateWorkspaceReport();
+                                  }
+                                  return;
                               }
+
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                           });
                       },
                   },
@@ -589,6 +620,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     return (
         <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            {FabCreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}

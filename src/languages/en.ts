@@ -6297,6 +6297,14 @@ const translations = {
         newReport: {
             createReport: 'Create report',
             chooseWorkspace: 'Choose a workspace for this report.',
+            emptyReportWarningTitle: 'You already have an empty report',
+            emptyReportWarningPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
+            emptyReportWarningPromptLink: 'Reports',
+            emptyReportWarningPromptSuffix: '.',
+            genericWorkspaceName: 'this workspace',
+            warningConfirm: 'Create report',
+            warningCancel: 'Cancel',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
         genericAddCommentFailureMessage: 'Unexpected error posting the comment. Please try again later.',

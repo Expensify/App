@@ -19,6 +19,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
@@ -35,7 +36,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -58,7 +59,6 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
     isUserPaidPolicyMember: boolean;
-    activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     introSelected: OnyxEntry<IntroSelected>;
@@ -133,7 +133,6 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
                 typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
                 isUserPaidPolicyMember={isUserPaidPolicyMember}
-                activePolicyID={activePolicyID}
                 activePolicy={activePolicy}
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 introSelected={introSelected}
@@ -155,7 +154,6 @@ function EmptySearchViewContent({
     typeMenuSections,
     allPolicies,
     isUserPaidPolicyMember,
-    activePolicyID,
     activePolicy,
     groupPoliciesWithChatEnabled,
     introSelected,
@@ -179,6 +177,55 @@ function EmptySearchViewContent({
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
     }, [allPolicies]);
+
+    const inferredWorkspacePolicy = useMemo(() => {
+        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+            return activePolicy;
+        }
+
+        if (groupPoliciesWithChatEnabled.length === 1) {
+            return groupPoliciesWithChatEnabled.at(0);
+        }
+
+        return undefined;
+    }, [activePolicy, groupPoliciesWithChatEnabled]);
+
+    const inferredWorkspaceID = inferredWorkspacePolicy?.id;
+
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
+
+    const handleCreateWorkspaceReport = useCallback(() => {
+        if (!inferredWorkspaceID) {
+            return;
+        }
+
+        const createdReportID = createNewReport(currentUserPersonalDetails, inferredWorkspaceID);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+        });
+    }, [currentUserPersonalDetails, inferredWorkspaceID]);
+
+    const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: inferredWorkspaceID,
+        policyName: inferredWorkspacePolicy?.name ?? '',
+        onConfirm: handleCreateWorkspaceReport,
+    });
+
+    const openCreateReportFromSearchRef = useRef(openCreateReportFromSearch);
+    openCreateReportFromSearchRef.current = openCreateReportFromSearch;
+
+    const handleCreateReportClick = useCallback(() => {
+        // Check CURRENT state at click time using the centralized utility
+        const hasEmptyReport = ReportUtils.hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, currentAccountID);
+
+        if (hasEmptyReport) {
+            openCreateReportFromSearchRef.current();
+        } else {
+            handleCreateWorkspaceReport();
+        }
+    }, [allReports, currentAccountID, inferredWorkspaceID, handleCreateWorkspaceReport]);
 
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();
@@ -304,15 +351,7 @@ function EmptySearchViewContent({
                                   buttonText: translate('quickAction.createReport'),
                                   buttonAction: () => {
                                       interceptAnonymousUser(() => {
-                                          let workspaceIDForReportCreation: string | undefined;
-
-                                          if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                              workspaceIDForReportCreation = activePolicyID;
-                                          } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                              // If the user has only one paid group workspace with chat enabled, we create a report with it
-                                              workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                          }
+                                          const workspaceIDForReportCreation = inferredWorkspaceID;
 
                                           if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                               // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -320,14 +359,12 @@ function EmptySearchViewContent({
                                               return;
                                           }
 
-                                          if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                              const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
-                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                              });
-                                          } else {
+                                          if (shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                              return;
                                           }
+
+                                          handleCreateReportClick();
                                       });
                                   },
                                   success: true,
@@ -380,7 +417,7 @@ function EmptySearchViewContent({
                                             setModalVisible(true);
                                             return;
                                         }
-                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
                                     }),
                                 success: true,
                             },
@@ -411,7 +448,7 @@ function EmptySearchViewContent({
                                             setModalVisible(true);
                                             return;
                                         }
-                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, ReportUtils.generateReportID());
                                     }),
                                 success: true,
                             },
@@ -449,12 +486,11 @@ function EmptySearchViewContent({
         defaultViewItemHeader,
         hasSeenTour,
         groupPoliciesWithChatEnabled,
-        activePolicy,
-        activePolicyID,
-        currentUserPersonalDetails,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
+        inferredWorkspaceID,
+        handleCreateReportClick,
     ]);
 
     return (
@@ -478,6 +514,7 @@ function EmptySearchViewContent({
                     {content.children}
                 </EmptyStateComponent>
             </ScrollView>
+            {CreateReportConfirmationModal}
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

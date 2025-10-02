@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SectionListDataType} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +19,7 @@ import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import CONST from '@src/CONST';
@@ -44,6 +45,12 @@ function NewReportWorkspaceSelectionPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
+    // Get all reports once to check for empty reports
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const accountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
+
     const navigateToNewReport = useCallback(
         (optimisticReportID: string) => {
             if (isRHPOnReportInSearch) {
@@ -59,19 +66,80 @@ function NewReportWorkspaceSelectionPage() {
         [isRHPOnReportInSearch, shouldUseNarrowLayout],
     );
 
-    const selectPolicy = useCallback(
-        (policyID?: string) => {
-            if (!policyID) {
-                return;
-            }
-            if (shouldRestrictUserBillableActions(policyID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
-                return;
-            }
+    const createReport = useCallback(
+        (policyID: string) => {
             const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
             navigateToNewReport(optimisticReportID);
         },
         [currentUserPersonalDetails, navigateToNewReport],
+    );
+
+    const handleConfirmCreateReport = useCallback(() => {
+        if (!pendingPolicySelection?.policy.policyID) {
+            return;
+        }
+
+        createReport(pendingPolicySelection.policy.policyID);
+        setPendingPolicySelection(null);
+    }, [createReport, pendingPolicySelection?.policy.policyID]);
+
+    const handleCancelCreateReport = useCallback(() => {
+        setPendingPolicySelection(null);
+    }, []);
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: pendingPolicySelection?.policy.policyID,
+        policyName: pendingPolicySelection?.policy.text ?? '',
+        onConfirm: handleConfirmCreateReport,
+        onCancel: handleCancelCreateReport,
+    });
+
+    useEffect(() => {
+        if (!pendingPolicySelection) {
+            return;
+        }
+
+        const {policy, shouldShowEmptyReportConfirmation} = pendingPolicySelection;
+        const policyID = policy.policyID;
+
+        if (!policyID) {
+            return;
+        }
+
+        if (!shouldShowEmptyReportConfirmation) {
+            // No empty report confirmation needed - create report directly and clear pending selection
+            // policyID is guaranteed to be defined by the check above
+            createReport(policyID as string);
+            setPendingPolicySelection(null);
+            return;
+        }
+
+        // Empty report confirmation needed - open confirmation modal (modal handles clearing pending selection via onConfirm/onCancel)
+        openCreateReportConfirmation();
+    }, [createReport, openCreateReportConfirmation, pendingPolicySelection]);
+
+    const selectPolicy = useCallback(
+        (policy?: WorkspaceListItem) => {
+            if (!policy?.policyID) {
+                return;
+            }
+
+            if (shouldRestrictUserBillableActions(policy.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
+                return;
+            }
+
+            // Capture the decision about whether to show empty report confirmation at selection time
+            // This ensures we use a consistent value throughout the process
+            // Check if user has any empty reports in this policy using the centralized utility
+            const hasEmptyReport = ReportUtils.hasEmptyReportsForPolicy(reports, policy.policyID, accountID);
+
+            setPendingPolicySelection({
+                policy,
+                shouldShowEmptyReportConfirmation: hasEmptyReport,
+            });
+        },
+        [accountID, reports],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
@@ -86,7 +154,7 @@ function NewReportWorkspaceSelectionPage() {
                 policyID: policy?.id,
                 icons: [
                     {
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
+                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
@@ -130,6 +198,7 @@ function NewReportWorkspaceSelectionPage() {
                         title={translate('report.newReport.createReport')}
                         onBackButtonPress={Navigation.goBack}
                     />
+                    {CreateReportConfirmationModal}
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
@@ -138,7 +207,7 @@ function NewReportWorkspaceSelectionPage() {
                             <SelectionList<WorkspaceListItem>
                                 ListItem={UserListItem}
                                 sections={sections}
-                                onSelectRow={(option) => selectPolicy(option.policyID)}
+                                onSelectRow={selectPolicy}
                                 textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                                 textInputValue={searchTerm}
                                 onChangeText={setSearchTerm}

@@ -6317,6 +6317,14 @@ const translations = {
         newReport: {
             createReport: 'Crear informe',
             chooseWorkspace: 'Elige un espacio de trabajo para este informe.',
+            emptyReportWarningTitle: 'Ya tienes un informe vacío',
+            emptyReportWarningPrompt: ({workspaceName}: {workspaceName: string}) =>
+                `¿Estás seguro de que quieres crear otro informe en ${workspaceName}? Puedes acceder a tus informes vacíos en`,
+            emptyReportWarningPromptLink: 'Informes',
+            emptyReportWarningPromptSuffix: '.',
+            genericWorkspaceName: 'este espacio de trabajo',
+            warningConfirm: 'Crear informe',
+            warningCancel: 'Cancelar',
         },
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde.',
         genericAddCommentFailureMessage: 'Error inesperado al añadir el comentario. Por favor, inténtalo más tarde.',
