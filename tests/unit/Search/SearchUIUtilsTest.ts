@@ -939,7 +939,7 @@ const transactionsListItems = [
 
 const transactionReportGroupListItems = [
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'submit',
         allActions: ['submit'],
@@ -1045,7 +1045,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'review',
         allActions: ['review', 'approve'],
@@ -1156,7 +1156,7 @@ const transactionReportGroupListItems = [
         unheldTotal: -5000,
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         chatReportID: '6155022250251839',
         chatType: undefined,
@@ -1197,7 +1197,7 @@ const transactionReportGroupListItems = [
         transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
     },
     {
-        groupedBy: 'reports',
+        groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'view',
         allActions: ['view'],
