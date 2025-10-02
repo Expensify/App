@@ -9,7 +9,6 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
-import localeCompare from './LocaleCompare';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
@@ -175,7 +174,7 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
  * @param sourceTransaction - The source transaction
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
+function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: (a: string, b: string) => number) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
