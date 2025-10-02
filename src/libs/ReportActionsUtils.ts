@@ -2064,6 +2064,10 @@ function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): repo
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
 }
 
+function isActionableCardFraudAlert(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT;
+}
+
 function getExportIntegrationLastMessageText(reportAction: OnyxEntry<ReportAction>): string {
     const fragments = getExportIntegrationActionFragments(reportAction);
     return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
@@ -3189,6 +3193,7 @@ export {
     wasActionTakenByCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
+    isActionableCardFraudAlert,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,

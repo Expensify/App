@@ -147,6 +147,26 @@ type OriginalMessageActionableMentionWhisper = {
     whisperedTo?: number[];
 };
 
+type OriginalMessageCardFraudAlert = {
+    /** Card ID */
+    cardID: number;
+
+    /** Masked card number */
+    maskedCardNumber: string;
+
+    /** Transaction amount in cents */
+    triggerAmount: number;
+
+    /** Merchant name */
+    triggerMerchant: string;
+
+    /** Timestamp */
+    date: string;
+
+    /** Resolution: 'recognized' or 'fraud' */
+    resolution?: string;
+};
+
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper = {
     /** Account IDs of users that aren't members of the room  */
@@ -959,6 +979,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT]: OriginalMessageCardFraudAlert;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER]: OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper;
@@ -1055,6 +1076,7 @@ type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 export default OriginalMessage;
 export type {
     DecisionName,
+    OriginalMessageCardFraudAlert,
     OriginalMessageIOU,
     ChronosOOOEvent,
     PaymentMethodType,

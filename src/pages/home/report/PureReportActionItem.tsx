@@ -50,6 +50,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
@@ -105,6 +106,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableAddPaymentCard,
+    isActionableCardFraudAlert,
     isActionableJoinRequest,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableMentionWhisper,
@@ -815,6 +817,32 @@ function PureReportActionItem({
             return options;
         }
 
+        if (isActionableCardFraudAlert(action)) {
+            if (action.originalMessage?.resolution) {
+                return [];
+            }
+
+            return [
+                {
+                    text: 'Yes',
+                    key: `${action.reportActionID}-cardFraudAlert-confirm`,
+                    onPress: () => {
+                        // TODO: Call API to confirm it was the user
+                        console.log('User confirmed transaction');
+                    },
+                    isPrimary: true,
+                },
+                {
+                    text: 'No',
+                    key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
+                    onPress: () => {
+                        // TODO: Call API to report fraud
+                        console.log('User reported fraud');
+                    },
+                },
+            ];
+        }
+
         if (isActionableJoinRequest(action)) {
             return [
                 {
@@ -1300,6 +1328,30 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
+        } else if (isActionableCardFraudAlert(action)) {
+            const fraudMessage = getOriginalMessage(action);
+            const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
+            const formattedAmount = CurrencyUtils.convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
+            const merchant = fraudMessage?.triggerMerchant ?? '';
+            const resolution = fraudMessage?.resolution;
+
+            const message = resolution
+                ? (resolution === 'recognized'
+                    ? 'cleared the earlier suspicious activity. The card is reactivated. You\'re all set to keep on expensin\'!'
+                    : 'the card has been deactivated.')
+                : `I identified suspicious Expensify Card activity for your Expensify Card ending in ${cardLastFour}. Do you recognize these charges?\n\n${formattedAmount} at ${merchant}`;
+
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message={message} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            layout="horizontal"
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionableJoinRequest(action)) {
             children = (
                 <View>
