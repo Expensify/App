@@ -21,6 +21,13 @@ import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
+// Mock the afterSignOutRedirect module to use the index.ts implementation instead of the native no-op
+jest.mock('@libs/actions/Session/afterSignOutRedirect', () => {
+    // Import the actual index.ts implementation
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return jest.requireActual('@libs/actions/Session/afterSignOutRedirect/index.ts');
+});
+
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
 // cspell:disable-next-line
