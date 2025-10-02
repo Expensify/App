@@ -6,6 +6,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
+    getCustomUnitsForDuplication,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
@@ -271,6 +272,53 @@ describe('PolicyUtils', () => {
                 2,
             );
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
+        });
+    });
+    describe('getCustomUnitsForDuplication', () => {
+        const perDiemUnit = {
+            customUnitID: '123',
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            enabled: true,
+            rates: {},
+        };
+        const otherUnit = {
+            customUnitID: '456',
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            enabled: true,
+            rates: {},
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            customUnits: {
+                [perDiemUnit.customUnitID]: perDiemUnit,
+                [otherUnit.customUnitID]: otherUnit,
+            },
+        };
+
+        const policyWithoutCustomUnits: Policy = {
+            ...createRandomPolicy(0),
+        };
+
+        it('returns undefined if neither option is selected', () => {
+            expect(getCustomUnitsForDuplication(policy, false, false)).toBeUndefined();
+        });
+
+        it('returns all custom units if both options are selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, true);
+            expect(result).toEqual(policy.customUnits);
+        });
+        it('returns only non-per-diem units if only custom units option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, false);
+            expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
+        });
+
+        it('returns only per diem unit if only per diem option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, false, true);
+            expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
+        });
+
+        it('returns undefined if customUnits is empty', () => {
+            expect(getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true)).toBeUndefined();
         });
     });
     describe('getRateDisplayValue', () => {
