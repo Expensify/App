@@ -2761,7 +2761,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.9.0):
+  - RNCPicker (2.11.2):
     - DoubleConversion
     - glog
     - hermes-engine
