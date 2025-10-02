@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,13 +27,14 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE;
+    const isSetupCategoryTaskParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            createPolicyCategory(route.params.policyID, values.categoryName.trim());
+            createPolicyCategory(route.params.policyID, values.categoryName.trim(), isSetupCategoryTaskParentReportArchived);
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
-        [isQuickSettingsFlow, route.params.policyID, backTo],
+        [route.params.policyID, isSetupCategoryTaskParentReportArchived, isQuickSettingsFlow, backTo],
     );
 
     return (

@@ -773,6 +773,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReceiptPartnersUberSubtitleParams = {
+    organizationName: string;
+};
+
 type ReviewParams = {
     amount: string;
 };
@@ -924,6 +928,18 @@ type PayAndDowngradeDescriptionParams = {
 
 type WalletAgreementParams = {
     walletAgreementUrl: string;
+};
+
+type ErrorODIntegrationParams = {
+    oldDotPolicyConnectionsURL: string;
+};
+
+type DisconnectYourBankAccountParams = {
+    bankName: string;
+};
+
+type MergeAccountIntoParams = {
+    login: string;
 };
 
 export type {
@@ -1180,6 +1196,7 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
     BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
@@ -1233,4 +1250,7 @@ export type {
     DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
+    ErrorODIntegrationParams,
+    DisconnectYourBankAccountParams,
+    MergeAccountIntoParams,
 };

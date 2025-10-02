@@ -239,12 +239,17 @@ const ROUTES = {
         route: 'settings/security/delegate/:login/update-role/:currentRole',
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
     },
+    SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/confirm-role/:newRole',
+        getRoute: (login: string, newRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/confirm-role/${newRole}` as const,
+    },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
-        getRoute: (login: string, role: string, showValidateActionModal?: boolean) => {
-            const validateActionModalParam = showValidateActionModal ? `?showValidateActionModal=true` : '';
-            return `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm${validateActionModalParam}` as const;
-        },
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+    },
+    SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/confirm/magic-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/magic-code` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
@@ -260,9 +265,11 @@ const ROUTES = {
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/report-virtual-fraud`, backTo),
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
+    },
+    SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT: {
+        route: `settings/wallet/card/:cardID/report-virtual-fraud/${VERIFY_ACCOUNT}`,
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud/${VERIFY_ACCOUNT}` as const,
     },
     SETTINGS_REPORT_FRAUD_CONFIRMATION: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
