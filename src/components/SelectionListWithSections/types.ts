@@ -348,7 +348,7 @@ type TransactionGroupListItemType = ListItem & {
     transactionsQueryJSON?: SearchQueryJSON;
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 

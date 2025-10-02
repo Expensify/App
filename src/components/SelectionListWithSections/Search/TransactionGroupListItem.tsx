@@ -246,18 +246,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
-            [CONST.SEARCH.GROUP_BY.REPORTS]: (
-                <ReportListItemHeader
-                    report={groupItem as TransactionReportGroupListItemType}
-                    onSelectRow={onSelectRow}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    isFocused={isFocused}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                />
-            ),
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
@@ -290,6 +278,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 />
             ),
         };
+
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            return (<ReportListItemHeader
+                report={groupItem as TransactionReportGroupListItemType}
+                onSelectRow={onSelectRow}
+                onCheckboxPress={onCheckboxPress}
+                isDisabled={isDisabledOrEmpty}
+                isFocused={isFocused}
+                canSelectMultiple={canSelectMultiple}
+                isSelectAllChecked={isSelectAllChecked}
+                isIndeterminate={isIndeterminate}
+            />);
+        }
 
         if (!groupBy) {
             return null;
