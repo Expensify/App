@@ -49,7 +49,7 @@ function QuickbooksDesktopAccountingMethodPage({policy}: WithPolicyConnectionsPr
         [translate, styles.pb5, styles.ph5],
     );
 
-    const selectExpenseReportApprovalLevel = useCallback(
+    const selectAccountingMethod = useCallback(
         (row: MenuListItem) => {
             if (row.value !== accountingMethod) {
                 if (!policyID) {
@@ -69,7 +69,7 @@ function QuickbooksDesktopAccountingMethodPage({policy}: WithPolicyConnectionsPr
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
-            onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
+            onSelectRow={(selection: SelectorType) => selectAccountingMethod(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
