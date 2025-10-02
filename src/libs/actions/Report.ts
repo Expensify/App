@@ -1391,24 +1391,37 @@ function navigateToAndOpenReport(
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
+    // Helper to resolve the latest chat after potential server reconciliation (e.g., preexistingReportID replacement)
+    const getLatestTargetReportID = (): string | undefined => {
+        // Prefer a freshly resolved existing chat if available
+        const latestChat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
+        return latestChat?.reportID ?? report?.reportID;
+    };
+
     if (shouldDismissModal) {
         Navigation.onModalDismissedOnce(() => {
             Navigation.onModalDismissedOnce(() => {
-                if (!report?.reportID) {
+                const targetReportID = getLatestTargetReportID();
+                if (!targetReportID) {
                     return;
                 }
-
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
             });
         });
-
         Navigation.dismissModal();
-    } else if (report?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+    } else {
+        const targetReportID = getLatestTargetReportID();
+        if (targetReportID) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
+        }
     }
-    // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
+
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID)));
+        const targetReportID = getLatestTargetReportID();
+        if (!targetReportID) {
+            return;
+        }
+        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(targetReportID)));
     }, 0);
 }
 
