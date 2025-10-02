@@ -755,7 +755,22 @@ function IOURequestStepScan({
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
-        return null;
+        return (
+            <StepScreenWrapper
+                includeSafeAreaPaddingBottom
+                headerTitle={translate('common.receipt')}
+                onBackButtonPress={navigateBack}
+                shouldShowWrapper={!!backTo || isEditing}
+                testID={IOURequestStepScan.displayName}
+            >
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        color={theme.textSupporting}
+                    />
+                </View>
+            </StepScreenWrapper>
+        );
     }
 
     return (
