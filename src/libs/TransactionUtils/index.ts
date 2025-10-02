@@ -6,7 +6,7 @@ import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {UnreportedExpenseListItemType} from '@components/SelectionList/types';
+import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -212,22 +212,20 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
-function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEnabled?: boolean): IOURequestType {
-    if (isManualDistanceEnabled) {
-        if (isManualDistanceRequest(transaction)) {
-            return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-        }
-        if (isMapDistanceRequest(transaction)) {
-            return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-        }
+function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return isCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+}
+
+function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
+    if (isManualDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
-    if (isDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    if (isMapDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     }
     if (isScanRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.SCAN;
     }
-
     if (isPerDiemRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.PER_DIEM;
     }
@@ -837,12 +835,19 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
 }
 
 /**
+ * Return the list of attendees as a string of display names/logins.
+ */
+function getAttendeesListDisplayString(attendees: Attendee[]): string {
+    return attendees.map((item) => item.displayName ?? item.login).join(', ');
+}
+
+/**
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
 function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [oldAttendees.map((item) => item.displayName ?? item.login).join(', '), newAttendees.map((item) => item.displayName ?? item.login).join(', ')];
+    return [getAttendeesListDisplayString(oldAttendees), getAttendeesListDisplayString(newAttendees)];
 }
 
 /**
@@ -2071,6 +2076,8 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
+    getAttendeesListDisplayString,
+    isCorporateCardTransaction,
     isExpenseUnreported,
 };
 

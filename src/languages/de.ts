@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -142,6 +143,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -177,6 +179,7 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
+    ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -406,7 +409,7 @@ const translations = {
         download: 'Herunterladen',
         downloading: 'Herunterladen',
         uploading: 'Hochladen',
-        pin: 'Pin',
+        pin: 'Anheften',
         unPin: 'Lösen',
         back: 'Zurück',
         saveAndContinue: 'Speichern & fortfahren',
@@ -670,7 +673,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
-        description: 'Sie sind nicht berechtigt, diese Aktion auszuführen, wenn der Support eingeloggt ist.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Sie sind nicht berechtigt, diese Aktion auszuführen, wenn der Support eingeloggt ist (Befehl: ${command ?? ''}). Wenn Sie der Meinung sind, dass Success diese Aktion ausführen können sollte, starten Sie bitte eine Unterhaltung in Slack.`,
     },
     lockedAccount: {
         title: 'Gesperrtes Konto',
@@ -857,8 +865,24 @@ const translations = {
         markAsUnread: 'Als ungelesen markieren',
         markAsRead: 'Als gelesen markieren',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Löschen ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Möchten Sie dieses ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'Ausgabe' : 'Kommentar'} wirklich löschen?`,
+        deleteAction: ({action}: DeleteActionParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Löschen ${type}`;
+        },
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => {
+            let type = 'kommentar';
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                type = 'ausgabe';
+            } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                type = 'bericht';
+            }
+            return `Möchten Sie dieses ${type} wirklich löschen?`;
+        },
         onlyVisible: 'Nur sichtbar für',
         replyInThread: 'Im Thread antworten',
         joinThread: 'Thread beitreten',
@@ -1418,8 +1442,7 @@ const translations = {
             reasonPageDescription: 'Erklären Sie, warum Sie diese Ausgabe ablehnen.',
             rejectReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
-            rejectedStatus:
-                'Diese Ausgabe wurde abgelehnt. Es wird darauf gewartet, dass du das Problem/die Probleme behebst und sie als gelöst markierst, um die Einreichung zu ermöglichen.',
+            rejectedStatus: 'Diese Ausgabe wurde abgelehnt. Wir warten darauf, dass Sie die Probleme beheben und als gelöst markieren, um die Einreichung zu ermöglichen.',
             reportActions: {
                 rejectedExpense: 'lehnte diese Ausgabe ab',
                 markedAsResolved: 'markierte den Ablehnungsgrund als gelöst',
@@ -1459,6 +1482,7 @@ const translations = {
             pageTitle: 'Wähle die Details, die du behalten möchtest:',
             noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
             pleaseSelectError: ({field}: {field: string}) => `Bitte wähle ein(e) ${field}`,
+            pleaseSelectAttendees: 'Bitte wähle teilnehmer',
             selectAllDetailsError: 'Wähle alle Details, bevor du fortfährst.',
         },
         confirmationPage: {
@@ -1705,13 +1729,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Konten zusammenführen',
         accountDetails: {
-            accountToMergeInto: 'Geben Sie das Konto ein, in das Sie zusammenführen möchten.',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Geben Sie das Konto ein, das Sie in <strong>${login}</strong> zusammenführen möchten`,
             notReversibleConsent: 'Ich verstehe, dass dies nicht umkehrbar ist.',
         },
         accountValidate: {
             confirmMerge: 'Möchten Sie die Konten wirklich zusammenführen?',
-            lossOfUnsubmittedData: `Das Zusammenführen Ihrer Konten ist unwiderruflich und führt zum Verlust aller nicht eingereichten Ausgaben für`,
-            enterMagicCode: `Um fortzufahren, geben Sie bitte den magischen Code ein, der an  gesendet wurde.`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `Die Zusammenlegung Ihrer Konten ist unumkehrbar und führt zum Verlust aller nicht eingereichten Ausgaben für <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Um fortzufahren, geben Sie bitte den magischen Code ein, der an <strong>${login}</strong> gesendet wurde.`,
             errors: {
                 incorrectMagicCode: 'Falscher oder ungültiger Magic-Code. Bitte versuche es erneut oder fordere einen neuen Code an.',
                 fallback: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es später noch einmal.',
@@ -1764,7 +1789,7 @@ const translations = {
         compromisedDescription: 'Etwas stimmt nicht mit deinem Konto? Eine Meldung sperrt dein Konto sofort, stoppt neue Expensify Card-Transaktionen und verhindert Änderungen.',
         domainAdminsDescription: 'Für Domain-Admins: Dies pausiert auch alle Aktivitäten und Admin-Aktionen der Expensify Card in deiner Domain.',
         areYouSure: 'Bist du sicher, dass du dein Expensify-Konto sperren willst?',
-        ourTeamWill: 'Unser Team wird den Zugriff prüfen und unbefugte Aktivitäten entfernen. Um wieder Zugriff zu erhalten, arbeite bitte mit Concierge zusammen.',
+        onceLocked: 'Sobald gesperrt, wird Ihr Konto eingeschränkt, bis eine Entsperranfrage und eine Sicherheitsüberprüfung erfolgt sind.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Konto konnte nicht gesperrt werden',
@@ -2215,7 +2240,7 @@ const translations = {
         enterAuthenticatorCode: 'Bitte geben Sie Ihren Authentifizierungscode ein',
         enterRecoveryCode: 'Bitte geben Sie Ihren Wiederherstellungscode ein',
         requiredWhen2FAEnabled: 'Erforderlich, wenn die Zwei-Faktor-Authentifizierung aktiviert ist.',
-        requestNewCode: 'Fordere einen neuen Code an in',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Fordere einen neuen Code an in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Einen neuen Code anfordern',
         error: {
             pleaseFillMagicCode: 'Bitte geben Sie Ihren magischen Code ein',
@@ -2595,13 +2620,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Unser E-Mail-Anbieter hat E-Mails an ${login} vorübergehend aufgrund von Zustellungsproblemen gesperrt. Um Ihr Login zu entsperren, befolgen Sie bitte diese Schritte:`,
-        confirmThat: ({login}: ConfirmThatParams) => `Bestätigen Sie, dass ${login} korrekt geschrieben ist und es sich um eine echte, zustellbare E-Mail-Adresse handelt.`,
-        emailAliases: 'E-Mail-Aliasse wie "expenses@domain.com" müssen Zugriff auf ihren eigenen E-Mail-Posteingang haben, damit sie ein gültiger Expensify-Login sind.',
-        ensureYourEmailClient: 'Stellen Sie sicher, dass Ihr E-Mail-Client E-Mails von expensify.com zulässt.',
-        youCanFindDirections: 'Sie finden Anweisungen, wie Sie diesen Schritt abschließen können.',
-        helpConfigure: 'aber möglicherweise benötigen Sie die Hilfe Ihrer IT-Abteilung, um Ihre E-Mail-Einstellungen zu konfigurieren.',
-        onceTheAbove: 'Sobald die oben genannten Schritte abgeschlossen sind, wenden Sie sich bitte an',
-        toUnblock: 'um Ihre Anmeldung zu entsperren.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Bestätigen Sie, dass ${login} korrekt geschrieben ist und es sich um eine echte, zustellbare E-Mail-Adresse handelt.</strong> E-Mail-Aliasse wie "expenses@domain.com" müssen Zugriff auf ihren eigenen E-Mail-Posteingang haben, damit sie ein gültiger Expensify-Login sind.`,
+        ensureYourEmailClient: `<strong>Stellen Sie sicher, dass Ihr E-Mail-Client E-Mails von expensify.com zulässt.</strong> Eine Anleitung für diesen Schritt finden Sie <a href="${CONST.SET_NOTIFICATION_LINK}">hier</a>. Möglicherweise muss Ihnen Ihre IT-Abteilung bei der Konfiguration Ihrer E-Mail-Einstellungen helfen.`,
+        onceTheAbove: `Sobald die oben genannten Schritte abgeschlossen sind, wenden Sie sich bitte an <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a>, um Ihre Anmeldung zu entsperren.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -3088,11 +3110,13 @@ const translations = {
         selectIncorporationCountry: 'Wählen Sie das Gründungsland aus',
         selectIncorporationState: 'Inkorporationsstaat auswählen',
         selectAverageReimbursement: 'Durchschnittlichen Erstattungsbetrag auswählen',
+        selectBusinessType: 'Geschäftstyp auswählen',
         findIncorporationType: 'Art der Unternehmensgründung finden',
         findBusinessCategory: 'Geschäftskategorie finden',
         findAnnualPaymentVolume: 'Jährliches Zahlungsvolumen finden',
         findIncorporationState: 'Gründungsstaat finden',
         findAverageReimbursement: 'Durchschnittlichen Erstattungsbetrag finden',
+        findBusinessType: 'Geschäftstyp finden',
         error: {
             registrationNumber: 'Bitte geben Sie eine gültige Registrierungsnummer an.',
             taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3254,6 +3278,9 @@ const translations = {
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen einer unterschriftsberechtigten Person wie einem Geschäftsführer oder einer Führungskraft.`,
+        error: {
+            emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
+        },
     },
     agreementsStep: {
         agreements: 'Vereinbarungen',
@@ -3571,7 +3598,8 @@ const translations = {
         receiptPartners: {
             connect: 'Jetzt verbinden',
             uber: {
-                subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
+                subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
+                    organizationName ? `Verbunden mit ${organizationName}` : 'Automatisieren Sie Reise- und Essenslieferungskosten in Ihrer Organisation.',
                 sendInvites: 'Mitglieder einladen',
                 sendInvitesDescription: 'Diese Workspace-Mitglieder haben noch kein Uber for Business-Konto. Deaktivieren Sie alle Mitglieder, die Sie derzeit nicht einladen möchten.',
                 confirmInvite: 'Einladung bestätigen',
@@ -3590,19 +3618,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
                 },
-                invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
-                autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
-                autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
+                invitationFailure: 'Der Teilnehmer konnte nicht zu Uber for Business eingeladen werden.',
+                autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
+                autoRemove: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
                 bannerTitle: 'Expensify + Uber ren pekin angang',
                 bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
                 emptyContent: {
-                    title: 'Keine Mitglieder zur Anzeige',
-                    subtitle: 'Wir haben überall gesucht und nichts gefunden.',
+                    title: 'Keine ausstehenden Einladungen',
+                    subtitle: 'Hurra! Wir haben hoch und niedrig gesucht und keine ausstehenden Einladungen gefunden.',
                 },
             },
         },
         perDiem: {
-            subtitle: 'Setzen Sie Tagespauschalen, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren.',
+            subtitle: `<muted-text>Setzen Sie Tagespauschalen, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren. <a href="${CONST.DEEP_DIVE_PER_DIEM}">Mehr erfahren</a>.</muted-text>`,
             amount: 'Betrag',
             deleteRates: () => ({
                 one: 'Löschrate',
@@ -4378,10 +4406,7 @@ const translations = {
                 whoIsYourBankAccount: 'Wer ist Ihre Bank?',
                 whereIsYourBankLocated: 'Wo befindet sich Ihre Bank?',
                 howDoYouWantToConnect: 'Wie möchten Sie sich mit Ihrer Bank verbinden?',
-                learnMoreAboutOptions: {
-                    text: 'Erfahren Sie mehr darüber',
-                    linkText: 'Optionen.',
-                },
+                learnMoreAboutOptions: `<muted-text>Erfahren Sie mehr über diese <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Optionen</a>.</muted-text>`,
                 commercialFeedDetails:
                     'Erfordert die Einrichtung mit Ihrer Bank. Dies wird typischerweise von größeren Unternehmen verwendet und ist oft die beste Option, wenn Sie qualifiziert sind.',
                 commercialFeedPlaidDetails: `Erfordert die Einrichtung mit Ihrer Bank, aber wir werden Sie anleiten. Dies ist normalerweise auf größere Unternehmen beschränkt.`,
@@ -4883,6 +4908,13 @@ const translations = {
                 prompt4: 'indem Sie Ihre Tags exportieren.',
                 prompt5: 'Erfahren Sie mehr',
                 prompt6: 'about tag levels.',
+            },
+            overrideMultiTagWarning: {
+                title: 'Tags importieren',
+                prompt1: 'Bist du sicher?',
+                prompt2: ' Die vorhandenen Tags werden überschrieben, aber Sie können',
+                prompt3: ' ein Backup herunterladen',
+                prompt4: ' zuerst.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Wir haben *${columnCounts} Spalten* in Ihrer Tabelle gefunden. Wählen Sie *Name* neben der Spalte, die die Tag-Namen enthält. Sie können auch *Aktiviert* neben der Spalte auswählen, die den Tag-Status festlegt.`,
@@ -5408,8 +5440,8 @@ const translations = {
             updateDetails: 'Details aktualisieren',
             yesDisconnectMyBankAccount: 'Ja, trennen Sie mein Bankkonto.',
             yesStartOver: 'Ja, von vorne beginnen.',
-            disconnectYour: 'Trennen Sie Ihr',
-            bankAccountAnyTransactions: 'Bankkonto. Alle ausstehenden Transaktionen für dieses Konto werden trotzdem abgeschlossen.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Trennen Sie Ihr <strong>${bankName}</strong> Bankkonto. Alle ausstehenden Transaktionen für dieses Konto werden trotzdem abgeschlossen.`,
             clearProgress: 'Ein Neuanfang wird den bisherigen Fortschritt löschen.',
             areYouSure: 'Bist du sicher?',
             workspaceCurrency: 'Arbeitsbereichswährung',
@@ -5666,8 +5698,7 @@ const translations = {
                 nonBillable: 'Nicht abrechenbar',
                 nonBillableDescription: 'Spesen werden gelegentlich an Kunden weiterberechnet.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'eReceipts werden automatisch erstellt',
-                eReceiptsHintLink: 'für die meisten USD-Kredittransaktionen',
+                eReceiptsHint: `eReceipts werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Teilnehmerverfolgung',
                 attendeeTrackingHint: 'Verfolgen Sie die Kosten pro Person für jede Ausgabe.',
                 prohibitedDefaultDescription:
@@ -6185,7 +6216,8 @@ const translations = {
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
-            emptyStateSubtitle: 'Sie können Ausgaben zu diesem Bericht hinzufügen, indem Sie die Schaltfläche oben verwenden.',
+            emptyStateSubtitle:
+                'Sie können diesem Bericht Ausgaben hinzufügen,\n indem Sie auf die Schaltfläche unten klicken oder die Option „Ausgabe hinzufügen“ im Menü „Mehr“ oben verwenden.',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
@@ -6667,7 +6699,7 @@ const translations = {
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kassenbon kann aufgrund einer unterbrochenen Bankverbindung, die ${email} beheben muss, nicht automatisch zugeordnet werden.`
-                    : 'Konnte Beleg aufgrund einer defekten Bankverbindung, die Sie beheben müssen, nicht automatisch zuordnen.';
+                    : 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
