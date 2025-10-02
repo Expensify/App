@@ -278,13 +278,6 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allTransactionViolations = value),
-});
-
 let introSelected: OnyxEntry<IntroSelected>;
 Onyx.connect({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
@@ -380,6 +373,7 @@ function deleteWorkspace(
     policyName: string,
     lastAccessedWorkspacePolicyID: string | undefined,
     policyCardFeeds: CardFeeds | undefined,
+    allTransactionViolations: OnyxCollection<TransactionViolations> | undefined,
     lastUsedPaymentMethods?: LastPaymentMethod,
 ) {
     if (!allPolicies) {
