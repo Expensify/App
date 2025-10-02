@@ -614,7 +614,7 @@ const translations = {
         disabled: 'Desativado',
         import: 'Importar',
         offlinePrompt: 'Você não pode realizar esta ação no momento.',
-        outstanding: 'Excelente',
+        outstanding: 'Pendente',
         chats: 'Chats',
         tasks: 'Tarefas',
         unread: 'Não lido',
