@@ -7171,7 +7171,7 @@ const translations = {
     },
     autoSubmitModal: {
         title: 'All clear and submitted!',
-        description: 'All warnings and violations has been cleared so:',
+        description: 'All warnings and violations have been cleared so:',
         submittedExpensesTitle: 'Compliant expenses have been submitted',
         submittedExpensesDescription: 'Compliant expenses have been sent to your approver, but can still be edited until they’re approved.',
         pendingExpensesTitle: 'Pending expenses have been moved',
