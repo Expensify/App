@@ -58,6 +58,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     groupBy,
+    searchType,
     accountID,
     isOffline,
     areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
@@ -75,9 +76,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot]);
-    const isGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+    const isExpenseReport = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const transactions = useMemo(() => {
-        if (isGroupByReports) {
+        if (isExpenseReport) {
             return groupItem.transactions;
         }
         if (!transactionsSnapshot?.data) {
@@ -88,10 +89,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
+    }, [isExpenseReport, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
 
     const currentColumns = useMemo(() => {
-        if (isGroupByReports) {
+        if (isExpenseReport) {
             return columns ?? [];
         }
         if (!transactionsSnapshot?.data) {
@@ -100,17 +101,17 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, false, transactionsSnapshot?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
-    }, [accountID, columns, isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
+    }, [accountID, columns, isExpenseReport, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
-        if (isGroupByReports) {
+        if (isExpenseReport) {
             return areAllOptionalColumnsHiddenProp ?? false;
         }
-        const canBeMissingColumns = getExpenseHeaders(groupBy, type)
+        const canBeMissingColumns = getExpenseHeaders(groupBy, searchType)
             .filter((header) => header.canBeMissing)
             .map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !currentColumns.includes(column));
-    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isGroupByReports]);
+    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, searchType, isExpenseReport]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
@@ -129,12 +130,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
-    const shouldDisplayEmptyView = isEmpty && isGroupByReports;
+    const shouldDisplayEmptyView = isEmpty && isExpenseReport;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-    const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
+    const shouldDisplayShowMoreButton = !isExpenseReport && !!transactionsSnapshotMetadata?.hasMoreResults;
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
-    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
+    const shouldDisplayLoadingIndicator = !isExpenseReport && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -173,7 +174,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         };
 
         // The arrow navigation in RHP is only allowed for group-by:reports
-        if (!isGroupByReports) {
+        if (!isExpenseReport) {
             navigateToTransactionThread();
             return;
         }
@@ -208,13 +209,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isExpanded]);
 
     const onPress = useCallback(() => {
-        if (isGroupByReports || transactions.length === 0) {
+        if (isExpenseReport || transactions.length === 0) {
             onSelectRow(item);
         }
-        if (!isGroupByReports) {
+        if (!isExpenseReport) {
             handleToggle();
         }
-    }, [isGroupByReports, transactions.length, onSelectRow, item, handleToggle]);
+    }, [isExpenseReport, transactions.length, onSelectRow, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
         if (isEmpty) {
@@ -225,9 +226,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
-            onCheckboxPressRow?.(val, isGroupByReports ? undefined : transactions);
+            onCheckboxPressRow?.(val, isExpenseReport ? undefined : transactions);
         },
-        [onCheckboxPressRow, transactions, isGroupByReports],
+        [onCheckboxPressRow, transactions, isExpenseReport],
     );
 
     const onExpandIconPress = useCallback(() => {
@@ -279,7 +280,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ),
         };
 
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             return (<ReportListItemHeader
                 report={groupItem as TransactionReportGroupListItemType}
                 onSelectRow={onSelectRow}
@@ -352,7 +353,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             styles.groupSearchListTableContainerStyle,
                                             styles.bgTransparent,
                                             styles.pl9,
-                                            isGroupByReports ? styles.pr10 : styles.pr3,
+                                            isExpenseReport ? styles.pr10 : styles.pr3,
                                         ]}
                                     >
                                         <SearchTableHeader
@@ -392,7 +393,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             onButtonPress={() => {
                                                 openReportInRHP(transaction);
                                             }}
-                                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isGroupByReports && styles.pr10]}
+                                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half], isExpenseReport && styles.pr10]}
                                             isReportItemChild
                                             isInSingleTransactionReport={groupItem.transactions.length === 1}
                                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}

@@ -316,6 +316,7 @@ function SearchList({
                         isDisabled={isDisabled}
                         allReports={allReports}
                         groupBy={groupBy}
+                        searchType={type}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -330,6 +331,7 @@ function SearchList({
             );
         },
         [
+            type,
             groupBy,
             newTransactions,
             shouldAnimate,

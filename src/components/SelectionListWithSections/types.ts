@@ -30,6 +30,7 @@ import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
+    SearchDataTypes,
     SearchMemberGroup,
     SearchPersonalDetails,
     SearchReport,
@@ -512,6 +513,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
+    searchType?: SearchDataTypes;
     policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
