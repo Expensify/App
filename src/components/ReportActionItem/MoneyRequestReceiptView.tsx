@@ -68,6 +68,9 @@ type MoneyRequestReceiptViewProps = {
 
     /** Whether the receipt view should fill the given space */
     fillSpace?: boolean;
+
+    /** Whether it's displayed in Wide RHP */
+    isDisplayedInWideRHP?: boolean;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -89,6 +92,7 @@ function MoneyRequestReceiptView({
     isFromReviewDuplicates = false,
     fillSpace = false,
     mergeTransactionID,
+    isDisplayedInWideRHP = false,
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -187,6 +191,8 @@ function MoneyRequestReceiptView({
         ...parentReportAction?.errors,
     };
 
+    const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
+
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
 
     const dismissReceiptError = useCallback(() => {
@@ -243,7 +249,7 @@ function MoneyRequestReceiptView({
             {shouldShowReceiptEmptyState && (
                 <OfflineWithFeedback
                     pendingAction={getPendingFieldAction('receipt')}
-                    style={[styles.mt3, styles.mb5, styles.flex1]}
+                    style={[styles.mt3, isEmptyObject(errors) && styles.mb3, styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >
                     <ReceiptEmptyState
@@ -283,7 +289,7 @@ function MoneyRequestReceiptView({
                         }
                     }}
                     dismissError={dismissReceiptError}
-                    style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, styles.flex1]}
+                    style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, !showReceiptErrorWithEmptyState && styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
@@ -308,7 +314,7 @@ function MoneyRequestReceiptView({
                         </View>
                     )}
                     {!!shouldShowAuditMessage && hasReceipt && (
-                        <View style={styles.mt3}>
+                        <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
                             <ReceiptAuditMessages notes={receiptImageViolations} />
                         </View>
                     )}

@@ -5212,7 +5212,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
-            paddingTop: 12,
+            ...spacing.pt3,
+            ...spacing.pb2,
             minHeight: '100%',
         },
 

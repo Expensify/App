@@ -902,6 +902,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 allReports={allReports}
                                                 report={transactionThreadReport ?? report}
                                                 fillSpace
+                                                isDisplayedInWideRHP
                                             />
                                         </ScrollView>
                                     </Animated.View>
