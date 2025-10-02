@@ -11757,10 +11757,10 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
         if (iouAction?.reportActionID) {
             // TODO: remove Onyx.merge when batching of onyx updates works correctly.
-            // Context: Right now updates provided in one Onyx.update can reach component in the different renders.
-            // Setting up the transactions null values (removing of the transactions) happens faster then setting of optimistic childReportID,
+            // Context: Right now updates provided in one Onyx.update can reach component in different renders.
+            // Setting up the transactions null values (removing of the transactions) happens faster than setting of optimistic childReportID,
             // though both updates come from one optimistic data.
-            // To escape unexpected effects we setting the childReportID using Onyx.merge, making sure it will be in place first.
+            // To escape unexpected effects we setting the childReportID using Onyx.merge, making sure it will be in place when transactions are cleared out.
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThreadReport?.parentReportID}`, {
                 [iouAction?.reportActionID]: {childReportID: optimisticTransactionThreadReportID, childType: CONST.REPORT.TYPE.CHAT},
             });
