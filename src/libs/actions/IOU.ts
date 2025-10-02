@@ -12699,7 +12699,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>) {
 
     const splitExpenses = [
         initSplitExpenseItemData(transaction, {amount: Math.floor(transactionDetailsAmount / 2), transactionID: NumberUtils.rand64()}),
-        initSplitExpenseItemData(transaction, {amount: Math.floor(transactionDetailsAmount / 2), transactionID: NumberUtils.rand64()}),
+        initSplitExpenseItemData(transaction, {amount: Math.ceil(transactionDetailsAmount / 2), transactionID: NumberUtils.rand64()}),
     ];
 
     const draftTransaction = buildOptimisticTransaction({
