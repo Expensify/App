@@ -1,8 +1,6 @@
-import type {RefObject} from 'react';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import type UseFocusAfterNav from './type';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const useFocusAfterNav = (_ref: RefObject<AnimatedTextInputRef | null>) => {
+const useFocusAfterNav: UseFocusAfterNav = () => {
     return true;
 };
 
