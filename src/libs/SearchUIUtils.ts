@@ -2403,7 +2403,8 @@ function calculateSearchPageFooterData(
     }
 
     // Use convertedCurrency from first transaction or fallback to metadata currency
-    const footerCurrency = transactions.at(0)?.convertedCurrency || currency;
+    const firstTransactionCurrency = transactions.at(0)?.convertedCurrency;
+    const footerCurrency = firstTransactionCurrency && firstTransactionCurrency !== '' ? firstTransactionCurrency : currency;
     const count = transactions.length;
     const total = transactions.reduce((sum, transaction) => sum + Math.abs(transaction.convertedAmount ?? 0), 0);
 
