@@ -274,6 +274,7 @@ function WorkspacesListPage() {
                     onClose={item.dismissError}
                     errors={item.errors}
                     style={styles.mb2}
+                    shouldShowErrorMessages={false}
                 >
                     <PressableWithoutFeedback
                         role={CONST.ROLE.BUTTON}

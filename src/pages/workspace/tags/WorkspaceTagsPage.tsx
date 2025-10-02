@@ -610,16 +610,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         currentConnectionName={currentConnectionName}
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
-                        customTagName={policyTagLists.at(0)?.name ?? ''}
-                        isDisplayingTags
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {!hasDependentTags && !!policyTagLists.at(0)?.name && (
-                            <View style={[styles.renderHTML]}>
-                                <RenderHTML html={translate('workspace.tags.employeesSeeTagsAs', {customTagName: policyTagLists.at(0)?.name ?? ''})} />
-                            </View>
-                        )}
+                        {translate('workspace.tags.subtitle')}
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML
