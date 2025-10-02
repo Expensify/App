@@ -71,7 +71,7 @@ type WithDelegatedAccess = {
 };
 
 type WithCredentials = {
-    credentials: Credentials;
+    credentials: Credentials | undefined;
 };
 
 type WithEmail = {
