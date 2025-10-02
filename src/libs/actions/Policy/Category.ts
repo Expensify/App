@@ -1002,7 +1002,8 @@ function deleteWorkspaceCategories(policyData: PolicyData, categoryNamesToDelete
     const optimisticPolicyData: Partial<Policy> = shouldDisableRequiresCategory
         ? {
               requiresCategory: false,
-        } : {}
+          }
+        : {};
 
     const onyxData: OnyxData = {
         optimisticData: [
