@@ -13,7 +13,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -155,7 +154,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
 
-    const isViewTourParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const taskReportID = introSelected?.[CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR];
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {canBeMissing: true}, [taskReportID]);
+    const [taskParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`, {canBeMissing: true});
+    const isViewTourParentReportArchived = useReportIsArchived(taskParentReport?.reportID);
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
 
@@ -564,7 +566,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
                       onSelected: () =>
                           interceptAnonymousUser(() =>
-                              startTestDrive(introSelected, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember, isViewTourParentReportArchived),
+                              startTestDrive(
+                                  introSelected,
+                                  isAnonymousUser(),
+                                  tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
+                                  isUserPaidPolicyMember,
+                                  taskReport,
+                                  taskParentReport,
+                                  isViewTourParentReportArchived,
+                              ),
                           ),
                   },
               ]

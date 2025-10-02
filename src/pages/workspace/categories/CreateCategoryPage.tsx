@@ -2,9 +2,9 @@ import React, {useCallback} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,14 +27,18 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE;
-    const isSetupCategoryTaskParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const taskReportID = introSelected?.[CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES];
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {canBeMissing: true}, [taskReportID]);
+    const [taskParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`, {canBeMissing: true});
+    const isSetupCategoryTaskParentReportArchived = useReportIsArchived(taskParentReport?.reportID);
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            createPolicyCategory(route.params.policyID, values.categoryName.trim(), isSetupCategoryTaskParentReportArchived);
+            createPolicyCategory(route.params.policyID, values.categoryName.trim(), isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport);
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
-        [route.params.policyID, isSetupCategoryTaskParentReportArchived, isQuickSettingsFlow, backTo],
+        [route.params.policyID, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, isQuickSettingsFlow, backTo],
     );
 
     return (

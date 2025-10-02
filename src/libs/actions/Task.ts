@@ -21,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {IntroSelectedTask} from '@src/types/onyx/IntroSelected';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -81,12 +80,6 @@ Onyx.connect({
     callback: (value) => {
         allReports = value;
     },
-});
-
-let introSelected: OnyxEntry<OnyxTypes.IntroSelected> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (val) => (introSelected = val),
 });
 
 /**
@@ -1301,11 +1294,8 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
-function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask, isParentReportArchived: boolean): OnyxData {
-    const taskReportID = introSelected?.[taskName];
-    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.parentReportID}`];
-    if (taskReportID && canActionTask(taskReport, currentUserAccountID, parentReport, isParentReportArchived)) {
+function getFinishOnboardingTaskOnyxData(taskReport: OnyxEntry<OnyxTypes.Report>, taskParentReport: OnyxEntry<OnyxTypes.Report>, isParentReportArchived: boolean): OnyxData {
+    if (taskReport && canActionTask(taskReport, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                 return completeTask(taskReport);
@@ -1315,9 +1305,14 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask, isParentRe
 
     return {};
 }
-function completeTestDriveTask(isTaskParentReportArchived: boolean, shouldUpdateSelfTourViewedOnlyLocally = false) {
+function completeTestDriveTask(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    taskParentReport: OnyxEntry<OnyxTypes.Report>,
+    isTaskParentReportArchived: boolean,
+    shouldUpdateSelfTourViewedOnlyLocally = false,
+) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR, isTaskParentReportArchived);
+    getFinishOnboardingTaskOnyxData(taskReport, taskParentReport, isTaskParentReportArchived);
 }
 
 export {
