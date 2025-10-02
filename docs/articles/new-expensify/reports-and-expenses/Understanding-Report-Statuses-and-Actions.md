@@ -1,7 +1,7 @@
 ---
 title: Understanding Report Statuses and Actions
 description: Learn what each report status in Expensify means, what actions are available at each stage, and how to manage reports effectively.
-keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, decline, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
+keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, reject, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
 ---
 
 Understand what each report status means, what actions are available, and how to manage reports, invoices, and IOUs in New Expensify.
@@ -37,7 +37,7 @@ The grey **More** button is always visible in the report header. Tap it to acces
 - Change Workspace
 - View Details
 - Delete
-- Decline
+- Reject
 
 ---
 
@@ -60,8 +60,8 @@ Depending on the report status and your role, the primary action button may say:
 ## Held Expenses  
 If you're an Approver who placed a hold, you'll see a green **Remove hold** button. Other users will see a grey **Review** button.
 
-## Decline Expenses  
-If you're an Approver reviewing an expense that shouldn't have been submitted, you can **Decline** it back to the submitter with a reason. The decline reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
+## Reject Expenses  
+If you're an Approver reviewing an expense that shouldn't have been submitted, you can **Reject** it back to the submitter with a reason. The rejection reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
 
 ## Duplicate Expenses
 - Submitters: See **Review Duplicates** if duplicates are suspected.
@@ -98,7 +98,7 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 - **Delete** and **Change Workspace** are not available.
 
 ## IOUs - As the Receiver
-- You can **Pay**, **Decline**, **Change Workspace**, or **Download**.
+- You can **Pay**, **Reject**, **Change Workspace**, or **Download**.
 
 ## IOUs - As the Sender
 - **Change Workspace** converts the IOU into a regular expense report on the selected workspace.
