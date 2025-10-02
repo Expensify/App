@@ -7620,7 +7620,6 @@ describe('ReportUtils', () => {
             });
         });
 
-
         describe('non-self-DM reports', () => {
             it('should return false for regular 1:1 DM', () => {
                 expect(isSelfDMOrSelfDMThread(regularDMReport)).toBe(false);
@@ -7636,7 +7635,6 @@ describe('ReportUtils', () => {
                 expect(isSelfDMOrSelfDMThread(undefined)).toBe(false);
             });
 
-
             it('should return false for report with no participants', () => {
                 const reportWithNoParticipants = {
                     ...LHNTestUtils.getFakeReport(),
@@ -7646,7 +7644,6 @@ describe('ReportUtils', () => {
                 };
                 expect(isSelfDMOrSelfDMThread(reportWithNoParticipants)).toBe(false);
             });
-
 
             it('should return false for non-chat report types', () => {
                 const expenseReport = {
