@@ -71,6 +71,8 @@ const workspaceColorOptions: SVGAvatarColorStyle[] = [
     {backgroundColor: colors.ice700, fill: colors.ice200},
 ];
 
+const DEFAULT_WORKSPACE_COLOR = {backgroundColor: colors.blue400, fill: colors.blue700};
+
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
     [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow800, color: colors.yellow400, titleColor: colors.yellow500},
     [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.ice800, color: colors.ice400, titleColor: colors.ice500},
@@ -310,8 +312,7 @@ function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): 
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = hashText(text.trim(), workspaceColorOptions.length);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return (workspaceColorOptions.at(colorHash) ?? workspaceColorOptions.at(0))!;
+    return workspaceColorOptions.at(colorHash) ?? DEFAULT_WORKSPACE_COLOR;
 }
 
 /**
