@@ -35,7 +35,7 @@ import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {canAddTransaction as canAddTransactionUtil, getAddExpenseDropdownOptions} from '@libs/ReportUtils';
+import {canAddTransaction as canAddTransactionUtil, getAddExpenseDropdownOptions, isCurrentUserSubmitter} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -132,6 +132,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${groupItem.reportID}`, {canBeMissing: true});
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
@@ -141,7 +142,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(groupItem.policyID);
     const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(groupItem.reportID, policy), [groupItem.reportID, policy]);
-    const canAddTransaction = canAddTransactionUtil(groupItem as TransactionReportGroupListItemType);
+    const canAddTransaction = isCurrentUserSubmitter(iouReport) && canAddTransactionUtil(groupItem as TransactionReportGroupListItemType);
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
