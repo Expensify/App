@@ -4381,7 +4381,7 @@ function canEditFieldOfMoneyRequest(
 
         const isUserWorkspaceMember = getActivePolicies(allPolicies ?? {}, currentUserEmail).filter(userPolicy => isPaidGroupPolicyPolicyUtils(userPolicy)).length;
 
-        if (isUnreportedExpense && isUserWorkspaceMember) {
+        if (isUnreportedExpense && isSearchPageOption && isUserWorkspaceMember) {
             return true;
         }
 

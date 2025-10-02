@@ -43,7 +43,7 @@ type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWo
 function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
     const {isMovingExpenses} = route.params ?? {};
     const {isOffline} = useNetwork();
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
@@ -84,10 +84,11 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             }
             const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
-            if (isMovingExpenses && !!selectedTransactionsKeys.length) {
+
+            if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReportID}`];
                 changeTransactionsReport(
-                    selectedTransactionsKeys,
+                    selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
                     optimisticReportID,
                     isASAPSubmitBetaEnabled,
                     currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -99,7 +100,17 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             }
             navigateToNewReport(optimisticReportID);
         },
-        [allReportNextSteps, clearSelectedTransactions, currentUserPersonalDetails, isASAPSubmitBetaEnabled, isMovingExpenses, navigateToNewReport, policies, selectedTransactions],
+        [
+            allReportNextSteps,
+            clearSelectedTransactions,
+            currentUserPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            isMovingExpenses,
+            navigateToNewReport,
+            policies,
+            selectedTransactionIDs,
+            selectedTransactions,
+        ],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
