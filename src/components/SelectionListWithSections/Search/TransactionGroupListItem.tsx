@@ -106,7 +106,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (isGroupByReports) {
             return areAllOptionalColumnsHiddenProp ?? false;
         }
-        const canBeMissingColumns = getExpenseHeaders(groupBy)
+        const canBeMissingColumns = getExpenseHeaders(groupBy, type)
             .filter((header) => header.canBeMissing)
             .map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !currentColumns.includes(column));

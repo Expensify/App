@@ -16,7 +16,7 @@ type SearchColumnConfig = {
     canBeMissing?: boolean;
 };
 
-const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
+const getExpenseHeaders = (groupBy?: SearchGroupBy, type?: SearchDataTypes): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -77,7 +77,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: groupBy ? 'common.total' : 'iou.amount',
+        translationKey: groupBy ?? type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? 'common.total' : 'iou.amount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -130,6 +130,8 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            return getExpenseHeaders(groupBy, type);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TRIP:
