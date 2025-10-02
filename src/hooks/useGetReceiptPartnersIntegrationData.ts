@@ -5,13 +5,13 @@ import useIsPolicyConnectedToUberReceiptPartner from './useIsPolicyConnectedToUb
 import useLocalize from './useLocalize';
 import usePolicy from './usePolicy';
 
-export default function useGetReceiptPartnersIntegrationData({policyID}: {policyID?: string}) {
+export default function useGetReceiptPartnersIntegrationData(policyID?: string) {
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
 
     const uber = policy?.receiptPartners?.uber;
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
-    const shouldShowEnterCredentialsError = isUberConnected && !!uber?.error;
+    const shouldShowEnterCredentialsError = !!uber?.error;
 
     const getReceiptPartnersIntegrationData = useCallback(
         (receiptPartnerName: string) => {
