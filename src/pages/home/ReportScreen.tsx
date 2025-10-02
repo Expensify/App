@@ -315,10 +315,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
 
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs),
-        [chatReport, isOffline, report, reportActions, reportTransactionIDs],
-    );
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
