@@ -169,11 +169,22 @@ function getOnyxTargetTransactionData(
         }),
     );
     filteredTransactionChanges.comment = filteredTransactionChanges.description;
+    const shouldBuildModifiedReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy);
+        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, shouldBuildModifiedReportAction);
     } else {
-        data = getUpdateMoneyRequestParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, policyTags, policyCategories, violations);
+        data = getUpdateMoneyRequestParams(
+            targetTransaction.transactionID,
+            transactionThreadReportID,
+            filteredTransactionChanges,
+            policy,
+            policyTags,
+            policyCategories,
+            violations,
+            undefined,
+            shouldBuildModifiedReportAction,
+        );
     }
 
     return data.onyxData;
