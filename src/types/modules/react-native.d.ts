@@ -17,7 +17,7 @@ type RNTextInputResetModule = {
 
 type RNNavBarManagerModule = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
-    getType(): NavigationBarType;
+    getType: () => Promise<NavigationBarType>;
 };
 
 type TestToolsBridge = {
