@@ -107,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -1482,7 +1483,6 @@ const translations = {
             pageTitle: 'Wähle die Details, die du behalten möchtest:',
             noDifferences: 'Keine Unterschiede zwischen den Transaktionen gefunden',
             pleaseSelectError: ({field}: {field: string}) => `Bitte wähle ein(e) ${field}`,
-            pleaseSelectAttendees: 'Bitte wähle teilnehmer',
             selectAllDetailsError: 'Wähle alle Details, bevor du fortfährst.',
         },
         confirmationPage: {
@@ -5108,8 +5108,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Es gibt einen Fehler mit einer Verbindung, die in Expensify Classic eingerichtet wurde.',
-            goToODToFix: 'Gehen Sie zu Expensify Classic, um dieses Problem zu beheben.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Es gibt einen Fehler mit einer Verbindung, die in Expensify Classic eingerichtet wurde. [Gehen Sie zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Gehe zu Expensify Classic, um deine Einstellungen zu verwalten.',
             setup: 'Verbinden',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Zuletzt synchronisiert ${relativeDate}`,
