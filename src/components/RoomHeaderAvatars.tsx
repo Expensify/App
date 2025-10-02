@@ -51,7 +51,7 @@ function RoomHeaderAvatars({icons, report}: RoomHeaderAvatarsProps) {
         if (isPolicyRoom) {
             return (
                 <AvatarWithImagePicker
-                    source={icon.source}
+                    source={report.avatarUrl ?? icon.source}
                     avatarID={icon.id}
                     isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
                     size={CONST.AVATAR_SIZE.X_LARGE}

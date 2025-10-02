@@ -910,7 +910,15 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
     API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
-function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+/**
+ * Helper function to build optimistic, success, and failure Onyx updates
+ * when updating or removing a report's avatar.
+ *
+ * @param reportID - The report ID of the policy room.
+ * @param file - The selected image file to update the avatar with.
+ */
+
+function buildUpdateReportAvatarOnyxData(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -953,66 +961,25 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             },
         },
     ];
+
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Updates the avatar for a group chat.
+ */
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
 /**
  * Updates the avatar for a policy room.
- *
- * @param reportID - The report ID of the policy room.
- * @param file - The selected image file to update the avatar with.
  */
-
 function updatePolicyRoomAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                avatarUrl: file?.uri ?? null,
-                pendingFields: {
-                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-                errorFields: {
-                    avatar: null,
-                },
-            },
-        },
-    ];
-
-    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                avatarUrl: currentReport?.avatarUrl ?? null,
-                pendingFields: {
-                    avatar: null,
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                pendingFields: {
-                    avatar: null,
-                },
-            },
-        },
-    ];
-
-    const parameters: UpdatePolicyRoomAvatarParams = {
-        reportID,
-        file,
-    };
-
+    const {optimisticData, successData, failureData} = buildUpdateReportAvatarOnyxData(reportID, file);
+    const parameters: UpdatePolicyRoomAvatarParams = {reportID, file};
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ROOM_AVATAR, parameters, {optimisticData, failureData, successData});
 }
 
