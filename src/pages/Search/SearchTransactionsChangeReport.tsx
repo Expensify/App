@@ -50,6 +50,7 @@ function SearchTransactionsChangeReport() {
             reportNextStep,
             allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
         );
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });

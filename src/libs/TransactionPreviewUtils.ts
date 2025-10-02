@@ -15,8 +15,8 @@ import {
     hasActionWithErrorsForTransaction,
     hasReceiptError,
     hasReportViolations,
-    isPaidGroupPolicy,
     isPaidGroupPolicyExpenseReport,
+    isPaidGroupPolicy as isPaidGroupPolicyUtil,
     isReportApproved,
     isReportOwner,
     isSettled,
@@ -132,9 +132,22 @@ function getMultiLevelTagViolationsCount(violations: OnyxTypes.TransactionViolat
     }, 0);
 }
 
-function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
-    const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-    const tagViolationsCount = getMultiLevelTagViolationsCount(violations) ?? 0;
+function getViolationTranslatePath(
+    violations: OnyxTypes.TransactionViolations,
+    hasFieldErrors: boolean,
+    violationMessage: string,
+    isTransactionOnHold: boolean,
+    shouldShowOnlyViolations: boolean,
+): TranslationPathOrText {
+    const filteredViolations = violations.filter((violation) => {
+        if (shouldShowOnlyViolations) {
+            return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+        }
+        return true;
+    });
+
+    const violationsCount = filteredViolations.length ?? 0;
+    const tagViolationsCount = getMultiLevelTagViolationsCount(filteredViolations) ?? 0;
     const hasViolationsAndHold = violationsCount > 0 && isTransactionOnHold;
     const isTooLong = violationsCount > 1 || tagViolationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
     const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
@@ -197,7 +210,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy(iouReport);
+    const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -212,7 +226,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold);
+    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold, !isPaidGroupPolicy);
     if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
         RBRMessage = path;
     }
@@ -334,7 +348,7 @@ function createTransactionPreviewConditionals({
     const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && iouReport && isPaidGroupPolicy(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations) && iouReport && isPaidGroupPolicyUtil(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -354,7 +368,7 @@ function createTransactionPreviewConditionals({
         isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
-        hasWarningTypeViolation(transaction, violations, true) ||
+        hasWarningTypeViolation(transaction, violations) ||
         hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);

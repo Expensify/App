@@ -190,6 +190,7 @@ function ReportFieldsListValuesPage({
 
         setDeleteValuesConfirmModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setSelectedValues({});
         });

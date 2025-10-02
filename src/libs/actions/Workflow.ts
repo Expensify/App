@@ -123,6 +123,7 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
         type: CONST.APPROVAL_WORKFLOW.TYPE.UPDATE,
         membersToRemove,
         approversToRemove,
+        defaultApprover: newDefaultApprover ?? previousDefaultApprover ?? '',
     });
 
     // If there are no changes to the employees list, we can exit early
