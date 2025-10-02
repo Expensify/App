@@ -129,9 +129,7 @@ function NewReportWorkspaceSelectionPage() {
                 return;
             }
 
-            // Capture the decision about whether to show empty report confirmation at selection time
-            // This ensures we use a consistent value throughout the process
-            // Check if the user has any empty reports in this policy using the centralized utility
+            // Capture the decision about whether to show empty report confirmation
             const hasEmptyReport = hasEmptyReportsForPolicy(reports, policy.policyID, accountID);
 
             setPendingPolicySelection({

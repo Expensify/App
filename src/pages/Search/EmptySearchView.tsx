@@ -217,7 +217,6 @@ function EmptySearchViewContent({
     });
 
     const handleCreateReportClick = useCallback(() => {
-        // Check the current state at click time using the centralized utility
         const hasEmptyReport = hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, currentAccountID);
 
         if (hasEmptyReport) {

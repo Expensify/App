@@ -526,7 +526,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                               }
 
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                  // Check if empty report confirmation should be shown based on CURRENT state (at click time)
+                                  // Check if empty report confirmation should be shown
                                   const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
                                   const hasEmptyReports = hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, currentAccountID);
 

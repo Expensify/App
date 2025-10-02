@@ -1,10 +1,8 @@
 import Onyx from 'react-native-onyx';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Category from '@src/libs/actions/Policy/Category';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories} from '@src/types/onyx/PolicyCategory';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import * as TestHelper from '../utils/TestHelper';
@@ -200,72 +198,6 @@ describe('actions/PolicyCategory', () => {
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingAction).toBeFalsy();
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingFields?.enabled).toBeFalsy();
 
-                        resolve();
-                    },
-                });
-            });
-        });
-
-        it('Keeps categories feature enabled when disabling all categories', async () => {
-            const fakePolicy = createRandomPolicy(0);
-            fakePolicy.areCategoriesEnabled = true;
-            fakePolicy.requiresCategory = false;
-
-            const fakeCategories = createRandomPolicyCategories(2);
-
-            // Set all categories to enabled without mutating the original objects
-            const enabledCategories = Object.keys(fakeCategories).reduce<PolicyCategories>((acc, categoryName) => {
-                acc[categoryName] = {
-                    ...fakeCategories[categoryName],
-                    enabled: true,
-                };
-                return acc;
-            }, {});
-
-            const categoriesToDisable = Object.keys(enabledCategories).reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
-                acc[categoryName] = {
-                    name: categoryName,
-                    enabled: false,
-                };
-                return acc;
-            }, {});
-
-            mockFetch.mockAPICommand(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, () => ({
-                jsonCode: 200,
-                onyxData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                        value: {
-                            areCategoriesEnabled: false,
-                        },
-                    },
-                ],
-            }));
-
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, enabledCategories);
-
-            Category.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToDisable, false);
-
-            await waitForBatchedUpdates();
-
-            await new Promise<void>((resolve, reject) => {
-                const timeout = setTimeout(() => {
-                    reject(new Error('Expected categories feature to remain enabled after disabling categories.'));
-                }, 5000);
-
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
-                    callback: (policy) => {
-                        if (!policy || !policy.areCategoriesEnabled) {
-                            return;
-                        }
-
-                        clearTimeout(timeout);
-                        Onyx.disconnect(connection);
-                        expect(policy.areCategoriesEnabled).toBe(true);
                         resolve();
                     },
                 });

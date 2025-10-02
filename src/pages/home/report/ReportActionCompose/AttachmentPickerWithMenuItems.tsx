@@ -25,8 +25,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasEmptyReportsForPolicy} from '@libs/ReportUtils';
-import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {canCreateTaskInReport, getPayeeName, hasEmptyReportsForPolicy, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
@@ -136,7 +135,6 @@ function AttachmentPickerWithMenuItems({
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    // Get all reports to check for empty reports at click time
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
@@ -153,7 +151,6 @@ function AttachmentPickerWithMenuItems({
         [policy],
     );
 
-    // Create the hook first so openCreateReportConfirmation is available
     const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
@@ -164,15 +161,14 @@ function AttachmentPickerWithMenuItems({
     openCreateReportConfirmationRef.current = openCreateReportConfirmation;
 
     const handleCreateReport = useCallback(() => {
-        // Check the current state at click time using the centralized utility
         const hasEmptyReport = hasEmptyReportsForPolicy(allReports, report?.policyID, currentAccountID);
 
         if (hasEmptyReport) {
             openCreateReportConfirmationRef.current();
         } else {
-            selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true);
+            createNewReport(currentUserPersonalDetails, report?.policyID, true);
         }
-    }, [allReports, currentAccountID, report?.policyID, selectOption, currentUserPersonalDetails]);
+    }, [allReports, currentAccountID, report?.policyID, currentUserPersonalDetails]);
 
     const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
@@ -272,10 +268,11 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: handleCreateReport,
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [handleCreateReport, report, translate]);
+    }, [handleCreateReport, report, selectOption, translate]);
 
     /**
      * Determines if we can show the task option
