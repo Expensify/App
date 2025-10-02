@@ -734,6 +734,7 @@ describe('PolicyUtils', () => {
 
         it('returns false if policy is not paid group policy', async () => {
             const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
@@ -743,13 +744,21 @@ describe('PolicyUtils', () => {
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: currentUserAccountID,
+                managerID: approverAccountID,
+            };
 
-            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
             expect(result).toBe(false);
         });
 
         it('returns true if policy is paid group policy and the manger is the payer', async () => {
             const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -760,14 +769,19 @@ describe('PolicyUtils', () => {
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
+            };
 
-            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
             expect(result).toBe(true);
         });
 
-        it('returns true if the manager is not the payer of the new policy', async () => {
-            const currentUserLogin = employeeEmail;
-
+        it('returns false if the manager is not the payer of the new policy', async () => {
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 isPolicyExpenseChatEnabled: true,
@@ -777,13 +791,21 @@ describe('PolicyUtils', () => {
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: employeeAccountID,
+                managerID: approverAccountID,
+            };
 
-            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
-            expect(result).toBe(true);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
+            expect(result).toBe(false);
         });
 
         it('returns false if policies are not policyExpenseChatEnabled', async () => {
             const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -794,8 +816,15 @@ describe('PolicyUtils', () => {
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
+            };
 
-            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report);
             expect(result).toBe(false);
         });
     });
