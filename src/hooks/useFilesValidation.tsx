@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {
     getFileValidationErrorText,
-    isHeicOrHeifImage,
+    hasHeicOrHeifExtension,
     normalizeFileObject,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
@@ -90,6 +90,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
     const hideModalAndReset = useCallback(() => {
         setIsErrorModalVisible(false);
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
@@ -194,7 +195,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 const otherFiles = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
 
                 // Check if we need to convert images
-                if (otherFiles.some((file) => isHeicOrHeifImage(file))) {
+                if (otherFiles.some((file) => hasHeicOrHeifExtension(file))) {
                     setIsLoaderVisible(true);
 
                     return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
@@ -305,6 +306,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         // the error modal is dismissed before opening the attachment modal
         if (!isValidatingReceipts && fileError) {
             setIsErrorModalVisible(false);
+            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
                     proceedWithFilesAction(sortedFiles);

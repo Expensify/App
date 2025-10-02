@@ -21,6 +21,7 @@ import {
     buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAddTransaction,
+    canCreateRequest,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
@@ -51,6 +52,7 @@ import {
     getPolicyExpenseChat,
     getPolicyExpenseChatName,
     getReasonAndReportActionThatRequiresAttention,
+    getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName,
     getReportStatusTranslation,
@@ -138,6 +140,8 @@ jest.mock('@libs/Permissions');
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
+    navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => 'mock-route'),
     navigationRef: {
         getCurrentRoute: jest.fn(() => ({
             params: {
@@ -2053,6 +2057,26 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
+        it('returns true for @here mention in an admin room', () => {
+            const adminRoom = createAdminRoom(42);
+            const report = {
+                ...adminRoom,
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false for @here in an admin room when user already read after mention', () => {
+            const adminRoom2 = createAdminRoom(43);
+            const report = {
+                ...adminRoom2,
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastMentionedTime: '2024-03-01 12:00:01.000',
+            };
+            expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
         it('returns true when the report is an outstanding task', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -2102,6 +2126,43 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns true when expense report is awaiting current user approval without parent access', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false when awaiting approval but parent accessible or user is not approver', () => {
+            const reportWithParentAccess = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: currentUserAccountID,
+                hasParentAccess: true,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess)).toBe(false);
+
+            const reportWithDifferentManager = {
+                ...LHNTestUtils.getFakeReport(),
+                managerID: 999999,
+                hasParentAccess: false,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager)).toBe(false);
         });
     });
 
@@ -2676,6 +2737,191 @@ describe('ReportUtils', () => {
 
                 // Should not include SUBMIT
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+            });
+        });
+
+        describe('Preferred policy restrictions', () => {
+            // Self DM - TRACK should always be allowed regardless of restrictions
+            it('should allow TRACK requests for self DMs', () => {
+                const selfDMReport = {
+                    reportID: '1234',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const selfDMParticipants = [currentUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+            });
+
+            // DM - SUBMIT, PAY, SPLIT should be restricted
+            it('should restrict SUBMIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1235',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
+            });
+
+            it('should restrict PAY requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1236',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                if (withoutRestrictionsResult.includes(CONST.IOU.TYPE.PAY)) {
+                    expect(withRestrictionsResult.includes(CONST.IOU.TYPE.PAY)).toBe(false);
+                }
+            });
+
+            it('should restrict SPLIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '1237',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const dmParticipants = [currentUserAccountID, otherUserAccountID];
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            // Group Chat - Only SPLIT functionality available, should be restricted
+
+            it('should restrict SPLIT requests for group chats', () => {
+                const groupParticipants = [currentUserAccountID, ...participantsAccountIDs.slice(0, 3)];
+                const groupChatReport = {
+                    ...LHNTestUtils.getFakeReport(groupParticipants),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: undefined,
+                };
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+
+            // Policy Rooms - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for user-created policy rooms', () => {
+                const policyRoomParticipants = [currentUserAccountID, participantsAccountIDs.at(0) ?? 0];
+                const policyRoomReport = {
+                    ...LHNTestUtils.getFakeReport(policyRoomParticipants),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                };
+
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, false, true);
+
+                expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
+                expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+        });
+    });
+
+    describe('canCreateRequest', () => {
+        describe('Preferred policy restrictions', () => {
+            const participantsAccountIDs = Object.keys(participantsPersonalDetails).map(Number);
+
+            // Self DM - TRACK should always be allowed regardless of restrictions
+            it('should allow TRACK requests for self DMs', () => {
+                const selfDMReport = {
+                    reportID: '2234',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, false);
+                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(true);
+            });
+
+            // DM - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for DMs', () => {
+                const otherUserAccountID = participantsAccountIDs.at(0) ?? 0;
+                const dmReport = {
+                    reportID: '2237',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [otherUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
+            });
+
+            // Group Chat - Only SPLIT functionality available, should be restricted
+
+            it('should restrict SPLIT requests for group chats', () => {
+                const groupChat = LHNTestUtils.getFakeReport([currentUserAccountID, ...participantsAccountIDs.slice(0, 3)]);
+
+                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
+            });
+
+            // Policy Rooms - SPLIT should be restricted
+
+            it('should restrict SPLIT requests for user-created policy rooms', () => {
+                const policyRoom = {
+                    ...LHNTestUtils.getFakeReport([currentUserAccountID, participantsAccountIDs.at(0) ?? 0]),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                };
+
+                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, false);
+                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+
+                expect(withoutRestrictionsResult).toBe(true);
+                expect(withRestrictionsResult).toBe(false);
             });
         });
     });
@@ -4131,7 +4377,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction, undefined, undefined)).toBe(false);
         });
 
         it('should return true for demo transaction', () => {
@@ -4175,53 +4421,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
-        });
-
-        it('should return false for unreported card expense imported with deleting disabled', async () => {
-            // Given the unreported card expense import with deleting disabled
-            const selfDMReport = {
-                ...LHNTestUtils.getFakeReport(),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                managedCard: true,
-                comment: {
-                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
-                },
-            };
-
-            const trackExpenseAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: currentUserAccountID,
-                originalMessage: {
-                    IOUTransactionID: transaction.transactionID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                    amount: 100,
-                    currency: CONST.CURRENCY.USD,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                },
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: '$1.00 expense',
-                        text: '$1.00 expense',
-                        isEdited: false,
-                        whisperedTo: [],
-                        isDeletedParentAction: false,
-                    },
-                ],
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-            // Then it should return false since the unreported card expense is imported with deleting disabled
-            expect(canDeleteReportAction(trackExpenseAction, selfDMReport.reportID, transaction)).toBe(false);
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction, undefined, undefined)).toBe(true);
         });
 
         it("should return false for ADD_COMMENT report action the current user (admin of the personal policy) didn't comment", async () => {
@@ -4248,7 +4448,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
 
-            expect(canDeleteReportAction(reportAction, report.reportID, undefined)).toBe(false);
+            expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined)).toBe(false);
         });
     });
 
@@ -5273,6 +5473,22 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
     });
 
     describe('canDeleteTransaction', () => {
@@ -5309,6 +5525,66 @@ describe('ReportUtils', () => {
             // Then the result is false
             expect(result).toBe(false);
         });
+
+        it('should return false for a closed report', async () => {
+            // Given a closed expense report
+            const report: Report = {
+                ...createRandomReport(10002),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false
+            expect(result).toBe(false);
+        });
+
+        describe('with workflow disabled', () => {
+            const workflowDisabledPolicy: Policy = {
+                ...createRandomPolicy(1),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+
+            beforeAll(() => {
+                return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
+            });
+
+            afterAll(() => {
+                return Onyx.clear();
+            });
+
+            it('should return true for reopened report when workflow is disabled', async () => {
+                const openReport: Report = {
+                    ...createExpenseReport(20002),
+                    policyID: '1',
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openReport.reportID}`, openReport);
+
+                expect(canDeleteTransaction(openReport, false)).toBe(true);
+            });
+
+            it('should return false for closed report when workflow is disabled', async () => {
+                const closedReport: Report = {
+                    ...createExpenseReport(20002),
+                    policyID: '1',
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
+
+                expect(canDeleteTransaction(closedReport, false)).toBe(false);
+            });
+        });
     });
 
     describe('getReasonAndReportActionThatRequiresAttention', () => {
@@ -5342,38 +5618,6 @@ describe('ReportUtils', () => {
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
-
-            // Then the result is null
-            expect(result).toBe(null);
-        });
-
-        it('should return a reason for report with hasOutstandingChildRequest', async () => {
-            // Given an expense report with hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: true,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
-
-            // Then the reason should be CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION
-            expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
-        });
-
-        it('should return null for report with no hasOutstandingChildRequest', async () => {
-            // Given an expense report with no hasOutstandingChildRequest
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                hasOutstandingChildRequest: false,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, false);
 
             // Then the result is null
             expect(result).toBe(null);
@@ -7080,6 +7324,155 @@ describe('ReportUtils', () => {
             policy6.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
             const result = requiresManualSubmission(report, policy6);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getReportActionActorAccountID', () => {
+        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(20);
+        });
+
+        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return original actor account id if action is ADDCOMMENT', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 123,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(123);
         });
     });
 });

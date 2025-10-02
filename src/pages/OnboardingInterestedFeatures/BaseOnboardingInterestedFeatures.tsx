@@ -222,6 +222,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
@@ -304,7 +305,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}]}
+                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <Icon

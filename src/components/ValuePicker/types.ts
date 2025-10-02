@@ -1,4 +1,4 @@
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
