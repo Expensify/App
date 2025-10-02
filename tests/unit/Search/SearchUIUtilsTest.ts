@@ -2879,7 +2879,7 @@ describe('SearchUIUtils', () => {
             const visibleData = [
                 {...transactionsListItems.at(0), convertedAmount: 10000, convertedCurrency: 'USD'},
                 {...transactionsListItems.at(0), convertedAmount: 15000, convertedCurrency: 'USD'},
-            ];
+            ] as TransactionListItemType[];
 
             const ungroupedResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
             expect(ungroupedResult).toEqual({
@@ -2916,7 +2916,7 @@ describe('SearchUIUtils', () => {
             const visibleData = [
                 {...transactionsListItems.at(0), convertedAmount: -10000},
                 {...transactionsListItems.at(0), convertedAmount: -5000},
-            ];
+            ] as TransactionListItemType[];
 
             const visibleResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
             expect(visibleResult).toEqual({
