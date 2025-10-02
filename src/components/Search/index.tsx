@@ -913,7 +913,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                 />
-                {shouldShowFooter && footerData && (
+                {!!footerData && (
                     <SearchPageFooter
                         count={footerData.count}
                         total={footerData.total}
