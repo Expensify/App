@@ -53,7 +53,7 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
         2. Transaction 1 is deleted
         3. Transaction 51 becomes 50
         4. We fetch the next page, i.e. transactions 51-100
-        5. Transaction That was 51 and is now 50 is never returned
+        5. The transaction that was 51 and is now 50 is never returned
 
 3. Using the cursor as input, define a database query to _quickly_ access a limited number (a single page) of the resource in question. Test it for the highest volume of data available (i.e: the report with the most actions, the account with access to the most reports, etc...). If implemented well, the query execution time should be unaffected by the total search volume (the total length of the "list" that is being paged over).
     - A good starting point for this is to write the query using a [row value comparison](https://www.sqlite.org/rowvalue.html). Then, if necessary, consider creating a sorted `COVERING` index for the row value being searched over. For example:
