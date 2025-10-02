@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -180,7 +180,6 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -659,6 +658,8 @@ const translations = {
         reschedule: 'Przełożyć na inny termin',
         general: 'Ogólne',
         workspacesTabTitle: 'Przestrzenie robocze',
+        getTheApp: 'Pobierz aplikację',
+        scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
         headsUp: 'Uwaga!',
         submitTo: 'Wyślij do',
         forwardTo: 'Przekaż do',
@@ -673,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
-        description: 'Nie masz uprawnień do wykonania tej akcji, gdy wsparcie jest zalogowane.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Nie masz uprawnień do wykonania tej akcji, gdy wsparcie jest zalogowane (komenda: ${command ?? ''}). Jeśli uważasz, że Success powinien mieć możliwość wykonania tej akcji, rozpocznij rozmowę na Slacku.`,
     },
     lockedAccount: {
         title: 'Zablokowane konto',
@@ -1032,17 +1038,12 @@ const translations = {
     receipt: {
         upload: 'Prześlij paragon',
         uploadMultiple: 'Prześlij paragony',
-        desktopSubtitleSingle: 'lub przeciągnij i upuść tutaj',
-        desktopSubtitleMultiple: 'lub przeciągnij i upuść tutaj',
+        dragReceiptBeforeEmail: 'Przeciągnij paragon na tę stronę, prześlij paragon do',
+        dragReceiptsBeforeEmail: 'Przeciągnij paragony na tę stronę, prześlij paragony do',
+        dragReceiptAfterEmail: 'lub wybierz plik do przesłania poniżej.',
+        dragReceiptsAfterEmail: 'lub wybierz pliki do przesłania poniżej.',
         chooseReceipt: 'Wybierz paragon do przesłania lub prześlij paragon do',
         chooseReceipts: 'Wybierz paragony do przesłania lub prześlij paragony do',
-        alternativeMethodsTitle: 'Inne sposoby dodawania paragonów:',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<label-text><a-label href="${downloadUrl}">Pobierz aplikację</a-label> aby skanować z telefonu</label-text>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Prześlij paragony do <a-label href="mailto:${email}">${email}</a-label></label-text>`,
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<label-text><a-label href="${contactMethodsUrl}">Dodaj swój numer</a-label> aby wysyłać paragony SMS do ${phoneNumber}</label-text>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>Wyślij paragony SMS do ${phoneNumber} (tylko numery US)</label-text>`,
         takePhoto: 'Zrób zdjęcie',
         cameraAccess: 'Dostęp do aparatu jest wymagany, aby robić zdjęcia paragonów.',
         deniedCameraAccess: 'Dostęp do kamery nadal nie został przyznany, proszę postępować zgodnie z',
@@ -4878,8 +4879,7 @@ const translations = {
             existingTagError: 'Tag o tej nazwie już istnieje',
             invalidTagNameError: 'Nazwa tagu nie może być 0. Proszę wybrać inną wartość.',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizacji tagu, spróbuj ponownie.',
-            importedFromAccountingSoftware: 'Tagi są zarządzane w Twoim',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `<muted-text>Pracownicy widzą tagi jako <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'Tagi poniżej są importowane z twojego',
             glCode: 'Kod GL',
             updateGLCodeFailureMessage: 'Wystąpił błąd podczas aktualizacji kodu GL, spróbuj ponownie.',
             tagRules: 'Zasady tagów',
@@ -5102,8 +5102,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic.',
-            goToODToFix: 'Przejdź do Expensify Classic, aby rozwiązać ten problem.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
             setup: 'Połącz',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Ostatnia synchronizacja ${relativeDate}`,

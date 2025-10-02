@@ -1025,10 +1025,10 @@ const translations = {
         chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
         alternativeMethodsTitle: 'Otras formas de añadir recibos:',
         alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<label-text><a-label href="${downloadUrl}">Descarga la aplicación</a-label> para escanear desde tu teléfono</label-text>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Reenvía recibos a <a-label href="mailto:${email}">${email}</a-label></label-text>`,
+            `<label-text><a href="${downloadUrl}">Descarga la aplicación</a> para escanear desde tu teléfono</label-text>`,
+        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Reenvía recibos a <a href="mailto:${email}">${email}</a></label-text>`,
         alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<label-text><a-label href="${contactMethodsUrl}">Añade tu número</a-label> para enviar recibos por SMS a ${phoneNumber}</label-text>`,
+            `<label-text><a href="${contactMethodsUrl}">Añade tu número</a> para enviar recibos por SMS a ${phoneNumber}</label-text>`,
         alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
             `<label-text>Envía recibos por SMS a ${phoneNumber} (solo números de EE.UU.)</label-text>`,
         takePhoto: 'Haz una foto',

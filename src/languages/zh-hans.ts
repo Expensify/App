@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -180,7 +180,6 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -658,6 +657,8 @@ const translations = {
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
+        getTheApp: '获取应用程序',
+        scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '注意！',
         submitTo: '提交到',
         forwardTo: '转发到',
@@ -672,7 +673,11 @@ const translations = {
     },
     supportalNoAccess: {
         title: '慢一点',
-        description: '当支持人员登录时，您无权执行此操作。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) => `当支持人员登录时，您无权执行此操作（命令：${command ?? ''}）。如果您认为 Success 应该能够执行此操作，请在 Slack 中开始对话。`,
     },
     lockedAccount: {
         title: '账户已锁定',
@@ -1026,16 +1031,12 @@ const translations = {
     receipt: {
         upload: '上传收据',
         uploadMultiple: '上传收据',
-        desktopSubtitleSingle: '或拖放到这里',
-        desktopSubtitleMultiple: '或拖放到这里',
+        dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
+        dragReceiptsBeforeEmail: '将收据拖到此页面上，转发收据到',
+        dragReceiptAfterEmail: '或选择下面的文件上传。',
+        dragReceiptsAfterEmail: '或选择下面的文件上传。',
         chooseReceipt: '选择要上传的收据或转发收据到',
         chooseReceipts: '选择要上传的收据或转发收据到',
-        alternativeMethodsTitle: '添加收据的其他方式：',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) => `<label-text><a-label href="${downloadUrl}">下载应用</a-label>从手机扫描</label-text>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>将收据转发到<a-label href="mailto:${email}">${email}</a-label></label-text>`,
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<label-text><a-label href="${contactMethodsUrl}">添加您的号码</a-label>将收据发送到${phoneNumber}</label-text>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>将收据发送到${phoneNumber}（仅限美国号码）</label-text>`,
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
         deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
@@ -4793,8 +4794,7 @@ const translations = {
             existingTagError: '具有此名称的标签已存在',
             invalidTagNameError: '标签名称不能为0。请选择其他值。',
             genericFailureMessage: '更新标签时发生错误，请重试。',
-            importedFromAccountingSoftware: '标签在您的系统中管理',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `<muted-text>员工看到的标签为 <strong>${customTagName}</strong>。</muted-text>`,
+            importedFromAccountingSoftware: '以下标签是从您的...导入的',
             glCode: 'GL代码',
             updateGLCodeFailureMessage: '更新总账代码时发生错误，请重试。',
             tagRules: '标签规则',
@@ -5017,8 +5017,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: '在 Expensify Classic 中设置的连接出现错误。',
-            goToODToFix: '请前往 Expensify Classic 解决此问题。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `在 Expensify Classic 中设置的连接出现错误。[请前往 Expensify Classic 解决此问题。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '请前往 Expensify Classic 管理您的设置。',
             setup: '连接',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `上次同步时间为${relativeDate}`,

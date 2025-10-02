@@ -173,17 +173,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
-            'a-label': HTMLElementModel.fromCustomModel({
-                tagName: 'a-label',
-                contentModel: HTMLContentModel.textual,
-                getMixedUAStyles: () => {
-                    return {
-                        ...styles.textLabel,
-                        color: styles.link.color,
-                        textDecorationColor: styles.link.textDecorationColor,
-                    };
-                },
-            }),
         }),
         [
             styles.taskTitleMenuItem,
@@ -210,7 +199,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textExtraSmallSupporting,
             styles.textMicroSupporting,
             styles.textLabel,
-            styles.link,
             styles.textLineHeightNormal,
         ],
     );

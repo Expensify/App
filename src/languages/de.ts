@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -180,7 +180,6 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -324,7 +323,6 @@ type StateValue = {
 };
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
-
 /* eslint-disable max-len */
 const translations = {
     common: {
@@ -660,6 +658,8 @@ const translations = {
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Arbeitsbereiche',
+        getTheApp: 'Hole dir die App',
+        scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
         headsUp: 'Achtung!',
         submitTo: 'Einreichen an',
         forwardTo: 'Weiterleiten an',
@@ -674,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
-        description: 'Sie sind nicht berechtigt, diese Aktion auszuführen, wenn der Support eingeloggt ist.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Sie sind nicht berechtigt, diese Aktion auszuführen, wenn der Support eingeloggt ist (Befehl: ${command ?? ''}). Wenn Sie der Meinung sind, dass Success diese Aktion ausführen können sollte, starten Sie bitte eine Unterhaltung in Slack.`,
     },
     lockedAccount: {
         title: 'Gesperrtes Konto',
@@ -1040,17 +1045,12 @@ const translations = {
     receipt: {
         upload: 'Beleg hochladen',
         uploadMultiple: 'Belege hochladen',
-        desktopSubtitleSingle: 'oder hierher ziehen und ablegen',
-        desktopSubtitleMultiple: 'oder hierher ziehen und ablegen',
+        dragReceiptBeforeEmail: 'Ziehen Sie eine Quittung auf diese Seite oder leiten Sie eine Quittung weiter an',
+        dragReceiptsBeforeEmail: 'Ziehen Sie Quittungen auf diese Seite oder leiten Sie Quittungen weiter an',
+        dragReceiptAfterEmail: 'oder wählen Sie unten eine Datei zum Hochladen aus.',
+        dragReceiptsAfterEmail: 'oder wählen Sie unten Dateien zum Hochladen aus.',
         chooseReceipt: 'Wählen Sie eine Quittung zum Hochladen aus oder leiten Sie eine Quittung weiter an',
         chooseReceipts: 'Wählen Sie Quittungen zum Hochladen aus oder leiten Sie Quittungen weiter an ',
-        alternativeMethodsTitle: 'Andere Möglichkeiten, Belege hinzuzufügen:',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<label-text><a-label href="${downloadUrl}">App herunterladen</a-label> zum Scannen vom Telefon</label-text>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Belege weiterleiten an <a-label href="mailto:${email}">${email}</a-label></label-text>`,
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<label-text><a-label href="${contactMethodsUrl}">Ihre Nummer hinzufügen</a-label> zum Senden von Belegen an ${phoneNumber}</label-text>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>Belege per SMS an ${phoneNumber} senden (nur US-Nummern)</label-text>`,
         takePhoto: 'Ein Foto machen',
         cameraAccess: 'Der Kamerazugriff ist erforderlich, um Fotos von Belegen zu machen.',
         deniedCameraAccess: 'Kamerazugriff wurde noch nicht gewährt, bitte folgen Sie',
@@ -4882,8 +4882,7 @@ const translations = {
             existingTagError: 'Ein Tag mit diesem Namen existiert bereits',
             invalidTagNameError: 'Der Tag-Name darf nicht 0 sein. Bitte wählen Sie einen anderen Wert.',
             genericFailureMessage: 'Beim Aktualisieren des Tags ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
-            importedFromAccountingSoftware: 'Tags werden in deiner',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>Mitarbeiter sehen Tags als <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'Die unten stehenden Tags werden aus Ihrem',
             glCode: 'GL-Code',
             updateGLCodeFailureMessage: 'Beim Aktualisieren des GL-Codes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
             tagRules: 'Tag-Regeln',
@@ -5109,8 +5108,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Es gibt einen Fehler mit einer Verbindung, die in Expensify Classic eingerichtet wurde.',
-            goToODToFix: 'Gehen Sie zu Expensify Classic, um dieses Problem zu beheben.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Es gibt einen Fehler mit einer Verbindung, die in Expensify Classic eingerichtet wurde. [Gehen Sie zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Gehe zu Expensify Classic, um deine Einstellungen zu verwalten.',
             setup: 'Verbinden',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Zuletzt synchronisiert ${relativeDate}`,

@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -180,7 +180,6 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -659,6 +658,8 @@ const translations = {
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Workspaces',
+        getTheApp: 'Obtenha o aplicativo',
+        scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
@@ -673,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
-        description: 'Você não está autorizado a realizar esta ação quando o suporte estiver conectado.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Você não está autorizado a realizar esta ação quando o suporte está conectado (comando: ${command ?? ''}). Se você acha que o Success deveria poder realizar esta ação, por favor, inicie uma conversa no Slack.`,
     },
     lockedAccount: {
         title: 'Conta Bloqueada',
@@ -1034,18 +1040,12 @@ const translations = {
     receipt: {
         upload: 'Fazer upload de recibo',
         uploadMultiple: 'Fazer upload de recibos',
-        desktopSubtitleSingle: 'ou arraste e solte aqui',
-        desktopSubtitleMultiple: 'ou arraste e solte aqui',
+        dragReceiptBeforeEmail: 'Arraste um recibo para esta página, encaminhe um recibo para',
+        dragReceiptsBeforeEmail: 'Arraste recibos para esta página, encaminhe recibos para',
+        dragReceiptAfterEmail: 'ou escolha um arquivo para enviar abaixo.',
+        dragReceiptsAfterEmail: 'ou escolha arquivos para enviar abaixo.',
         chooseReceipt: 'Escolha um recibo para enviar ou encaminhe um recibo para',
         chooseReceipts: 'Escolha recibos para enviar ou encaminhe recibos para',
-        alternativeMethodsTitle: 'Outras formas de adicionar recibos:',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<label-text><a-label href="${downloadUrl}">Baixe o aplicativo</a-label> para escanear do seu telefone</label-text>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>Encaminhe recibos para <a-label href="mailto:${email}">${email}</a-label></label-text>`,
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<label-text><a-label href="${contactMethodsUrl}">Adicione seu número</a-label> para enviar recibos por SMS para ${phoneNumber}</label-text>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) =>
-            `<label-text>Envie recibos por SMS para ${phoneNumber} (apenas números dos EUA)</label-text>`,
         takePhoto: 'Tire uma foto',
         cameraAccess: 'O acesso à câmera é necessário para tirar fotos dos recibos.',
         deniedCameraAccess: 'O acesso à câmera ainda não foi concedido, por favor siga',
@@ -4884,8 +4884,7 @@ const translations = {
             existingTagError: 'Uma tag com este nome já existe',
             invalidTagNameError: 'O nome da tag não pode ser 0. Por favor, escolha um valor diferente.',
             genericFailureMessage: 'Ocorreu um erro ao atualizar a tag, por favor, tente novamente.',
-            importedFromAccountingSoftware: 'As tags são gerenciadas no seu',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => `<muted-text>Os funcionários veem as tags como <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'As tags abaixo são importadas do seu',
             glCode: 'Código GL',
             updateGLCodeFailureMessage: 'Ocorreu um erro ao atualizar o código GL, por favor, tente novamente.',
             tagRules: 'Regras de tag',
@@ -5110,8 +5109,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Há um erro com uma conexão que foi configurada no Expensify Classic.',
-            goToODToFix: 'Vá para o Expensify Classic para resolver este problema.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Há um erro com uma conexão que foi configurada no Expensify Classic. [Vá para o Expensify Classic para resolver este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vá para o Expensify Classic para gerenciar suas configurações.',
             setup: 'Conectar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Última sincronização ${relativeDate}`,

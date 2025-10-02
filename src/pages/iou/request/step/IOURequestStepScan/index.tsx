@@ -1024,7 +1024,7 @@ function IOURequestStepScan({
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb2]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
-                <Text style={[styles.subTextChooseFiles]}>{translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}</Text>
+                <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lineHeightLarge]}>{translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}</Text>
             </View>
 
             <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>

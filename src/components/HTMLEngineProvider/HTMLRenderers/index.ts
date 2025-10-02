@@ -1,5 +1,4 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
-import AnchorLabelRenderer from './AnchorLabelRenderer';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import ConciergeLinkRenderer from './ConciergeLinkRenderer';
@@ -31,7 +30,6 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     edited: EditedRenderer,
     pre: PreRenderer,
     /* eslint-disable @typescript-eslint/naming-convention */
-    'a-label': AnchorLabelRenderer,
     'task-title': TaskTitleRenderer,
     rbr: RBRRenderer,
     'mention-user': MentionUserRenderer,

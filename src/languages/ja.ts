@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -180,7 +180,6 @@ import type {
     PolicyExpenseChatNameParams,
     QBDSetupErrorBodyParams,
     RailTicketParams,
-    ReceiptAlternativeMethodsPhoneNumberParams,
     ReceiptPartnersUberSubtitleParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -324,7 +323,6 @@ type StateValue = {
 };
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
-
 /* eslint-disable max-len */
 const translations = {
     common: {
@@ -660,6 +658,8 @@ const translations = {
         reschedule: '再スケジュールする',
         general: '一般',
         workspacesTabTitle: 'ワークスペース',
+        getTheApp: 'アプリを入手',
+        scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',
         headsUp: 'ご注意ください！',
         submitTo: '送信先',
         forwardTo: '転送先',
@@ -674,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
-        description: 'サポートがログインしているときにこの操作を行う権限がありません。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `サポートがログインしているときにこのアクションを実行する権限がありません（コマンド: ${command ?? ''}）。Successがこのアクションを実行できるべきだと思われる場合は、Slackで会話を開始してください。`,
     },
     lockedAccount: {
         title: 'アカウントがロックされました',
@@ -1036,17 +1041,12 @@ const translations = {
     receipt: {
         upload: '領収書をアップロード',
         uploadMultiple: '領収書をアップロード',
-        desktopSubtitleSingle: 'またはここにドラッグ&ドロップしてください',
-        desktopSubtitleMultiple: 'またはここにドラッグ&ドロップしてください',
+        dragReceiptBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
+        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
+        dragReceiptAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
+        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         chooseReceipt: 'アップロードするレシートを選択するか、レシートを転送してください',
         chooseReceipts: 'アップロードするレシートを選択するか、レシートを転送してください',
-        alternativeMethodsTitle: 'レシートを追加する他の方法：',
-        alternativeMethodsDownloadApp: ({downloadUrl}: {downloadUrl: string}) =>
-            `<label-text><a-label href="${downloadUrl}">アプリをダウンロード</a-label>してスマートフォンからスキャン</label-text>`,
-        alternativeMethodsForwardReceipts: ({email}: {email: string}) => `<label-text>レシートを<a-label href="mailto:${email}">${email}</a-label>に転送</label-text>`,
-        alternativeMethodsAddPhoneNumber: ({phoneNumber, contactMethodsUrl}: ReceiptAlternativeMethodsPhoneNumberParams & {contactMethodsUrl: string}) =>
-            `<label-text><a-label href="${contactMethodsUrl}">電話番号を追加</a-label>してレシートを${phoneNumber}にSMSで送信</label-text>`,
-        alternativeMethodsTextReceipts: ({phoneNumber}: ReceiptAlternativeMethodsPhoneNumberParams) => `<label-text>レシートを${phoneNumber}にSMSで送信（米国番号のみ）</label-text>`,
         takePhoto: '写真を撮る',
         cameraAccess: '領収書の写真を撮るためにカメラへのアクセスが必要です。',
         deniedCameraAccess: 'カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。',
@@ -4856,8 +4856,7 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: 'タグは次で管理されています:',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>従業員にはタグが次のように表示されます: <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'タグルール',
@@ -5080,8 +5079,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Expensify Classicで設定された接続にエラーがあります。',
-            goToODToFix: 'この問題を解決するには、Expensify Classicに移動してください。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Expensify Classicで設定された接続にエラーがあります。[この問題を解決するには、Expensify Classicに移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classicに移動してください。',
             setup: '接続する',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期日時: ${relativeDate}`,
