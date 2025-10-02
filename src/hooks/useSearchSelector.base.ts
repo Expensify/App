@@ -162,7 +162,16 @@ function useSearchSelectorBase({
 
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
+                return getSearchOptions({
+                    options: optionsWithContacts,
+                    betas,
+                    isUsedInChatFinder: true,
+                    includeReadOnly: true,
+                    searchQuery: computedSearchTerm,
+                    maxResults,
+                    includeUserToInvite,
+                    countryCode,
+                });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, {
                     betas: betas ?? [],
@@ -186,7 +195,19 @@ function useSearchSelectorBase({
             default:
                 return getEmptyOptions();
         }
-    }, [areOptionsInitialized, optionsWithContacts, betas, computedSearchTerm, maxResults, searchContext, includeUserToInvite, excludeLogins, includeRecentReports, getValidOptionsConfig]);
+    }, [
+        areOptionsInitialized,
+        searchContext,
+        optionsWithContacts,
+        betas,
+        computedSearchTerm,
+        maxResults,
+        includeUserToInvite,
+        countryCode,
+        excludeLogins,
+        includeRecentReports,
+        getValidOptionsConfig,
+    ]);
 
     const isOptionSelected = useMemo(() => {
         return (option: OptionData) =>

@@ -51,7 +51,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const defaultOptions = useMemo(() => {

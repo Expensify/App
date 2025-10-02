@@ -70,7 +70,6 @@ function useOptions() {
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(

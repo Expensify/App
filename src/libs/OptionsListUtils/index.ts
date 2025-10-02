@@ -1917,22 +1917,36 @@ function getValidOptions(
     };
 }
 
+type GetSearchOptionsConfig = {
+    options: OptionList;
+    betas?: Beta[] | undefined;
+    isUsedInChatFinder?: boolean;
+    includeReadOnly?: boolean;
+    searchQuery?: string;
+    maxResults?: number;
+    includeUserToInvite?: boolean;
+    includeRecentReports?: boolean;
+    includeCurrentUser?: boolean;
+    countryCode?: number;
+    shouldShowGBR?: boolean;
+};
+
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(
-    options: OptionList,
-    betas: Beta[] = [],
+function getSearchOptions({
+    options,
+    betas = [],
     isUsedInChatFinder = true,
     includeReadOnly = true,
     searchQuery = '',
-    maxResults?: number,
-    includeUserToInvite?: boolean,
+    maxResults,
+    includeUserToInvite,
     includeRecentReports = true,
     includeCurrentUser = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
-): Options {
+}: GetSearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
@@ -2387,7 +2401,12 @@ function filterCurrentUserOption(currentUserOption: SearchOptionData | null | un
     }, currentUserOption);
 }
 
-function filterUserToInvite(options: Omit<Options, 'userToInvite'>, searchValue: string, countryCode: number, config?: FilterUserToInviteConfig): SearchOptionData | null {
+function filterUserToInvite(
+    options: Omit<Options, 'userToInvite'>,
+    searchValue: string,
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+    config?: FilterUserToInviteConfig,
+): SearchOptionData | null {
     const {canInviteUser = true, excludeLogins = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
@@ -2460,6 +2479,7 @@ function filterOptions(options: Options, searchInputValue: string, countryCode: 
             currentUserOption,
         },
         searchValue,
+        countryCode,
         config,
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
