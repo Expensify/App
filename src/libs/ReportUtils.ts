@@ -8198,15 +8198,10 @@ function hasEmptyReportsForPolicy(reports: OnyxCollection<Report>, policyID: str
             return false;
         }
 
-        const isOpenExpenseReport =
-            report.type === CONST.REPORT.TYPE.EXPENSE &&
-            (report?.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) === CONST.REPORT.STATE_NUM.OPEN &&
-            (report?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN;
-
         // A report is "empty" if it has no money, regardless of system messages like "created this report"
         const hasNoMoney = (report.total ?? 0) === 0 && (report.nonReimbursableTotal ?? 0) === 0;
 
-        return isOpenExpenseReport && report.policyID === policyID && report.ownerAccountID === accountID && hasNoMoney;
+        return isOpenExpenseReport(report) && report.policyID === policyID && report.ownerAccountID === accountID && hasNoMoney;
     });
 }
 

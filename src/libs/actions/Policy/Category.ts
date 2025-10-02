@@ -334,24 +334,6 @@ function setWorkspaceCategoryEnabled(
     allTransactionViolations: OnyxCollection<TransactionViolations> = {},
 ) {
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-    const policy = getPolicy(policyID);
-    const categoriesAfterUpdate = Object.keys(policyCategories).reduce<PolicyCategories>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName]};
-        return acc;
-    }, {});
-
-    Object.entries(categoriesToUpdate).forEach(([categoryName, category]) => {
-        categoriesAfterUpdate[categoryName] = {
-            ...categoriesAfterUpdate[categoryName],
-            ...category,
-        } as PolicyCategory;
-    });
-
-    const hasEnabledCategoriesAfterUpdate = hasEnabledOptions(categoriesAfterUpdate);
-    const shouldDisableRequiresCategory = Boolean(policy?.requiresCategory && !hasEnabledCategoriesAfterUpdate);
-    const originalAreCategoriesEnabled = policy?.areCategoriesEnabled;
-    const shouldKeepCategoriesFeatureEnabled = originalAreCategoriesEnabled !== false;
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const optimisticPolicyCategoriesData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
             acc[key] = {
@@ -416,69 +398,7 @@ function setWorkspaceCategoryEnabled(
         ],
     };
 
-    const optimisticPolicyValue: Record<string, unknown> = {};
-    const successPolicyValue: Record<string, unknown> = {};
-    const failurePolicyValue: Record<string, unknown> = {};
-
-    if (shouldKeepCategoriesFeatureEnabled) {
-        optimisticPolicyValue.areCategoriesEnabled = true;
-        successPolicyValue.areCategoriesEnabled = true;
-        failurePolicyValue.areCategoriesEnabled = originalAreCategoriesEnabled ?? true;
-    }
-
-    if (shouldDisableRequiresCategory) {
-        const existingPendingFields = policy?.pendingFields ?? {};
-
-        optimisticPolicyValue.requiresCategory = false;
-        optimisticPolicyValue.errors = {
-            requiresCategory: null,
-        };
-        optimisticPolicyValue.pendingFields = {
-            ...existingPendingFields,
-            requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-        };
-
-        successPolicyValue.requiresCategory = false;
-        successPolicyValue.errors = {
-            requiresCategory: null,
-        };
-        successPolicyValue.pendingFields = {
-            ...existingPendingFields,
-            requiresCategory: null,
-        };
-
-        failurePolicyValue.requiresCategory = policy?.requiresCategory;
-        failurePolicyValue.errors = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage');
-        failurePolicyValue.pendingFields = {
-            ...existingPendingFields,
-            requiresCategory: null,
-        };
-    }
-
-    if (Object.keys(optimisticPolicyValue).length > 0) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: optimisticPolicyValue,
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: successPolicyValue,
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: failurePolicyValue,
-        });
-    }
-
-    const optimisticPolicyUpdate: Partial<Policy> = {};
-    if (shouldDisableRequiresCategory) {
-        optimisticPolicyUpdate.requiresCategory = false;
-    }
-
-    pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, allTransactionViolations, optimisticPolicyUpdate, optimisticPolicyCategoriesData);
+    pushTransactionViolationsOnyxData(onyxData, policyID, policyTagLists, policyCategories, allTransactionViolations, {}, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(onyxData, isSetupCategoriesTaskParentReportArchived);
 
     const parameters = {

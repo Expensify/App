@@ -48,8 +48,7 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, hasEmptyReportsForPolicy, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
@@ -529,7 +528,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                               if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                   // Check if empty report confirmation should be shown based on CURRENT state (at click time)
                                   const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
-                                  const hasEmptyReports = ReportUtils.hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, currentAccountID);
+                                  const hasEmptyReports = hasEmptyReportsForPolicy(allReports, workspaceIDForReportCreation, currentAccountID);
 
                                   if (hasEmptyReports) {
                                       openFabCreateReportConfirmation();

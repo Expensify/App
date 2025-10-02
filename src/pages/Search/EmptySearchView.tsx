@@ -36,7 +36,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {generateReportID, hasEmptyReportsForPolicy} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -196,7 +196,7 @@ function EmptySearchViewContent({
     const inferredWorkspaceID = inferredWorkspacePolicy?.id;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
 
     const handleCreateWorkspaceReport = useCallback(() => {
@@ -217,8 +217,8 @@ function EmptySearchViewContent({
     });
 
     const handleCreateReportClick = useCallback(() => {
-        // Check CURRENT state at click time using the centralized utility
-        const hasEmptyReport = ReportUtils.hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, currentAccountID);
+        // Check the current state at click time using the centralized utility
+        const hasEmptyReport = hasEmptyReportsForPolicy(allReports, inferredWorkspaceID, currentAccountID);
 
         if (hasEmptyReport) {
             openCreateReportFromSearch();
@@ -421,7 +421,7 @@ function EmptySearchViewContent({
                                             setModalVisible(true);
                                             return;
                                         }
-                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
                                     }),
                                 success: true,
                             },
@@ -452,7 +452,7 @@ function EmptySearchViewContent({
                                             setModalVisible(true);
                                             return;
                                         }
-                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, ReportUtils.generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
                                     }),
                                 success: true,
                             },

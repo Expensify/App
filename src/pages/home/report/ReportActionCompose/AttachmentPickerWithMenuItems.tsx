@@ -25,7 +25,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {hasEmptyReportsForPolicy} from '@libs/ReportUtils';
 import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -138,7 +138,7 @@ function AttachmentPickerWithMenuItems({
     const isReportArchived = useReportIsArchived(report?.reportID);
     // Get all reports to check for empty reports at click time
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentAccountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
 
     const selectOption = useCallback(
@@ -165,7 +165,7 @@ function AttachmentPickerWithMenuItems({
 
     const handleCreateReport = useCallback(() => {
         // Check the current state at click time using the centralized utility
-        const hasEmptyReport = ReportUtils.hasEmptyReportsForPolicy(allReports, report?.policyID, currentAccountID);
+        const hasEmptyReport = hasEmptyReportsForPolicy(allReports, report?.policyID, currentAccountID);
 
         if (hasEmptyReport) {
             openCreateReportConfirmationRef.current();

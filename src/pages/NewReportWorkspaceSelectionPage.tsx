@@ -19,7 +19,7 @@ import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, hasEmptyReportsForPolicy} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ function NewReportWorkspaceSelectionPage() {
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
     // Get all reports once to check for empty reports
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const accountID = typeof session?.accountID === 'number' ? session.accountID : Number(session?.accountID);
 
     const navigateToNewReport = useCallback(
@@ -131,8 +131,8 @@ function NewReportWorkspaceSelectionPage() {
 
             // Capture the decision about whether to show empty report confirmation at selection time
             // This ensures we use a consistent value throughout the process
-            // Check if user has any empty reports in this policy using the centralized utility
-            const hasEmptyReport = ReportUtils.hasEmptyReportsForPolicy(reports, policy.policyID, accountID);
+            // Check if the user has any empty reports in this policy using the centralized utility
+            const hasEmptyReport = hasEmptyReportsForPolicy(reports, policy.policyID, accountID);
 
             setPendingPolicySelection({
                 policy,
@@ -154,7 +154,7 @@ function NewReportWorkspaceSelectionPage() {
                 policyID: policy?.id,
                 icons: [
                     {
-                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
+                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
