@@ -1,6 +1,5 @@
 import type AfterSignOutRedirect from './types';
 
-
 /**
  * Native implementation of afterSignOutRedirect is a no-op.
  *

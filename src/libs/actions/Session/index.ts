@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {InteractionManager, Linking} from 'react-native';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxKey, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
@@ -354,7 +354,7 @@ function signOutAndRedirectToSignIn(
 
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
-        .then((response) => {
+        .then(() => {
             if (isSupportal) {
                 // Send event to Fraud Protection backend, otherwise it might consider the user as being suspicious
                 FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);

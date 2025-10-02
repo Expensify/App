@@ -114,13 +114,13 @@ describe('Session', () => {
     test('Push notifications are subscribed after signing in', async () => {
         await TestHelper.signInWithTestUser();
         await waitForBatchedUpdates();
-        expect(PushNotification.register).toBeCalled();
+        expect(PushNotification.register).toHaveBeenCalled();
     });
 
     test('Push notifications are unsubscribed after signing out', async () => {
         await TestHelper.signInWithTestUser();
         await TestHelper.signOutTestUser();
-        expect(PushNotification.deregister).toBeCalled();
+        expect(PushNotification.deregister).toHaveBeenCalled();
     });
 
     test('ReconnectApp should push request to the queue', async () => {
