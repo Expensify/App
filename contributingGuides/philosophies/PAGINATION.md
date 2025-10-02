@@ -50,7 +50,7 @@ One example of data that's appropriate to lazy-load but not necessarily ideal fo
     - _Example:_ For a single search snapshot, an integer `sequenceNumber` is used. This is a simple implementation, but generally is not a scalable solution, because offset-based approaches require the database to scan and discard all prior rows up to the offset, which becomes slow for large dataset pagination. Furthermore, offset-based implementations are prone to gaps and/or duplicates:
 
         1. We fetch transactions 1-50
-        2. Transaction 1 is deletedg
+        2. Transaction 1 is deleted
         3. Transaction 51 becomes 50
         4. We fetch the next page, i.e. transactions 51-100
         5. Transaction That was 51 and is now 50 is never returned
