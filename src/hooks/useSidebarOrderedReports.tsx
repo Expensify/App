@@ -73,6 +73,7 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
 
@@ -189,7 +190,7 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, policyTags, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportsToDisplayInLHN, localeCompare],
@@ -266,6 +267,7 @@ function SidebarOrderedReportsContextProvider({
         reportsToDisplayInLHN,
         orderedReportIDs,
         orderedReports,
+        policyTags,
     };
     const prevContextValue = usePrevious(contextValue);
     const previousDeps = usePrevious(currentDeps);

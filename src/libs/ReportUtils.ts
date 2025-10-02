@@ -904,6 +904,7 @@ type GetReportNameParams = {
     transactions?: SearchTransaction[];
     reports?: SearchReport[];
     policies?: SearchPolicy[];
+    policyTags?: PolicyTagLists;
     isReportArchived?: boolean;
 };
 
@@ -5054,7 +5055,7 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
 /**
  * Parse html of reportAction into text
  */
-function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, childReportID?: string): string {
+function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, policyTags: OnyxEntry<PolicyTagLists>, childReportID?: string): string {
     if (!reportAction) {
         return '';
     }
@@ -5077,7 +5078,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     for (const match of matches) {
         if (match[1] !== childReportID) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1])) ?? '';
+            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1]), policyTags}) ?? '';
         }
     }
 
@@ -5107,12 +5108,14 @@ function getReportActionMessage({
     childReportID,
     reports,
     personalDetails,
+    policyTags,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     reportID?: string;
     childReportID?: string;
     reports?: SearchReport[];
     personalDetails?: Partial<PersonalDetailsList>;
+    policyTags: PolicyTagLists;
 }) {
     if (isEmptyObject(reportAction)) {
         return '';
@@ -5157,7 +5160,7 @@ function getReportActionMessage({
         return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports));
     }
 
-    return parseReportActionHtmlToText(reportAction, reportID, childReportID);
+    return parseReportActionHtmlToText(reportAction, reportID, policyTags, childReportID);
 }
 
 /**
@@ -5224,21 +5227,36 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
 
+type GetReportNameArguments = {
+    report: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy> | SearchPolicy;
+    parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
+    personalDetails?: Partial<PersonalDetailsList>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
+    transactions?: SearchTransaction[];
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    policyTags?: PolicyTagLists;
+    isReportArchived?: boolean;
+    reports?: SearchReport[];
+    policies?: SearchPolicy[];
+};
+
 /**
  * Get the title for a report.
  */
-function getReportName(
-    report: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy> | SearchPolicy,
-    parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
-    personalDetails?: Partial<PersonalDetailsList>,
-    invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-    transactions?: SearchTransaction[],
-    isReportArchived?: boolean,
-    reports?: SearchReport[],
-    policies?: SearchPolicy[],
-): string {
+function getReportName({
+    report,
+    policy,
+    parentReportActionParam,
+    personalDetails,
+    invoiceReceiverPolicy,
+    reportAttributes,
+    transactions,
+    policyTags,
+    reports,
+    policies,
+    isReportArchived,
+}: GetReportNameArguments): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
         report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined && isReportArchived === undefined;
@@ -5247,7 +5265,6 @@ function getReportName(
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
-
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -5439,6 +5456,7 @@ function getReportName(
             childReportID: report?.reportID,
             reports,
             personalDetails,
+            policyTags: policyTags ?? {},
         }).replace(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             return `[${translateLocal('common.attachment')}]`;
@@ -5458,13 +5476,11 @@ function getReportName(
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const policyID = reports?.find((r) => r.reportID === report?.reportID)?.policyID;
-
             const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const modifiedMessage = getForReportAction({
                 reportAction: parentReportAction,
-                policyID,
+                policyTags: policyTags ?? {},
                 movedFromReport,
                 movedToReport,
             });
@@ -5532,18 +5548,18 @@ function getSearchReportName(props: GetReportNameParams): string {
     if (isChatThread(report) && policy?.name) {
         return policy.name;
     }
-    return getReportName(
+    return getReportName({
         report,
         policy,
-        props.parentReportActionParam,
-        props.personalDetails,
-        props.invoiceReceiverPolicy,
-        undefined,
-        props.transactions,
-        props.isReportArchived,
-        props.reports,
-        props.policies,
-    );
+        parentReportActionParam: props.parentReportActionParam,
+        personalDetails: props.personalDetails,
+        invoiceReceiverPolicy: props.invoiceReceiverPolicy,
+        transactions: props.transactions,
+        isReportArchived: props.isReportArchived,
+        reports: props.reports,
+        policies: props.policies,
+        policyTags: props.policyTags,
+    });
 }
 
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
@@ -5644,7 +5660,12 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(
+    report: OnyxEntry<Report>,
+    policyTags: OnyxEntry<PolicyTagLists>,
+    isParentReportArchived = false,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (report?.hasParentAccess === false) {
         return {};
@@ -5682,7 +5703,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     }
 
     return {
-        reportName: getReportName(parentReport, undefined, undefined, undefined, undefined, reportAttributes),
+        reportName: getReportName({report: parentReport, policyTags, reportAttributes}),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -6381,8 +6402,8 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getMovedTransactionMessage(report: OnyxEntry<Report>) {
-    const reportName = getReportName(report) ?? report?.reportName ?? '';
+function getMovedTransactionMessage(report: OnyxEntry<Report>, policyTags: OnyxEntry<PolicyTagLists>) {
+    const reportName = getReportName({report, policyTags}) ?? report?.reportName ?? '';
     const reportUrl = `${environmentURL}/r/${report?.reportID}`;
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
@@ -11487,7 +11508,7 @@ function getGroupChatDraft() {
     return newGroupChatDraft;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined, policyTags: OnyxEntry<PolicyTagLists>): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
@@ -11500,10 +11521,10 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     if (report?.reportID) {
-        return getReportName(getReport(report?.reportID, allReports));
+        return getReportName({report: getReport(report?.reportID, allReports), policyTags});
     }
 
-    return getReportName(report);
+    return getReportName({report, policyTags});
 }
 
 /**
@@ -11626,12 +11647,12 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
     return reportActionList.some((action) => isRetractedAction(action));
 }
 
-function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean) {
+function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, policyTags: OnyxEntry<PolicyTagLists>, isInvoice?: boolean) {
     if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
         const originalMessage = getOriginalMessage(action);
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
-    return getReportName(iouReport) || action.childReportName;
+    return getReportName({report: iouReport, policyTags}) || action.childReportName;
 }
 
 function selectArchivedReportsIdSet(all: Record<string, OnyxInputOrEntry<ReportNameValuePairs>> | null | undefined): ArchivedReportsIDSet {

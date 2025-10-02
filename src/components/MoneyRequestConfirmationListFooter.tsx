@@ -333,7 +333,7 @@ function MoneyRequestConfirmationListFooter({
         }
         return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
     }, [allReports, selectedReportID]);
-    let reportName = getReportName(selectedReport, selectedPolicy);
+    let reportName = getReportName({report: selectedReport, policy: selectedPolicy, policyTags});
 
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(

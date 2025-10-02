@@ -7,6 +7,7 @@ import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
@@ -58,6 +59,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PolicyTagLists} from '@src/types/onyx/PolicyTag';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
 
@@ -125,6 +127,7 @@ function MoneyRequestParticipantsSelector({
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
@@ -278,6 +281,7 @@ function MoneyRequestParticipantsSelector({
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             personalDetails,
             true,
             undefined,
@@ -322,8 +326,14 @@ function MoneyRequestParticipantsSelector({
             newSections.push({
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
+                    let reportPolicyTags: OnyxEntry<PolicyTagLists>;
+                    if (participant.policyID) {
+                        reportPolicyTags = policyTags?.[participant.policyID];
+                    } else {
+                        reportPolicyTags = {};
+                    }
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -346,10 +356,11 @@ function MoneyRequestParticipantsSelector({
         chatOptions.selfDMChat,
         chatOptions.userToInvite,
         personalDetails,
+        reportAttributesDerived,
         translate,
         isPerDiemRequest,
         showImportContacts,
-        reportAttributesDerived,
+        policyTags,
         inputHelperText,
     ]);
 

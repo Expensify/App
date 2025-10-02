@@ -5,7 +5,7 @@ import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {PolicyTagLists, ReportAction} from '@src/types/onyx';
 import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnHideCallback = () => void;
@@ -45,6 +45,7 @@ type ShowContextMenuParams = {
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
     withoutOverlay?: boolean;
+    policyTags?: PolicyTagLists;
 };
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;

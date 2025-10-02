@@ -61,6 +61,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     );
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>));
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
     const getReportActionDebugText = useCallback(
         (reportAction: ReportAction) => {
@@ -77,7 +78,8 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             if (isCreatedAction(reportAction)) {
                 return formatReportLastMessageText(
-                    SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailList, localeCompare, isReportArchived).messageText ?? translate('report.noActivityYet'),
+                    SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailList, localeCompare, policyTags, isReportArchived).messageText ??
+                        translate('report.noActivityYet'),
                 );
             }
 
@@ -87,7 +89,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, report, policy, participantPersonalDetailList, localeCompare, isReportArchived],
+        [translate, report, policy, participantPersonalDetailList, localeCompare, policyTags, isReportArchived],
     );
 
     const searchedReportActions = useMemo(() => {

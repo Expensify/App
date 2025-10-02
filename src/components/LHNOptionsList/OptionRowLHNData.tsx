@@ -38,6 +38,7 @@ function OptionRowLHNData({
     lastMessageTextFromReport,
     localeCompare,
     isReportArchived = false,
+    policyTags,
     lastAction,
     lastActionReport,
     ...propsToForward
@@ -71,6 +72,7 @@ function OptionRowLHNData({
             lastAction,
             localeCompare,
             isReportArchived,
+            policyTags,
             lastActionReport,
             movedFromReport,
             movedToReport,

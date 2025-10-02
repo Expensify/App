@@ -22,6 +22,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
 
     const {localeCompare, formatPhoneNumber} = useLocalize();
 
@@ -39,7 +40,17 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
     if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
-        const searchData = getSections(type, currentSearchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
+        const searchData = getSections(
+            type,
+            currentSearchResults.data,
+            accountID,
+            formatPhoneNumber,
+            policyTags,
+            groupBy,
+            exportReportActions,
+            lastSearchQuery?.searchKey,
+            archivedReportsIdSet,
+        );
         results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;

@@ -99,6 +99,7 @@ function IOURequestStepDistance({
             },
         [optimisticWaypoints, transaction],
     );
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
@@ -310,7 +311,7 @@ function IOURequestStepDistance({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -417,17 +418,18 @@ function IOURequestStepDistance({
         shouldSkipConfirmation,
         transactionID,
         personalDetails,
+        policyTags,
         reportAttributesDerived,
         translate,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
+        lastSelectedDistanceRates,
         backToReport,
         customUnitRateID,
         navigateToConfirmationPage,
         reportID,
-        lastSelectedDistanceRates,
     ]);
 
     const getError = () => {
