@@ -13,7 +13,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -127,24 +126,10 @@ function AttachmentModalBaseContent({
         [onCarouselAttachmentChange, setFile],
     );
 
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems: PopoverMenuItem[] = [];
-
-        threeDotsMenuItemsProp?.forEach((menuItem) => {
-            if (typeof menuItem === 'function') {
-                const generatedMenuItem = menuItem({file: fileToDisplay, source, isLocalSource});
-                if (generatedMenuItem) {
-                    menuItems.push(generatedMenuItem);
-                }
-
-                return;
-            }
-
-            menuItems.push(menuItem);
-        });
-
-        return menuItems;
-    }, [fileToDisplay, isLocalSource, source, threeDotsMenuItemsProp]);
+    const threeDotsMenuItems = useMemo(
+        () => (typeof threeDotsMenuItemsProp === 'function' ? threeDotsMenuItemsProp({file: fileToDisplay, source, isLocalSource}) : (threeDotsMenuItemsProp ?? [])),
+        [fileToDisplay, isLocalSource, source, threeDotsMenuItemsProp],
+    );
 
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = useState(true);
     const setDownloadButtonVisibility = useCallback(

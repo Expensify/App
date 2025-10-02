@@ -145,71 +145,70 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const allowDownload = !isEReceipt;
 
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [];
-        const canEdit = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
+    const threeDotsMenuItems: ThreeDotsMenuItemGenerator = useCallback(
+        ({file, source: innerSource, isLocalSource}) => {
+            const menuItems = [];
+            const canEdit = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
 
-        if (canEdit) {
-            menuItems.push({
-                icon: Expensicons.Camera,
-                text: translate('common.replace'),
-                onSelected: () => {
-                    Navigation.dismissModal();
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                action ?? CONST.IOU.ACTION.EDIT,
-                                iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT),
-                                draftTransactionID ?? transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getActiveRoute(),
-                            ),
-                        );
-                    });
-                },
-            });
-        }
-
-        menuItems.push((({source: sourceState, file, isLocalSource}) => {
-            if (!((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID)) {
-                return;
+            if (canEdit) {
+                menuItems.push({
+                    icon: Expensicons.Camera,
+                    text: translate('common.replace'),
+                    onSelected: () => {
+                        Navigation.dismissModal();
+                        InteractionManager.runAfterInteractions(() => {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    action ?? CONST.IOU.ACTION.EDIT,
+                                    iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT),
+                                    draftTransactionID ?? transaction?.transactionID,
+                                    report?.reportID,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                        });
+                    },
+                });
             }
 
-            return {
-                icon: Expensicons.Download,
-                text: translate('common.download'),
-                onSelected: () => onDownloadAttachment({source: sourceState, file}),
-            };
-        }) satisfies ThreeDotsMenuItemGenerator);
+            if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
+                menuItems.push({
+                    icon: Expensicons.Download,
+                    text: translate('common.download'),
+                    onSelected: () => onDownloadAttachment({source: innerSource, file}),
+                });
+            }
 
-        const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-        const canDelete = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
+            const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
+            const canDelete = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
 
-        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDelete && !hasMissingSmartscanFields(transaction)) {
-            menuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('receipt.deleteReceipt'),
-                onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
-                shouldCallAfterModalHide: true,
-            });
-        }
-        return menuItems;
-    }, [
-        canEditReceipt,
-        readonly,
-        isDraftTransaction,
-        transaction,
-        canDeleteReceipt,
-        translate,
-        action,
-        iouTypeParam,
-        isTrackExpenseActionValue,
-        draftTransactionID,
-        report?.reportID,
-        isOffline,
-        allowDownload,
-        onDownloadAttachment,
-    ]);
+            if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDelete && !hasMissingSmartscanFields(transaction)) {
+                menuItems.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate('receipt.deleteReceipt'),
+                    onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+                    shouldCallAfterModalHide: true,
+                });
+            }
+            return menuItems;
+        },
+        [
+            canEditReceipt,
+            readonly,
+            isDraftTransaction,
+            transaction,
+            canDeleteReceipt,
+            translate,
+            action,
+            iouTypeParam,
+            isTrackExpenseActionValue,
+            draftTransactionID,
+            report?.reportID,
+            isOffline,
+            allowDownload,
+            onDownloadAttachment,
+        ],
+    );
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
