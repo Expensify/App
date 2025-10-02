@@ -2722,7 +2722,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.9.0):
+  - RNCPicker (2.11.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3853,7 +3853,7 @@ SPEC CHECKSUMS:
   ReactNativeHybridApp: 47a9e32fe897d22240b69714a25da8b0dcdf53b4
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: cc758c52da06b146344ceff63b4dfcf255a693c0
-  RNCPicker: 86d8ea4068120e5bc5f0392543ddb82fb2846c8d
+  RNCPicker: c4e7ce9d70bfffb1f4b9e210af64af9160c571bb
   RNDeviceInfo: f649855d9132da878fa8b9d4b04ec30de85f5b54
   RNFBAnalytics: 921718282c3326adb23f1eb732898e31804be5a3
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
