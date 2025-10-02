@@ -1,9 +1,9 @@
 import {Image} from 'expo-image';
 import React, {useEffect, useState} from 'react';
-import type {ImageSourcePropType} from 'react-native';
 import {InteractionManager} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import MobileBackgroundImage from '@assets/images/home-background--ios.svg';
+import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import type BackgroundImageProps from './types';
 
-function BackgroundImage({width, transitionDuration}: BackgroundImageProps) {
+function BackgroundImage({width}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
@@ -57,8 +57,9 @@ function BackgroundImage({width, transitionDuration}: BackgroundImageProps) {
             <Image
                 source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}
+                pointerEvents="none"
                 style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
-                transition={transitionDuration}
+                transition={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
             />
         </Reanimated.View>
     );
