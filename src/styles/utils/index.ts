@@ -62,7 +62,7 @@ const workspaceColorOptions: SVGAvatarColorStyle[] = [
     {backgroundColor: colors.yellow700, fill: colors.yellow200},
     {backgroundColor: colors.tangerine100, fill: colors.tangerine600},
     {backgroundColor: colors.tangerine400, fill: colors.tangerine700},
-    {backgroundColor: colors.tangerine700, fill: colors.tangerine400},
+    {backgroundColor: colors.tangerine700, fill: colors.tangerine200},
     {backgroundColor: colors.pink100, fill: colors.pink600},
     {backgroundColor: colors.pink400, fill: colors.pink700},
     {backgroundColor: colors.pink700, fill: colors.pink200},
