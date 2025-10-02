@@ -4,7 +4,7 @@ import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
+import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
@@ -35,6 +35,9 @@ use(Reauthentication);
 
 // Handles the case when the copilot has been deleted. The response contains jsonCode 408 and a message indicating account deletion
 use(handleDeletedAccount);
+
+// Handle supportal permission denial centrally
+use(SupportalPermission);
 
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
 use(HandleUnusedOptimisticID);
