@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -674,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
-        description: 'Sie sind nicht berechtigt, diese Aktion auszuführen, wenn der Support eingeloggt ist.',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Sie sind nicht berechtigt, diese Aktion auszuführen, wenn der Support eingeloggt ist (Befehl: ${command ?? ''}). Wenn Sie der Meinung sind, dass Success diese Aktion ausführen können sollte, starten Sie bitte eine Unterhaltung in Slack.`,
     },
     lockedAccount: {
         title: 'Gesperrtes Konto',
@@ -4877,8 +4882,7 @@ const translations = {
             existingTagError: 'Ein Tag mit diesem Namen existiert bereits',
             invalidTagNameError: 'Der Tag-Name darf nicht 0 sein. Bitte wählen Sie einen anderen Wert.',
             genericFailureMessage: 'Beim Aktualisieren des Tags ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
-            importedFromAccountingSoftware: 'Tags werden in deiner',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>Mitarbeiter sehen Tags als <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: 'Die unten stehenden Tags werden aus Ihrem',
             glCode: 'GL-Code',
             updateGLCodeFailureMessage: 'Beim Aktualisieren des GL-Codes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
             tagRules: 'Tag-Regeln',
@@ -5104,8 +5108,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Es gibt einen Fehler mit einer Verbindung, die in Expensify Classic eingerichtet wurde.',
-            goToODToFix: 'Gehen Sie zu Expensify Classic, um dieses Problem zu beheben.',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Es gibt einen Fehler mit einer Verbindung, die in Expensify Classic eingerichtet wurde. [Gehen Sie zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Gehe zu Expensify Classic, um deine Einstellungen zu verwalten.',
             setup: 'Verbinden',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Zuletzt synchronisiert ${relativeDate}`,
@@ -5560,12 +5564,6 @@ const translations = {
                 description:
                     'Expensify Travel ist eine neue Plattform für die Buchung und Verwaltung von Geschäftsreisen, die es Mitgliedern ermöglicht, Unterkünfte, Flüge, Transportmittel und mehr zu buchen.',
                 onlyAvailableOnPlan: 'Reisen ist im Collect-Plan verfügbar, beginnend bei',
-            },
-            reports: {
-                title: 'Berichte',
-                description:
-                    'Erstellen Sie organisierte Spesenabrechnungen, um Ihre Geschäftsausgaben zu verfolgen, zur Genehmigung einzureichen und Ihren Erstattungsprozess zu optimieren.',
-                onlyAvailableOnPlan: 'Berichte sind im Collect-Plan verfügbar, beginnend bei ',
             },
             multiLevelTags: {
                 title: 'Mehrstufige Tags',

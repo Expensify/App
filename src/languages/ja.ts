@@ -103,11 +103,11 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EmployeeInviteMessageParams,
-    EmployeesSeeTagsAsParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -674,7 +674,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
-        description: 'サポートがログインしているときにこの操作を行う権限がありません。',
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `サポートがログインしているときにこのアクションを実行する権限がありません（コマンド: ${command ?? ''}）。Successがこのアクションを実行できるべきだと思われる場合は、Slackで会話を開始してください。`,
     },
     lockedAccount: {
         title: 'アカウントがロックされました',
@@ -4851,8 +4856,7 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: 'タグは次で管理されています:',
-            employeesSeeTagsAs: ({customTagName}: EmployeesSeeTagsAsParams) => ` <muted-text>従業員にはタグが次のように表示されます: <strong>${customTagName}</strong>.</muted-text>`,
+            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'タグルール',
@@ -5075,8 +5079,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Expensify Classicで設定された接続にエラーがあります。',
-            goToODToFix: 'この問題を解決するには、Expensify Classicに移動してください。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Expensify Classicで設定された接続にエラーがあります。[この問題を解決するには、Expensify Classicに移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classicに移動してください。',
             setup: '接続する',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期日時: ${relativeDate}`,
@@ -5522,11 +5526,6 @@ const translations = {
                 title: '旅行',
                 description: 'Expensify Travelは、メンバーが宿泊施設、フライト、交通機関などを予約できる新しい法人向け旅行予約および管理プラットフォームです。',
                 onlyAvailableOnPlan: '旅行は、Collectプランで利用可能です。料金は',
-            },
-            reports: {
-                title: 'レポート',
-                description: '組織化された経費レポートを作成して、ビジネス支出を追跡し、承認のために提出し、払い戻しプロセスを合理化します。',
-                onlyAvailableOnPlan: 'レポートは、Collectプランで利用可能です。料金は ',
             },
             multiLevelTags: {
                 title: 'マルチレベルタグ',

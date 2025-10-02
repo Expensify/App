@@ -1052,6 +1052,7 @@ const CONST = {
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
+        POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SIGN_OUT: 'signout',
     },
 
@@ -6960,14 +6961,6 @@ const CONST = {
                 title: 'workspace.upgrade.travel.title' as const,
                 description: 'workspace.upgrade.travel.description' as const,
                 icon: 'Luggage',
-            },
-            reports: {
-                id: 'reports' as const,
-                alias: 'reports',
-                name: 'Reports',
-                title: 'workspace.upgrade.reports.title' as const,
-                description: 'workspace.upgrade.reports.description' as const,
-                icon: 'ReportReceipt',
             },
             distanceRates: {
                 id: 'distanceRates' as const,
