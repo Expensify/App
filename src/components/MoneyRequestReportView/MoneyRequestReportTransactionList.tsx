@@ -392,7 +392,6 @@ function MoneyRequestReportTransactionList({
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                             }}
-                            style={[styles.mwFitContent]}
                         />
                     </OfflineWithFeedback>
                 )}
