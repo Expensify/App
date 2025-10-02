@@ -933,7 +933,6 @@ const CONST = {
     },
     TRIAL_DURATION_DAYS: 8,
     EXAMPLE_PHONE_NUMBER: '+15005550006',
-    DEFAULT_COUNTRY_CODE: 1,
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     connectionsVideoPaths,
