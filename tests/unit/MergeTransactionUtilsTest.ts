@@ -4,6 +4,7 @@ import {
     getDisplayValue,
     getMergeableDataAndConflictFields,
     getMergeFieldTranslationKey,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
@@ -13,7 +14,7 @@ import {
 import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 
 describe('MergeTransactionUtils', () => {
     describe('getSourceTransactionFromMergeTransaction', () => {
@@ -592,6 +593,82 @@ describe('MergeTransactionUtils', () => {
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
             expect(categoryResult).toBe('Food & Dining');
+        });
+    });
+
+    describe('getMergeFieldUpdatedValues', () => {
+        it('should return updated values with the field value for non-special fields', () => {
+            // Given a transaction and a basic field like merchant
+            const transaction = createRandomTransaction(0);
+            const fieldValue = 'New Merchant Name';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+
+            // Then it should return an object with the field value
+            expect(result).toEqual({
+                merchant: 'New Merchant Name',
+            });
+        });
+
+        it('should include currency when field is amount', () => {
+            // Given a transaction with EUR currency
+            const transaction = {
+                ...createRandomTransaction(0),
+                currency: CONST.CURRENCY.EUR,
+            };
+            const fieldValue = 2500;
+
+            // When we get updated values for amount field
+            const result = getMergeFieldUpdatedValues(transaction, 'amount', fieldValue);
+
+            // Then it should include both amount and currency
+            expect(result).toEqual({
+                amount: 2500,
+                currency: CONST.CURRENCY.EUR,
+            });
+        });
+
+        it('should include additional fields when merchant field is selected for distance request', () => {
+            // Given a distance request transaction
+            const transaction = {
+                ...createRandomDistanceRequestTransaction(0),
+                currency: CONST.CURRENCY.USD,
+                amount: 2500,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'unit123',
+                        quantity: 25.5,
+                    },
+                    waypoints: {
+                        waypoint0: {name: 'Start Location', address: '123 Start St'},
+                        waypoint1: {name: 'End Location', address: '456 End Ave'},
+                    },
+                },
+            };
+            const fieldValue = 'New Distance Merchant';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+
+            // Then it should include merchant plus all distance-specific fields
+            expect(result).toEqual({
+                merchant: 'New Distance Merchant',
+                amount: -2500,
+                currency: CONST.CURRENCY.USD,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: 'unit123',
+                    quantity: 25.5,
+                },
+                waypoints: {
+                    waypoint0: {name: 'Start Location', address: '123 Start St'},
+                    waypoint1: {name: 'End Location', address: '456 End Ave'},
+                },
+            });
         });
     });
 });
