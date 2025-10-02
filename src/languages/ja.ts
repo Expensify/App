@@ -107,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -1476,7 +1477,6 @@ const translations = {
             pageTitle: '保存する詳細を選んでください：',
             noDifferences: 'トランザクション間に差異はありません',
             pleaseSelectError: ({field}: {field: string}) => `${field} を選択してください`,
-            pleaseSelectAttendees: '参加者を選択してください',
             selectAllDetailsError: '続行する前にすべての詳細を選択してください。',
         },
         confirmationPage: {
@@ -5079,8 +5079,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Expensify Classicで設定された接続にエラーがあります。',
-            goToODToFix: 'この問題を解決するには、Expensify Classicに移動してください。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Expensify Classicで設定された接続にエラーがあります。[この問題を解決するには、Expensify Classicに移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classicに移動してください。',
             setup: '接続する',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期日時: ${relativeDate}`,
