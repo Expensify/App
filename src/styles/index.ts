@@ -1432,7 +1432,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         signInPageGradientMobile: {
             height: 300,
-            width: 800,
+            width: '100%',
             position: 'absolute',
             top: 0,
             left: 0,
