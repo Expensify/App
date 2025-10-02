@@ -1588,8 +1588,21 @@ describe('SidebarUtils', () => {
                     whisperedToAccountIDs: [],
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                const PERSONAL_DETAILS = {
+                    '1': {
+                        accountID: 1,
+                        login: 'email1@test.com',
+                        firstName: 'One',
+                    },
+                    '2': {
+                        accountID: 2,
+                        login: 'email2@test.com',
+                        firstName: 'Two',
+                    },
+                };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
