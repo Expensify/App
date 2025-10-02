@@ -7225,8 +7225,8 @@ const translations = {
     autoSubmitModal: {
         title: 'Alles klar und eingereicht!',
         description: 'Alle Warnungen und Verstöße wurden beseitigt, daher:',
-        submittedExpensesTitle: 'Diese Ausgaben wurden eingereicht',
-        submittedExpensesDescription: 'Diese Ausgaben wurden an Ihren Genehmiger gesendet, können aber noch bearbeitet werden, bis sie genehmigt sind.',
+        submittedExpensesTitle: 'Einhaltungsfähige Ausgaben wurden eingereicht',
+        submittedExpensesDescription: 'Konforme Ausgaben wurden an Ihren Genehmiger gesendet, können jedoch noch bearbeitet werden, bis sie genehmigt sind.',
         pendingExpensesTitle: 'Ausstehende Ausgaben wurden verschoben',
         pendingExpensesDescription: 'Alle ausstehenden Kartenausgaben wurden in einen separaten Bericht verschoben, bis sie gebucht werden.',
     },
