@@ -38,7 +38,7 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
+import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
@@ -171,6 +171,10 @@ function TransactionItemRow({
     const merchantOrDescription = merchant || description;
 
     const missingFieldError = useMemo(() => {
+        if (isSettled(report)) {
+            return '';
+        }
+
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
@@ -189,7 +193,7 @@ function TransactionItemRow({
             }
             return error;
         }
-    }, [report, transactionItem, translate]);
+    }, [transactionItem, translate, report]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({
@@ -480,7 +484,7 @@ function TransactionItemRow({
                             </View>
                         )}
                         {shouldShowErrors && (
-                            <TransactionItemRowRBRWithOnyx
+                            <TransactionItemRowRBR
                                 transaction={transactionItem}
                                 violations={violations}
                                 report={report}
@@ -530,7 +534,7 @@ function TransactionItemRow({
                 )}
             </View>
             {shouldShowErrors && (
-                <TransactionItemRowRBRWithOnyx
+                <TransactionItemRowRBR
                     transaction={transactionItem}
                     violations={violations}
                     report={report}
