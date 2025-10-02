@@ -1,6 +1,6 @@
 # `expo-video` patches
 
-### [expo-video+3.0.11+comment-jsLogger.patch](expo-video+3.0.11+comment-jsLogger.patch)
+### [expo-video+3.0.11+001+comment-jsLogger.patch](expo-video+3.0.11+001+comment-jsLogger.patch)
 
 - Reason:
 
