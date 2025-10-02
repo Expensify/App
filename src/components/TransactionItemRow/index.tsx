@@ -6,14 +6,15 @@ import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import ActionCell from '@components/SelectionList/Search/ActionCell';
-import DateCell from '@components/SelectionList/Search/DateCell';
-import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
+import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
+import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -170,6 +171,10 @@ function TransactionItemRow({
     const merchantOrDescription = merchant || description;
 
     const missingFieldError = useMemo(() => {
+        if (isSettled(report)) {
+            return '';
+        }
+
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
@@ -188,7 +193,7 @@ function TransactionItemRow({
             }
             return error;
         }
-    }, [transactionItem, translate]);
+    }, [transactionItem, translate, report]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({

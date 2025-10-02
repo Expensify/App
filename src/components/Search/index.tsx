@@ -3,12 +3,11 @@ import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
@@ -26,9 +25,10 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import {
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
@@ -49,7 +49,6 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -59,7 +58,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -74,6 +73,7 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
+    onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
 };
 
@@ -104,6 +104,7 @@ function mapTransactionItemToSelectedEntry(
             policyID: item.policyID,
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
             convertedCurrency: item.convertedCurrency,
         },
     ];
@@ -184,38 +185,12 @@ function prepareTransactionsList(
             amount: Math.abs(item.modifiedAmount || item.amount),
             convertedAmount: item.convertedAmount,
             convertedCurrency: item.convertedCurrency,
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
         },
     };
 }
 
-const archivedReportsSelector = (all: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet => {
-    const ids = new Set<string>();
-    if (!all) {
-        return ids;
-    }
-
-    const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-    for (const [key, value] of Object.entries(all)) {
-        if (isArchivedReport(value)) {
-            const reportID = key.slice(prefixLength);
-            ids.add(reportID);
-        }
-    }
-    return ids;
-};
-
-const exportReportActionsSelector = (allReportActions: OnyxCollection<ReportActions>) => {
-    return Object.fromEntries(
-        Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
-            const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter(
-                (action) => isExportIntegrationAction(action as ReportAction) || isIntegrationMessageAction(action as ReportAction),
-            );
-            return [reportID, filteredReportActions];
-        }),
-    );
-};
-
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
+function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled, onSortPressedCallback}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -250,13 +225,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: archivedReportsSelector,
+        selector: selectArchivedReportsIdSet,
     });
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: exportReportActionsSelector,
+        selector: selectFilteredReportActions,
     });
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
@@ -328,7 +303,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, groupBy);
 
     useEffect(() => {
         if (!isFocused) {
@@ -365,20 +340,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
-
-        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
-            return;
-        }
-
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals});
-        // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
-
-    useEffect(() => {
         openSearch();
     }, []);
 
@@ -402,25 +363,41 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const data = useMemo(() => {
+    const [data, dataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
-            return [];
+            return [[], 0];
         }
 
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
         if (groupBy && (isChat || isTask)) {
-            return [];
+            return [[], 0];
         }
 
-        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        return [data1, data1.length];
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+
+    useEffect(() => {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
+            return;
+        }
+
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength});
+
+        // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -860,6 +837,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
+        onSortPressedCallback?.();
         navigation.setParams({q: newQuery});
     };
 
