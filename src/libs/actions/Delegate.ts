@@ -70,6 +70,10 @@ type WithDelegatedAccess = {
     delegatedAccess: DelegatedAccess | undefined;
 };
 
+type WithCredentials = {
+    credentials: Credentials;
+};
+
 type WithEmail = {
     email: string;
 };
@@ -110,7 +114,7 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials;
 
 // Clear pending action for role update
 type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
