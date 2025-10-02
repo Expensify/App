@@ -180,7 +180,12 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         amount: finalAmount,
         currency: mergeTransaction.currency,
         category: mergeTransaction.category,
-        comment: mergeTransaction.description,
+        comment: JSON.stringify({
+            ...targetTransaction.comment,
+            comment: mergeTransaction.description,
+            customUnit: mergeTransaction.customUnit,
+            waypoints: mergeTransaction.waypoints,
+        }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
