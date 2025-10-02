@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {generateIsEmptyReport, generateReportAttributes, generateReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, getReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -170,6 +170,10 @@ export default createOnyxDerivedValueConfig({
             const report = reports[key];
 
             if (!report || !isValidReport(report)) {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                if (acc[reportID]) {
+                    delete acc[reportID];
+                }
                 return acc;
             }
 
@@ -196,7 +200,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: generateReportName(report),
+                reportName: report ? getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,

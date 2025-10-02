@@ -4,6 +4,7 @@ import type {UpdateContext} from '@libs/OptimisticReportNames';
 import {computeReportNameIfNeeded, updateOptimisticReportNamesFromUpdates} from '@libs/OptimisticReportNames';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -64,7 +65,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     );
 
     const mockContext: UpdateContext = {
-        betas: ['authAutoReportTitle'],
+        betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
         betaConfiguration: {},
         allReports: mockReports,
         allPolicies: mockPolicies,
@@ -252,7 +253,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
         test('[OptimisticReportNames] missing policies and reports', async () => {
             const contextWithMissingData: UpdateContext = {
-                betas: ['authAutoReportTitle'],
+                betas: [CONST.BETAS.CUSTOM_REPORT_NAMES],
                 betaConfiguration: {},
                 allReports: {},
                 allPolicies: {},

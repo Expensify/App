@@ -142,21 +142,25 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
  * Returns amount filter value for QueryString.
  */
 function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues: Partial<SearchAdvancedFiltersForm>) {
+    const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
     const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
 
-    let amountFilter = '';
-    if (greaterThan) {
-        amountFilter += `${filterKey}>${greaterThan}`;
-    }
-    if (lessThan && greaterThan) {
-        amountFilter += ' ';
-    }
-    if (lessThan) {
-        amountFilter += `${filterKey}<${lessThan}`;
+    const amountStrings = [];
+
+    if (equalTo) {
+        amountStrings.push(`${filterKey}:${equalTo}`);
     }
 
-    return amountFilter;
+    if (greaterThan) {
+        amountStrings.push(`${filterKey}>${greaterThan}`);
+    }
+
+    if (lessThan) {
+        amountStrings.push(`${filterKey}<${lessThan}`);
+    }
+
+    return amountStrings.join(' ');
 }
 
 /**
@@ -551,6 +555,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
                     filterKey === FILTER_KEYS.HAS ||
+                    filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.ATTENDEE) &&
                 Array.isArray(filterValue) &&
@@ -637,6 +642,10 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
             filtersForm[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
+            const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
+            filtersForm[filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
@@ -733,10 +742,14 @@ function buildFilterFormValuesFromQuery(
         }
 
         if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+            const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
 
             // backend amount is an integer and is 2 digits longer than frontend amount
+            filtersForm[equalToKey] =
+                filterList.find((filter) => filter.operator === 'eq' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
+                filtersForm[equalToKey];
             filtersForm[lessThanKey] =
                 filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
                 filtersForm[lessThanKey];
