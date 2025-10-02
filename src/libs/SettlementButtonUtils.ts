@@ -11,7 +11,7 @@ type RouteMapping = {
     navigate: () => void;
 };
 
-const getRouteMappings = (reportID: string | undefined, chatReportID: string): RouteMapping[] => {
+const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping[] => {
     const nonReportIdRouteMappings = [
         {
             check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_ROOT.getRoute({query: ''})),
@@ -59,9 +59,9 @@ const getRouteMappings = (reportID: string | undefined, chatReportID: string): R
     return [...nonReportIdRouteMappings, ...reportIdRouteMappings];
 };
 
-const handleUnvalidatedUserNavigation = (reportID: string | undefined, chatReportID: string) => {
+const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string) => {
     const activeRoute = Navigation.getActiveRoute();
-    const matchedRoute = getRouteMappings(reportID, chatReportID).find((mapping) => mapping.check(activeRoute));
+    const matchedRoute = getRouteMappings(chatReportID, reportID).find((mapping) => mapping.check(activeRoute));
 
     if (matchedRoute) {
         matchedRoute.navigate();
