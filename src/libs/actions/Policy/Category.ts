@@ -1,8 +1,7 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import lodashUnion from 'lodash/union';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import * as API from '@libs/API';
 import type {
@@ -34,8 +33,7 @@ import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, TransactionViolations} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report, TransactionViolations} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -54,12 +52,7 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
-function appendSetupCategoriesOnboardingData(
-    onyxData: OnyxData,
-    taskReport: OnyxEntry<OnyxTypes.Report>,
-    taskParentReport: OnyxEntry<OnyxTypes.Report>,
-    isSetupCategoriesTaskParentReportArchived: boolean,
-) {
+function appendSetupCategoriesOnboardingData(onyxData: OnyxData, taskReport: OnyxEntry<Report>, taskParentReport: OnyxEntry<Report>, isSetupCategoriesTaskParentReportArchived: boolean) {
     const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData(taskReport, taskParentReport, isSetupCategoriesTaskParentReportArchived);
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
@@ -337,8 +330,8 @@ function setWorkspaceCategoryEnabled(
     policyID: string,
     categoriesToUpdate: Record<string, {name: string; enabled: boolean}>,
     isSetupCategoriesTaskParentReportArchived: boolean,
-    taskReport: OnyxEntry<OnyxTypes.Report>,
-    taskParentReport: OnyxEntry<OnyxTypes.Report>,
+    taskReport: OnyxEntry<Report>,
+    taskParentReport: OnyxEntry<Report>,
     policyTagLists: PolicyTagLists = {},
     allTransactionViolations: OnyxCollection<TransactionViolations> = {},
 ) {
@@ -612,8 +605,8 @@ function createPolicyCategory(
     policyID: string,
     categoryName: string,
     isSetupCategoriesTaskParentReportArchived: boolean,
-    taskReport: OnyxEntry<OnyxTypes.Report>,
-    taskParentReport: OnyxEntry<OnyxTypes.Report>,
+    taskReport: OnyxEntry<Report>,
+    taskParentReport: OnyxEntry<Report>,
 ) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
     appendSetupCategoriesOnboardingData(onyxData, taskReport, taskParentReport, isSetupCategoriesTaskParentReportArchived);
@@ -995,8 +988,8 @@ function deleteWorkspaceCategories(
     policyID: string,
     categoryNamesToDelete: string[],
     isSetupCategoriesTaskParentReportArchived: boolean,
-    taskReport: OnyxEntry<OnyxTypes.Report>,
-    taskParentReport: OnyxEntry<OnyxTypes.Report>,
+    taskReport: OnyxEntry<Report>,
+    taskParentReport: OnyxEntry<Report>,
     policyTagLists: PolicyTagLists = {},
     transactionViolations: OnyxCollection<TransactionViolations> = {},
 ) {

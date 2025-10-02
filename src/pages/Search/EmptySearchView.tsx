@@ -446,6 +446,8 @@ function EmptySearchViewContent({
         introSelected,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
+        taskReport,
+        taskParentReport,
         isViewTourParentReportArchived,
         hasResults,
         defaultViewItemHeader,

@@ -157,7 +157,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 allTransactionViolations,
             );
         },
-        [policyId, isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations],
+        [policyId, isSetupCategoryTaskParentReportArchived, taskReport, taskParentReport, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {

@@ -574,6 +574,8 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             shouldGenerateTransactionThreadReport,
             backToReport,
+            taskReport,
+            taskParentReport,
             isViewTourParentReportArchived,
         ],
     );
