@@ -1605,6 +1605,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
+                    policyTags: {},
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
