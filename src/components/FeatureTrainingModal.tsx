@@ -16,8 +16,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {dismissTrackTrainingModal} from '@userActions/User';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
@@ -219,6 +220,7 @@ function FeatureTrainingModal({
     const {isKeyboardActive} = useKeyboardState();
 
     useEffect(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             if (!isModalDisabled) {
                 setIsModalVisible(false);
@@ -340,12 +342,13 @@ function FeatureTrainingModal({
 
         if (!willShowAgain) {
             Log.hmmm('[FeatureTrainingModal] Dismissing track training modal');
-            dismissTrackTrainingModal();
+            setNameValuePair(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING, true, false);
         }
 
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
@@ -430,6 +433,8 @@ function FeatureTrainingModal({
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
                 onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
                 onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
+                // Wrapper is either a View or ScrollView, which is also a View.
+                // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>

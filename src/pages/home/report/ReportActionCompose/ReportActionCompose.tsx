@@ -27,6 +27,7 @@ import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitl
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -35,7 +36,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import getModalState from '@libs/getModalState';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -45,6 +45,8 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isChatRoom,
+    isGroupChat,
     isReportApproved,
     isReportTransactionThread,
     isSelfDM,
@@ -52,7 +54,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest} from '@libs/TransactionUtils';
+import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
@@ -147,13 +149,14 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     /**
      * Updates the Highlight state of the composer
      */
     const [isFocused, setIsFocused] = useState(() => {
-        const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
@@ -225,6 +228,8 @@ function ReportActionCompose({
         canBeMissing: true,
     });
 
+    const personalDetail = useCurrentUserPersonalDetails();
+
     const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
@@ -233,15 +238,18 @@ function ReportActionCompose({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
-    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
+    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && (isManualDistanceRequest(transaction) || !isDistanceRequest(transaction));
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
-    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs, isReportArchived]);
+        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived, isRestrictedToPreferredPolicy).length;
+        const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
+        const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
+        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions);
+    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -323,11 +331,18 @@ function ReportActionCompose({
                 if (Array.isArray(attachmentFileRef.current)) {
                     // Handle multiple files
                     attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, newCommentTrimmed, true);
+                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
                     });
                 } else {
                     // Handle single file
-                    addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                    addAttachmentReportActions(
+                        transactionThreadReportID ?? reportID,
+                        reportID,
+                        attachmentFileRef.current,
+                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        newCommentTrimmed,
+                        true,
+                    );
                 }
                 attachmentFileRef.current = null;
             } else {
@@ -336,7 +351,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, transactionThreadReportID],
+        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -682,7 +697,11 @@ function ReportActionCompose({
                                                     dropTitle={translate('dropzone.addAttachments')}
                                                     dropStyles={styles.attachmentDropOverlay(true)}
                                                     dropTextStyles={styles.attachmentDropText}
-                                                    dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)}
+                                                    dashedBorderStyles={[
+                                                        styles.dropzoneArea,
+                                                        styles.easeInOpacityTransition,
+                                                        styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true),
+                                                    ]}
                                                 />
                                             </DragAndDropConsumer>
                                         )}

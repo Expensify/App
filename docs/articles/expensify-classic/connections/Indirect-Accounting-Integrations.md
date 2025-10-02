@@ -4,7 +4,6 @@ description: Learn how to export expenses and reports using a flat-file template
 keywords: [Expensify Classic, accounting integration, export template, indirect integration, flat-file import]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify supports both **direct** and **indirect** accounting integrations. If your accounting software isn’t directly integrated, you can still export expenses and reports using a **flat-file import**.
 
@@ -67,4 +66,3 @@ If your accounting software supports flat-file imports but isn’t listed above,
 2. Alternatively, go to **Settings** > **Workspaces** > **Group** > _Your workspace_ > **Export Formats**.
 3. Create a custom export template that matches the format required by your accounting system.
 
-</div>

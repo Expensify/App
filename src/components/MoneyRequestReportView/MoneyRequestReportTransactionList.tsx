@@ -7,8 +7,9 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
@@ -19,19 +20,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import FS from '@libs/Fullstory';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
-import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getMoneyRequestSpendBreakdown, isExpenseReport} from '@libs/ReportUtils';
+import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
+import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
@@ -39,16 +46,26 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
+    /** The money request report containing the transactions */
     report: OnyxTypes.Report;
+
+    /** The workspace to which the report belongs */
+    policy?: OnyxTypes.Policy;
 
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
+
+    /** Whether there is a pending delete transaction */
+    hasPendingDeletionTransaction?: boolean;
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
+
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
 
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
@@ -68,10 +85,13 @@ type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
 const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
+
+type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
@@ -82,9 +102,23 @@ type SortedTransactions = {
 
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
-const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
-    const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
-    return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
+const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableColumnName, reportToSort: OnyxTypes.Report) => {
+    switch (key) {
+        case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            return getCreated(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            return getMerchant(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            return getCategory(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            return getTag(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            return getAmount(transaction, isExpenseReport(reportToSort), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            return Parser.htmlToText(transaction.comment?.comment ?? '');
+        default:
+            return transaction[key];
+    }
 };
 
 function MoneyRequestReportTransactionList({
@@ -92,9 +126,12 @@ function MoneyRequestReportTransactionList({
     transactions,
     newTransactions,
     reportActions,
+    violations,
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
+    hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
+    policy,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -110,13 +147,15 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
+    const session = useSession();
 
     const hasPendingAction = useMemo(() => {
-        return transactions.some(getTransactionPendingAction);
-    }, [transactions]);
+        return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
+    }, [hasPendingDeletionTransaction, transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const personalDetailsList = usePersonalDetails();
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -153,31 +192,47 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
-            .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy, localeCompare))
+            .sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true))
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),
             }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
+    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
 
+    const columnsToShow = useMemo(() => {
+        const columns = getColumnsToShow(session?.accountID, transactions, true);
+        return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
+    }, [transactions, session?.accountID]);
+
+    /**
+     * Navigate to the transaction thread for a transaction, creating one optimistically if it doesn't yet exist.
+     */
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
-            const reportIDToNavigate = iouAction?.childReportID;
-            if (!reportIDToNavigate) {
-                return;
-            }
-
             const backTo = Navigation.getActiveRoute();
+            const reportIDToNavigate = iouAction?.childReportID;
+
+            const routeParams = {
+                reportID: reportIDToNavigate,
+                backTo,
+            } as ReportScreenNavigationProps;
+
+            if (!iouAction?.childReportID) {
+                const transactionThreadReport = createTransactionThreadReport(report, iouAction);
+                if (transactionThreadReport) {
+                    routeParams.reportID = transactionThreadReport.reportID;
+                }
+            }
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions, sortedTransactions],
+        [report, reportActions, sortedTransactions],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -222,10 +277,15 @@ function MoneyRequestReportTransactionList({
 
     const listHorizontalPadding = styles.ph5;
 
+    const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
+
     if (isEmptyTransactions) {
         return (
             <>
-                <SearchMoneyRequestReportEmptyState />
+                <SearchMoneyRequestReportEmptyState
+                    report={report}
+                    policy={policy}
+                />
                 <MoneyRequestReportTotalSpend
                     hasComments={hasComments}
                     isLoadingReportActions={!!isLoadingReportActions}
@@ -262,6 +322,7 @@ function MoneyRequestReportTransactionList({
                             shouldShowSorting
                             sortBy={sortBy}
                             sortOrder={sortOrder}
+                            columns={columnsToShow}
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}
                             taxAmountColumnSize={taxAmountColumnSize}
@@ -272,7 +333,6 @@ function MoneyRequestReportTransactionList({
 
                                 setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                             }}
-                            isIOUReport={isIOUReport(report)}
                         />
                     )}
                 </View>
@@ -283,6 +343,8 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
+                            violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                            columns={columnsToShow}
                             report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
                             toggleTransaction={toggleTransaction}
@@ -294,6 +356,7 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                            forwardedFSClass={transactionItemFSClass}
                         />
                     );
                 })}
@@ -319,7 +382,7 @@ function MoneyRequestReportTransactionList({
                                 style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
                             >
                                 {value}
-                            </Text>
+                            </Text>{' '}
                         </View>
                     ))}
                 </View>

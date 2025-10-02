@@ -3,7 +3,7 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,8 +12,23 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolation} from '@src/types/onyx';
 
-function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
+type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    violations?: Record<string, TransactionViolation[]>;
+};
+
+function UnreportedExpenseListItem<TItem extends ListItem>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onFocus,
+    shouldSyncFocus,
+    onSelectRow,
+    violations,
+}: UnreportedExpenseListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
     const [isSelected, setIsSelected] = useState<boolean>(false);
@@ -32,6 +47,8 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
+    const isItemDisabled = !!isDisabled && !isSelected;
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -40,7 +57,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     onSelectRow(item);
                     setIsSelected((val) => !val);
                 }}
-                disabled={isDisabled && !isSelected}
+                disabled={isItemDisabled}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
@@ -54,6 +71,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
             >
                 <TransactionItemRow
                     transactionItem={transactionItem}
+                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
                     shouldUseNarrowLayout
                     isSelected={isSelected}
                     shouldShowTooltip={showTooltip}
@@ -64,6 +82,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                         onSelectRow(item);
                         setIsSelected((val) => !val);
                     }}
+                    isDisabled={isItemDisabled}
                     shouldShowCheckbox
                     style={styles.p3}
                 />

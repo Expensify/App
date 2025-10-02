@@ -16,10 +16,10 @@ type PrevNextButtonsProps = {
     isNextButtonDisabled?: boolean;
 
     /** Moves a user to the next item */
-    onNext?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onNext: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Moves a user to the previous item */
-    onPrevious?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPrevious: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, onPrevious}: PrevNextButtonsProps) {

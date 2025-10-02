@@ -20,23 +20,25 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
-import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {formatCardExpiration, getDomainCards, maskCard, maskPin} from '@libs/CardUtils';
+import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {revealVirtualCardDetails} from '@userActions/Card';
+import {clearActivatedCardPin, revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CurrencyList} from '@src/types/onyx';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
@@ -69,7 +71,8 @@ function ExpensifyCardPage({
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
-
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [pin] = useOnyx(ONYXKEYS.ACTIVATED_CARD_PIN, {canBeMissing: true});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -91,6 +94,15 @@ function ExpensifyCardPage({
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
+    useEffect(() => {
+        return () => {
+            if (!pin) {
+                return;
+            }
+            clearActivatedCardPin();
+        };
+    }, [pin]);
 
     useEffect(() => {
         setIsNotFound(!cardsToShow);
@@ -160,7 +172,8 @@ function ExpensifyCardPage({
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend);
+    const currency = getCurrencyKeyByCountryCode(currencyList, cardsToShow?.at(0)?.nameValuePairs?.feedCountry);
+    const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
     const primaryLogin = account?.primaryLogin ?? '';
@@ -274,7 +287,7 @@ function ExpensifyCardPage({
                                                 showLockedAccountModal();
                                                 return;
                                             }
-                                            Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()));
+                                            Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
                                         }}
                                     />
                                 )}
@@ -320,7 +333,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
                                     )}
                                 </>
@@ -330,6 +343,12 @@ function ExpensifyCardPage({
                                 <MenuItemWithTopDescription
                                     description={translate('cardPage.physicalCardNumber')}
                                     title={maskCard(currentPhysicalCard?.lastFourPAN)}
+                                    interactive={false}
+                                    titleStyle={styles.walletCardNumber}
+                                />
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.physicalCardPin')}
+                                    title={maskPin(pin)}
                                     interactive={false}
                                     titleStyle={styles.walletCardNumber}
                                 />

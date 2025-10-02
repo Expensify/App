@@ -4,9 +4,12 @@ import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
+import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
+import * as OptimisticReportNames from '@libs/OptimisticReportNames';
+import {getUpdateContext, initialize as initializeOptimisticReportNamesContext} from '@libs/OptimisticReportNamesConnectionManager';
 import Pusher from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -15,7 +18,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
-import {READ_COMMANDS} from './types';
+import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -33,6 +36,9 @@ use(Reauthentication);
 // Handles the case when the copilot has been deleted. The response contains jsonCode 408 and a message indicating account deletion
 use(handleDeletedAccount);
 
+// Handle supportal permission denial centrally
+use(SupportalPermission);
+
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
 use(HandleUnusedOptimisticID);
 
@@ -41,6 +47,14 @@ use(Pagination);
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 use(SaveResponseInOnyx);
+
+// FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
+use(FraudMonitoring);
+
+// Initialize OptimisticReportNames context on module load
+initializeOptimisticReportNamesContext().catch(() => {
+    Log.warn('Failed to initialize OptimisticReportNames context');
+});
 
 let requestIndex = 0;
 
@@ -74,7 +88,22 @@ function prepareRequest<TCommand extends ApiCommand>(
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
-        Onyx.update(optimisticData);
+
+        // Process optimistic data through report name middleware
+        // Skip for OpenReport command to avoid unnecessary processing
+        if (command === WRITE_COMMANDS.OPEN_REPORT) {
+            Onyx.update(optimisticData);
+        } else {
+            try {
+                const context = getUpdateContext();
+                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
+                Onyx.update(processedOptimisticData);
+            } catch (error) {
+                Log.hmmm('[API] Failed to process optimistic report names', {error});
+                // Fallback to original optimistic data if processing fails
+                Onyx.update(optimisticData);
+            }
+        }
     }
 
     const isWriteRequest = type === CONST.API_REQUEST_TYPE.WRITE;
@@ -285,4 +314,4 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     }
 }
 
-export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts};
+export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts, waitForWrites};

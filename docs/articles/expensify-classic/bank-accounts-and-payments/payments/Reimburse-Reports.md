@@ -3,7 +3,6 @@ title: How to Reimburse Reports in Expensify
 description: Learn how to reimburse employee reports in Expensify using direct deposit, global transfers, Venmo, ABA files, or manual methods.
 keywords: [Expensify Classic, reimburse reports, direct deposit, ACH, global reimbursement, Venmo, ABA file]
 ---
-<div id="expensify-classic" markdown="1">
 
 You can reimburse submitted and approved reports in Expensify using direct deposit (USD or international), third-party payment tools like Venmo, or manual methods such as payroll tracking or ABA batch files.
 
@@ -117,4 +116,3 @@ To configure this:
 
 Reports that are Final Approved and under the threshold will auto-reimburse. Reports over the threshold require manual reimbursement.
 
-</div>
