@@ -148,7 +148,6 @@ const restrictedImportPatterns = [
 
 const config = defineConfig([
     expensify,
-
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
 
@@ -158,8 +157,6 @@ const config = defineConfig([
             'plugin:storybook/recommended',
             'plugin:react-native-a11y/basic',
             'plugin:@dword-design/import-alias/recommended',
-            //'plugin:@typescript-eslint/recommended-type-checked',
-            //'plugin:@typescript-eslint/stylistic-type-checked',
             'plugin:you-dont-need-lodash-underscore/all',
             'prettier',
         ),
@@ -191,10 +188,11 @@ const config = defineConfig([
             reportUnusedDisableDirectives: 'off',
         },
 
-        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs'],
+        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         rules: {
-            // TypeScript specific rules
             '@lwc/lwc/no-async-await': 'off',
+
+            // TypeScript specific rules
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-non-null-assertion': 'error',
@@ -368,6 +366,7 @@ const config = defineConfig([
             'jsdoc/require-param-type': 'off',
             'jsdoc/check-param-names': 'off',
             'jsdoc/check-tag-names': 'off',
+            'jsdoc/check-types': 'off',
             'jsdoc/no-types': 'error',
             '@dword-design/import-alias/prefer-alias': [
                 'warn',
@@ -396,12 +395,20 @@ const config = defineConfig([
     // Some rules became stricter or stopped working after upgrading, so these configs adjust the rules to match the old behavior.
     // TODO: Consider clearing them gradually.
     {
-        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs'],
+        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         rules: {
+            // These rules could indicate potential bugs in the source code.
+            // After fixing the source code, remove these so they become errors instead of warnings.
+            '@typescript-eslint/no-base-to-string': 'warn',
+            '@typescript-eslint/no-unsafe-call': 'warn',
+
             // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
             // TODO: Remove these after uninstalling eslint-config-airbnb-typescript or switching to @stylistic/lines-between-class-members.
             'lines-between-class-members': 'error',
             '@typescript-eslint/lines-between-class-members': 'off',
+
+            // Sometimes it's useful to include duplicate types for documentation purposes.
+            '@typescript-eslint/no-duplicate-type-constituents': ['error', {ignoreUnions: true}],
 
             '@typescript-eslint/no-require-imports': 'off',
 
@@ -498,6 +505,7 @@ const config = defineConfig([
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
+
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
             'no-continue': 'off',
@@ -521,6 +529,7 @@ const config = defineConfig([
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
+
             'no-continue': 'off',
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -553,6 +562,7 @@ const config = defineConfig([
         '!**/.github',
         '.github/actions/**/index.js',
         '**/*.config.js',
+        '**/*.config.mjs',
         '**/node_modules/**/*',
         '**/dist/**/*',
         'android/**/build/**/*',
