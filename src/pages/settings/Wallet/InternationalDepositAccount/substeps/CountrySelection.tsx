@@ -2,8 +2,8 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -84,7 +84,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
                 onChangeText={setSearchValue}
                 onSelectRow={onSelectionChange}
                 onConfirm={onCountrySelected}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldSingleExecuteRowSelect
                 shouldStopPropagation

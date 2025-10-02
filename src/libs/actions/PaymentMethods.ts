@@ -39,7 +39,7 @@ function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?:
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack(fallbackRoute);
-    kycWallRef.current.continueAction();
+    kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
 function getPaymentMethods() {

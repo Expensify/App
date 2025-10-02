@@ -21,7 +21,13 @@ type AnchorPosition = {
 
 type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
-type ContinueAction = (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void;
+type ContinueActionParams = {
+    event?: GestureResponderEvent | KeyboardEvent;
+    iouPaymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
+    policy?: Policy;
+    goBackRoute?: Route;
+};
 
 type KYCWallProps = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -64,7 +70,7 @@ type KYCWallProps = {
     onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children: (continueAction: ContinueAction, anchorRef: RefObject<View | null>) => void;
+    children: (continueAction: (params?: ContinueActionParams) => void, anchorRef: RefObject<View | null>) => void;
 
     /** The policy used for payment */
     policy?: Policy;
@@ -74,7 +80,7 @@ type KYCWallProps = {
 };
 
 type KYCWallRef = {
-    continueAction: ContinueAction;
+    continueAction?: (params: ContinueActionParams) => void;
 };
 
-export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source, KYCWallRef};
+export type {AnchorPosition, KYCWallRef, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source, ContinueActionParams};

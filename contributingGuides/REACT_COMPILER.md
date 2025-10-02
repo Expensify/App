@@ -6,9 +6,46 @@
 
 At Expensify, we are early adopters of this tool and aim to fully leverage its capabilities.
 
-## React Compiler compatibility check
+## React Compiler compliance checker
 
-To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can run the `npm run react-compiler-healthcheck-test` locally and analyze the output.
+We provide a script, `scripts/react-compiler-compliance-check.ts`, which checks for "Rules of React" compliance locally and enforces these in PRs adding or changing React code through a CI check.
+
+### What it does
+
+Runs `react-compiler-healthcheck` in verbose mode, parses output, and summarizes which files compiled and which failed, including file, line, column, and reason. It can:
+
+- Check all files or a specific file/glob
+- Check only files changed relative to a base branch
+- Optionally generate a machine-readable report `react-compiler-report.json`
+- Exit with non-zero code when failures are found (useful for CI)
+
+### Usage
+
+> [!NOTE]
+> This script uses `origin` as the base remote by default. If your GH remote is named differently, use the `--remote <name>` flag.
+
+#### Check entire codebase or a specific file/glob
+
+```bash
+npm run react-compiler-compliance-check check                        # Check all files
+npm run react-compiler-compliance-check check src/path/Component.tsx # Check specific file
+npm run react-compiler-compliance-check check "src/**/*.tsx"         # Check glob pattern
+```
+
+#### Check only changed files against a remote main (default remote is `origin`)
+
+```bash
+npm run react-compiler-compliance-check check-changed
+```
+
+#### Generate a detailed report (saved as `./react-compiler-report.json`)
+
+You can use the `--report` flag with both of the above commands:
+
+```bash
+npm run react-compiler-compliance-check check --report
+npm run react-compiler-compliance-check check-changed --report
+```
 
 ## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
 
@@ -36,6 +73,7 @@ If you encounter this error, you need to add the `Ref` postfix to the variable n
 If you added a modification to `SharedValue`, you'll likely encounter this error. You can ignore this error for now because the current `react-native-reanimated` API is not compatible with `react-compiler` rules. Once [this PR](https://github.com/software-mansion/react-native-reanimated/pull/6312) is merged, we'll rewrite the code to be compatible with `react-compiler`. Until then, you can ignore this error.
 
 ### Existing manual memoization could not be preserved. [...]
+
 These types of errors usually occur when the calls to `useMemo` that were made manually are too complex for react-compiler to understand. React compiler is still experimental so unfortunately this can happen.
 
 Some specific cases of this error are described below.
@@ -96,7 +134,7 @@ return (
         <ToggleSettingOptionRow
             onToggle={item.onToggle}
             // ❌ such code triggers the error - `qboConfig?.pendingFields` is an external variable from the closure
-            // so this code is pretty complicated for `react-compiler` optimizations 
+            // so this code is pretty complicated for `react-compiler` optimizations
             pendingAction={settingsPendingAction([item.subscribedSetting], qboConfig?.pendingFields)}
             // ❌ such code triggers the error - `qboConfig` is an external variable from the closure
             errors={ErrorUtils.getLatestErrorField(qboConfig, item.subscribedSetting)}

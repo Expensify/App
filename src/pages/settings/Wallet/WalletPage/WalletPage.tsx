@@ -2,8 +2,9 @@ import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -57,12 +58,15 @@ type WalletPageProps = {
     shouldListenForResize?: boolean;
 };
 
+const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
+    Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
+
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
-        selector: (allFunds) => Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true)),
+        selector: fundListSelector,
     });
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
@@ -345,6 +349,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
     const shouldShowEnableGlobalReimbursementsButton =
         isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
+        paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
 
@@ -448,7 +453,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 <>
                                     {shouldShowLoadingSpinner && (
                                         <ActivityIndicator
-                                            color={theme.spinner}
                                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                             style={[styles.mb5]}
                                         />
@@ -487,7 +491,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
@@ -498,9 +502,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         title={translate('common.transferBalance')}
                                                         icon={Expensicons.Transfer}
-                                                        onPress={triggerKYCFlow}
+                                                        onPress={(event) => {
+                                                            triggerKYCFlow({event});
+                                                        }}
                                                         shouldShowRightIcon
-                                                        disabled={network.isOffline}
                                                         wrapperStyle={[
                                                             styles.transferBalance,
                                                             shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
@@ -553,7 +558,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
                                                     }}
-                                                    disabled={network.isOffline}
                                                     wrapperStyle={[
                                                         styles.transferBalance,
                                                         shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
