@@ -7222,6 +7222,10 @@ const translations = {
         },
         callScheduled: 'Anruf geplant',
     },
+    signingOutPage: {
+        title: 'Wird abgemeldet...',
+        subtitle: 'Einen Moment, bitte.',
+    },
     autoSubmitModal: {
         title: 'Alles klar und eingereicht!',
         description: 'Alle Warnungen und Verstöße wurden beseitigt, daher:',

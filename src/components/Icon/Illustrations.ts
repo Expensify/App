@@ -105,6 +105,7 @@ import EmptyState from '@assets/images/simple-illustrations/simple-illustration_
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
+import FishingRod from '@assets/images/simple-illustrations/simple-illustration__fishingrod.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -296,6 +297,7 @@ export {
     Tire,
     BigVault,
     Filters,
+    FishingRod,
     MagnifyingGlassMoney,
     Rules,
     RunningTurtle,

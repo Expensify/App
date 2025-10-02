@@ -7063,6 +7063,10 @@ const translations = {
         },
         callScheduled: '通话已安排',
     },
+    signingOutPage: {
+        title: '正在登出...',
+        subtitle: '请稍候。',
+    },
     autoSubmitModal: {
         title: '全部清除并提交！',
         description: '所有警告和违规已被清除，因此：',

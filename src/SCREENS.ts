@@ -793,6 +793,8 @@ const SCREENS = {
         ROOT: 'Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
     },
+    SIGNING_OUT: 'Signing_Out',
+
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },

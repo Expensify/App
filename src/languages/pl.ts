@@ -7198,6 +7198,10 @@ const translations = {
         },
         callScheduled: 'Połączenie zaplanowane',
     },
+    signingOutPage: {
+        title: 'Wylogowywanie...',
+        subtitle: 'Proszę czekać.',
+    },
     autoSubmitModal: {
         title: 'Wszystko jasne i przesłane!',
         description: 'Wszystkie ostrzeżenia i naruszenia zostały usunięte, więc:',

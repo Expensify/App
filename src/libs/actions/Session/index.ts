@@ -2,8 +2,8 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import {InteractionManager, Linking} from 'react-native';
+import type {OnyxEntry, OnyxKey, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
@@ -24,7 +24,6 @@ import type {
 } from '@libs/API/parameters';
 import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
@@ -66,7 +65,9 @@ import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+import afterSignOutRedirect from './afterSignOutRedirect';
 import clearCache from './clearCache';
+import showSigningOutPage from './showSigningOutPage';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
 const INVALID_TOKEN = 'pizza';
@@ -169,7 +170,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
         },
     ];
 
-    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is signed out on refresh
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -267,9 +268,19 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
+function signOutAndRedirectToSignIn(
+    shouldResetToHome?: boolean,
+    shouldStashSession?: boolean,
+    isTransitioning?: boolean,
+    shouldSignOutFromOldDot = true,
+    shouldForceUseStashedSession?: boolean,
+) {
+    const accountID = session.accountID;
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
+    if (!isTransitioning) {
+        showSigningOutPage();
+    }
 
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -296,7 +307,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
     // The function redirectToSignIn will clear the whole storage, so let's create our onyx params
     // updates for the credentials before we call it
-    let onyxSetParams = {};
+    let onyxSetParams: OnyxMultiSetInput = {};
 
     // If we are not currently using a support token, and we received stashSession as true, we need to
     // store the credentials so the user doesn't need to login again after they finish their supportal
@@ -319,7 +330,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // If we should restore the stashed session, and we do not want to stash the current session, and we have a
-    // stashed session, then switch the account instead of completely logging out.
+    // stashed session, then switch the account instead of completely signing out.
     if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession()) {
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.switchAccount({
@@ -342,31 +353,32 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // Wait for signOut (if called), then redirect and update Onyx.
-    return signOutPromise
+    signOutPromise
         .then((response) => {
             if (isSupportal) {
                 // Send event to Fraud Protection backend, otherwise it might consider the user as being suspicious
                 FraudProtection.sendEvent(FRAUD_PROTECTION_EVENT.STOP_SUPPORT_SESSION);
             }
-            if (response?.hasOldDotAuthCookies) {
-                Log.info('Redirecting to OldDot sign out');
-                asyncOpenURL(
-                    redirectToSignIn().then(() => {
-                        Onyx.multiSet(onyxSetParams);
-                    }),
-                    `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
-                    true,
-                    true,
-                );
-            } else {
-                redirectToSignIn().then(() => {
-                    Onyx.multiSet(onyxSetParams);
+            // if (response?.hasOldDotAuthCookies) {
+            //     Log.info('Redirecting to OldDot sign out');
+            //     asyncOpenURL(
+            //         redirectToSignIn().then(() => {
+            //             Onyx.multiSet(onyxSetParams);
+            //         }),
+            //         `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
+            //         true,
+            //         true,
+            //     );
+            // } else {
+            //     redirectToSignIn().then(() => {
+            //         Onyx.multiSet(onyxSetParams);
 
-                    if (hasSwitchedAccountInHybridMode) {
-                        openApp();
-                    }
-                });
-            }
+            //         if (hasSwitchedAccountInHybridMode) {
+            //             openApp();
+            //         }
+            //     });
+            // }
+            afterSignOutRedirect(onyxSetParams, hasSwitchedAccountInHybridMode, accountID, isTransitioning);
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));
 }
@@ -1364,7 +1376,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         }
 
         // When the action is successful, we need to update the new authToken and encryptedAuthToken
-        // This action needs to be synchronous as the user will be logged out due to middleware if old authToken is used
+        // This action needs to be synchronous as the user will be signed out due to middleware if old authToken is used
         // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
         return SequentialQueue.waitForIdle().then(() => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
