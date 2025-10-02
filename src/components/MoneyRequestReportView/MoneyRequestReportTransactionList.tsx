@@ -28,7 +28,14 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {canAddTransaction, getAddExpenseDropdownOptions, getMoneyRequestSpendBreakdown, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    getAddExpenseDropdownOptions,
+    getMoneyRequestSpendBreakdown,
+    getReportOfflinePendingActionAndErrors,
+    isCurrentUserSubmitter,
+    isExpenseReport,
+} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
@@ -136,6 +143,7 @@ function MoneyRequestReportTransactionList({
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
+    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
@@ -371,7 +379,7 @@ function MoneyRequestReportTransactionList({
                 ]}
             >
                 {shouldShowAddExpenseButton && (
-                    <OfflineWithFeedback pendingAction={report?.pendingFields?.preview}>
+                    <OfflineWithFeedback pendingAction={reportPendingAction}>
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
