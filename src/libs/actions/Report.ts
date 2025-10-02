@@ -4027,7 +4027,7 @@ function removeFromGroupChat(reportID: string, accountIDList: number[]) {
 }
 
 function optimisticReportLastData(reportID: string, optimisticReportActions: ReportActions, canUserPerformWriteAction?: boolean, isReportArchived?: boolean) {
-    const lastMessageText = getLastVisibleMessage(reportID, optimisticReportActions, isReportArchived).lastMessageText ?? '';
+    const lastMessageText = getLastVisibleMessage(reportID, isReportArchived, optimisticReportActions).lastMessageText ?? '';
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions);
     return {
         lastMessageText,

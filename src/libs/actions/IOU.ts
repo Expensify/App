@@ -252,7 +252,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -8348,16 +8348,8 @@ function deleteMoneyRequest(
             canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
         }
 
-        const lastMessageText = getLastVisibleMessage(
-            iouReport?.chatReportID,
-            canUserPerformWriteAction,
-            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
-        )?.lastMessageText;
-        const lastVisibleActionCreated = getLastVisibleAction(
-            iouReport?.chatReportID,
-            canUserPerformWriteAction,
-            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
-        )?.created;
+        const optimicticReportActions = reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {};
+        const optimisticLastReportData = optimisticReportLastData(chatReport?.reportID ?? '', optimicticReportActions as OnyxTypes.ReportActions, canUserPerformWriteAction);
 
         if (chatReport) {
             optimisticData.push({
@@ -8366,8 +8358,7 @@ function deleteMoneyRequest(
                 value: {
                     hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID),
                     iouReportID: null,
-                    lastMessageText,
-                    lastVisibleActionCreated,
+                    ...optimisticLastReportData,
                 },
             });
         }
@@ -8515,6 +8506,7 @@ function deleteMoneyRequest(
         reportActionID: reportAction.reportActionID,
     };
 
+    console.log('successDatassss', optimisticData);
     // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     clearPdfByOnyxKey(transactionID);
