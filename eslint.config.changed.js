@@ -1,6 +1,6 @@
 import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
-import expensify from 'eslint-config-expensify';
+import expensifyConfig from 'eslint-config-expensify';
 import lodash from 'eslint-plugin-lodash';
 import reactCompiler from 'eslint-plugin-react-compiler';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
@@ -27,7 +27,7 @@ const config = defineConfig([
                 'react-compiler': reactCompiler,
                 lodash,
             },
-            ...expensify.map((config) => config.plugins),
+            ...expensifyConfig.map((item) => item.plugins),
         ),
 
         languageOptions: {

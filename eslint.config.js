@@ -1,6 +1,6 @@
 import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
-import expensify from 'eslint-config-expensify';
+import expensifyConfig from 'eslint-config-expensify';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
@@ -147,7 +147,7 @@ const restrictedImportPatterns = [
 ];
 
 const config = defineConfig([
-    expensify,
+    expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
 
