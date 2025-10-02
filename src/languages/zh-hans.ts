@@ -1458,6 +1458,7 @@ const translations = {
             pageTitle: '选择您想保留的详情：',
             noDifferences: '发现交易无差异',
             pleaseSelectError: ({field}: {field: string}) => `请选择一个${field}`,
+            pleaseSelectAttendees: '请选择参与者',
             selectAllDetailsError: '继续前请选取所有详情。',
         },
         confirmationPage: {

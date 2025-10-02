@@ -1475,6 +1475,7 @@ const translations = {
             pageTitle: 'Wybierz szczegóły, które chcesz zachować:',
             noDifferences: 'Nie znaleziono różnic między transakcjami',
             pleaseSelectError: ({field}: {field: string}) => `Proszę wybrać ${field}`,
+            pleaseSelectAttendees: 'Wybierz uczestników',
             selectAllDetailsError: 'Wybierz wszystkie szczegóły przed kontynuowaniem.',
         },
         confirmationPage: {
