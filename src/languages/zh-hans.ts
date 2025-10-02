@@ -107,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -5016,8 +5017,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: '在 Expensify Classic 中设置的连接出现错误。',
-            goToODToFix: '请前往 Expensify Classic 解决此问题。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `在 Expensify Classic 中设置的连接出现错误。[请前往 Expensify Classic 解决此问题。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '请前往 Expensify Classic 管理您的设置。',
             setup: '连接',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `上次同步时间为${relativeDate}`,

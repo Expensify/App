@@ -107,6 +107,7 @@ import type {
     EmptyTagsSubtitleWithAccountingParams,
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
+    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -5078,8 +5079,8 @@ const translations = {
                     }
                 }
             },
-            errorODIntegration: 'Expensify Classicで設定された接続にエラーがあります。',
-            goToODToFix: 'この問題を解決するには、Expensify Classicに移動してください。',
+            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+                `Expensify Classicで設定された接続にエラーがあります。[この問題を解決するには、Expensify Classicに移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classicに移動してください。',
             setup: '接続する',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `最終同期日時: ${relativeDate}`,
