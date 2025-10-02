@@ -83,8 +83,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             return;
         }
         wasSidePanelClosed.current = false;
-        Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()])
-            .then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded))
+        Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
     }, [isSidePanelTransitionEnded]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
