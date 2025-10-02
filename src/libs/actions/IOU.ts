@@ -8349,7 +8349,7 @@ function deleteMoneyRequest(
         }
 
         const optimicticReportActions = reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {};
-        const optimisticLastReportData = optimisticReportLastData(chatReport?.reportID ?? '', optimicticReportActions as OnyxTypes.ReportActions, canUserPerformWriteAction);
+        const optimisticLastReportData = optimisticReportLastData(chatReport?.reportID ?? '', optimicticReportActions, canUserPerformWriteAction);
 
         if (chatReport) {
             optimisticData.push({
@@ -8506,7 +8506,6 @@ function deleteMoneyRequest(
         reportActionID: reportAction.reportActionID,
     };
 
-    console.log('successDatassss', optimisticData);
     // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     clearPdfByOnyxKey(transactionID);

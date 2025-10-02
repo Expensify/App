@@ -8,7 +8,7 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
@@ -3707,7 +3707,11 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
 
  */
-function getLastVisibleMessage(reportID: string | undefined, isReportArchived: boolean | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
+function getLastVisibleMessage(
+    reportID: string | undefined,
+    isReportArchived: boolean | undefined,
+    actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+): LastVisibleMessage {
     const report = getReportOrDraftReport(reportID);
     const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
 
