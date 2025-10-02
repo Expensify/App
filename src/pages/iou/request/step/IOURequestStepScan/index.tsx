@@ -1005,7 +1005,8 @@ function IOURequestStepScan({
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [alternativeMethodsHeight, setAlternativeMethodsHeight] = useState(0);
     // We use isMobile() here to explicitly hide the alternative methods component on both mobile web and native apps
-    const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + styles.chooseFilesView(isSmallScreenWidth).paddingVertical * 2 > containerHeight;
+    const chooseFilesPaddingVertical = Number(styles.chooseFilesView(isSmallScreenWidth).paddingVertical ?? 20);
+    const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + chooseFilesPaddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
         <View
@@ -1025,7 +1026,9 @@ function IOURequestStepScan({
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb2]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
-                <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lineHeightLarge]}>{translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}</Text>
+                <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.lineHeightLarge]}>
+                    {translate(shouldAcceptMultipleFiles ? 'receipt.desktopSubtitleMultiple' : 'receipt.desktopSubtitleSingle')}
+                </Text>
             </View>
 
             <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>
