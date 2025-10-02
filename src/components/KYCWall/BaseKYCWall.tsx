@@ -113,7 +113,7 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const canLinkExistingBusinessBankAccount = useCallback(
-        (policy?: Policy) => policy !== undefined && policies !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, policy.outputCurrency ?? currency).length > 0,
+        (policy?: Policy) => policy !== undefined && policies !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, currency).length > 0,
         [bankAccountList, currency, policies],
     );
 
