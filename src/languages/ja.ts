@@ -4809,6 +4809,8 @@ const translations = {
             reportFieldTypeRequiredError: 'レポートフィールドのタイプを選択してください',
             reportFieldInitialValueRequiredError: 'レポートフィールドの初期値を選択してください',
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
+            formulaType: 'Formula',
+            formulaAlternateText: '数式フィールドを追加します。',
         },
         tags: {
             tagName: 'タグ名',

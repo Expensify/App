@@ -4746,6 +4746,8 @@ const translations = {
             reportFieldTypeRequiredError: '请选择报告字段类型',
             reportFieldInitialValueRequiredError: '请选择报告字段的初始值',
             genericFailureMessage: '更新报告字段时发生错误。请再试一次。',
+            formulaType: '公式',
+            formulaAlternateText: '添加一个公式字段。',
         },
         tags: {
             tagName: '标签名称',

@@ -4836,6 +4836,8 @@ const translations = {
             reportFieldTypeRequiredError: 'Bitte wählen Sie einen Berichtsfeldtyp aus',
             reportFieldInitialValueRequiredError: 'Bitte wählen Sie einen Anfangswert für das Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtsfeldes ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+            formulaType: 'Formel',
+            formulaAlternateText: 'Fügen Sie ein Formularfeld hinzu.',
         },
         tags: {
             tagName: 'Tag-Name',

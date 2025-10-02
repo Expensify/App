@@ -4834,6 +4834,8 @@ const translations = {
             reportFieldTypeRequiredError: 'Proszę wybrać typ pola raportu',
             reportFieldInitialValueRequiredError: 'Proszę wybrać początkową wartość pola raportu',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizacji pola raportu. Proszę spróbować ponownie.',
+            formulaType: 'Formuła',
+            formulaAlternateText: 'Dodaj pole formuły.',
         },
         tags: {
             tagName: 'Nazwa tagu',

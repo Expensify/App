@@ -4849,6 +4849,8 @@ const translations = {
             reportFieldTypeRequiredError: 'Si prega di scegliere un tipo di campo del report',
             reportFieldInitialValueRequiredError: 'Si prega di scegliere un valore iniziale per il campo del report',
             genericFailureMessage: "Si è verificato un errore durante l'aggiornamento del campo del report. Per favore riprova.",
+            formulaType: 'Formula',
+            formulaAlternateText: 'Aggiungi un campo formula.',
         },
         tags: {
             tagName: 'Nome tag',

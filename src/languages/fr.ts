@@ -4849,6 +4849,8 @@ const translations = {
             reportFieldTypeRequiredError: 'Veuillez choisir un type de champ de rapport',
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ du rapport',
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour du champ du rapport. Veuillez réessayer.",
+            formulaType: 'Formule',
+            formulaAlternateText: 'Ajouter un champ de formule.',
         },
         tags: {
             tagName: 'Nom de balise',

@@ -4844,6 +4844,8 @@ const translations = {
             reportFieldTypeRequiredError: 'Kies een rapportveldtype aub',
             reportFieldInitialValueRequiredError: 'Kies een initiële waarde voor een rapportveld alstublieft.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
+            formulaType: 'Formule',
+            formulaAlternateText: 'Voeg een formuleveld toe.',
         },
         tags: {
             tagName: 'Tagnaam',
