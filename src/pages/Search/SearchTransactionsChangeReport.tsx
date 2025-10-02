@@ -5,7 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpense';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';

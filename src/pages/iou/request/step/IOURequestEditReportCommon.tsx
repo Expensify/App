@@ -12,7 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpense';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
