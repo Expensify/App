@@ -213,6 +213,7 @@ function FeatureTrainingModal({
     const {isKeyboardActive} = useKeyboardState();
 
     useEffect(() => {
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             if (!isModalDisabled) {
                 setIsModalVisible(false);
@@ -338,6 +339,7 @@ function FeatureTrainingModal({
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
 
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 

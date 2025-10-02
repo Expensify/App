@@ -613,6 +613,8 @@
         "sublicensees",
         "sublocality",
         "subpremise",
+        "subprocessors",
+        "Subprocessors",
         "subrates",
         "substep",
         "substeps",
@@ -646,6 +648,7 @@
         "tnode",
         "tobe",
         "togglefullscreen",
+        "tosorted",
         "TOTP",
         "touchables",
         "Touchless",
@@ -751,7 +754,10 @@
         "zxldvw",
         "inputmethod",
         "copyable",
-        "مثال"
+        "مثال",
+        "moveElemsAttrsToGroup",
+        "removeHiddenElems",
+        "moveGroupAttrsToElems"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
