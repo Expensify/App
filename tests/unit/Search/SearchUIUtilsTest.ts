@@ -2877,8 +2877,8 @@ describe('SearchUIUtils', () => {
         it('should calculate footer data for visible transactions (ungrouped and grouped)', () => {
             // Ungrouped transactions
             const visibleData = [
-                {...transactionsListItems[0], convertedAmount: 10000, convertedCurrency: 'USD'},
-                {...transactionsListItems[0], convertedAmount: 15000, convertedCurrency: 'USD'},
+                {...transactionsListItems.at(0), convertedAmount: 10000, convertedCurrency: 'USD'},
+                {...transactionsListItems.at(0), convertedAmount: 15000, convertedCurrency: 'USD'},
             ];
 
             const ungroupedResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
@@ -2892,13 +2892,13 @@ describe('SearchUIUtils', () => {
             const groupedData: TransactionGroupListItemType[] = [
                 {
                     transactions: [
-                        {...transactionsListItems[0], convertedAmount: 10000},
-                        {...transactionsListItems[0], convertedAmount: 5000},
+                        {...transactionsListItems.at(0), convertedAmount: 10000},
+                        {...transactionsListItems.at(0), convertedAmount: 5000},
                     ],
                     keyForList: 'group1',
                 } as TransactionGroupListItemType,
                 {
-                    transactions: [{...transactionsListItems[0], convertedAmount: 8000}],
+                    transactions: [{...transactionsListItems.at(0), convertedAmount: 8000}],
                     keyForList: 'group2',
                 } as TransactionGroupListItemType,
             ];
@@ -2914,8 +2914,8 @@ describe('SearchUIUtils', () => {
         it('should use Math.abs for negative amounts and prioritize selected transactions', () => {
             // Test negative amounts with visible data
             const visibleData = [
-                {...transactionsListItems[0], convertedAmount: -10000},
-                {...transactionsListItems[0], convertedAmount: -5000},
+                {...transactionsListItems.at(0), convertedAmount: -10000},
+                {...transactionsListItems.at(0), convertedAmount: -5000},
             ];
 
             const visibleResult = SearchUIUtils.calculateSearchPageFooterData({}, visibleData, undefined, 'USD');
