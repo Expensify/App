@@ -228,7 +228,7 @@ function FormWrapper({
                     if (!shouldScrollToEnd) {
                         return;
                     }
-                    // eslint-disable-next-line deprecation/deprecation
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         requestAnimationFrame(() => {
                             formRef.current?.scrollToEnd({animated: true});

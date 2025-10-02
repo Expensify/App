@@ -98,7 +98,7 @@ function ReanimatedModal({
     useEffect(
         () => () => {
             if (handleRef.current) {
-                // eslint-disable-next-line deprecation/deprecation
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
 
@@ -111,14 +111,14 @@ function ReanimatedModal({
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
@@ -137,7 +137,7 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(true);
         if (handleRef.current) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
         onModalShow();
@@ -147,7 +147,7 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (handleRef.current) {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:

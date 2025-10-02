@@ -95,7 +95,7 @@ export default function electronServe(options: ServeOptions) {
     app.on('ready', () => {
         const partitionSession = mandatoryOptions.partition ? session.fromPartition(mandatoryOptions.partition) : session.defaultSession;
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         partitionSession.protocol.registerBufferProtocol(mandatoryOptions.scheme, handler);
     });
 

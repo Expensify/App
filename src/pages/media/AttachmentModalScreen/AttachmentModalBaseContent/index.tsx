@@ -233,7 +233,7 @@ function AttachmentModalBaseContent({
                 text: translate('common.replace'),
                 onSelected: () => {
                     const goToScanScreen = () => {
-                        // eslint-disable-next-line deprecation/deprecation
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(

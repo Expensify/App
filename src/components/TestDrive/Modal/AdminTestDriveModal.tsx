@@ -16,7 +16,7 @@ function AdminTestDriveModal() {
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
@@ -28,7 +28,7 @@ function AdminTestDriveModal() {
         Navigation.dismissModal();
 
         Log.hmmm('[AdminTestDriveModal] Running after interactions');
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (!isAdminRoom(onboardingReport)) {
                 Log.hmmm('[AdminTestDriveModal] Not an admin room');

@@ -259,7 +259,7 @@ function MoneyRequestReportActionsList({
             return;
         }
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
     }, [loadOlderChats]);
 
@@ -481,7 +481,7 @@ function MoneyRequestReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
