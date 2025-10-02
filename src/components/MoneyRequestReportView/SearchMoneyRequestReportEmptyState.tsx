@@ -54,7 +54,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startDistanceRequest(CONST.IOU.TYPE.CREATE, reportId, lastDistanceExpenseType);
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, lastDistanceExpenseType);
             },
         },
         {

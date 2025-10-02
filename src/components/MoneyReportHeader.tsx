@@ -625,7 +625,7 @@ function MoneyReportHeader({
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                         return;
                     }
-                    startDistanceRequest(CONST.IOU.TYPE.CREATE, moneyRequestReport.reportID, lastDistanceExpenseType);
+                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, lastDistanceExpenseType);
                 },
             },
             {

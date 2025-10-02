@@ -499,7 +499,7 @@ function MoneyRequestReportPreviewContent({
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                         return;
                     }
-                    startDistanceRequest(CONST.IOU.TYPE.CREATE, iouReport.reportID, lastDistanceExpenseType);
+                    startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReport.reportID, lastDistanceExpenseType);
                 },
             },
             {
