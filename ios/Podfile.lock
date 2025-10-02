@@ -243,7 +243,7 @@ PODS:
   - FirebaseSharedSwift (11.15.0)
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
-  - FullStory (1.61.0)
+  - FullStory (1.64.2)
   - fullstory_react-native (1.7.6):
     - DoubleConversion
     - FullStory (~> 1.14)
@@ -490,7 +490,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -509,7 +508,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -527,7 +525,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -547,7 +544,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -566,7 +562,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -585,7 +580,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -604,7 +598,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -623,7 +616,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -642,7 +634,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -661,7 +652,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -680,7 +670,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -699,7 +688,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -718,7 +706,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -737,7 +724,6 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -3280,7 +3266,7 @@ DEPENDENCIES:
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
-  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - group-ib-fp (from `../node_modules/group-ib-fp`)
@@ -3492,7 +3478,7 @@ EXTERNAL SOURCES:
   fmt:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz
   fullstory_react-native:
     :path: "../node_modules/@fullstory/react-native"
   glog:
@@ -3733,7 +3719,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz
 
 SPEC CHECKSUMS:
   Airship: aa8a8f48805425d1a292db60d79235d4a4afa1cb
@@ -3741,7 +3727,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 4c87a84223d347f27e16dbfa3c366fa25015747f
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 3d236cfc1fd0a1b690d1a01095ae459f41193a7a
   EXConstants: a1112af878fddfe6acc0399473ac56a07ced0f47
@@ -3922,6 +3908,6 @@ SPEC CHECKSUMS:
   VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
-PODFILE CHECKSUM: 145b53efc0407146c2decf14202d64f78e7dbd96
+PODFILE CHECKSUM: 0ec3e492ca9e978556a039fa0ab1537bf3d8541f
 
 COCOAPODS: 1.16.0

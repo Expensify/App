@@ -94,6 +94,7 @@ import type {
     DemotedFromWorkspaceParams,
     DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
+    DisconnectYourBankAccountParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
@@ -142,6 +143,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountIntoParams,
     MergeFailureDescriptionGenericParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
@@ -671,7 +673,12 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Pas si vite',
-        description: "Vous n'êtes pas autorisé à effectuer cette action lorsque le support est connecté.",
+        descriptionWithCommand: ({
+            command,
+        }: {
+            command?: string;
+        } = {}) =>
+            `Vous n'êtes pas autorisé à effectuer cette action lorsque le support est connecté (commande : ${command ?? ''}). Si vous pensez que Success devrait pouvoir effectuer cette action, veuillez entamer une conversation sur Slack.`,
     },
     lockedAccount: {
         title: 'Compte verrouillé',
@@ -1718,13 +1725,14 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Fusionner les comptes',
         accountDetails: {
-            accountToMergeInto: 'Entrez le compte dans lequel vous souhaitez fusionner',
+            accountToMergeInto: ({login}: MergeAccountIntoParams) => `Saisissez le compte que vous souhaitez fusionner dans <strong>${login}</strong>.`,
             notReversibleConsent: "Je comprends que cela n'est pas réversible",
         },
         accountValidate: {
             confirmMerge: 'Êtes-vous sûr de vouloir fusionner les comptes ?',
-            lossOfUnsubmittedData: `La fusion de vos comptes est irréversible et entraînera la perte de toutes les dépenses non soumises pour`,
-            enterMagicCode: `Pour continuer, veuillez entrer le code magique envoyé à`,
+            lossOfUnsubmittedData: ({login}: MergeAccountIntoParams) =>
+                `La fusion de vos comptes est irréversible et entraînera la perte de toutes les dépenses non soumises pour <strong>${login}</strong>.`,
+            enterMagicCode: ({login}: MergeAccountIntoParams) => `Pour continuer, veuillez saisir le code magique envoyé à <strong>${login}</strong>.`,
             errors: {
                 incorrectMagicCode: 'Code magique incorrect ou invalide. Veuillez réessayer ou demander un nouveau code.',
                 fallback: 'Un problème est survenu. Veuillez réessayer plus tard.',
@@ -2231,7 +2239,7 @@ const translations = {
         enterAuthenticatorCode: "Veuillez entrer votre code d'authentification",
         enterRecoveryCode: 'Veuillez entrer votre code de récupération',
         requiredWhen2FAEnabled: "Requis lorsque l'authentification à deux facteurs est activée",
-        requestNewCode: 'Demander un nouveau code dans',
+        requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Demander un nouveau code dans <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Demander un nouveau code',
         error: {
             pleaseFillMagicCode: 'Veuillez entrer votre code magique',
@@ -2610,13 +2618,10 @@ const translations = {
     emailDeliveryFailurePage: {
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Notre fournisseur de messagerie a temporairement suspendu les emails vers ${login} en raison de problèmes de livraison. Pour débloquer votre connexion, veuillez suivre ces étapes :`,
-        confirmThat: ({login}: ConfirmThatParams) => `Confirmez que ${login} est orthographié correctement et qu'il s'agit d'une adresse e-mail réelle et valide.`,
-        emailAliases: 'Les alias d\'e-mail tels que "expenses@domain.com" doivent avoir accès à leur propre boîte de réception pour être un identifiant Expensify valide.',
-        ensureYourEmailClient: 'Assurez-vous que votre client de messagerie autorise les emails de expensify.com.',
-        youCanFindDirections: 'Vous pouvez trouver des instructions sur la façon de compléter cette étape',
-        helpConfigure: 'mais vous pourriez avoir besoin de votre service informatique pour vous aider à configurer vos paramètres de messagerie.',
-        onceTheAbove: 'Une fois les étapes ci-dessus terminées, veuillez contacter',
-        toUnblock: 'pour débloquer votre connexion.',
+        confirmThat: ({login}: ConfirmThatParams) =>
+            `<strong>Confirmez que ${login} est orthographié correctement et qu'il s'agit d'une adresse e-mail réelle et valide.</strong> Les alias d'e-mail tels que "expenses@domain.com" doivent avoir accès à leur propre boîte de réception pour être un identifiant Expensify valide.`,
+        ensureYourEmailClient: `<strong>Assurez-vous que votre client de messagerie autorise les emails de expensify.com.</strong> Vous trouverez des instructions sur la manière de réaliser cette étape <a href="${CONST.SET_NOTIFICATION_LINK}">ici</a> mais vous aurez peut-être besoin de l'aide de votre service informatique pour configurer vos paramètres de messagerie.`,
+        onceTheAbove: `Une fois les étapes ci-dessus terminées, veuillez contacter <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> pour débloquer votre connexion.`,
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
@@ -3275,6 +3280,9 @@ const translations = {
         thisStep: 'Cette étape a été complétée',
         isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
             `connecte un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer les employés en ${currency}. L'étape suivante nécessite les informations d’un signataire, tel qu’un directeur ou un cadre supérieur.`,
+        error: {
+            emailsMustBeDifferent: 'Les e-mails doivent être différents',
+        },
     },
     agreementsStep: {
         agreements: 'Accords',
@@ -3613,19 +3621,19 @@ const translations = {
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'En attente',
                     [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
                 },
-                invitationFailure: "Échec de l'invitation des membres à Uber for Business",
+                invitationFailure: "Impossible d'inviter un membre sur Uber for Business.",
                 autoInvite: "Inviter de nouveaux membres de l'espace de travail sur Uber",
                 autoRemove: "Désactiver les membres supprimés de l'espace de travail sur Uber",
                 bannerTitle: 'Expensify + Uber pour les entreprises',
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
                 emptyContent: {
-                    title: 'Aucun membre à afficher',
-                    subtitle: "Nous avons cherché partout et n'avons rien trouvé.",
+                    title: 'Aucune invitation en attente',
+                    subtitle: "Hourra ! Nous avons cherché partout et n'avons trouvé aucune invitation en attente.",
                 },
             },
         },
         perDiem: {
-            subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
+            subtitle: `<muted-text>Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés. <a href="${CONST.DEEP_DIVE_PER_DIEM}">En savoir plus</a>.</muted-text>`,
             amount: 'Montant',
             deleteRates: () => ({
                 one: 'Supprimer le taux',
@@ -4404,10 +4412,7 @@ const translations = {
                 whoIsYourBankAccount: 'Quelle est votre banque ?',
                 whereIsYourBankLocated: 'Où se trouve votre banque ?',
                 howDoYouWantToConnect: 'Comment souhaitez-vous vous connecter à votre banque ?',
-                learnMoreAboutOptions: {
-                    text: 'En savoir plus sur ces',
-                    linkText: 'options.',
-                },
+                learnMoreAboutOptions: `<muted-text>En savoir plus sur ces <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">options</a>.</muted-text>`,
                 commercialFeedDetails:
                     'Nécessite une configuration avec votre banque. Cela est généralement utilisé par les grandes entreprises et est souvent la meilleure option si vous êtes éligible.',
                 commercialFeedPlaidDetails: `Nécessite une configuration avec votre banque, mais nous vous guiderons. Cela est généralement limité aux grandes entreprises.`,
@@ -5445,8 +5450,8 @@ const translations = {
             updateDetails: 'Mettre à jour les détails',
             yesDisconnectMyBankAccount: 'Oui, déconnectez mon compte bancaire.',
             yesStartOver: 'Oui, recommencez',
-            disconnectYour: 'Déconnectez votre',
-            bankAccountAnyTransactions: 'compte bancaire. Toutes les transactions en cours pour ce compte seront toujours effectuées.',
+            disconnectYourBankAccount: ({bankName}: DisconnectYourBankAccountParams) =>
+                `Déconnectez votre <strong>${bankName}</strong> compte bancaire. Toutes les transactions en cours pour ce compte seront toujours effectuées.`,
             clearProgress: "Recommencer effacera les progrès que vous avez réalisés jusqu'à présent.",
             areYouSure: 'Êtes-vous sûr ?',
             workspaceCurrency: "Devise de l'espace de travail",
@@ -5701,8 +5706,7 @@ const translations = {
                 nonBillable: 'Non-facturable',
                 nonBillableDescription: 'Les dépenses sont occasionnellement refacturées aux clients.',
                 eReceipts: 'eReceipts',
-                eReceiptsHint: 'Les eReceipts sont créés automatiquement',
-                eReceiptsHintLink: 'pour la plupart des transactions de crédit en USD',
+                eReceiptsHint: `Les reçus électroniques sont créés automatiquement [pour la plupart des transactions de crédit en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Suivi des participants',
                 attendeeTrackingHint: 'Suivez le coût par personne pour chaque dépense.',
                 prohibitedDefaultDescription:
@@ -6220,7 +6224,7 @@ const translations = {
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
-            emptyStateSubtitle: 'Vous pouvez ajouter des dépenses à ce rapport en utilisant le bouton ci-dessus.',
+            emptyStateSubtitle: "Vous pouvez ajouter des dépenses à ce rapport\n en utilisant le bouton ci-dessous ou l'option « Ajouter une dépense » dans le menu Plus ci-dessus.",
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',

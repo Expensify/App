@@ -613,6 +613,8 @@
         "sublicensees",
         "sublocality",
         "subpremise",
+        "subprocessors",
+        "Subprocessors",
         "subrates",
         "substep",
         "substeps",
@@ -646,6 +648,7 @@
         "tnode",
         "tobe",
         "togglefullscreen",
+        "tosorted",
         "TOTP",
         "touchables",
         "Touchless",
@@ -750,7 +753,10 @@
         "zxldvw",
         "inputmethod",
         "copyable",
-        "مثال"
+        "مثال",
+        "moveElemsAttrsToGroup",
+        "removeHiddenElems",
+        "moveGroupAttrsToElems"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -791,7 +797,7 @@
         "src/TIMEZONES.ts",
         "tests/unit/EmojiTest.ts",
         "tests/unit/FastSearchTest.ts",
-        "tests/unit/LocaleCompareTest.ts",
+        "tests/unit/useLocalizeTest.tsx",
         "tests/unit/removeInvisibleCharacters.ts",
         "tests/unit/searchCountryOptionsTest.ts",
         "tests/unit/currencyList.json",
