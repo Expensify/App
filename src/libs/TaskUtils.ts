@@ -45,16 +45,16 @@ function getTaskTitleFromReport(taskReport?: OnyxEntry<Report>, fallbackTitle = 
     // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
     // an optimistic report is created with the only property - reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.
-    const title = taskReport && taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
+    const title = taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
 
     return shouldReturnMarkdown ? Parser.htmlToMarkdown(title) : Parser.htmlToText(title).trim();
 }
 
-function getTaskTitle(taskReport?: Report, fallbackTitle = '', shouldReturnMarkdown = false): string {
+function getTaskTitle(taskReport?: OnyxEntry<Report>, fallbackTitle = '', shouldReturnMarkdown = false): string {
     return getTaskTitleFromReport(taskReport, fallbackTitle, shouldReturnMarkdown);
 }
 
-function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>, taskReport?: Report, shouldReturnMarkdown = false) {
+function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>, taskReport?: OnyxEntry<Report>, shouldReturnMarkdown = false) {
     const taskTitle = getTaskTitle(taskReport, reportAction?.childReportName, shouldReturnMarkdown);
     return taskTitle ? translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
