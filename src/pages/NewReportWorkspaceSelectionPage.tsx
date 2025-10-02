@@ -19,11 +19,13 @@ import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,10 +48,14 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const navigateToNewReport = useCallback(
@@ -77,9 +83,23 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 return;
             }
             const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            const selectedTransactionsKeys = Object.keys(selectedTransactions);
+            if (isMovingExpenses && !!selectedTransactionsKeys.length) {
+                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReportID}`];
+                changeTransactionsReport(
+                    selectedTransactionsKeys,
+                    optimisticReportID,
+                    isASAPSubmitBetaEnabled,
+                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails?.email ?? '',
+                    policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    reportNextStep,
+                );
+                clearSelectedTransactions();
+            }
             navigateToNewReport(optimisticReportID);
         },
-        [currentUserPersonalDetails, navigateToNewReport],
+        [allReportNextSteps, clearSelectedTransactions, currentUserPersonalDetails, isASAPSubmitBetaEnabled, isMovingExpenses, navigateToNewReport, policies, selectedTransactions],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

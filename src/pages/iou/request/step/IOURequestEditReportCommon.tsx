@@ -3,7 +3,6 @@ import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import {useSession} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
@@ -13,6 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpense';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -20,7 +20,6 @@ import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -66,23 +65,11 @@ function IOURequestEditReportCommon({
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        canBeMissing: true,
-        selector: (policy) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined),
-    });
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
-    const session = useSession();
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const isMemberOfMoreThanOnePolicy = useMemo(() => {
-        if (!allPolicies) {
-            return false;
-        }
-        const policyCount = Object.values(allPolicies).filter((policy) => !!policy?.employeeList?.[session?.email ?? ''] && policy?.type !== CONST.POLICY.TYPE.PERSONAL).length;
-        return policyCount > 1;
-    }, [allPolicies, session?.email]);
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
@@ -171,13 +158,13 @@ function IOURequestEditReportCommon({
 
         return (
             <MenuItem
-                onPress={!expenseReports.length && isMemberOfMoreThanOnePolicy ? () => Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)) : createReport}
+                onPress={createReport}
                 title={translate('report.newReport.createReport')}
-                description={activePolicy?.name}
+                description={policyForMovingExpenses?.name}
                 icon={Expensicons.DocumentPlus}
             />
         );
-    }, [createReport, isUnreported, expenseReports.length, isMemberOfMoreThanOnePolicy, translate, activePolicy?.name]);
+    }, [createReport, isUnreported, translate, policyForMovingExpenses?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
