@@ -14,8 +14,8 @@ import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useIsOnboardingTaskParentReportArchived from '@hooks/useIsOnboardingTaskParentReportArchived';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -36,7 +36,6 @@ import {
     setWorkspaceCategoryEnabled,
 } from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -51,21 +50,19 @@ function CategorySettingsPage({
     },
     navigation,
 }: CategorySettingsPageProps) {
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policy = usePolicy(policyID);
+    const policyData = usePolicyData(policyID);
     const {environmentURL} = useEnvironment();
 
-    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
-    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const policyCategory = policyData.categories?.[categoryName] ?? Object.values(policyData.categories ?? {}).find((category) => category.previousCategoryName === categoryName);
+    const policyCurrency = policyData.policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
-    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
+    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
     const isSetupCategoryTaskParentReportArchived = useIsOnboardingTaskParentReportArchived(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
@@ -131,13 +128,7 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(
-            policyID,
-            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
-            isSetupCategoryTaskParentReportArchived,
-            policyTagLists,
-            allTransactionViolations,
-        );
+        setWorkspaceCategoryEnabled(policyData, {[policyCategory.name]: {name: policyCategory.name, enabled: value}}, isSetupCategoryTaskParentReportArchived);
     };
 
     const navigateToEditCategory = () => {
@@ -147,7 +138,7 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], isSetupCategoryTaskParentReportArchived, policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(policyData, [categoryName], isSetupCategoryTaskParentReportArchived);
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };
