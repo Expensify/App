@@ -1,4 +1,5 @@
 // Issue - https://github.com/Expensify/App/issues/26719
+import {getPathFromState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
@@ -11,7 +12,8 @@ import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -207,10 +209,36 @@ function setAppLoading(isLoading: boolean) {
     Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
+/**
+ * Saves the current navigation path to lastVisitedPath before app goes to background
+ */
+function saveCurrentPathBeforeBackground() {
+    try {
+        if (!navigationRef.isReady()) {
+            return;
+        }
+
+        const currentState = navigationRef.getRootState();
+        if (!currentState) {
+            return;
+        }
+
+        const currentPath = getPathFromState(currentState, linkingConfig.config);
+
+        if (currentPath) {
+            Log.info('Saving current path before background', false, {currentPath});
+            updateLastVisitedPath(currentPath);
+        }
+    } catch (error) {
+        Log.warn('Failed to save current path before background', {error});
+    }
+}
+
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        saveCurrentPathBeforeBackground();
     }
     appState = nextAppState;
 });
