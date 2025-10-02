@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -37,7 +38,7 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
+import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
@@ -170,6 +171,10 @@ function TransactionItemRow({
     const merchantOrDescription = merchant || description;
 
     const missingFieldError = useMemo(() => {
+        if (isSettled(report)) {
+            return '';
+        }
+
         const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
@@ -188,7 +193,7 @@ function TransactionItemRow({
             }
             return error;
         }
-    }, [transactionItem, translate]);
+    }, [transactionItem, translate, report]);
 
     const columnComponent: ColumnComponents = useMemo(
         () => ({
@@ -479,7 +484,7 @@ function TransactionItemRow({
                             </View>
                         )}
                         {shouldShowErrors && (
-                            <TransactionItemRowRBRWithOnyx
+                            <TransactionItemRowRBR
                                 transaction={transactionItem}
                                 violations={violations}
                                 report={report}
@@ -529,7 +534,7 @@ function TransactionItemRow({
                 )}
             </View>
             {shouldShowErrors && (
-                <TransactionItemRowRBRWithOnyx
+                <TransactionItemRowRBR
                     transaction={transactionItem}
                     violations={violations}
                     report={report}
