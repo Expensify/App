@@ -107,7 +107,7 @@ function ReportActionsView({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
+    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -271,16 +271,16 @@ function ReportActionsView({
     useEffect(() => {
         let timerID: NodeJS.Timeout;
 
-        if (isTheFirstReportActionIsLinked) {
+        if (!isTheFirstReportActionIsLinked && reportActionID) {
             setNavigatingToLinkedMessage(true);
-        } else {
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
-            // eslint-disable-next-line deprecation/deprecation
             InteractionManager.runAfterInteractions(() => {
                 // Using a short delay to ensure the view is updated after interactions
                 timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);
             });
+        } else {
+            setNavigatingToLinkedMessage(false);
         }
 
         return () => {
@@ -289,7 +289,7 @@ function ReportActionsView({
             }
             clearTimeout(timerID);
         };
-    }, [isTheFirstReportActionIsLinked]);
+    }, [isTheFirstReportActionIsLinked, reportActionID]);
 
     // Show skeleton while loading initial report actions when data is incomplete/missing and online
     const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
