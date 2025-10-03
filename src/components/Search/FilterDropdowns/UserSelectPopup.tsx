@@ -91,8 +91,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
+            countryCode,
         );
-    }, [options.reports, options.personalDetails]);
+    }, [options.reports, options.personalDetails, countryCode]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {

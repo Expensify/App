@@ -619,7 +619,7 @@ describe('OptionsListUtils', () => {
         it('should return all options when no search value is provided', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const results = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
 
             // Then all personal details (including those that have reports) should be returned
             expect(results.personalDetails.length).toBe(10);
@@ -631,7 +631,16 @@ describe('OptionsListUtils', () => {
         it('should include current user when includeCurrentUser is true for type:chat from suggestions', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to true
-            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, true);
+            const results = getSearchOptions({
+                options: OPTIONS,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                includeUserToInvite: true,
+                includeRecentReports: true,
+                includeCurrentUser: true,
+            });
 
             // Then the current user should be included in personalDetails
             const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
@@ -646,7 +655,16 @@ describe('OptionsListUtils', () => {
         it('should exclude current user when includeCurrentUser is false', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to false (default behavior)
-            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, false);
+            const results = getSearchOptions({
+                options: OPTIONS,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                includeUserToInvite: true,
+                includeRecentReports: true,
+                includeCurrentUser: false,
+            });
 
             // Then the current user should not be included in personalDetails
             const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
@@ -1191,7 +1209,7 @@ describe('OptionsListUtils', () => {
         it('should return all options when search is empty', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE);
 
@@ -1203,7 +1221,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'man';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
@@ -1222,7 +1240,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'mistersinister@marauders.com';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1236,7 +1254,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'Archived';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1252,7 +1270,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
             const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS_WITH_PERIODS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS_WITH_PERIODS, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
@@ -1266,7 +1284,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'avengers';
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS_WITH_WORKSPACE_ROOM, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS_WITH_WORKSPACE_ROOM, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1279,7 +1297,7 @@ describe('OptionsListUtils', () => {
         it('should put exact match by login on the top of the list', () => {
             const searchText = 'reedrichards@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1294,7 +1312,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with chat rooms
             const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions(OPTIONS_WITH_CHAT_ROOMS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS_WITH_CHAT_ROOMS, betas: [CONST.BETAS.ALL]});
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1308,7 +1326,7 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             const searchText = 'fantastic';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1323,7 +1341,7 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1345,7 +1363,7 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS});
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
@@ -1356,7 +1374,7 @@ describe('OptionsListUtils', () => {
         it('should return limited amount of recent reports if the limit is set', () => {
             const searchText = '';
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS});
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, {maxRecentReportsToShow: 2});
 
@@ -1374,7 +1392,7 @@ describe('OptionsListUtils', () => {
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
@@ -1627,7 +1645,7 @@ describe('OptionsListUtils', () => {
 
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS});
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE);
 
@@ -1639,7 +1657,7 @@ describe('OptionsListUtils', () => {
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions(OPTIONS);
+            const options = getSearchOptions({options: OPTIONS});
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE);
 
@@ -1656,7 +1674,7 @@ describe('OptionsListUtils', () => {
                     // Given a set of options with periods
                     const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
                     // When we call getSearchOptions
-                    const results = getSearchOptions(OPTIONS_WITH_PERIODS);
+                    const results = getSearchOptions({options: OPTIONS_WITH_PERIODS});
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
@@ -1674,7 +1692,7 @@ describe('OptionsListUtils', () => {
             OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
 
             // Given a set of options
-            const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS, betas: [CONST.BETAS.ALL]});
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE);
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
@@ -1690,7 +1708,7 @@ describe('OptionsListUtils', () => {
             const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
-            const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
+            const options = getSearchOptions({options: OPTIONS_WITH_SELF_DM, betas: [CONST.BETAS.ALL]});
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE);
 

@@ -66,8 +66,13 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, undefined, false);
-    }, [areOptionsInitialized, isScreenTransitionEnd, options]);
+        return getSearchOptions({
+            options,
+            betas: undefined,
+            isUsedInChatFinder: false,
+            countryCode,
+        });
+    }, [areOptionsInitialized, countryCode, isScreenTransitionEnd, options]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, {
