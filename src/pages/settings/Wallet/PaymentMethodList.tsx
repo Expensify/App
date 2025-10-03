@@ -519,7 +519,6 @@ function PaymentMethodList({
         [
             styles.ph6,
             styles.paymentMethod,
-            styles.badgeBordered,
             styles.mt4,
             styles.mt6,
             styles.mb1,
@@ -528,6 +527,7 @@ function PaymentMethodList({
             getBadgeText,
             listItemStyle,
             threeDotsMenuItems,
+            onThreeDotsMenuPress,
             shouldShowSelectedState,
             selectedMethodID,
         ],

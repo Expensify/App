@@ -75,11 +75,15 @@ function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
         },
     ];
 
-    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, {includePartiallySetupBankAccounts}, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    return API.read(
+        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
+        {includePartiallySetupBankAccounts},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function getMakeDefaultPaymentOnyxData(
