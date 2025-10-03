@@ -1,8 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 
 type LazyAssetResult<T> = {
-    asset: T;
+    asset: T | null;
     isLoaded?: boolean;
     isLoading?: boolean;
     hasError?: boolean;
@@ -12,7 +11,7 @@ type LazyAssetResult<T> = {
  * Hook for lazy loading any type of asset
  */
 function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): LazyAssetResult<T> {
-    const assetRef = useRef<T>(PlaceholderIcon as T);
+    const assetRef = useRef<T | null>(null);
     const versionRef = useRef(0);
 
     const [isLoaded, setIsLoaded] = useState(false);
@@ -63,7 +62,7 @@ function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): L
     }, [memoizedImportFn, fallback]);
 
     return {
-        asset: isLoaded ? assetRef?.current : (PlaceholderIcon as T),
+        asset: isLoaded ? assetRef?.current : null,
         isLoaded,
         isLoading,
         hasError,

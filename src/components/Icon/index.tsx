@@ -16,7 +16,7 @@ import IconWrapperStyles from './IconWrapperStyles';
 
 type IconProps = {
     /** The asset to render. */
-    src: IconAsset;
+    src: IconAsset | null;
 
     /** The width of the icon. */
     width?: number;
@@ -103,6 +103,10 @@ function Icon({
 
         return {...attachmentCarouselPagerContext};
     }, [attachmentCarouselPagerContext, isScrollingEnabledFallback]);
+
+    if (!src) {
+        return null;
+    }
 
     if (inline) {
         return (
