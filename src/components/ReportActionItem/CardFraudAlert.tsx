@@ -43,7 +43,7 @@ function CardFraudAlert({originalMessage, onConfirm, onReportFraud}: CardFraudAl
     return (
         <View style={[styles.pv3, styles.ph4]}>
             <Text style={[styles.textStrong, styles.mb2]}>
-                I identified suspicious Expensify Card activity for your Expensify Card ending in {cardLastFour}. Do you recognize these charges?
+                I identified suspicious activity for your Expensify Card ending in {cardLastFour}. Do you recognize these charges?
             </Text>
 
             <View style={[styles.mt2, styles.mb2]}>
