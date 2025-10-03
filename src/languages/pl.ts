@@ -672,6 +672,7 @@ const translations = {
         link: 'Link',
         pinned: 'Przypięte',
         read: 'Przeczytane',
+        actionRequired: 'Wymagane działanie',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',

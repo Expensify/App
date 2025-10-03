@@ -653,6 +653,7 @@ const translations = {
         link: 'Enlace',
         pinned: 'Fijado',
         read: 'Leído',
+        actionRequired: 'Acción requerida',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

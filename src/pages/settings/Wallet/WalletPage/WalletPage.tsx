@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -45,6 +45,7 @@ import variables from '@styles/variables';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -84,7 +85,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
-    const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [shouldShowCardMenu, setShouldShowCardMenu] = useState(false);
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
@@ -132,23 +132,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         });
     }, [windowWidth]);
 
-    const getSelectedPaymentMethodID = useCallback(() => {
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            return paymentMethod.selectedPaymentMethod.bankAccountID;
-        }
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            return paymentMethod.selectedPaymentMethod.fundID;
-        }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
-
     /**
      * Display the delete/default menu, or the add payment method menu
      */
     const paymentMethodPressed = ({event, accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
-        if (shouldShowDefaultDeleteMenu) {
-            setShouldShowDefaultDeleteMenu(false);
-            return;
-        }
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
@@ -178,17 +165,22 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod,
                 methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
-            setShouldShowDefaultDeleteMenu(true);
-            setMenuPosition();
+        }
+    };
+
+    const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
+        const accountPolicyID = accountData?.additionalData?.policyID;
+
+        if (accountPolicyID) {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return;
+            }
+            navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
         }
     };
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
-        if (shouldShowDefaultDeleteMenu) {
-            setShouldShowDefaultDeleteMenu(false);
-            return;
-        }
-
         if (shouldShowCardMenu) {
             setShouldShowCardMenu(false);
             return;
@@ -210,24 +202,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     };
 
     const addBankAccountPressed = () => {
-        if (shouldShowDefaultDeleteMenu) {
-            setShouldShowDefaultDeleteMenu(false);
-            return;
-        }
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
         }
         openPersonalBankAccountSetupView({});
     };
-
-    /**
-     * Hide the default / delete modal
-     */
-    const hideDefaultDeleteMenu = useCallback(() => {
-        setShouldShowDefaultDeleteMenu(false);
-        setShowConfirmDeleteModal(false);
-    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const hideCardMenu = useCallback(() => {
         setShouldShowCardMenu(false);
@@ -245,14 +225,16 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             makeDefaultPaymentMethodPaymentMethods(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
         }
+        resetSelectedPaymentMethodData();
     }, [
+        fundList,
+        bankAccountList,
+        styles,
+        paymentMethod.selectedPaymentMethodType,
         paymentMethod.methodID,
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
-        paymentMethod.selectedPaymentMethodType,
-        bankAccountList,
-        fundList,
-        styles,
+        resetSelectedPaymentMethodData,
     ]);
 
     const deletePaymentMethod = useCallback(() => {
@@ -264,13 +246,16 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
+        setShowConfirmDeleteModal(false);
+        resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
         paymentMethod.selectedPaymentMethodType,
-        lastUsedPaymentMethods,
         paymentMethod.methodID,
+        resetSelectedPaymentMethodData,
         bankAccountList,
+        lastUsedPaymentMethods,
     ]);
 
     /**
@@ -293,11 +278,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         if (network.isOffline) {
             return;
         }
-        getPaymentMethods();
+        getPaymentMethods(true);
     }, [network.isOffline]);
 
     useLayoutEffect(() => {
-        if (!shouldListenForResize || (!shouldShowDefaultDeleteMenu && !shouldShowCardMenu)) {
+        if (!shouldListenForResize || !shouldShowCardMenu) {
             return;
         }
 
@@ -307,26 +292,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [windowWidth, windowHeight]);
 
-    useEffect(() => {
-        if (!shouldShowDefaultDeleteMenu) {
-            return;
-        }
-
-        // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
-        let shouldResetPaymentMethodData = false;
-
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isEmpty(bankAccountList?.[paymentMethod.methodID])) {
-            shouldResetPaymentMethodData = true;
-        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && isEmpty(fundList?.[paymentMethod.methodID])) {
-            shouldResetPaymentMethodData = true;
-        }
-        if (shouldResetPaymentMethodData) {
-            // Close corresponding selected payment method modals which are open
-            if (shouldShowDefaultDeleteMenu) {
-                hideDefaultDeleteMenu();
-            }
-        }
-    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
     // Don't show "Make default payment method" button if it's the only payment method or if it's already the default
     const isCurrentPaymentMethodDefault = () => {
         const hasMultiplePaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles).length > 1;
@@ -352,7 +317,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
@@ -364,6 +328,78 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldDisplaySearchRouter
             onBackButtonPress={Navigation.popToSidebar}
         />
+    );
+
+    const threeDotMenuItems = useMemo(
+        () => [
+            ...(shouldUseNarrowLayout
+                ? [
+                      {
+                          text: paymentMethod.formattedSelectedPaymentMethod.title,
+                          icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+                          iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                          iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                          iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+                          description: paymentMethod.formattedSelectedPaymentMethod.description,
+                          wrapperStyle: [styles.mb4, styles.ph5, styles.pt3],
+                          interactive: false,
+                          displayInDefaultIconColor: true,
+                      },
+                  ]
+                : []),
+            ...(shouldShowMakeDefaultButton
+                ? [
+                      {
+                          text: translate('walletPage.setDefaultConfirmation'),
+                          icon: Expensicons.Star,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              makeDefaultPaymentMethod();
+                          },
+                          numberOfLinesTitle: 0,
+                      },
+                  ]
+                : []),
+            {
+                text: translate('common.delete'),
+                icon: Expensicons.Trashcan,
+                onSelected: () => {
+                    if (isAccountLocked) {
+                        closeModal(() => showLockedAccountModal());
+                        return;
+                    }
+                    closeModal(() => setShowConfirmDeleteModal(true));
+                },
+            },
+            ...(shouldShowEnableGlobalReimbursementsButton
+                ? [
+                      {
+                          text: translate('common.enableGlobalReimbursements'),
+                          icon: Expensicons.Globe,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
+                      },
+                  ]
+                : []),
+        ],
+        [
+            shouldUseNarrowLayout,
+            shouldShowMakeDefaultButton,
+            shouldShowEnableGlobalReimbursementsButton,
+            translate,
+            isAccountLocked,
+            makeDefaultPaymentMethod,
+            showLockedAccountModal,
+            paymentMethod.selectedPaymentMethod.bankAccountID,
+        ],
     );
 
     if (isLoadingApp) {
@@ -407,14 +443,13 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             illustrationBackgroundColor="#411103"
                         >
                             <PaymentMethodList
-                                onPress={paymentMethodPressed}
+                                onPress={onBankAccountRowPressed}
                                 onAddBankAccountPress={addBankAccountPressed}
-                                actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                                activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
-                                onListContentSizeChange={shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
+                                onThreeDotsMenuPress={paymentMethodPressed}
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
+                                threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
 
@@ -571,84 +606,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 </View>
             </ScrollView>
             <Popover
-                isVisible={shouldShowDefaultDeleteMenu}
-                onClose={hideDefaultDeleteMenu}
-                anchorPosition={{
-                    top: anchorPosition.anchorPositionTop,
-                    right: anchorPosition.anchorPositionRight,
-                }}
-                anchorRef={paymentMethodButtonRef as RefObject<View | null>}
-            >
-                {!showConfirmDeleteModal && (
-                    <View
-                        style={[
-                            !shouldUseNarrowLayout
-                                ? {
-                                      ...styles.sidebarPopover,
-                                      ...styles.pv4,
-                                  }
-                                : styles.pt5,
-                        ]}
-                    >
-                        {isPopoverBottomMount && (
-                            <MenuItem
-                                title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
-                                iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
-                                description={paymentMethod.formattedSelectedPaymentMethod.description}
-                                wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
-                                interactive={false}
-                                displayInDefaultIconColor
-                            />
-                        )}
-                        {shouldShowMakeDefaultButton && (
-                            <MenuItem
-                                title={translate('walletPage.setDefaultConfirmation')}
-                                icon={Expensicons.Star}
-                                onPress={() => {
-                                    if (isAccountLocked) {
-                                        closeModal(() => showLockedAccountModal());
-                                        return;
-                                    }
-                                    makeDefaultPaymentMethod();
-                                    setShouldShowDefaultDeleteMenu(false);
-                                }}
-                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                                numberOfLinesTitle={0}
-                            />
-                        )}
-                        <MenuItem
-                            title={translate('common.delete')}
-                            icon={Expensicons.Trashcan}
-                            onPress={() => {
-                                if (isAccountLocked) {
-                                    closeModal(() => showLockedAccountModal());
-                                    return;
-                                }
-                                closeModal(() => setShowConfirmDeleteModal(true));
-                            }}
-                            wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                        />
-                        {shouldShowEnableGlobalReimbursementsButton && (
-                            <MenuItem
-                                title={translate('common.enableGlobalReimbursements')}
-                                icon={Expensicons.Globe}
-                                onPress={() => {
-                                    if (isAccountLocked) {
-                                        closeModal(() => showLockedAccountModal());
-                                        return;
-                                    }
-                                    closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
-                                }}
-                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                            />
-                        )}
-                    </View>
-                )}
-            </Popover>
-            <Popover
                 isVisible={shouldShowCardMenu}
                 onClose={hideCardMenu}
                 anchorPosition={{
@@ -667,7 +624,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             : styles.pt5,
                     ]}
                 >
-                    {isPopoverBottomMount && (
+                    {shouldUseNarrowLayout && (
                         <MenuItem
                             title={paymentMethod.formattedSelectedPaymentMethod.title}
                             icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
@@ -700,11 +657,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             </Popover>
             <ConfirmModal
                 isVisible={showConfirmDeleteModal}
-                onConfirm={() => {
-                    hideDefaultDeleteMenu();
-                    deletePaymentMethod();
-                }}
-                onCancel={hideDefaultDeleteMenu}
+                onConfirm={deletePaymentMethod}
+                onCancel={() => setShowConfirmDeleteModal(false)}
                 title={translate('walletPage.deleteAccount')}
                 prompt={translate('walletPage.deleteConfirmation')}
                 confirmText={translate('common.delete')}

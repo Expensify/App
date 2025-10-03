@@ -10,11 +10,12 @@ import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSugges
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
@@ -97,6 +98,12 @@ type PaymentMethodListProps = {
 
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
+
+    /** Optional array of menu items to be displayed in the three dots menu */
+    threeDotsMenuItems?: PopoverMenuItem[];
+
+    /** Callback for when the three dots menu is pressed */
+    onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -115,6 +122,7 @@ type PaymentMethodItem = PaymentMethod & {
     isMethodActive?: boolean;
     cardID?: number;
     plaidUrl?: string;
+    onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
 } & BankIcon;
 
 function dismissError(item: PaymentMethodItem) {
@@ -166,6 +174,10 @@ function keyExtractor(item: PaymentMethod | string) {
     return item.key ?? '';
 }
 
+function isAccountInSetupState(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP;
+}
+
 function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
@@ -186,9 +198,10 @@ function PaymentMethodList({
     itemIconRight,
     filterType,
     shouldHideDefaultBadge = false,
+    threeDotsMenuItems,
+    onThreeDotsMenuPress,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
@@ -329,25 +342,34 @@ function PaymentMethodList({
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const pressHandler = onPress as PaymentMethodPressHandler;
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
+            const paymentMethodData = {
+                accountType: paymentMethod.accountType,
+                accountData: paymentMethod.accountData,
+                icon: {
+                    icon: paymentMethod.icon,
+                    iconHeight: paymentMethod?.iconHeight,
+                    iconWidth: paymentMethod?.iconWidth,
+                    iconStyles: paymentMethod?.iconStyles,
+                    iconSize: paymentMethod?.iconSize,
+                },
+                isDefault: paymentMethod.isDefault,
+                methodID: paymentMethod.methodID,
+                description: paymentMethod.description,
+            };
             return {
                 ...paymentMethod,
                 onPress: (e: GestureResponderEvent) =>
                     pressHandler({
                         event: e,
-                        accountType: paymentMethod.accountType,
-                        accountData: paymentMethod.accountData,
-                        icon: {
-                            icon: paymentMethod.icon,
-                            iconHeight: paymentMethod?.iconHeight,
-                            iconWidth: paymentMethod?.iconWidth,
-                            iconStyles: paymentMethod?.iconStyles,
-                            iconSize: paymentMethod?.iconSize,
-                        },
-                        isDefault: paymentMethod.isDefault,
-                        methodID: paymentMethod.methodID,
-                        description: paymentMethod.description,
+                        ...paymentMethodData,
                     }),
-                wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
+                onThreeDotsMenuPress: onThreeDotsMenuPress
+                    ? (e: GestureResponderEvent) =>
+                          onThreeDotsMenuPress({
+                              event: e,
+                              ...paymentMethodData,
+                          })
+                    : undefined,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: itemIconRight ?? Expensicons.ThreeDots,
@@ -371,7 +393,7 @@ function PaymentMethodList({
         itemIconRight,
         activePaymentMethodID,
         actionPaymentMethodType,
-        StyleUtils,
+        onThreeDotsMenuPress,
     ]);
 
     const onPressItem = useCallback(() => {
@@ -418,6 +440,22 @@ function PaymentMethodList({
         return filteredPaymentMethods;
     }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
 
+    const getBadgeText = useCallback(
+        (item: PaymentMethodItem) => {
+            if (isAccountInSetupState(item)) {
+                return translate('common.actionRequired');
+            }
+            return shouldShowDefaultBadge(
+                filteredPaymentMethods,
+                invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
+                shouldHideDefaultBadge,
+            )
+                ? translate('paymentMethodList.defaultPaymentMethod')
+                : undefined;
+        },
+        [filteredPaymentMethods, invoiceTransferBankAccountID, shouldHideDefaultBadge, translate, userWallet?.walletLinkedAccountID],
+    );
+
     /**
      * Create a menuItem for each passed paymentMethod
      */
@@ -450,19 +488,25 @@ function PaymentMethodList({
                         iconHeight={item.iconHeight ?? item.iconSize}
                         iconWidth={item.iconWidth ?? item.iconSize}
                         iconStyles={item.iconStyles}
-                        badgeText={
-                            shouldShowDefaultBadge(
-                                filteredPaymentMethods,
-                                invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
-                                shouldHideDefaultBadge,
-                            )
-                                ? translate('paymentMethodList.defaultPaymentMethod')
-                                : undefined
-                        }
+                        badgeText={getBadgeText(item)}
+                        badgeIcon={isAccountInSetupState(item) ? Expensicons.DotIndicator : undefined}
+                        badgeSuccess={isAccountInSetupState(item) ? true : undefined}
                         wrapperStyle={[styles.paymentMethod, listItemStyle]}
                         iconRight={item.iconRight}
-                        badgeStyle={styles.badgeBordered}
-                        shouldShowRightIcon={item.shouldShowRightIcon}
+                        shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
+                        shouldShowRightComponent={!!threeDotsMenuItems}
+                        rightComponent={
+                            threeDotsMenuItems && onThreeDotsMenuPress ? (
+                                <ThreeDotsMenu
+                                    shouldSelfPosition
+                                    onIconPress={item.onThreeDotsMenuPress}
+                                    menuItems={threeDotsMenuItems}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    shouldOverlay
+                                    isNested
+                                />
+                            ) : undefined
+                        }
                         shouldShowSelectedState={shouldShowSelectedState}
                         isSelected={selectedMethodID.toString() === item.methodID?.toString()}
                         interactive={item.interactive}
@@ -475,20 +519,17 @@ function PaymentMethodList({
         [
             styles.ph6,
             styles.paymentMethod,
-            styles.badgeBordered,
             styles.mt4,
             styles.mt6,
             styles.mb1,
             styles.textLabel,
             styles.colorMuted,
-            filteredPaymentMethods,
-            invoiceTransferBankAccountID,
-            userWallet?.walletLinkedAccountID,
-            translate,
+            getBadgeText,
             listItemStyle,
+            threeDotsMenuItems,
+            onThreeDotsMenuPress,
             shouldShowSelectedState,
             selectedMethodID,
-            shouldHideDefaultBadge,
         ],
     );
 
