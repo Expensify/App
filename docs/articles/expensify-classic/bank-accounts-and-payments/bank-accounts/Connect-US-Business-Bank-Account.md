@@ -6,34 +6,6 @@ keywords: [Expensify Classic, business bank account, verified business bank acco
 <div id="expensify-classic" markdown="1">
 Use a business bank account in Expensify to receive invoice payments, reimburse employees, pay bills, and fund Expensify Cards.
    
-You can connect a **business deposit-only account** (receives payments only) or a **verified business account** (sends and receives payments):
-
-| Business deposit-only bank account                     | Verified business bank account                            | 
-|---------------------------------------------------|------------------------------------------------------|
-| ✔ Receives payments for invoices             | ✔ Reimburses expenses via direct bank transfer |
-|                                                   | ✔ Pays bills                                     | 
-|                                                   | ✔ Issues Expensify Cards                         |
-
----
-
-# Connect a Business Deposit-only Bank Account
-
-1. Hover over **Settings**, then click **Account**.
-2. Click the **Wallet** tab on the left and scroll to **Bank Accounts**.
-3. Click **Add deposit-only bank account**, then click **Connect to your bank**.
-4. Click **Continue**.
-5. Select your bank from the list and log in.
-   - If your bank isn’t listed, click the **X** to return, select **Connect manually**, enter your details, check the box, and click **Save & continue**.
-6. Click **Allow**.
-7. Ensure the correct account is selected and click **Save & continue**.
-8. Add your bank details, check the box, then click **Save & continue**.
-     - **Note:** If the default account type is incorrect, switch between **Business** and **Personal** before adding the account. The type cannot be changed later.
-9. Enter your name, address, and phone number. Click **Save & continue**.
-
-You’ll now receive payments for invoices directly into this bank account.
-
----
-
 # Connect a Verified Business Bank Account
 
 ## Who can use a verified business bank account
@@ -108,14 +80,6 @@ Once validated, your bank account is ready to use.
 ---
 
 # FAQ
-
-## What’s the difference between a deposit-only and a verified bank account?
-
-A deposit-only account only receives invoice payments. A verified account can also reimburse employees, pay bills, and fund the Expensify Card.
-
-## Can I verify a deposit-only account later?
-
-Yes! Head to Settings > Account > Wallet, then click Verify next to the deposit-only account to begin the verification process. 
 
 ## How long does bank verification take?
 
