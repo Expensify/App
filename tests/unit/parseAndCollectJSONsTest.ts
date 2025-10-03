@@ -4,7 +4,7 @@
 import {execSync} from 'child_process';
 import path from 'path';
 
-const SCRIPT_PATH = path.resolve(__dirname, '../../.github/scripts/parseAndCollectJsons.rb');
+const SCRIPT_PATH = path.resolve(__dirname, '../../.github/scripts/parseAndCollectJSONs.rb');
 
 function runScript(input: string): unknown[] {
     const result = execSync(`ruby ${SCRIPT_PATH} '${input}'`, {
@@ -13,7 +13,7 @@ function runScript(input: string): unknown[] {
     return JSON.parse(result) as unknown[];
 }
 
-describe('Test if parseAndCollectJsons works correctly', () => {
+describe('Test if parseAndCollectJSONs works correctly', () => {
     test('returns empty array if no JSON objects present', () => {
         const result = runScript('hello world without json');
         expect(result).toEqual([]);
