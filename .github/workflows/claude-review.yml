@@ -6,9 +6,7 @@ permissions:
 
 on:
   pull_request:
-    types: [opened]
-  pull_request_review_comment:
-      types: [created]
+    types: [ready_for_review]
   workflow_dispatch:
     inputs:
       PULL_REQUEST_URL:
