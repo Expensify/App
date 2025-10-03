@@ -129,6 +129,7 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
+        currentReportIDForTestsValue = '2';
 
         // Then sortReportsToDisplayInLHN should not be called again since deep comparison shows no change
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
@@ -234,6 +235,7 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
+        currentReportIDForTestsValue = '2';
 
         // When the mock is updated
         const thirdReportsWithSameContent = createMockReports(reportsContent);
@@ -265,7 +267,6 @@ describe('useSidebarOrderedReports', () => {
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
-        currentReportIDForTestsValue = '2';
 
         // When the priority mode is changed
         await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
