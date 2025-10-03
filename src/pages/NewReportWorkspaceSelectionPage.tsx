@@ -96,6 +96,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     reportNextStep,
                 );
                 clearSelectedTransactions();
+                return;
             }
             navigateToNewReport(optimisticReportID);
         },
