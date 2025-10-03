@@ -117,10 +117,7 @@ function ParentNavigationSubtitle({
     };
 
     return (
-        <Text
-            style={[styles.optionAlternateText, styles.textLabelSupporting]}
-            numberOfLines={1}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             {!!statusText && (
                 <View
                     style={[
@@ -134,24 +131,29 @@ function ParentNavigationSubtitle({
                     <Text style={[styles.reportStatusText, {color: statusTextColor}]}>{statusText}</Text>
                 </View>
             )}
-            {!!reportName && (
-                <>
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
-                    <TextLink
-                        onMouseEnter={onMouseEnter}
-                        onMouseLeave={onMouseLeave}
-                        onPress={onPress}
-                        accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
-                        style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
-                    >
-                        {reportName}
-                    </TextLink>
-                </>
-            )}
-            {!!workspaceName && workspaceName !== reportName && (
-                <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
-            )}
-        </Text>
+            <Text
+                style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flex1]}
+                numberOfLines={1}
+            >
+                {!!reportName && (
+                    <>
+                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
+                        <TextLink
+                            onMouseEnter={onMouseEnter}
+                            onMouseLeave={onMouseLeave}
+                            onPress={onPress}
+                            accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
+                            style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link]}
+                        >
+                            {reportName}
+                        </TextLink>
+                    </>
+                )}
+                {!!workspaceName && workspaceName !== reportName && (
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                )}
+            </Text>
+        </View>
     );
 }
 

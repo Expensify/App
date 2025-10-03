@@ -336,14 +336,12 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 4,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 4,
-            height: 16,
+            borderRadius: variables.componentBorderRadiusSmall,
+            maxHeight: 16,
         },
 
         reportStatusText: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: 11,
-            lineHeight: 14,
+            fontSize: variables.fontSizeXSmall,
             fontWeight: FontUtils.fontWeight.normal,
         },
 
