@@ -9,6 +9,7 @@ jest.mock('@components/Icon/PlaceholderIcon', () => {
     const React = require('react');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     return React.memo(() =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
         React.createElement('svg', {
             dataTestId: 'placeholder-icon',
         }),
