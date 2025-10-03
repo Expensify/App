@@ -8,6 +8,7 @@ import type {
     OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
+    ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
     StartIssueNewCardFlowParams,
     UpdateExpensifyCardLimitParams,
@@ -967,6 +968,60 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
 }
 
+function resolveFraudAlert(cardID: number, isFraud: boolean, reportID: string, reportActionID: string) {
+    const resolution = isFraud ? 'fraud' : 'recognized';
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    originalMessage: {
+                        resolution,
+                    },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                    pendingAction: null,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const parameters: ResolveFraudAlertParams = {
+        cardID,
+        isFraud,
+    };
+
+    API.write(WRITE_COMMANDS.RESOLVE_FRAUD_ALERT, parameters, {optimisticData, successData, failureData});
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -994,5 +1049,6 @@ export {
     getCardDefaultName,
     queueExpensifyCardForBilling,
     clearIssueNewCardFormData,
+    resolveFraudAlert,
 };
 export type {ReplacementReason};

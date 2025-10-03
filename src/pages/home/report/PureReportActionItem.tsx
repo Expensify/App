@@ -167,6 +167,7 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import {expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
@@ -823,13 +824,13 @@ function PureReportActionItem({
                 return [];
             }
 
+            const cardID = getOriginalMessage(action)?.cardID ?? 0;
             return [
                 {
                     text: 'Yes',
                     key: `${action.reportActionID}-cardFraudAlert-confirm`,
                     onPress: () => {
-                        // TODO: Call API to confirm it was the user
-                        console.log('User confirmed transaction');
+                        resolveFraudAlert(cardID, false, reportID ?? '', action.reportActionID);
                     },
                     isPrimary: true,
                 },
@@ -837,8 +838,7 @@ function PureReportActionItem({
                     text: 'No',
                     key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
                     onPress: () => {
-                        // TODO: Call API to report fraud
-                        console.log('User reported fraud');
+                        resolveFraudAlert(cardID, true, reportID ?? '', action.reportActionID);
                     },
                 },
             ];
