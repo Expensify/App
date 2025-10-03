@@ -373,6 +373,52 @@ describe('SidebarUtils', () => {
             expect(optionDataUnpinned?.isPinned).toBe(false);
         });
 
+        it('returns brickRoadIndicator for top-most report with error', () => {
+            const MOCK_REPORT: OnyxEntry<Report> = {
+                reportID: '1',
+            };
+
+            const optionDataRBR = SidebarUtils.getOptionData({
+                report: MOCK_REPORT,
+                reportAttributes: {brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, reportName: '', isEmpty: false, requiresAttention: false, reportErrors: {}},
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+            });
+
+            expect(optionDataRBR?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it("doesn't return brickRoadIndicator for non top-most report with error", () => {
+            const MOCK_REPORT: OnyxEntry<Report> = {
+                reportID: '1',
+                parentReportID: '2',
+                parentReportActionID: '22',
+            };
+
+            const optionDataRBR = SidebarUtils.getOptionData({
+                report: MOCK_REPORT,
+                reportAttributes: {brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, reportName: '', isEmpty: false, requiresAttention: false, reportErrors: {}},
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+            });
+
+            expect(optionDataRBR?.brickRoadIndicator).toBeUndefined();
+        });
+
         it('returns null when report is archived', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '5',
