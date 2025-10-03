@@ -445,7 +445,7 @@ describe('ReportActionAvatars', () => {
 
         it('renders workspace avatar if policyID is passed as a prop', async () => {
             const retrievedData = await retrieveDataFromAvatarView({policyID: policy.id});
-            isSingleAvatarRendered({...retrievedData, userAvatar: getDefaultWorkspaceAvatar().name});
+            isSingleAvatarRendered({...retrievedData, userAvatar: getDefaultWorkspaceAvatar(policy.name).name});
         });
     });
 });

@@ -14,7 +14,7 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import {startMoneyRequest} from '@userActions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
@@ -57,9 +57,6 @@ type AttachmentPickerWithMenuItemsProps = {
 
     /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
-
-    /** Whether or not the user is blocked from concierge */
-    isBlockedFromConcierge: boolean;
 
     /** Whether or not the attachment picker is disabled */
     disabled?: boolean;
@@ -112,7 +109,6 @@ function AttachmentPickerWithMenuItems({
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
-    isBlockedFromConcierge,
     disabled,
     setMenuVisibility,
     isMenuVisible,
@@ -133,12 +129,11 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {isProduction} = useEnvironment();
-    const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
-
-    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -175,16 +170,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
-                ...(isManualDistanceTrackingEnabled
-                    ? [
-                          {
-                              icon: Expensicons.Location,
-                              text: translate('quickAction.recordDistance'),
-                              shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => null, true),
-                          },
-                      ]
-                    : []),
+                {
+                    icon: Expensicons.Location,
+                    text: translate('quickAction.recordDistance'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                },
             ],
             [CONST.IOU.TYPE.PAY]: [
                 {
@@ -209,16 +200,12 @@ function AttachmentPickerWithMenuItems({
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
-                ...(isManualDistanceTrackingEnabled
-                    ? [
-                          {
-                              icon: Expensicons.Location,
-                              text: translate('iou.trackDistance'),
-                              shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => null, true),
-                          },
-                      ]
-                    : []),
+                {
+                    icon: Expensicons.Location,
+                    text: translate('iou.trackDistance'),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
+                },
             ],
             [CONST.IOU.TYPE.INVOICE]: [
                 {
@@ -230,7 +217,9 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => options[option], isReportArchived);
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], isReportArchived, isRestrictedToPreferredPolicy).map(
+            (option) => options[option],
+        );
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [
@@ -242,8 +231,9 @@ function AttachmentPickerWithMenuItems({
         selectOption,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
-        isManualDistanceTrackingEnabled,
         isReportArchived,
+        lastDistanceExpenseType,
+        isRestrictedToPreferredPolicy,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
@@ -373,7 +363,7 @@ function AttachmentPickerWithMenuItems({
                                                 setMenuVisibility(!isMenuVisible);
                                             }}
                                             style={styles.composerSizeButton}
-                                            disabled={isBlockedFromConcierge || disabled}
+                                            disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.create')}
                                         >
@@ -400,7 +390,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Collapse button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.collapse')}
                                                 >
@@ -424,7 +414,7 @@ function AttachmentPickerWithMenuItems({
                                                     // Keep focus on the composer when Expand button is clicked.
                                                     onMouseDown={(e) => e.preventDefault()}
                                                     style={styles.composerSizeButton}
-                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.expand')}
                                                 >

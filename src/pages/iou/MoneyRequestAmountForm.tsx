@@ -1,4 +1,3 @@
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -59,25 +58,23 @@ const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmoun
 /**
  * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
  */
-function MoneyRequestAmountForm(
-    {
-        amount = 0,
-        taxAmount = 0,
-        currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
-        isEditing = false,
-        skipConfirmation = false,
-        iouType = CONST.IOU.TYPE.SUBMIT,
-        policyID = '',
-        onCurrencyButtonPress,
-        onSubmitButtonPress,
-        selectedTab = CONST.TAB_REQUEST.MANUAL,
-        shouldKeepUserInput = false,
-        chatReportID,
-        hideCurrencySymbol = false,
-    }: MoneyRequestAmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function MoneyRequestAmountForm({
+    amount = 0,
+    taxAmount = 0,
+    currency = CONST.CURRENCY.USD,
+    isCurrencyPressable = true,
+    isEditing = false,
+    skipConfirmation = false,
+    iouType = CONST.IOU.TYPE.SUBMIT,
+    policyID = '',
+    onCurrencyButtonPress,
+    onSubmitButtonPress,
+    selectedTab = CONST.TAB_REQUEST.MANUAL,
+    shouldKeepUserInput = false,
+    chatReportID,
+    hideCurrencySymbol = false,
+    ref,
+}: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -153,7 +150,7 @@ function MoneyRequestAmountForm(
                     <SettlementButton
                         pressOnEnter
                         onPress={submitAndNavigateToNextPage}
-                        enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                         addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
@@ -220,14 +217,14 @@ function MoneyRequestAmountForm(
                     setFormError('');
                 }}
                 shouldShowBigNumberPad={canUseTouchScreen}
-                ref={(ref) => {
-                    if (typeof forwardedRef === 'function') {
-                        forwardedRef(ref);
-                    } else if (forwardedRef && 'current' in forwardedRef) {
+                ref={(newRef) => {
+                    if (typeof ref === 'function') {
+                        ref(newRef);
+                    } else if (ref && 'current' in ref) {
                         // eslint-disable-next-line no-param-reassign
-                        forwardedRef.current = ref;
+                        ref.current = newRef;
                     }
-                    textInput.current = ref;
+                    textInput.current = newRef;
                 }}
                 moneyRequestAmountInputRef={moneyRequestAmountInputRef}
                 shouldKeepUserInput={shouldKeepUserInput}
@@ -244,5 +241,5 @@ function MoneyRequestAmountForm(
 
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default React.forwardRef(MoneyRequestAmountForm);
+export default MoneyRequestAmountForm;
 export type {CurrentMoney, MoneyRequestAmountFormProps};

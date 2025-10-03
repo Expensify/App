@@ -48,14 +48,17 @@ function WorkspaceCreateReportFieldsPage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            createReportField(policyID, {
+            createReportField({
+                policyID,
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
                 initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
+                listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+                disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
             });
             Navigation.goBack();
         },
-        [availableListValuesLength, policyID],
+        [availableListValuesLength, formDraft, policyID],
     );
 
     const validateForm = useCallback(
@@ -153,7 +156,22 @@ function WorkspaceCreateReportFieldsPage({
                                 label={translate('common.type')}
                                 subtitle={translate('workspace.reportFields.typeInputSubtitle')}
                                 rightLabel={translate('common.required')}
-                                onTypeSelected={(type) => formRef.current?.resetForm({...inputValues, type, initialValue: type === CONST.REPORT_FIELD_TYPES.DATE ? defaultDate : ''})}
+                                onTypeSelected={(type) => {
+                                    let initialValue;
+                                    if (type === CONST.REPORT_FIELD_TYPES.DATE) {
+                                        initialValue = defaultDate;
+                                    } else if (type === CONST.REPORT_FIELD_TYPES.FORMULA) {
+                                        initialValue = '{report:id}';
+                                    } else {
+                                        initialValue = '';
+                                    }
+
+                                    formRef.current?.resetForm({
+                                        ...inputValues,
+                                        type,
+                                        initialValue,
+                                    });
+                                }}
                             />
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (

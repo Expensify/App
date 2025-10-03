@@ -50,11 +50,11 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
     const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const prevReports = usePrevious(reports);
     const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
     const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, reports, reportAttributes?.reports);
@@ -88,14 +88,17 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
 
     const changedReportsEntries = useMemo(() => {
-        const result: OnyxCollection<OnyxEntry<Report>> = {};
+        const result: OnyxCollection<OnyxEntry<Report> | null> = {};
 
         Object.keys(changedReports ?? {}).forEach((key) => {
-            const report = reports?.[key];
+            let report: Report | null = reports?.[key] ?? null;
             result[key] = report;
+            if (reports?.[key] === undefined && prevReports?.[key]) {
+                report = null;
+            }
         });
         return result;
-    }, [changedReports, reports]);
+    }, [changedReports, reports, prevReports]);
 
     /**
      * This effect is responsible for updating the options only for changed reports
@@ -161,7 +164,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, reportAttributes?.reports, transactions]);
+    }, [changedReportActions, personalDetails, reportAttributes?.reports]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -228,7 +231,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [personalDetails, reportAttributes?.reports]);
+    }, [personalDetails]);
 
     const initializeOptions = useCallback(() => {
         loadOptions();

@@ -1,10 +1,9 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -30,61 +29,58 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-function BaseTextInput(
-    {
-        label = '',
-        /**
-         * To be able to function as either controlled or uncontrolled component we should not
-         * assign a default prop value for `value` or `defaultValue` props
-         */
-        value = undefined,
-        defaultValue = undefined,
-        placeholder = '',
-        errorText = '',
-        iconLeft = null,
-        icon = null,
-        textInputContainerStyles,
-        shouldApplyPaddingToContainer = true,
-        touchableInputWrapperStyle,
-        containerStyles,
-        inputStyle,
-        shouldUseFullInputHeight = false,
-        forceActiveLabel = false,
-        disableKeyboard = false,
-        autoGrow = false,
-        autoGrowExtraSpace = 0,
-        autoGrowMarginSide,
-        autoGrowHeight = false,
-        maxAutoGrowHeight,
-        hideFocusedState = false,
-        maxLength = undefined,
-        hint = '',
-        onInputChange = () => {},
-        multiline = false,
-        autoCorrect = true,
-        prefixCharacter = '',
-        suffixCharacter = '',
-        inputID,
-        type = 'default',
-        excludedMarkdownStyles = [],
-        shouldShowClearButton = false,
-        shouldHideClearButton = true,
-        prefixContainerStyle = [],
-        prefixStyle = [],
-        suffixContainerStyle = [],
-        suffixStyle = [],
-        contentWidth,
-        loadingSpinnerStyle,
-        uncontrolled,
-        placeholderTextColor,
-        onClearInput,
-        iconContainerStyle,
-        shouldDelayFocus = false,
-        shouldUseDefaultLineHeightForPrefix = true,
-        ...props
-    }: BaseTextInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function BaseTextInput({
+    label = '',
+    /**
+     * To be able to function as either controlled or uncontrolled component we should not
+     * assign a default prop value for `value` or `defaultValue` props
+     */
+    value = undefined,
+    defaultValue = undefined,
+    placeholder = '',
+    errorText = '',
+    iconLeft = null,
+    icon = null,
+    textInputContainerStyles,
+    shouldApplyPaddingToContainer = true,
+    touchableInputWrapperStyle,
+    containerStyles,
+    inputStyle,
+    shouldUseFullInputHeight = false,
+    forceActiveLabel = false,
+    disableKeyboard = false,
+    autoGrow = false,
+    autoGrowExtraSpace = 0,
+    autoGrowMarginSide,
+    autoGrowHeight = false,
+    maxAutoGrowHeight,
+    hideFocusedState = false,
+    maxLength = undefined,
+    hint = '',
+    onInputChange = () => {},
+    multiline = false,
+    autoCorrect = true,
+    prefixCharacter = '',
+    suffixCharacter = '',
+    inputID,
+    type = 'default',
+    excludedMarkdownStyles = [],
+    shouldShowClearButton = false,
+    shouldHideClearButton = true,
+    prefixContainerStyle = [],
+    prefixStyle = [],
+    suffixContainerStyle = [],
+    suffixStyle = [],
+    contentWidth,
+    loadingSpinnerStyle,
+    uncontrolled,
+    placeholderTextColor,
+    onClearInput,
+    iconContainerStyle,
+    shouldUseDefaultLineHeightForPrefix = true,
+    ref,
+    ...props
+}: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
@@ -95,7 +91,6 @@ function BaseTextInput(
     const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -286,24 +281,6 @@ function BaseTextInput(
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
 
-    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
-    useFocusEffect(
-        useCallback(() => {
-            if (!shouldDelayFocus || !inputProps.autoFocus) {
-                return;
-            }
-
-            focusTimeoutRef.current = setTimeout(() => {
-                if (!input.current) {
-                    return;
-                }
-                input.current.focus();
-            }, CONST.ANIMATED_TRANSITION);
-
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, [shouldDelayFocus, inputProps.autoFocus]),
-    );
-
     return (
         <>
             <View style={[containerStyles]}>
@@ -350,14 +327,7 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-                        <View
-                            style={[
-                                styles.textInputAndIconContainer(isMarkdownEnabled),
-                                {flex: 1},
-                                isMultiline && hasLabel && styles.textInputMultilineContainer,
-                                styles.pointerEventsBoxNone,
-                            ]}
-                        >
+                        <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
@@ -388,7 +358,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
                                     const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
@@ -397,7 +367,8 @@ function BaseTextInput(
                                         ref.current = baseTextInputRef;
                                     }
 
-                                    input.current = element;
+                                    const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
+                                    input.current = elementRef;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
@@ -441,7 +412,6 @@ function BaseTextInput(
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                autoFocus={shouldDelayFocus ? false : inputProps.autoFocus}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -454,18 +424,17 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
                                 <TextInputClearButton
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)}
                                     onPressButton={() => {
                                         setValue('');
                                         onClearInput?.();
                                     }}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
                                 />
                             )}
-                            {inputProps.isLoading !== undefined && (
+                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
-                                    size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
                                         StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
@@ -535,4 +504,4 @@ function BaseTextInput(
 
 BaseTextInput.displayName = 'BaseTextInput';
 
-export default forwardRef(BaseTextInput);
+export default BaseTextInput;

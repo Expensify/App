@@ -89,4 +89,3 @@ It typically takes 1–2 business days to receive the test transactions after se
 
 No. The person entering the information must provide their own ID, SSN, and U.S. address. If someone else enters their info, the account will be flagged and delayed.
 
-</div>

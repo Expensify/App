@@ -6,7 +6,7 @@ keywords: [New Expensify, business bank account, verified business bank account,
 
 <div id="new-expensify" markdown="1">
 
-You can connect a business bank account in **New Expensify** using the following supported currencies: **USD, CAD, GBP, EUR, and AUD**. 
+You can connect a business bank account in **New Expensify** using the following supported currencies: **USD, CAD, GBP, EUR, and AUD**.
 
 Follow the steps below to connect your business bank account and enable payment features.
 
@@ -16,7 +16,7 @@ Follow the steps below to connect your business bank account and enable payment 
 
 ## Step 1: Enable Make or Track Payments
 
-1. Click **Workspaces** in the left-hand menu
+1. Click **Workspaces** in the navigation tabs
 2. Navigate to **[Workspace Name] > More Features**.
 3. Click **Enable Workflows**.
 4. A **Workflows** setting will appear in the left-hand menu.
@@ -116,13 +116,13 @@ A **Beneficial Owner** is an **individual** who owns **25% or more** of the busi
 ## What if my business is owned by another company?
 Please only check the Beneficial Owner box if an individual owns 25% or more of the business.
 
-## Why can’t I input my address or upload my ID? 
+## Why can’t I input my address or upload my ID?
 All individuals associated with the account must have a **US address, US photo ID, and a US SSN**. If you do not meet these requirements, an **admin who qualifies** should add the bank account.
 
-## Why am I asked for documents when adding my bank account? 
+## Why am I asked for documents when adding my bank account?
 Expensify follows **federal regulations (BSA / AML laws)** and anti-fraud measures. If automatic verification fails, we may request manual verification (e.g., address verification, bank ownership letter, etc.). Contact **Concierge** for assistance.
 
-## I don’t see all three microtransactions I need to validate my bank account. What should I do? 
+## I don’t see all three microtransactions I need to validate my bank account. What should I do?
 Wait **two business days**. If still missing, contact your **bank** and ask them to whitelist our **ACH IDs:**
 - **1270239450**
 - **4270239450**
@@ -135,4 +135,3 @@ Once completed, contact **Concierge** to re-trigger the microtransactions.
 ## Is my data safe?
 Yes! Expensify uses **bank-level security measures** and is **tested daily** by **McAfee**. Learn more about our security policies [here](https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security).
 
-</div>

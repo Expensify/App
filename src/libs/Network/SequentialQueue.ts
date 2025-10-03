@@ -4,6 +4,7 @@ import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
+    onInitialization as onPersistedRequestsInitialization,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
     save as savePersistedRequest,
@@ -11,6 +12,7 @@ import {
 } from '@libs/actions/PersistedRequests';
 import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
@@ -21,7 +23,8 @@ import type {ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
-Onyx.connect({
+// Use connectWithoutView since this is for network data and don't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -78,7 +81,8 @@ function flushOnyxUpdatesQueue() {
 
 let queueFlushedDataToStore: OnyxUpdate[] = [];
 
-Onyx.connect({
+// Use connectWithoutView since this is for network queue and don't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.QUEUE_FLUSHED_DATA,
     callback: (val) => {
         if (!val) {
@@ -171,6 +175,13 @@ function process(): Promise<void> {
                 sequentialQueueRequestThrottle.clear();
                 return process();
             }
+            // For rate limiting errors (429) on ResendValidateCode, don't retry to prevent spam
+            if (error.message === CONST.ERROR.THROTTLED && requestToProcess.command === WRITE_COMMANDS.RESEND_VALIDATE_CODE) {
+                Onyx.update(requestToProcess.failureData ?? []);
+                endPersistedRequestAndRemoveFromQueue(requestToProcess);
+                sequentialQueueRequestThrottle.clear();
+                return process();
+            }
             rollbackOngoingPersistedRequest();
             return sequentialQueueRequestThrottle
                 .sleep(error, requestToProcess.command)
@@ -227,7 +238,8 @@ function flush(shouldResetPromise = true) {
     }
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connection = Onyx.connect({
+    // Use connectWithoutView since this is for network queue and don't affect to any UI
+    const connection = Onyx.connectWithoutView({
         key: ONYXKEYS.PERSISTED_REQUESTS,
         // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
         // an existing connection already made in PersistedRequests.ts.
@@ -296,6 +308,9 @@ function isPaused(): boolean {
 
 // Flush the queue when the connection resumes
 onReconnection(flush);
+
+// Flush the queue when the persisted requests are initialized
+onPersistedRequestsInitialization(flush);
 
 function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
     if (conflictAction.type === 'push') {

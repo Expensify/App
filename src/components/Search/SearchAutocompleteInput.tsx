@@ -1,14 +1,13 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
-import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
@@ -25,10 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
-
-const SearchFiltersButtonTransition = getSearchFiltersButtonTransition();
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -72,30 +67,31 @@ type SearchAutocompleteInputProps = {
 
     /** Map of autocomplete suggestions. Required for highlighting to work properly */
     substitutionMap: SubstitutionMap;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
-function SearchAutocompleteInput(
-    {
-        value,
-        onSearchQueryChange,
-        onSubmit = () => {},
-        autocompleteListRef,
-        isFullWidth,
-        disabled = false,
-        shouldShowOfflineMessage = false,
-        autoFocus = true,
-        onFocus,
-        onBlur,
-        caretHidden = false,
-        wrapperStyle,
-        wrapperFocusedStyle = {},
-        outerWrapperStyle,
-        isSearchingForReports,
-        selection,
-        substitutionMap,
-    }: SearchAutocompleteInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function SearchAutocompleteInput({
+    value,
+    onSearchQueryChange,
+    onSubmit = () => {},
+    autocompleteListRef,
+    isFullWidth,
+    disabled = false,
+    shouldShowOfflineMessage = false,
+    autoFocus = true,
+    onFocus,
+    onBlur,
+    caretHidden = false,
+    wrapperStyle,
+    wrapperFocusedStyle = {},
+    outerWrapperStyle,
+    isSearchingForReports,
+    selection,
+    substitutionMap,
+    ref,
+}: SearchAutocompleteInputProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -124,10 +120,18 @@ function SearchAutocompleteInput(
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
+    const {borderColor: focusedBorderColor = theme.border, ...restWrapperFocusedStyle} = wrapperFocusedStyle;
+    const {borderColor: wrapperBorderColor = theme.border, ...restWrapperStyle} = wrapperStyle ?? {};
+
     // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
     const wrapperAnimatedStyle = useAnimatedStyle(() => {
-        return focusedSharedValue.get() ? wrapperFocusedStyle : (wrapperStyle ?? {});
+        return focusedSharedValue.get() ? restWrapperFocusedStyle : (restWrapperStyle ?? {});
+    });
+    const wrapperBorderColorAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], [wrapperBorderColor as string, focusedBorderColor as string], 'RGB'),
+        };
     });
 
     useEffect(() => {
@@ -191,24 +195,16 @@ function SearchAutocompleteInput(
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
-    // Parse Fullstory attributes on initial render
-    useLayoutEffect(parseFSAttributes, []);
-
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}>
-                <View
-                    style={styles.flex1}
-                    fsClass={CONST.FULL_STORY.UNMASK}
-                    testID={CONST.FULL_STORY.UNMASK}
-                >
+            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
+                <View style={styles.flex1}>
                     <TextInput
                         testID="search-autocomplete-text-input"
                         value={value}
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
@@ -223,6 +219,7 @@ function SearchAutocompleteInput(
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
                         inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
                         onFocus={() => {
                             onFocus?.();
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);
@@ -231,6 +228,7 @@ function SearchAutocompleteInput(
                         onBlur={() => {
                             autocompleteListRef?.current?.updateExternalTextInputFocus(false);
                             focusedSharedValue.set(false);
+
                             onBlur?.();
                         }}
                         isLoading={isSearchingForReports}
@@ -239,20 +237,12 @@ function SearchAutocompleteInput(
                         multiline={false}
                         parser={parser}
                         selection={selection}
-                        shouldDelayFocus
+                        shouldShowClearButton={!!value && !isSearchingForReports}
+                        shouldHideClearButton={false}
+                        onClearInput={clearFilters}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                     />
                 </View>
-                {!!value && (
-                    <Animated.View
-                        style={styles.pr3}
-                        layout={SearchFiltersButtonTransition}
-                    >
-                        <TextInputClearButton
-                            onPressButton={clearFilters}
-                            style={styles.mt0}
-                        />
-                    </Animated.View>
-                )}
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}
@@ -266,4 +256,4 @@ function SearchAutocompleteInput(
 SearchAutocompleteInput.displayName = 'SearchAutocompleteInput';
 
 export type {SearchAutocompleteInputProps};
-export default forwardRef(SearchAutocompleteInput);
+export default SearchAutocompleteInput;

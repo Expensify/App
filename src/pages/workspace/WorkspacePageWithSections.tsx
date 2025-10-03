@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -16,7 +17,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
-import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -30,7 +30,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'threeDotsAnchorPosition' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
+    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
@@ -122,7 +122,6 @@ function WorkspacePageWithSections({
     onBackButtonPress,
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
-    threeDotsAnchorPosition,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
 }: WorkspacePageWithSectionsProps) {
@@ -133,7 +132,7 @@ function WorkspacePageWithSections({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.email,
+        selector: emailSelector,
         canBeMissing: true,
     });
 
@@ -141,7 +140,7 @@ function WorkspacePageWithSections({
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = policy?.achAccount?.state ?? reimbursementAccount?.achData?.state;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
-    const hasVBA = achState === BankAccount.STATE.OPEN;
+    const hasVBA = achState === CONST.BANK_ACCOUNT.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(showLoadingAsFirstRender);
@@ -213,7 +212,6 @@ function WorkspacePageWithSections({
                     icon={icon ?? undefined}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                 >
                     {headerContent}

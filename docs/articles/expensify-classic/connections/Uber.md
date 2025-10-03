@@ -3,7 +3,6 @@ title: Integrate Uber with Expensify
 description: Learn how to connect Uber to Expensify Classic and how trip and tip expenses appear as separate entries based on Uber receipts.
 keywords: [Uber integration, Expensify Classic, trip expense, tip expense, connect Uber, import Uber receipts]
 ---
-<div id="expensify-classic" markdown="1">
 
 If you use Uber for business travel, you can automatically forward your ride receipts to Expensify—no manual uploads required!
 
@@ -67,4 +66,3 @@ No. Each Uber account can only be connected to one Expensify account.
 
 If you disconnect Uber from Expensify, future receipts will no longer be forwarded automatically. You can reconnect anytime by using either method listed above.
 
-</div>

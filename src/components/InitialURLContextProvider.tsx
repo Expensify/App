@@ -6,12 +6,16 @@ import type {Route} from '@src/ROUTES';
 type InitialUrlContextType = {
     initialURL: Route | null;
     setInitialURL: React.Dispatch<React.SetStateAction<Route | null>>;
+    isAuthenticatedAtStartup: boolean;
+    setIsAuthenticatedAtStartup: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
 const InitialURLContext = createContext<InitialUrlContextType>({
     initialURL: null,
     setInitialURL: () => {},
+    isAuthenticatedAtStartup: false,
+    setIsAuthenticatedAtStartup: () => {},
 });
 
 type InitialURLContextProviderProps = {
@@ -21,6 +25,7 @@ type InitialURLContextProviderProps = {
 
 function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
     const [initialURL, setInitialURL] = useState<Route | null>(null);
+    const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>(false);
 
     useEffect(() => {
         Linking.getInitialURL().then((initURL) => {
@@ -35,8 +40,10 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
         () => ({
             initialURL,
             setInitialURL,
+            isAuthenticatedAtStartup,
+            setIsAuthenticatedAtStartup,
         }),
-        [initialURL],
+        [initialURL, isAuthenticatedAtStartup],
     );
 
     return <InitialURLContext.Provider value={initialUrlContext}>{children}</InitialURLContext.Provider>;

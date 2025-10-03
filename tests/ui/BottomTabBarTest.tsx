@@ -26,7 +26,7 @@ describe('NavigationTabBar', () => {
     describe('Home tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -81,7 +81,7 @@ describe('NavigationTabBar', () => {
     describe('Settings tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -102,7 +102,7 @@ describe('NavigationTabBar', () => {
                         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
-                            </NavigationContainer>{' '}
+                            </NavigationContainer>
                         </ComposeProviders>,
                     );
 
@@ -127,7 +127,7 @@ describe('NavigationTabBar', () => {
                         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
-                            </NavigationContainer>{' '}
+                            </NavigationContainer>
                         </ComposeProviders>,
                     );
 
