@@ -108,6 +108,7 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
+        newContactMethod: string;
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: {
