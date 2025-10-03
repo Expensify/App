@@ -27,7 +27,6 @@ type PreloadWebpackPluginClass = Class<WebpackPluginInstance, [Options]>;
 const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin') as PreloadWebpackPluginClass;
 
 const includeModules = [
-    'react-native-animatable',
     'react-native-reanimated',
     'react-native-worklets',
     'react-native-picker-select',
@@ -38,7 +37,6 @@ const includeModules = [
     '@react-navigation/native',
     '@react-navigation/native-stack',
     '@react-navigation/stack',
-    'react-native-modal',
     'react-native-gesture-handler',
     'react-native-google-places-autocomplete',
     'react-native-qrcode-svg',
@@ -137,6 +135,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     // These files are copied over as per instructions here
                     // https://github.com/wojtekmaj/react-pdf#copying-cmaps
                     {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
+
+                    // Group‑IB web SDK injection file
+                    {from: 'web/snippets/gib.js', to: 'gib.js'},
                 ],
             }),
             new EnvironmentPlugin({JEST_WORKER_ID: ''}),
@@ -289,6 +290,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '@desktop': path.resolve(__dirname, '../../desktop'),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '@selectors': path.resolve(__dirname, '../../src/selectors/'),
             },
 
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
