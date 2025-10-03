@@ -1,7 +1,10 @@
+import DateUtils from '@libs/DateUtils';
+import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import createRandomReportAction from './collections/reportActions';
+import {createExpenseReport, createSelfDM} from './collections/reports';
 
 const actionNames: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.CLOSED];
 
@@ -71,4 +74,87 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
     return Object.assign({}, ...mockReports) as ReportActions;
 };
 
-export {getFakeReportAction, getMockedSortedReportActions, getMockedReportActionsMap};
+const parseIndex = (value: string): number => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? 1 : parsed;
+};
+
+function createExpenseReportForTest(reportID: string, overrides: Partial<Report> = {}): Report {
+    const base = createExpenseReport(parseIndex(reportID));
+    return {
+        ...base,
+        reportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        ...overrides,
+    };
+}
+
+function createSelfDMReportForTest(reportID: string, currentUserAccountID: number, overrides: Partial<Report> = {}): Report {
+    const base = createSelfDM(parseIndex(reportID), currentUserAccountID);
+    return {
+        ...base,
+        reportID,
+        ownerAccountID: currentUserAccountID,
+        ...overrides,
+    };
+}
+
+type IOUOriginalMessageOverrides = Partial<NonNullable<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage']>>;
+type IOUReportActionOverrides = Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
+
+function createIOUReportActionForTest({
+    reportID,
+    transactionID,
+    amount,
+    currency = CONST.CURRENCY.USD,
+    type = CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+    actorAccountID = 0,
+    reportActionID,
+    originalMessageOverrides = {},
+    overrides = {},
+}: {
+    reportID: string;
+    transactionID: string;
+    amount: number;
+    currency?: string;
+    type?: string;
+    actorAccountID?: number;
+    reportActionID?: string;
+    originalMessageOverrides?: IOUOriginalMessageOverrides;
+    overrides?: IOUReportActionOverrides;
+}): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+    const base = createRandomReportAction(parseIndex(transactionID));
+    const {originalMessage, pendingAction, ...restOverrides} = overrides ?? {};
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        actorAccountID,
+        automatic: false,
+        avatar: '',
+        created: restOverrides.created ?? DateUtils.getDBTime(),
+        errors: {},
+        isAttachmentOnly: false,
+        lastModified: restOverrides.lastModified ?? DateUtils.getDBTime(),
+        message: restOverrides.message ?? base.message ?? [],
+        originalMessage: {
+            IOUReportID: reportID,
+            IOUTransactionID: transactionID,
+            amount,
+            currency,
+            type,
+            ...(base.originalMessage ?? {}),
+            ...originalMessageOverrides,
+            ...originalMessage,
+        },
+        person: restOverrides.person ?? base.person ?? [],
+        reportActionID: reportActionID ?? restOverrides.reportActionID ?? rand64(),
+        sequenceNumber: restOverrides.sequenceNumber ?? 0,
+        shouldShow: restOverrides.shouldShow ?? true,
+        pendingAction: pendingAction ?? null,
+        ...restOverrides,
+    } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+}
+
+export {getFakeReportAction, getMockedSortedReportActions, getMockedReportActionsMap, createExpenseReportForTest, createSelfDMReportForTest, createIOUReportActionForTest};

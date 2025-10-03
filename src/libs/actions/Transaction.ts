@@ -87,6 +87,15 @@ Onyx.connect({
     },
 });
 
+let allNextSteps: OnyxCollection<ReportNextStep> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.NEXT_STEP,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allNextSteps = value ?? {};
+    },
+});
+
 const allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -794,7 +803,9 @@ function changeTransactionsReport(
 
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
-        if (isPaidGroupPolicy(policy) && policy?.id) {
+        const shouldEvaluatePolicyViolations = isPaidGroupPolicy(policy) && policy?.id && policyCategories;
+
+        if (shouldEvaluatePolicyViolations) {
             const violationData = ViolationsUtils.getViolationsOnyxData(
                 transaction,
                 currentTransactionViolations[transaction.transactionID] ?? [],
@@ -1156,10 +1167,24 @@ function changeTransactionsReport(
     const allAffectedReportIDs = new Set([...Object.keys(updatedReportTotals), reportID]);
 
     allAffectedReportIDs.forEach((affectedReportID) => {
-        const affectedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`];
-        if (!affectedReport) {
-            return;
+        let affectedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`];
+
+        if (!affectedReport && affectedReportID === reportID && newReport) {
+            affectedReport = newReport;
         }
+
+        if (!affectedReport) {
+            affectedReport = {
+                reportID: affectedReportID,
+                ownerAccountID: accountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+        }
+
+        const oldNextStepEntry = affectedReportID === reportID && reportNextStep !== undefined ? reportNextStep : allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`];
+        const oldNextStepValue = oldNextStepEntry ? {...oldNextStepEntry} : null;
 
         const updatedReport = {
             ...affectedReport,
@@ -1168,6 +1193,7 @@ function changeTransactionsReport(
         };
 
         const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation);
+        const shouldFixViolationsForReport = affectedReportID === reportID ? shouldFixViolations : false;
         const optimisticNextStep = buildNextStepNew(
             updatedReport,
             policy,
@@ -1176,7 +1202,7 @@ function changeTransactionsReport(
             hasViolations,
             isASAPSubmitBetaEnabled,
             updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
-            shouldFixViolations,
+            shouldFixViolationsForReport,
         );
 
         optimisticData.push({
@@ -1185,14 +1211,11 @@ function changeTransactionsReport(
             value: optimisticNextStep,
         });
 
-        // Only add failure data for the main report to avoid conflicts
-        if (affectedReportID === reportID) {
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-                value: reportNextStep,
-            });
-        }
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`,
+            value: oldNextStepValue,
+        });
     });
 
     const parameters: ChangeTransactionsReportParams = {
