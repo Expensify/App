@@ -45,12 +45,7 @@ Onyx.init({
     evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 
-export default withOnyx({
-    reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: props => !props.isActiveReport,
-    },
-})(ReportActionsView);
+const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: !isActiveReport});
 ```
 
 ## Onyx Derived Values
