@@ -193,6 +193,13 @@ function MoneyRequestReportPreviewContent({
 
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportAttributesSelector});
 
+    const currentReportName = iouReport?.reportID ? reportAttributes?.[iouReport.reportID]?.reportName : undefined;
+    const reportPreviewName = useMemo(() => {
+        return getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [action, iouReport, isInvoice, currentReportName]);
+
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -675,7 +682,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes)}
+                                                            {reportPreviewName}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
