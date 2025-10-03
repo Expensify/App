@@ -34,11 +34,16 @@
     sortBy: "date",
     sortOrder: "desc",
   };
+  
+  // Track the original character offsets for every parsed segment so later
+  // consumers can reconstruct the query's display order.
+  const positionInfo = [];
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      positionInfo,
     };
   }
 
@@ -48,6 +53,12 @@
       return;
     }
     defaultValues[field] = value;
+  }
+  
+  // Persist metadata for each parsed segment (default values and filters)
+  // using the same shape that the client consumes from the parser output.
+  function addPositionInfo(entry) {
+    positionInfo.push(entry);
   }
 }
 
@@ -91,6 +102,9 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
       updateDefaultValues(key, value);
+      // Default keys do not emit filters, but we still capture their position
+      // so the UI can interleave them correctly with explicit filters.
+      addPositionInfo({ type: 'root', key, position: location().start.offset });
     }
 
 freeTextFilter
@@ -102,13 +116,21 @@ freeTextFilter
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word);
+      const filterNode = buildFilter("eq", "keyword", word);
+      // Remember where the keyword filter began in the raw string so we can
+      // merge it back in the correct order when rehydrating the query.
+      addPositionInfo({ type: 'filter', key: 'keyword', position: location().start.offset, node: filterNode });
+      return filterNode;
     }
 
 standardFilter
   = _ field:filterKey _ op:filterOperator _  values:identifier {
       expectingNestedQuote = false; nameOperator = false;
-      return buildFilter(op, field, values);
+      const filterNode = buildFilter(op, field, values);
+      // Record the filter AST node alongside its offset to preserve ordering
+      // between structured filters and free-text keywords.
+      addPositionInfo({ type: 'filter', key: field, position: location().start.offset, node: filterNode });
+      return filterNode;
     }
 
 key "key"

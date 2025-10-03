@@ -400,6 +400,9 @@ function peg$parse(input, options) {
     };
   var peg$f2 = function(key, op, value) {
       updateDefaultValues(key, value);
+      // Default keys do not emit filters, but we still capture their position
+      // so the UI can interleave them correctly with explicit filters.
+      addPositionInfo({ type: 'root', key, position: location().start.offset });
     };
   var peg$f3 = function(value) {
       //handle no-breaking space
@@ -409,11 +412,19 @@ function peg$parse(input, options) {
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", word);
+      const filterNode = buildFilter("eq", "keyword", word);
+      // Remember where the keyword filter began in the raw string so we can
+      // merge it back in the correct order when rehydrating the query.
+      addPositionInfo({ type: 'filter', key: 'keyword', position: location().start.offset, node: filterNode });
+      return filterNode;
     };
   var peg$f4 = function(field, op, values) {
       expectingNestedQuote = false; nameOperator = false;
-      return buildFilter(op, field, values);
+      const filterNode = buildFilter(op, field, values);
+      // Record the filter AST node alongside its offset to preserve ordering
+      // between structured filters and free-text keywords.
+      addPositionInfo({ type: 'filter', key: field, position: location().start.offset, node: filterNode });
+      return filterNode;
     };
   var peg$f5 = function(k) {
       nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
@@ -3047,11 +3058,16 @@ function peg$parse(input, options) {
     sortBy: "date",
     sortOrder: "desc",
   };
+  
+  // Track the original character offsets for every parsed segment so later
+  // consumers can reconstruct the query's display order.
+  const positionInfo = [];
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      positionInfo,
     };
   }
 
@@ -3061,6 +3077,12 @@ function peg$parse(input, options) {
       return;
     }
     defaultValues[field] = value;
+  }
+  
+  // Persist metadata for each parsed segment (default values and filters)
+  // using the same shape that the client consumes from the parser output.
+  function addPositionInfo(entry) {
+    positionInfo.push(entry);
   }
 
  
