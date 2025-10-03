@@ -62,7 +62,7 @@ import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
-import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -327,22 +327,7 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                if (Array.isArray(attachmentFileRef.current)) {
-                    // Handle multiple files
-                    attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
-                    });
-                } else {
-                    // Handle single file
-                    addAttachmentReportActions(
-                        transactionThreadReportID ?? reportID,
-                        reportID,
-                        attachmentFileRef.current,
-                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                        newCommentTrimmed,
-                        true,
-                    );
-                }
+                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
