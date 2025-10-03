@@ -33,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
     Policy,
+    PolicyCategories,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -46,7 +47,6 @@ import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/type
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyCategoriesData} from './Policy/Category';
 import {getPolicyTagsData} from './Policy/Tag';
 
 let recentWaypoints: RecentWaypoint[] = [];
@@ -614,6 +614,7 @@ function changeTransactionsReport(
     email: string,
     policy?: OnyxEntry<Policy>,
     reportNextStep?: OnyxEntry<ReportNextStep>,
+    policyCategories?: OnyxEntry<PolicyCategories>,
 ) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -718,7 +719,6 @@ function changeTransactionsReport(
     let shouldFixViolations = false;
 
     const policyTagList = getPolicyTagsData(policy?.id);
-    const policyCategories = getPolicyCategoriesData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
     transactions.forEach((transaction) => {
@@ -801,7 +801,7 @@ function changeTransactionsReport(
                 currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
                 policyTagList,
-                policyCategories,
+                policyCategories ?? {},
                 policyHasDependentTags,
                 false,
             );
@@ -1138,7 +1138,7 @@ function changeTransactionsReport(
             currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
             policyTagList,
-            policyCategories,
+            policyCategories ?? {},
             policyHasDependentTags,
             false,
         );
