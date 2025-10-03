@@ -592,7 +592,7 @@ function AdvancedSearchFilters() {
             items: filters.at(0) ?? [],
         },
         {
-            titleTranslationKey: 'common.expenses',
+            titleTranslationKey: queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? 'common.reports' : 'common.expenses',
             items: filters.at(1) ?? [],
         },
         {

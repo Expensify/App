@@ -69,7 +69,6 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
-        [],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
