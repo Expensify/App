@@ -2127,6 +2127,7 @@ function getHasOptions(type: SearchDataTypes) {
 function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {text: translateLocal('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
         {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
         {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
         {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},

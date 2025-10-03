@@ -643,6 +643,7 @@ const translations = {
         todo: 'To-do',
         invoice: 'Invoice',
         expense: 'Expense',
+        expenseReport: 'Expense report',
         chat: 'Chat',
         task: 'Task',
         trip: 'Trip',

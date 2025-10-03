@@ -6544,6 +6544,14 @@ const CONST = {
                 DONE: 'done',
                 PAID: 'paid',
             },
+            EXPENSE_REPORT: {
+                ALL: '',
+                DRAFTS: 'drafts',
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                DONE: 'done',
+                PAID: 'paid',
+            },
             INVOICE: {
                 ALL: '',
                 OUTSTANDING: 'outstanding',
