@@ -2002,6 +2002,25 @@ const translations = {
         validateCardTitle: 'Verifichiamo che sei tu',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro un minuto o due.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Sì, lo faccio',
+            reportFraudButtonText: 'No, non ero io',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) => `ho eliminato l'attività sospetta e riattivato la carta x${cardLastFour}. Tutto pronto per continuare a fare spese!`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `disattivato la carta che termina con ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `attività sospetta identificata sulla carta che termina con ${cardLastFour}. Riconosci questo addebito?
+
+${amount} per ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Spendere',

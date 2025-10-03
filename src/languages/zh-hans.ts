@@ -1974,6 +1974,29 @@ const translations = {
         cardDetailsLoadingFailure: '加载卡片详情时发生错误。请检查您的互联网连接并重试。',
         validateCardTitle: '让我们确认一下身份',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以查看您的卡详细信息。验证码应在一两分钟内到达。`,
+        cardFraudAlert: {
+            confirmButtonText: '是的，我愿意',
+            reportFraudButtonText: '不，不是我',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `已清除可疑活动并重新激活卡片 x${
+                    //_/\__/_/  \_,_/\__/\__/\_,_/
+                    cardLastFour
+                }。一切准备就绪，可以继续报销了！`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `已停用以${cardLastFour}结尾的卡片`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `在卡号以${cardLastFour}结尾的卡上发现可疑活动。您是否认可此笔费用？
+
+${date}，${merchant}，金额为${amount}。`,
+        },
     },
     workflowsPage: {
         workflowTitle: '花费',

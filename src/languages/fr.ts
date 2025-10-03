@@ -2010,6 +2010,26 @@ const translations = {
         validateCardTitle: "Assurons-nous que c'est bien vous",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Veuillez entrer le code magique envoyé à ${contactMethod} pour voir les détails de votre carte. Il devrait arriver dans une minute ou deux.`,
+        cardFraudAlert: {
+            confirmButtonText: 'Oui, je le fais.',
+            reportFraudButtonText: "Non, ce n'était pas moi.",
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `a effacé l'activité suspecte et réactivé la carte x${cardLastFour}. Tout est prêt pour continuer à faire des dépenses !`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `désactivé la carte se terminant par ${cardLastFour}`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `activité suspecte identifiée sur la carte se terminant par ${cardLastFour}. Reconnaissez-vous cette charge ?
+
+${amount} pour ${merchant} - ${date}`,
+        },
     },
     workflowsPage: {
         workflowTitle: 'Dépenser',

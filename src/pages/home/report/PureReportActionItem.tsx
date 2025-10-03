@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -455,7 +456,7 @@ function PureReportActionItem({
     currentUserAccountID,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, datetimeToCalendarTime} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -827,7 +828,7 @@ function PureReportActionItem({
             const cardID = getOriginalMessage(action)?.cardID ?? 0;
             return [
                 {
-                    text: 'Yes',
+                    text: translate('cardPage.cardFraudAlert.confirmButtonText'),
                     key: `${action.reportActionID}-cardFraudAlert-confirm`,
                     onPress: () => {
                         resolveFraudAlert(cardID, false, reportID ?? '', action.reportActionID);
@@ -835,7 +836,7 @@ function PureReportActionItem({
                     isPrimary: true,
                 },
                 {
-                    text: 'No',
+                    text: translate('cardPage.cardFraudAlert.reportFraudButtonText'),
                     key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
                     onPress: () => {
                         resolveFraudAlert(cardID, true, reportID ?? '', action.reportActionID);
@@ -1335,13 +1336,18 @@ function PureReportActionItem({
             const formattedAmount = CurrencyUtils.convertToDisplayString(fraudMessage?.triggerAmount ?? 0, 'USD');
             const merchant = fraudMessage?.triggerMerchant ?? '';
             const resolution = fraudMessage?.resolution;
-            const formattedDate = action.created ? datetimeToCalendarTime(action.created, false, false) : '';
+            const formattedDate = action.created ? format(getLocalDateFromDatetime(action.created), 'MMM do - h:mma') : '';
 
             const message = resolution
                 ? (resolution === 'recognized'
-                    ? 'cleared the earlier suspicious activity. The card is reactivated. You\'re all set to keep on expensin\'!'
-                    : 'the card has been deactivated.')
-                : `I identified suspicious activity for your Expensify Card ending in ${cardLastFour}. Do you recognize these charges?\n\n${formattedDate} for ${formattedAmount} at ${merchant}`;
+                    ? translate('cardPage.cardFraudAlert.clearedMessage', {cardLastFour})
+                    : translate('cardPage.cardFraudAlert.deactivatedMessage', {cardLastFour}))
+                : translate('cardPage.cardFraudAlert.alertMessage', {
+                      cardLastFour,
+                      amount: formattedAmount,
+                      merchant,
+                      date: formattedDate,
+                  });
 
             children = (
                 <View>

@@ -1995,6 +1995,29 @@ const translations = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        cardFraudAlert: {
+            confirmButtonText: 'はい、そうです',
+            reportFraudButtonText: 'いいえ、それは私ではありませんでした。',
+            clearedMessage: ({cardLastFour}: {cardLastFour: string}) =>
+                `不審な活動をクリアし、カード x${
+                    //_/\__/_/  \_,_/\__/\__/\_,_/
+                    cardLastFour
+                } を再アクティブ化しました。経費精算を続ける準備が整いました！`,
+            deactivatedMessage: ({cardLastFour}: {cardLastFour: string}) => `${cardLastFour}で終わるカードを無効化しました`,
+            alertMessage: ({
+                cardLastFour,
+                amount,
+                merchant,
+                date,
+            }: {
+                cardLastFour: string;
+                amount: string;
+                merchant: string;
+                date: string;
+            }) => `カードの末尾が${cardLastFour}のカードで不審な活動が確認されました。この請求を認識していますか？
+
+${date} - ${merchant}に対する${amount}`,
+        },
     },
     workflowsPage: {
         workflowTitle: '支出',
