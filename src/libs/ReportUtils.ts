@@ -8315,30 +8315,27 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         return false;
     }
 
-if (isLHNReport(report)) {
-    const isAdmin = isPolicyAdminByID(report.policyID);
+    if (isLHNReport(report)) {
+        const isAdmin = isPolicyAdminByID(report.policyID);
 
-    if (!isAdmin) {
-        const policyReports = Object.values(reportsByPolicyID[report.policyID] ?? {});
-        
-        const expenseReportsForThisChat = policyReports.filter(
-            (policyReport) => policyReport?.type === 'expense' &&
-                             policyReport?.chatReportID === report.reportID &&
-                             isCurrentUserSubmitter(policyReport)
-        );
+        if (!isAdmin) {
+            const policyReports = Object.values(reportsByPolicyID[report.policyID] ?? {});
 
-        if (expenseReportsForThisChat.length > 0) {
-            const hasOpenExpenseReport = expenseReportsForThisChat.some(
-                (policyReport) => (policyReport?.stateNum ?? 0) === CONST.REPORT.STATE_NUM.OPEN &&
-                                 (policyReport?.statusNum ?? 0) === CONST.REPORT.STATUS_NUM.OPEN
+            const expenseReportsForThisChat = policyReports.filter(
+                (policyReport) => policyReport?.type === 'expense' && policyReport?.chatReportID === report.reportID && isCurrentUserSubmitter(policyReport),
             );
 
-            if (!hasOpenExpenseReport) {
-                return false;
+            if (expenseReportsForThisChat.length > 0) {
+                const hasOpenExpenseReport = expenseReportsForThisChat.some(
+                    (policyReport) => (policyReport?.stateNum ?? 0) === CONST.REPORT.STATE_NUM.OPEN && (policyReport?.statusNum ?? 0) === CONST.REPORT.STATUS_NUM.OPEN,
+                );
+
+                if (!hasOpenExpenseReport) {
+                    return false;
+                }
             }
         }
     }
-}
 
     // If any report has a violation, then it should have a RBR
     const potentialReports = Object.values(reportsByPolicyID[report.policyID] ?? {}) ?? [];
