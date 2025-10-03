@@ -162,7 +162,7 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 ## Instructions
 
 1. **Read each changed file carefully** using the Read tool
-2. **For each violation found, immediately create an inline comment that backlinks to the original rule** using the available GitHub inline comment tool
+2. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
 3. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "src/components/ReportActionsList.tsx")
    - `line`: Line number where the issue occurs
