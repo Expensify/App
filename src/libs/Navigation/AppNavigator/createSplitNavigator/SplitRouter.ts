@@ -36,12 +36,10 @@ type AdaptStateIfNecessaryArgs = {
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     if (!navigationRef.isReady()) {
         Log.warn('[src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts] NavigationRef is not ready. Returning the original state without adaptation.');
-        return state;
     }
 
     const isNarrowLayout = getIsNarrowLayout();
-    const rootState = navigationRef.getRootState();
-
+    const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
 
     const routes = [...state.routes];

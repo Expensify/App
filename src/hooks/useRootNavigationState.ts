@@ -3,16 +3,7 @@ import {useEffect, useRef, useState} from 'react';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 
-type Selector<T> = (state: NavigationState) => T;
-
-const EMPTY_ROOT_STATE: NavigationState = {
-    stale: false,
-    type: 'stack',
-    key: 'key',
-    index: 0,
-    routeNames: [],
-    routes: [],
-};
+type Selector<T> = (state: NavigationState | undefined) => T;
 
 /**
  * Hook to get a value from the current root navigation state using a selector.
@@ -22,8 +13,8 @@ const EMPTY_ROOT_STATE: NavigationState = {
 function useRootNavigationState<T>(selector: Selector<T>): T {
     const [result, setResult] = useState<T>(() => {
         if (!navigationRef.isReady()) {
-            Log.warn('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with empty root state.');
-            return selector(EMPTY_ROOT_STATE);
+            Log.warn('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with undefined.');
+            return selector(undefined);
         }
         return selector(navigationRef.getRootState());
     });

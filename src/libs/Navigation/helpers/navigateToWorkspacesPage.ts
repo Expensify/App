@@ -22,10 +22,9 @@ type Params = {
 const getWorkspaceNavigationRouteState = () => {
     if (!navigationRef.isReady()) {
         Log.warn('[src/libs/Navigation/helpers/navigateToWorkspacesPage.ts] NavigationRef is not ready. Returning empty object.');
-        return {};
     }
 
-    const rootState = navigationRef.getRootState();
+    const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
 
     // Only consider main (fullscreen) routes for top-level navigation context.
     const topmostFullScreenRoute = rootState?.routes?.findLast((route) => isFullScreenName(route.name));
