@@ -169,7 +169,6 @@ function AccountDetailsPage() {
             includeSafeAreaPaddingBottom
             testID={AccountDetailsPage.displayName}
             shouldShowOfflineIndicator={false}
-            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}

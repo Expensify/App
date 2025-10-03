@@ -142,7 +142,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
             shouldEnableMaxHeight
             testID={InternationalDepositAccountContent.displayName}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-            shouldShowOfflineIndicatorInWideScreen={screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION || screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR}
+            shouldShowOfflineIndicatorInWideScreen={screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}
