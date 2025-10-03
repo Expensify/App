@@ -1877,7 +1877,9 @@ function getValidOptions(
             return searchTerms.every((term) => searchText.includes(term));
         };
 
-        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxElements, filteringFunction, true);
+        // when we expect that function return eg. 50 elements and we already found 40 recent reports, we should adjust the max personal details number
+        const maxPersonalDetailsElements = maxElements ? maxElements - recentReportOptions.length : undefined;
+        personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
