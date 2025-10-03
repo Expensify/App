@@ -577,6 +577,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Report;
 
         const transaction = {
+            transactionID: 'TRANSACTION_ID_R14932',
             comment: {},
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
@@ -839,7 +840,7 @@ describe('getSecondaryAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(report, {} as Transaction, [], policy);
+        const result = getSecondaryTransactionThreadActions(report, {} as Transaction, undefined, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -1374,7 +1375,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         const result = [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS];
-        expect(getSecondaryTransactionThreadActions(report, {} as Transaction, [], policy)).toEqual(result);
+        expect(getSecondaryTransactionThreadActions(report, {} as Transaction, undefined, policy)).toEqual(result);
     });
 
     it('includes HOLD option', () => {
@@ -1393,7 +1394,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
-        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -1410,12 +1411,12 @@ describe('getSecondaryTransactionThreadActions', () => {
         } as unknown as Transaction;
 
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
-        const result = getSecondaryTransactionThreadActions(report, transaction, [], policy, transactionThreadReport);
+        const result = getSecondaryTransactionThreadActions(report, transaction, undefined, policy, transactionThreadReport);
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
         // Do not show if admin is the holder
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
-        const result2 = getSecondaryTransactionThreadActions(report, transaction, [], policy, transactionThreadReport);
+        const result2 = getSecondaryTransactionThreadActions(report, transaction, undefined, policy, transactionThreadReport);
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
@@ -1432,7 +1433,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(report, {} as Transaction, [], policy);
+        const result = getSecondaryTransactionThreadActions(report, {} as Transaction, undefined, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -1508,7 +1509,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
@@ -1544,7 +1545,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -1581,7 +1582,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryTransactionThreadActions(report, transaction, [actionR14932], policy);
+        const result = getSecondaryTransactionThreadActions(report, transaction, actionR14932, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 });
