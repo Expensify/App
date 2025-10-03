@@ -710,14 +710,14 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
         return false;
     }
 
-    if (isSubmittedAction(currentAction)) {
+    if (isSubmittedAction(currentAction) || isSubmittedAndClosedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
         return typeof currentActionAdminAccountID === 'number'
             ? currentActionAdminAccountID === adjacentAction.actorAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    if (isSubmittedAction(adjacentAction)) {
+    if (isSubmittedAction(adjacentAction) || isSubmittedAndClosedAction(adjacentAction)) {
         return typeof adjacentAction.adminAccountID === 'number'
             ? currentAction.actorAccountID === adjacentAction.adminAccountID
             : currentAction.actorAccountID === adjacentAction.actorAccountID;
@@ -866,12 +866,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !isMarkAsClosedAction(reportAction)) {
-        return false;
-    }
-
-    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
-    // elsewhere in the IOU reportAction
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
         return false;
     }
 
@@ -3057,7 +3051,7 @@ function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefin
 }
 
 function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
+    if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
         return;
     }
 
@@ -3065,7 +3059,7 @@ function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
 }
 
 function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
+    if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
         return;
     }
 
