@@ -12845,7 +12845,7 @@ async function run() {
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
-    function getDeployMessage(deployer, deployVerb, prTitle) {
+    function getDeployMessage(deployer, deployVerb) {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
         message += ` by https://github.com/${deployer} in version: ${version} `;
         if (date) {
@@ -12855,11 +12855,6 @@ async function run() {
         message += `\n\nplatform | result\n---|---\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🕸 web 🕸|${webResult}`;
         message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
-        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
-            // eslint-disable-next-line max-len
-            message +=
-                '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
-        }
         if (note) {
             message += `\n\n_Note:_ ${note}`;
         }
