@@ -14,12 +14,12 @@ Your job is to scan through changed files and create **inline comments** for spe
 ## Rules
 
 Each rule includes:
-- A unique **Rule ID**
+- A unique **[Rule ID]** and **Rule Name** in the title
 - **Pass/Fail condition**
 - **Reasoning**: Technical explanation of why the rule is important
 - Examples of good and bad usage
 
-### [PERF-1] No spread in list item's renderItem
+### [PERF-1](#PERF-1) No spread in list item's renderItem
 - **Condition**: When passing data to components in renderItem functions, avoid using spread operators to extend objects. Instead, pass the base object and additional properties as separate props to prevent unnecessary object creation on each render.
 - **Reasoning**: `renderItem` functions execute for every visible list item on each render. Creating new objects with spread operators forces React to treat each item as changed, preventing reconciliation optimizations and causing unnecessary re-renders of child components.
 
@@ -45,7 +45,7 @@ Bad:
 
 ---
 
-### [PERF-2] Use early returns in array iteration methods
+### [PERF-2](#PERF-2) Use early returns in array iteration methods
 - **Condition**: When using `.every()`, `.some()`, or similar methods, perform simple checks first with early returns before expensive operations.
 - **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
 
@@ -70,7 +70,7 @@ const areAllTransactionsValid = transactions.every((transaction) => {
 
 ---
 
-### [PERF-3] Use OnyxListItemProvider hooks instead of useOnyx in renderItem
+### [PERF-3](#PERF-3) Use OnyxListItemProvider hooks instead of useOnyx in renderItem
 - **Condition**: Components rendered inside `renderItem` functions should use dedicated hooks from `OnyxListItemProvider` instead of individual `useOnyx` calls.
 - **Reasoning**: Individual `useOnyx` calls in renderItem create separate subscriptions for each list item, causing memory overhead and update cascades. `OnyxListItemProvider` hooks provide optimized data access patterns specifically designed for list rendering performance.
 
@@ -86,7 +86,7 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
-### [PERF-4] Memoize objects and functions passed as props
+### [PERF-4](#PERF-4) Memoize objects and functions passed as props
 - **Condition**: Objects and functions passed as props should be properly memoized or simplified to primitive values to prevent unnecessary re-renders.
 - **Reasoning**: React uses referential equality to determine if props changed. New object/function instances on every render trigger unnecessary re-renders of child components, even when the actual data hasn't changed. Memoization preserves referential stability.
 
@@ -110,7 +110,7 @@ return <ReportActionItem report={report} />
 
 ---
 
-### [PERF-5] Use shallow comparisons instead of deep comparisons
+### [PERF-5](#PERF-5) Use shallow comparisons instead of deep comparisons
 - **Condition**: In `React.memo` and similar optimization functions, compare only specific relevant properties instead of using deep equality checks.
 - **Reasoning**: Deep equality checks recursively compare all nested properties, creating performance overhead that often exceeds the re-render cost they aim to prevent. Shallow comparisons of specific relevant properties provide the same optimization benefits with minimal computational cost.
 
@@ -133,7 +133,7 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 
 ---
 
-### [PERF-6] Use specific properties as hook dependencies
+### [PERF-6](#PERF-6) Use specific properties as hook dependencies
 - **Condition**: In `useEffect`, `useMemo`, and `useCallback`, specify individual object properties as dependencies instead of passing entire objects.
 - **Reasoning**: Passing entire objects as dependencies causes hooks to re-execute whenever any property changes, even unrelated ones. Specifying individual properties creates more granular dependency tracking, reducing unnecessary hook executions and improving performance predictability.
 
@@ -162,7 +162,7 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
 ## Instructions
 
 1. **Read each changed file carefully** using the Read tool
-2. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
+2. **For each violation found, immediately create an inline comment that backlinks to the original rule** using the available GitHub inline comment tool
 3. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "src/components/ReportActionsList.tsx")
    - `line`: Line number where the issue occurs
@@ -180,7 +180,7 @@ mcp__github_inline_comment__create_inline_comment:
 ## Comment Format
 
 ```
-### ❌ **<Rule ID>**
+### ❌ **<Rule ID> <Rule Name>** [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-inline-reviewer.md#<Rule ID>)
 
 <Reasoning>
 
