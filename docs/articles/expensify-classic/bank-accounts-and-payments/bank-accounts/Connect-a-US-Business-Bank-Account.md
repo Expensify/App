@@ -8,14 +8,14 @@ Use a business bank account in Expensify to receive invoice payments, reimburse 
    
 # Connect a Verified Business Bank Account
 
-## Who can use a verified business bank account
+## Who can verify a business bank account
 
-To connect a verified U.S. business bank account: 
+To connect and verify a U.S. business bank account: 
 - The business must be based in the U.S.
 - The person connecting the account must enter their own U.S.-issued ID, SSN, and address.
 - The person adding the account doesn’t need to be an account signer.
 
-## Requirements for connecting a verified business bank account
+## Requirements for verifying a business bank account
 - The person adding the bank account must have a US-issued ID
 - The company address must be in the US
 - The controlling officer (the member initiating the connection to the bank account)'s address must be in the US
@@ -23,7 +23,7 @@ To connect a verified U.S. business bank account:
 
 **Important:** The person adding the bank account doesn’t need to be an account signer but they must enter their own personal information when connecting the bank account. If another person enters their details, the account will be flagged for review, delaying verification.
 
-## Where to find verified business bank account settings
+## Where to find and verify business bank accounts
 
 - **Web:** Go to **Settings > Account > Wallet > Bank Accounts**
 - **Mobile:** Tap the hamburger menu in the top-left corner, then tap **Settings** > **Account** > **Wallet**
@@ -36,7 +36,7 @@ To connect a verified U.S. business bank account:
 2. Choose **Add verified bank account** > **Connect to your bank**.
 3. Click **Continue**.
 4. Enter your phone number and click **Continue**.
-5. Select your bank and login.
+5. Select your bank and log in.
    - If your bank isn’t listed, click the **X**, select **Connect manually**, enter details, check the box, and click **Save & continue**.
 6. Click **Allow**.
 7. Ensure the correct account is selected and click **Save & continue**.
