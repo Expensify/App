@@ -1747,6 +1747,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
+        optionRowExpanded: {
+            paddingTop: 12,
+            paddingBottom: 12,
+            minHeight: undefined,
+        },
+
         optionRowDisabled: {
             color: theme.textSupporting,
         },
