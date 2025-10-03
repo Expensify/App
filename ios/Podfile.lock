@@ -2841,7 +2841,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.304):
+  - RNLiveMarkdown (0.1.305):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2971,7 +2971,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (4.1.0):
+  - RNReanimated (4.1.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2994,10 +2994,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.1.0)
+    - RNReanimated/reanimated (= 4.1.2)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated (4.1.0):
+  - RNReanimated/reanimated (4.1.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3020,10 +3020,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.1.0)
+    - RNReanimated/reanimated/apple (= 4.1.2)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated/apple (4.1.0):
+  - RNReanimated/reanimated/apple (4.1.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3177,7 +3177,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNWorklets (0.5.0):
+  - RNWorklets (0.6.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3200,9 +3200,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets (= 0.5.0)
+    - RNWorklets/worklets (= 0.6.0)
     - Yoga
-  - RNWorklets/worklets (0.5.0):
+  - RNWorklets/worklets (0.6.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3225,9 +3225,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets/apple (= 0.5.0)
+    - RNWorklets/worklets/apple (= 0.6.0)
     - Yoga
-  - RNWorklets/worklets/apple (0.5.0):
+  - RNWorklets/worklets/apple (0.6.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3917,18 +3917,18 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 61d3e94abb866ee955563ddf073e405e3f541359
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 7a023e8ca721643cb5a9297e279e4b085093137c
+  RNLiveMarkdown: 2090300f9993f0babf741715e3a0cfe56943cfbb
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: f3875edd847c82d770d1b57852b36d45b3ea8a01
   RNNitroSQLite: e36968e81bbcab6c9e97a35e74ae34c7420d734c
   RNPermissions: fd6b2676e74ecb6d2dec0a6168502ab7af733e34
   RNReactNativeHapticFeedback: 85c0a6ff490d52f5e8073040296fefe5945ebbfa
-  RNReanimated: 223b1b3895100ae576756fa8e0d09e49354f9bdf
+  RNReanimated: 2721090eb0e662bf05b84701eae6de7a4eead177
   RNScreens: 0dcbe4c37daf0ec9b98bc5a655b1303e58e676ff
   RNShare: 1e3e15a3d2608acde2808bc35448e2344e38e15b
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 9346c68a0d5c5e4e74d82d664b745f28e6cfc1cb
-  RNWorklets: 18e24f98345960e357e8e0f7908c6b67704c34a2
+  RNWorklets: f7b2c643f9c3fcdf4c7049f237bcf5d308eaaa93
   SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
