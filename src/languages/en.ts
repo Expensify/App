@@ -631,6 +631,7 @@ const translations = {
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
         help: 'Help',
+        expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',
@@ -643,7 +644,6 @@ const translations = {
         todo: 'To-do',
         invoice: 'Invoice',
         expense: 'Expense',
-        expenseReport: 'Expense report',
         chat: 'Chat',
         task: 'Task',
         trip: 'Trip',
