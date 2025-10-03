@@ -14,7 +14,7 @@ Your job is to scan through changed files and create **inline comments** for spe
 ## Rules
 
 Each rule includes:
-- A unique **[Rule ID]**
+- A unique **Rule ID**
 - **Pass/Fail condition**
 - **Reasoning**: Technical explanation of why the rule is important
 - Examples of good and bad usage
