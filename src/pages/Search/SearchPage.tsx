@@ -35,6 +35,7 @@ import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
+    getExportTemplates,
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
@@ -46,7 +47,6 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -181,20 +181,6 @@ function SearchPage({route}: SearchPageProps) {
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,
                 },
-                {
-                    text: translate('export.expenseLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () => {
-                        if (isOffline) {
-                            setIsOfflineModalVisible(true);
-                            return;
-                        }
-                        // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                },
             ];
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
@@ -203,40 +189,12 @@ function SearchPage({route}: SearchPageProps) {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
+            const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
+            const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
 
-            // Add the report level export if fully reports are selected and we're on the report page
-            if ((groupByReports || typeInvoice) && areFullReportsSelected) {
-                exportOptions.push({
-                    text: translate('export.reportLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () => {
-                        if (isOffline) {
-                            setIsOfflineModalVisible(true);
-                            return;
-                        }
-                        // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
-            }
-
-            // If the user has any custom integration export templates, add them as export options
-            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-                for (const template of integrationsExportTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        onSelected: () => {
-                            // Custom IS templates are not policy specific, so we don't need to pass a policyID
-                            beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
-                        },
-                        shouldCloseModalOnSelect: true,
-                        shouldCallAfterModalHide: true,
-                    });
-                }
-            }
+            // If we're grouping by invoice or report, and all the expenses on the report are selected, or if all
+            // the selected expenses are the only expenses of their parent expense report include the report level export option.
+            const includeReportLevelExport = ((groupByReports || typeInvoice) && areFullReportsSelected) || (typeExpense && !groupByReports && isAllOneTransactionReport);
 
             // Collate a list of policyIDs from the selected transactions
             const selectedPolicyIDs = [
@@ -247,50 +205,20 @@ function SearchPage({route}: SearchPageProps) {
                 ),
             ];
 
-            // If all of the transactions are on the same policy, add the policy-level in-app export templates as export options
-            if (selectedPolicyIDs.length === 1) {
-                const policyID = selectedPolicyIDs.at(0);
-                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-                const templates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
-                    ...layout,
-                    templateName,
-                }));
-
-                for (const template of templates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        description: policy?.name,
-                        onSelected: () => {
-                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policyID);
-                        },
-                        shouldCloseModalOnSelect: true,
-                        shouldCallAfterModalHide: true,
-                    });
-                }
-            }
-
-            // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
-            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
-                .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
-                .map(([templateName, layout]) => ({
-                    ...layout,
-                    templateName,
-                }));
-
-            if (accountInAppTemplates && accountInAppTemplates.length > 0) {
-                for (const template of accountInAppTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        onSelected: () => {
-                            // Account level in-app export templates are not policy specific, so we don't need to pass a policyID
-                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, undefined);
-                        },
-                        shouldCloseModalOnSelect: true,
-                        shouldCallAfterModalHide: true,
-                    });
-                }
+            // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
+            const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
+            for (const template of exportTemplates) {
+                exportOptions.push({
+                    text: template.name,
+                    icon: Expensicons.Table,
+                    description: template.description,
+                    onSelected: () => {
+                        beginExportWithTemplate(template.templateName, template.type, template.policyID);
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                });
             }
 
             return exportOptions;
@@ -336,6 +264,7 @@ function SearchPage({route}: SearchPageProps) {
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
@@ -415,6 +344,7 @@ function SearchPage({route}: SearchPageProps) {
                     ) as PaymentData[];
 
                     payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
@@ -458,6 +388,7 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
@@ -465,10 +396,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        // TODO: change this condition after the feature is ready to be deployed
-        const canAllTransactionsBeMoved = Permissions.canUseUnreportedExpense()
-            ? selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport) && !!activePolicy && activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL
-            : selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
             options.push({
@@ -495,6 +423,7 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     // Use InteractionManager to ensure this runs after the dropdown modal closes
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         setIsDeleteExpensesConfirmModalVisible(true);
                     });
@@ -552,6 +481,7 @@ function SearchPage({route}: SearchPageProps) {
 
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+        // eslint-disable-next-line deprecation/deprecation
         InteractionManager.runAfterInteractions(() => {
             deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
@@ -731,7 +661,7 @@ function SearchPage({route}: SearchPageProps) {
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTextStyles={styles.receiptDropText}
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                            dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
@@ -848,7 +778,11 @@ function SearchPage({route}: SearchPageProps) {
                                         dropTitle={translate('dropzone.scanReceipts')}
                                         dropStyles={styles.receiptDropOverlay(true)}
                                         dropTextStyles={styles.receiptDropText}
-                                        dashedBorderStyles={styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)}
+                                        dashedBorderStyles={[
+                                            styles.dropzoneArea,
+                                            styles.easeInOpacityTransition,
+                                            styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true),
+                                        ]}
                                     />
                                 </DragAndDropConsumer>
                             </DragAndDropProvider>

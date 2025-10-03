@@ -7,8 +7,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
@@ -49,6 +50,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -214,6 +216,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         return;
                     }
                     Navigation.dismissModal();
+                    // eslint-disable-next-line deprecation/deprecation
                     InteractionManager.runAfterInteractions(() => {
                         if (report && isIOUReport(report)) {
                             convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
@@ -226,6 +229,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                 session?.email ?? '',
                                 policy,
                                 reportNextStep,
+                                policyCategories,
                             );
                         }
                     });
